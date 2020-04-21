@@ -1,11 +1,11 @@
 package codechicken.nei.recipe;
 
-import codechicken.core.TaskProfiler;
 import codechicken.nei.NEIClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class GuiUsageRecipe extends GuiRecipe
 {
@@ -13,15 +13,11 @@ public class GuiUsageRecipe extends GuiRecipe
         Minecraft mc = NEIClientUtils.mc();
         GuiContainer prevscreen = mc.currentScreen instanceof GuiContainer ? (GuiContainer) mc.currentScreen : null;
 
-        TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
-        ArrayList<IUsageHandler> handlers = new ArrayList<>();
-        for (IUsageHandler usagehandler : usagehandlers) {
-            profiler.start(usagehandler.getRecipeName());
-            IUsageHandler handler = usagehandler.getUsageHandler(inputId, ingredients);
-            if (handler.numRecipes() > 0)
-                handlers.add(handler);
-        }
-        profiler.end();
+        ArrayList<IUsageHandler> handlers = usagehandlers.parallelStream()
+            .map(h -> h.getUsageHandler(inputId, ingredients))
+            .filter(h -> h.numRecipes() > 0)
+            .collect(Collectors.toCollection(ArrayList::new));
+
         if (handlers.isEmpty())
             return false;
 

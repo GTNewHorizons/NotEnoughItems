@@ -6,6 +6,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class GuiCraftingRecipe extends GuiRecipe
 {
@@ -13,15 +16,11 @@ public class GuiCraftingRecipe extends GuiRecipe
         Minecraft mc = NEIClientUtils.mc();
         GuiContainer prevscreen = mc.currentScreen instanceof GuiContainer ? (GuiContainer) mc.currentScreen : null;
 
-        TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
-        ArrayList<ICraftingHandler> handlers = new ArrayList<>();
-        for (ICraftingHandler craftinghandler : craftinghandlers) {
-            profiler.start(craftinghandler.getRecipeName());
-            ICraftingHandler handler = craftinghandler.getRecipeHandler(outputId, results);
-            if (handler.numRecipes() > 0)
-                handlers.add(handler);
-        }
-        profiler.end();
+        ArrayList<ICraftingHandler> handlers = craftinghandlers.parallelStream()
+            .map(h -> h.getRecipeHandler(outputId, results))
+            .filter(h -> h.numRecipes() > 0)
+            .collect(Collectors.toCollection(ArrayList::new));
+
         if (handlers.isEmpty())
             return false;
 
