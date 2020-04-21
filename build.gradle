@@ -56,7 +56,7 @@ minecraft {
     version = config.mc_version + "-" + config.forge_version
 }
 
-def root = project.projectDir.parentFile
+def root = project.projectDir
 sourceSets {
     main {
         java {
