@@ -23,11 +23,15 @@ public class GuiCraftingRecipe extends GuiRecipe
         GuiContainer prevscreen = mc.currentScreen instanceof GuiContainer ? (GuiContainer) mc.currentScreen : null;
 
         ArrayList<ICraftingHandler> handlers;
+        TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
         try {
+            profiler.start("recipe.concurrent.crafting");
             handlers = forkJoinPool.submit(() -> getCraftingHandlers(outputId, results)).get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return false;
+        } finally {
+            profiler.end();
         }
 
         if (handlers.isEmpty())
