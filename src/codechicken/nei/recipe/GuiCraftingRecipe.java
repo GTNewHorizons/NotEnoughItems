@@ -6,20 +6,29 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class GuiCraftingRecipe extends GuiRecipe
 {
+    protected static ArrayList<ICraftingHandler> getCraftingHandlers(String outputId, Object... results) {
+        return craftinghandlers.parallelStream()
+            .map(h -> h.getRecipeHandler(outputId, results))
+            .filter(h -> h.numRecipes() > 0)
+            .collect(Collectors.toCollection(ArrayList::new));
+    }
+
     public static boolean openRecipeGui(String outputId, Object... results) {
         Minecraft mc = NEIClientUtils.mc();
         GuiContainer prevscreen = mc.currentScreen instanceof GuiContainer ? (GuiContainer) mc.currentScreen : null;
 
-        ArrayList<ICraftingHandler> handlers = craftinghandlers.parallelStream()
-            .map(h -> h.getRecipeHandler(outputId, results))
-            .filter(h -> h.numRecipes() > 0)
-            .collect(Collectors.toCollection(ArrayList::new));
+        ArrayList<ICraftingHandler> handlers;
+        try {
+            handlers = forkJoinPool.submit(() -> getCraftingHandlers(outputId, results)).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            return false;
+        }
 
         if (handlers.isEmpty())
             return false;
