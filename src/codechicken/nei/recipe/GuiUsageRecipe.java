@@ -1,5 +1,6 @@
 package codechicken.nei.recipe;
 
+import codechicken.core.TaskProfiler;
 import codechicken.nei.NEIClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -22,11 +23,15 @@ public class GuiUsageRecipe extends GuiRecipe
         GuiContainer prevscreen = mc.currentScreen instanceof GuiContainer ? (GuiContainer) mc.currentScreen : null;
 
         ArrayList<IUsageHandler> handlers;
+        TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
         try {
+            profiler.start("recipe.concurrent.usage");
             handlers = forkJoinPool.submit(() -> getUsageHandlers(inputId, ingredients)).get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return false;
+        } finally {
+            profiler.end();
         }
 
         if (handlers.isEmpty())
