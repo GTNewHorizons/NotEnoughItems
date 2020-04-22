@@ -25,9 +25,20 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOverlay, IGuiClientSide, IGuiHandleMouseWheel, IContainerTooltipHandler
 {
+    protected static final ForkJoinPool forkJoinPool;
+
+    static {
+        int poolSize = Runtime.getRuntime().availableProcessors() * 2 / 3;
+        if (poolSize < 1)
+            poolSize = 1;
+
+        forkJoinPool = new ForkJoinPool(poolSize);
+    }
+
     public ArrayList<? extends IRecipeHandler> currenthandlers = new ArrayList<>();
 
     public int page;
