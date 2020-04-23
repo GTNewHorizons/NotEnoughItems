@@ -1,6 +1,7 @@
 package codechicken.nei.recipe;
 
 import codechicken.core.TaskProfiler;
+import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -26,7 +27,7 @@ public class GuiCraftingRecipe extends GuiRecipe
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
         try {
             profiler.start("recipe.concurrent.crafting");
-            handlers = forkJoinPool.submit(() -> getCraftingHandlers(outputId, results)).get();
+            handlers = ItemList.forkJoinPool.submit(() -> getCraftingHandlers(outputId, results)).get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return false;
