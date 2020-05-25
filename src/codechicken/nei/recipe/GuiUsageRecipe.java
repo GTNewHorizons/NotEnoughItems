@@ -12,13 +12,6 @@ import java.util.stream.Collectors;
 
 public class GuiUsageRecipe extends GuiRecipe
 {
-    protected static ArrayList<IUsageHandler> getUsageHandlers(String inputId, Object... ingredients) {
-        return usagehandlers.parallelStream()
-            .map(h -> h.getUsageHandler(inputId, ingredients))
-            .filter(h -> h.numRecipes() > 0)
-            .collect(Collectors.toCollection(ArrayList::new));
-    }
-
     public static boolean openRecipeGui(String inputId, Object... ingredients) {
         Minecraft mc = NEIClientUtils.mc();
         GuiContainer prevscreen = mc.currentScreen instanceof GuiContainer ? (GuiContainer) mc.currentScreen : null;
@@ -27,7 +20,10 @@ public class GuiUsageRecipe extends GuiRecipe
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
         try {
             profiler.start("recipe.concurrent.usage");
-            handlers = ItemList.forkJoinPool.submit(() -> getUsageHandlers(inputId, ingredients)).get();
+            handlers = ItemList.forkJoinPool.submit(() -> usagehandlers.parallelStream()
+                .map(h -> h.getUsageHandler(inputId, ingredients))
+                .filter(h -> h.numRecipes() > 0)
+                .collect(Collectors.toCollection(ArrayList::new))).get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return false;
