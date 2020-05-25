@@ -4,11 +4,3 @@ NotEnoughItems.iml
 NotEnoughItems.ipr
 NotEnoughItems.iws
 *.bat
-=======
-build/build/*
-build/run/*
-build/.gradle/*
-*.ipr
-*.iml
-*.iws
-.idea/**
