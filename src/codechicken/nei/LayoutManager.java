@@ -554,6 +554,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
         return true;
     }
+    
+    public static void markItemsDirty() {
+        // If anything has modified data this depends on, we'll need to reload the item list
+        itemsLoaded = false;
+    }
 
     @Override
     public void load(GuiContainer gui) {

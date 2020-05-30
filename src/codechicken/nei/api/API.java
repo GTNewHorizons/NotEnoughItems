@@ -121,6 +121,7 @@ public class API
      */
     public static void hideItem(ItemStack item) {
         ItemInfo.hiddenItems.add(item);
+        LayoutManager.markItemsDirty();
     }
 
     /**
@@ -128,6 +129,7 @@ public class API
      */
     public static void setOverrideName(ItemStack item, String name) {
         ItemInfo.nameOverrides.put(item, name);
+        LayoutManager.markItemsDirty();
     }
 
     /**
@@ -136,6 +138,7 @@ public class API
      */
     public static void addItemListEntry(ItemStack item) {
         ItemInfo.itemOverrides.put(item.getItem(), item);
+        LayoutManager.markItemsDirty();
     }
 
     /**
@@ -145,6 +148,7 @@ public class API
         if(items == null)
             items = Collections.emptyList();
         ItemInfo.itemOverrides.replaceValues(item, items);
+        LayoutManager.markItemsDirty();
     }
 
     /**
@@ -273,5 +277,6 @@ public class API
      */
     public static void addItemVariant(Item item, ItemStack variant) {
         ItemInfo.itemVariants.put(item, variant);
+        LayoutManager.markItemsDirty();
     }
 }
