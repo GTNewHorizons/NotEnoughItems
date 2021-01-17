@@ -17,9 +17,9 @@ public class FuelRecipeHandler extends FurnaceRecipeHandler
 {
     public class CachedFuelRecipe extends CachedRecipe
     {
-        public final FuelPair fuel;
+        public final TemplateFuelPair fuel;
 
-        public CachedFuelRecipe(FuelPair fuel) {
+        public CachedFuelRecipe(TemplateFuelPair fuel) {
             this.fuel = fuel;
         }
 
@@ -85,7 +85,7 @@ public class FuelRecipeHandler extends FurnaceRecipeHandler
     @Override
     public List<String> handleItemTooltip(GuiRecipe gui, ItemStack stack, List<String> currenttip, int recipe) {
         CachedFuelRecipe crecipe = (CachedFuelRecipe) arecipes.get(recipe);
-        FuelPair fuel = crecipe.fuel;
+        TemplateFuelPair fuel = crecipe.fuel;
         float burnTime = fuel.burnTime / 200F;
 
         if (gui.isMouseOver(fuel.stack, recipe) && burnTime < 1) {

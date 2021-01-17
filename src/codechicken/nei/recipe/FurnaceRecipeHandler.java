@@ -40,6 +40,18 @@ public class FurnaceRecipeHandler extends TemplateRecipeHandler
         final PositionedStack result;
     }
 
+    @Deprecated
+    public static class FuelPair {
+        public FuelPair(ItemStack ingred, int burnTime) {
+            this.stack = new PositionedStack(ingred, 51, 42, false);
+            this.burnTime = burnTime;
+        }
+
+        public final PositionedStack stack;
+        public final int burnTime;
+    }
+
+
     @Override
     public void loadTransferRects() {
         transferRects.add(new RecipeTransferRect(new Rectangle(50, 23, 18, 18), "fuel"));

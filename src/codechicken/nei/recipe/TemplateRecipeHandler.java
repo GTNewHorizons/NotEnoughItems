@@ -51,9 +51,9 @@ import static codechicken.lib.gui.GuiDraw.getMousePosition;
 public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageHandler
 {
     protected static ReentrantLock lock = new ReentrantLock();
-    public static class FuelPair
+    public static class TemplateFuelPair
     {
-        public FuelPair(ItemStack ingred, int burnTime) {
+        public TemplateFuelPair(ItemStack ingred, int burnTime) {
             this.stack = new PositionedStack(ingred, 51, 42, false);
             this.burnTime = burnTime;
         }
@@ -62,7 +62,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         public final int burnTime;
     }
 
-    public static List<FuelPair> afuels;
+    public static List<TemplateFuelPair> afuels;
 
     public static void findFuelsOnce() {
         // Ensure we only find fuels once, even if threaded
@@ -91,7 +91,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
                 if (efuels.contains(itemStack.getItem())) return null;
                 final int burnTime = TileEntityFurnace.getItemBurnTime(itemStack);
                 if (burnTime <= 0) return null;
-                return new FuelPair(itemStack.copy(), burnTime);
+                return new TemplateFuelPair(itemStack.copy(), burnTime);
             }).filter(Objects::nonNull).collect(Collectors.toList())).get();
         } catch (InterruptedException | ExecutionException e) {
             afuels = new ArrayList<>();
