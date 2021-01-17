@@ -1,5 +1,6 @@
 package codechicken.nei.recipe;
 
+import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
@@ -11,11 +12,14 @@ import codechicken.nei.api.IStackPositioner;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerTooltipHandler;
+import com.google.common.base.Stopwatch;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntityFurnace;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.Point;
@@ -26,7 +30,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import static codechicken.lib.gui.GuiDraw.changeTexture;
 import static codechicken.lib.gui.GuiDraw.drawTexturedModalRect;
@@ -41,6 +50,57 @@ import static codechicken.lib.gui.GuiDraw.getMousePosition;
  */
 public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageHandler
 {
+    protected static ReentrantLock lock = new ReentrantLock();
+    public static class FuelPair
+    {
+        public FuelPair(ItemStack ingred, int burnTime) {
+            this.stack = new PositionedStack(ingred, 51, 42, false);
+            this.burnTime = burnTime;
+        }
+
+        public final PositionedStack stack;
+        public final int burnTime;
+    }
+
+    public static List<FuelPair> afuels;
+
+    public static void findFuelsOnce() {
+        // Ensure we only find fuels once, even if threaded
+        lock.lock();
+        try {
+            if (afuels == null || afuels.isEmpty())
+                findFuels();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    private static void findFuels() {
+        Set<Item> efuels = new HashSet<>();
+        efuels.add(Item.getItemFromBlock(Blocks.brown_mushroom));
+        efuels.add(Item.getItemFromBlock(Blocks.red_mushroom));
+        efuels.add(Item.getItemFromBlock(Blocks.standing_sign));
+        efuels.add(Item.getItemFromBlock(Blocks.wall_sign));
+        efuels.add(Item.getItemFromBlock(Blocks.wooden_door));
+        efuels.add(Item.getItemFromBlock(Blocks.trapped_chest));
+        
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        try {
+            afuels = ItemList.forkJoinPool.submit(() -> ItemList.items.parallelStream().map(itemStack -> {
+                if (efuels.contains(itemStack.getItem())) return null;
+                final int burnTime = TileEntityFurnace.getItemBurnTime(itemStack);
+                if (burnTime <= 0) return null;
+                return new FuelPair(itemStack.copy(), burnTime);
+            }).filter(Objects::nonNull).collect(Collectors.toList())).get();
+        } catch (InterruptedException | ExecutionException e) {
+            afuels = new ArrayList<>();
+            e.printStackTrace();
+        }
+
+        NEIClientConfig.logger.info("FindFuels took " + stopwatch.stop() );
+    }
+
     /**
      * This Recipe Handler runs on this internal class
      * Fill the recipe array with subclasses of this to make transforming the different types of recipes out there into a nice format for NEI a much easier job.
@@ -310,7 +370,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
      */
     public ArrayList<CachedRecipe> arecipes = new ArrayList<>();
     /**
-     * A list of transferRects that apon when clicked or R is pressed will open a new recipe.
+     * A list of transferRects that when clicked or R is pressed will open a new recipe.
      */
     public LinkedList<RecipeTransferRect> transferRects = new LinkedList<>();
 
@@ -463,6 +523,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
     public TemplateRecipeHandler newInstance() {
         try {
+            findFuelsOnce();
             return getClass().newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);

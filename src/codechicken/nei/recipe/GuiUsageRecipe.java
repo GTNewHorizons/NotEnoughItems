@@ -12,14 +12,15 @@ import java.util.stream.Collectors;
 
 public class GuiUsageRecipe extends GuiRecipe
 {
-    public static boolean openRecipeGui(String inputId, Object... ingredients) {
+     public static boolean openRecipeGui(String inputId, Object... ingredients) {
         Minecraft mc = NEIClientUtils.mc();
         GuiContainer prevscreen = mc.currentScreen instanceof GuiContainer ? (GuiContainer) mc.currentScreen : null;
 
         ArrayList<IUsageHandler> handlers;
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
+
+        profiler.start("recipe.concurrent.usage");
         try {
-            profiler.start("recipe.concurrent.usage");
             handlers = ItemList.forkJoinPool.submit(() -> usagehandlers.parallelStream()
                 .map(h -> h.getUsageHandler(inputId, ingredients))
                 .filter(h -> h.numRecipes() > 0)

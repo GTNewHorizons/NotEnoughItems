@@ -92,19 +92,23 @@ public class BrewingRecipeHandler extends TemplateRecipeHandler
     public void loadCraftingRecipes(ItemStack result) {
         if (result.getItem() != potionitem) return;
         int damage = result.getItemDamage();
-
-        for (BrewingRecipe recipe : apotions)
-            if (recipe.result.item.getItemDamage() == damage)
-                arecipes.add(new CachedBrewingRecipe(recipe));
+        
+        // Note: Not safe as written for parallelStream
+        apotions.stream()
+            .filter(recipe -> recipe.result.item.getItemDamage() == damage)
+            .map(CachedBrewingRecipe::new)
+            .collect(Collectors.toCollection(() -> arecipes));
     }
 
     @Override
     public void loadUsageRecipes(ItemStack ingredient) {
         if (ingredient.getItem() != potionitem && !ingredients.contains(ingredient)) return;
 
-        for (BrewingRecipe recipe : apotions)
-            if (NEIServerUtils.areStacksSameType(recipe.ingredient.item, ingredient) || NEIServerUtils.areStacksSameType(recipe.precursorPotion.item, ingredient))
-                arecipes.add(new CachedBrewingRecipe(recipe));
+        // Note: Not safe as written for parallelStream
+        apotions.stream()
+            .filter(recipe -> NEIServerUtils.areStacksSameType(recipe.ingredient.item, ingredient) || NEIServerUtils.areStacksSameType(recipe.precursorPotion.item, ingredient))
+            .map(CachedBrewingRecipe::new)
+            .collect(Collectors.toCollection(() -> arecipes));
     }
 
     @Override
