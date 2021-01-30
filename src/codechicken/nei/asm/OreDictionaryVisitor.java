@@ -7,6 +7,47 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+/**
+ * Code without this patch
+ * <pre>
+ public class OreDictionary {
+	 public static int getOreID(String name) {
+		 Integer val = nameToId.get(name);
+		 if (val == null)
+		 {
+			 idToName.add(name);
+			 val = idToName.size() - 1; //0 indexed
+			 nameToId.put(name, val);
+			 idToStack.add(new ArrayList<ItemStack>());
+			 idToStackUn.add(new UnmodifiableArrayList(idToStack.get(val)));
+		 }
+		 return val;
+	 }
+ }
+ </pre>
+ Code with this patch
+ <pre>
+ public class OreDictionary {
+	 private static final Object emptyEntryCreationLock = new Object();
+	 public static int getOreID(String name) {
+		 Integer val = nameToId.get(name);
+		 if (val == null)
+		 {
+			 synchronized (emptyEntryCreationLock) {
+ 				 if ((val = nameToId.get(name)) != null)
+ 					 return val;
+				 idToName.add(name);
+				 val = idToName.size() - 1; //0 indexed
+				 nameToId.put(name, val);
+				 idToStack.add(new ArrayList<ItemStack>());
+				 idToStackUn.add(new UnmodifiableArrayList(idToStack.get(val)));
+			 }
+		 }
+		 return val;
+	 }
+ }
+ * </pre>
+ */
 public class OreDictionaryVisitor extends ClassVisitor {
 	private static class GetOreIDVisitor extends MethodVisitor {
 		Label jumpEnd;
