@@ -12,12 +12,15 @@ import java.util.stream.Collectors;
 
 public class GuiUsageRecipe extends GuiRecipe
 {
-     public static boolean openRecipeGui(String inputId, Object... ingredients) {
+    public static boolean openRecipeGui(String inputId, Object... ingredients) {
         Minecraft mc = NEIClientUtils.mc();
         GuiContainer prevscreen = mc.currentScreen instanceof GuiContainer ? (GuiContainer) mc.currentScreen : null;
 
         ArrayList<IUsageHandler> handlers;
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
+
+        // Pre-find the fuels so we're not fighting over it
+        FuelRecipeHandler.findFuelsOnceParallel();
 
         profiler.start("recipe.concurrent.usage");
         try {

@@ -70,6 +70,8 @@ public class FurnaceRecipeHandler extends TemplateRecipeHandler
 
     @Override
     public TemplateRecipeHandler newInstance() {
+        // Use the non parallel version since we might already be using the forkJoinPool and might have no threads available
+        // This will ideally have been pre-cached elsewhere and will be a NOOP
         findFuelsOnce();
         return super.newInstance();
     }

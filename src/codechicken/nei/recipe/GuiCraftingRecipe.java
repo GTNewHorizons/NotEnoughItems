@@ -21,7 +21,7 @@ public class GuiCraftingRecipe extends GuiRecipe
         profiler.start("recipe.concurrent.crafting");
        
         // Pre-find the fuels so we're not fighting over it
-        FuelRecipeHandler.findFuelsOnce();
+        FuelRecipeHandler.findFuelsOnceParallel();
 
         try {
             handlers = ItemList.forkJoinPool.submit(() -> craftinghandlers.parallelStream()

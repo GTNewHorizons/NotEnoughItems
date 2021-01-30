@@ -69,15 +69,27 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         lock.lock();
         try {
             if (afuels == null || afuels.isEmpty())
-                findFuels();
+                findFuels(false);
         } finally {
             lock.unlock();
         }
     }
+    
+    public static void findFuelsOnceParallel() {
+        // Ensure we only find fuels once, even if threaded
+        lock.lock();
+        try {
+            if (afuels == null || afuels.isEmpty())
+                findFuels(true);
+        } finally {
+            lock.unlock();
+        }   
+    }
 
+    private static Set<Item> efuels;
     @SuppressWarnings("UnstableApiUsage")
-    private static void findFuels() {
-        Set<Item> efuels = new HashSet<>();
+    private static void findFuels(boolean parallel) {
+        efuels = new HashSet<>();
         efuels.add(Item.getItemFromBlock(Blocks.brown_mushroom));
         efuels.add(Item.getItemFromBlock(Blocks.red_mushroom));
         efuels.add(Item.getItemFromBlock(Blocks.standing_sign));
@@ -86,19 +98,25 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         efuels.add(Item.getItemFromBlock(Blocks.trapped_chest));
         
         Stopwatch stopwatch = Stopwatch.createStarted();
-        try {
-            afuels = ItemList.forkJoinPool.submit(() -> ItemList.items.parallelStream().map(itemStack -> {
-                if (efuels.contains(itemStack.getItem())) return null;
-                final int burnTime = TileEntityFurnace.getItemBurnTime(itemStack);
-                if (burnTime <= 0) return null;
-                return new TemplateFuelPair(itemStack.copy(), burnTime);
-            }).filter(Objects::nonNull).collect(Collectors.toList())).get();
-        } catch (InterruptedException | ExecutionException e) {
-            afuels = new ArrayList<>();
-            e.printStackTrace();
+        if (parallel) {
+            try {
+                afuels = ItemList.forkJoinPool.submit(() -> ItemList.items.parallelStream().map(TemplateRecipeHandler::identifyFuel).filter(Objects::nonNull).collect(Collectors.toList())).get();
+            } catch (InterruptedException | ExecutionException e) {
+                afuels = new ArrayList<>();
+                e.printStackTrace();
+            }
+        } else {
+            afuels = ItemList.items.stream().map(TemplateRecipeHandler::identifyFuel).filter(Objects::nonNull).collect(Collectors.toList());
         }
 
         NEIClientConfig.logger.info("FindFuels took " + stopwatch.stop() );
+    }
+    
+    private static TemplateFuelPair identifyFuel(final ItemStack itemStack) {
+        if (efuels.contains(itemStack.getItem())) return null;
+        final int burnTime = TileEntityFurnace.getItemBurnTime(itemStack);
+        if (burnTime <= 0) return null;
+        return new TemplateFuelPair(itemStack.copy(), burnTime);
     }
 
     /**
@@ -523,7 +541,9 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
     public TemplateRecipeHandler newInstance() {
         try {
-            findFuelsOnce();
+            // Use the non parallel version since we might already be using the forkJoinPool and might have no threads available
+            // This will ideally have been pre-cached elsewhere and will be a NOOP
+            findFuelsOnce();  
             return getClass().newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
