@@ -15,6 +15,8 @@ import codechicken.lib.asm.ModularASMTransformer.MethodWriter;
 import codechicken.lib.asm.ObfMapping;
 import cpw.mods.fml.relauncher.FMLLaunchHandler;
 import net.minecraft.launchwrapper.IClassTransformer;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -31,13 +33,7 @@ import static codechicken.lib.asm.InsnComparator.getControlFlowLabels;
 import static codechicken.lib.asm.InsnComparator.matches;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ILOAD;
-import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.*;
 
 public class NEITransformer implements IClassTransformer
 {
@@ -259,8 +255,15 @@ public class NEITransformer implements IClassTransformer
     public byte[] transform(String name, String tname, byte[] bytes) {
         if (bytes == null) return null;
         try {
-            if (FMLLaunchHandler.side().isClient())
+            if (FMLLaunchHandler.side().isClient()) {
+                if (name.equals("net.minecraftforge.oredict.OreDictionary")) {
+                    ClassReader cr = new ClassReader(bytes);
+                    ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+                    cr.accept(new OreDictionaryVisitor(ASM5, cw), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+                    bytes = cw.toByteArray();
+                }
                 bytes = transformSubclasses(name, bytes);
+            }
 
             bytes = transformer.transform(name, bytes);
         } catch (Exception e) {
