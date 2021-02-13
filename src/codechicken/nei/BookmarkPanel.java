@@ -1,11 +1,12 @@
 package codechicken.nei;
 
+import codechicken.nei.util.NBTJson;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import org.apache.commons.io.IOUtils;
 
@@ -71,7 +72,7 @@ public class BookmarkPanel extends ItemPanel {
     public void saveBookmarks() {
         List<String> strings = new ArrayList<>();
         for (ItemStack item:_items) {
-            strings.add(itemStackToNBT(item, new NBTTagCompound()).toString());
+            strings.add(NBTJson.toJson(itemStackToNBT(item, new NBTTagCompound())));
         }
         File file = NEIClientConfig.bookmarkFile;
         if(file != null) {
@@ -97,17 +98,18 @@ public class BookmarkPanel extends ItemPanel {
             return;
         }
         _items.clear();
+        JsonParser parser = new JsonParser();
         for (String itemStr: itemStrings) {
             try {
-                NBTTagCompound itemStackNBT = (NBTTagCompound)JsonToNBT.func_150315_a(itemStr);
+                NBTTagCompound itemStackNBT = (NBTTagCompound) NBTJson.toNbt(parser.parse(itemStr));
                 ItemStack itemStack = loadFromNBT(itemStackNBT);
                 if (itemStack != null) {
                     _items.add(itemStack);
                 } else {
                     NEIClientConfig.logger.warn("Failed to load bookmarked ItemStack from json string, the item no longer exists:\n{}", itemStr);
                 }
-            } catch (NBTException e) {
-                NEIClientConfig.logger.error("Failed to load bookmarked ItemStack from json string:\n{}", itemStr, e);
+            } catch (IllegalArgumentException | JsonSyntaxException e) {
+                NEIClientConfig.logger.error("Failed to load bookmarked ItemStack from json string:\n{}", itemStr);
             }
         }
     }
