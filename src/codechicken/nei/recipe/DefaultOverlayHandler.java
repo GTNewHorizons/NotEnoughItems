@@ -228,7 +228,7 @@ public class DefaultOverlayHandler implements IOverlayHandler
             for(ItemStack pstack : posstack.items)
             {
                 for (DistributedIngred istack : ingredStacks) {
-                    if (!canStack(pstack, istack.stack) || istack.invAmount - istack.distributed < pstack.stackSize)
+                    if (!canStack(pstack, istack.stack) || istack.invAmount - istack.distributed < pstack.stackSize || istack.recipeAmount == 0 || istack.distributed == 0 || pstack.stackSize == 0)
                         continue;
 
                     int relsize = (istack.invAmount - istack.invAmount / istack.recipeAmount * istack.distributed) / pstack.stackSize;
