@@ -26,13 +26,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 
 import static codechicken.nei.NEIClientUtils.translate;
 
 public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoadedCallback, ISearchProvider
 {
+    public static ReentrantReadWriteLock hiddenItemLock = new ReentrantReadWriteLock();
+    public static Lock writeLock = hiddenItemLock.writeLock();
+    public static Lock readLock = hiddenItemLock.readLock();
+    
     public static class SubsetState
     {
         int state = 2;
@@ -397,9 +404,20 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
     }
 
     public static boolean isHidden(ItemStack item) {
-        synchronized (hiddenItems) {
-            return hiddenItems.contains(item);
+        try {
+            if(readLock.tryLock(5, TimeUnit.SECONDS)) {
+                try {
+                    return hiddenItems.contains(item);
+                } finally {
+                    readLock.unlock();
+                }
+            } else {
+                NEIClientConfig.logger.error("Unable to obtain read lock in 'isHidden'");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        return false;
     }
 
     private static void _setHidden(SubsetTag tag, boolean hidden) {
@@ -410,38 +428,80 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
     }
 
     private static void _setHidden(ItemStack item, boolean hidden) {
-        if(hidden)
-            hiddenItems.add(item);
-        else
-            hiddenItems.remove(item);
+        if (hiddenItemLock.isWriteLockedByCurrentThread()) {
+            if (hidden)
+                hiddenItems.add(item);
+            else
+                hiddenItems.remove(item);
+        }
     }
 
     public static void showOnly(SubsetTag tag) {
-        synchronized (hiddenItems) {
-            for(ItemStack item : ItemList.items)
-                _setHidden(item, true);
-            setHidden(tag, false);
+        try {
+            if(writeLock.tryLock(5, TimeUnit.SECONDS)) {
+                try {
+                    for (ItemStack item : ItemList.items)
+                        _setHidden(item, true);
+                    setHidden(tag, false);
+                } finally {
+                    writeLock.unlock();
+                }
+            } else {
+                NEIClientConfig.logger.error("Unable to obtain write lock in 'showOnly'");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
     public static void setHidden(SubsetTag tag, boolean hidden) {
-        synchronized (hiddenItems) {
-            _setHidden(tag, hidden);
-            updateHiddenItems();
+        try {
+            if(writeLock.tryLock(5, TimeUnit.SECONDS)) {
+                try {
+                    _setHidden(tag, hidden);
+                    updateHiddenItems();
+                } finally {
+                    writeLock.unlock();
+                }
+            } else {
+                NEIClientConfig.logger.error("Unable to obtain write lock in 'setHidden'");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
     public static void setHidden(ItemStack item, boolean hidden) {
-        synchronized (hiddenItems) {
-            _setHidden(item, hidden);
-            updateHiddenItems();
+        try {
+            if(writeLock.tryLock(5, TimeUnit.SECONDS)) {
+                try {
+                    _setHidden(item, hidden);
+                    updateHiddenItems();
+                } finally {
+                    writeLock.unlock();
+                }
+            } else {
+                NEIClientConfig.logger.error("Unable to obtain write lock in 'setHidden'");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
     public static void unhideAll() {
-        synchronized (hiddenItems) {
-            hiddenItems.clear();
-            updateHiddenItems();
+        try {
+            if(writeLock.tryLock(5, TimeUnit.SECONDS)) {
+                try {
+                    hiddenItems.clear();
+                    updateHiddenItems();
+                } finally {
+                    writeLock.unlock();
+                }
+            } else {
+                NEIClientConfig.logger.error("Unable to obtain write lock in 'unhideAll'");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -451,8 +511,19 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
     }
 
     public static void loadHidden() {
-        synchronized (hiddenItems) {
-            hiddenItems.clear();
+        try {
+            if(writeLock.tryLock(5, TimeUnit.SECONDS)) {
+                try {
+                    hiddenItems.clear();
+                } finally {
+                    writeLock.unlock();
+                }
+            } else {
+                NEIClientConfig.logger.error("Unable to obtain write lock in 'loadHidden'");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return;
         }
 
         List<ItemStack> itemList = new LinkedList<>();
@@ -466,9 +537,19 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
             return;
         }
 
-        synchronized (hiddenItems) {
-            for(ItemStack item : itemList)
-                hiddenItems.add(item);
+        try {
+            if(writeLock.tryLock(5, TimeUnit.SECONDS)) {
+                try {
+                    for (ItemStack item : itemList)
+                        hiddenItems.add(item);
+                } finally {
+                    writeLock.unlock();
+                }
+            } else {
+                NEIClientConfig.logger.error("Unable to obtain second write lock in 'loadHidden'");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         updateState.restart();
     }
@@ -484,9 +565,20 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
     private static final RestartableTask prepareDirtyHiddenItems = new RestartableTask("NEI Subset Save Thread")
     {
         private List<ItemStack> getList() {
-            synchronized (hiddenItems) {
-                return hiddenItems.values();
+            try {
+                if(readLock.tryLock(5, TimeUnit.SECONDS)) {
+                    try {
+                        return hiddenItems.values();
+                    } finally {
+                        readLock.unlock();
+                    }
+                } else {
+                    NEIClientConfig.logger.error("Unable to obtain read lock in 'NEI Subset Save Thread'");
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            return new ArrayList<>();
         }
 
         @Override
@@ -706,9 +798,20 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
     public ItemFilter getFilter() {
         //synchronise access on hiddenItems
         return item -> {
-            synchronized (hiddenItems) {
-                return !hiddenItems.matches(item);
+            try {
+                if(readLock.tryLock(5, TimeUnit.SECONDS)) {
+                    try {
+                        return !hiddenItems.matches(item);
+                    } finally {
+                        readLock.unlock();
+                    }
+                } else {
+                    NEIClientConfig.logger.error("Unable to obtain read lock in 'getFilter'");
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            return false;
         };
     }
 
