@@ -31,7 +31,9 @@ public class GuiRecipeTab extends Button {
     private final IRecipeHandler handler;
     private final String handlerName;
     private final String handlerID;
-    
+
+    private boolean selected;
+
     public GuiRecipeTab(GuiRecipe guiRecipe, IRecipeHandler handler, int x, int y) {
         super();
         this.x = x;
@@ -41,6 +43,7 @@ public class GuiRecipeTab extends Button {
         this.handler = handler;
         this.handlerName = handler.toString().split("@")[0];
         this.guiRecipe = guiRecipe;
+        this.selected = false;
         
         if(handler instanceof TemplateRecipeHandler) {
             handlerID = (((TemplateRecipeHandler)handler).getOverlayIdentifier());
@@ -48,26 +51,27 @@ public class GuiRecipeTab extends Button {
             handlerID = null;
         }
     }
-    
-    public void draw(boolean selected, int mouseX, int mouseY) {
-        drawTab(selected, mouseX, mouseY);
-        drawTabIcon(selected, mouseX, mouseY);
+
+    @Override
+    public void draw(int mouseX, int mouseY) {
+        drawBackground(mouseX, mouseY);
+        drawForeground(mouseX, mouseY);
     }
-    
-    public void drawTab(boolean selected, int mouseX, int mouseY) {
+
+    public void drawBackground(int mouseX, int mouseY) {
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glColor4f(1, 1, 1, 1);
-        
+
         if (selected)  icon = selectedIcon;
         else           icon = unselectedIcon;
-        
+
         final int iconX = x + (w - icon.width) / 2;
         final int iconY = y + (h - icon.height) / 2;
         LayoutManager.drawIcon(iconX, iconY, icon);
         
     }
 
-    public void drawTabIcon(boolean selected, int mouseX, int mouseY) {
+    public void drawForeground(int mouseX, int mouseY) {
         final int iconX = x + 4;
         final int iconY = y + 4;
 
@@ -88,7 +92,7 @@ public class GuiRecipeTab extends Button {
             String text = handler.getRecipeName().substring(0, 2);
             int textCenterX = x + (int) (TAB_WIDTH / 2f);
             int textCenterY = y + (int) (TAB_HEIGHT / 2f) - 3;
-            int color = selected ? 16777120 : 14737632;
+            int color = selected ? 0xffffa0 : 0xe0e0e0;
             fontRenderer.drawStringWithShadow(text, textCenterX - (int) (fontRenderer.getStringWidth(text) / 2f), textCenterY, color);
             GL11.glColor4f(1, 1, 1, 1);
         } 
@@ -119,8 +123,8 @@ public class GuiRecipeTab extends Button {
         return true;
     }
     
-    public boolean isSelected(IRecipeHandler current) {
-        return handler == current;
+    public void setSelected(IRecipeHandler current) {
+        selected = handler == current;
     }
 
     public static Pair<String, ItemStack> lookupStackMap(String name, String name2) {

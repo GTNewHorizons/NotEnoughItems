@@ -133,8 +133,8 @@ public class GuiRecipeTabs {
     public void draw(int mouseX, int mouseY) {
         IRecipeHandler current = guiRecipe.currenthandlers.get(guiRecipe.recipetype);
         for (GuiRecipeTab tab : tabs) {
-            boolean selected = tab.isSelected(current);
-            tab.draw(selected, mouseX, mouseY);
+            tab.setSelected(current);
+            tab.draw(mouseX, mouseY);
         }
         for (Button button : buttons) {
             button.draw(mouseX, mouseY);
