@@ -22,10 +22,10 @@ public class GuiRecipeTab extends Widget {
     public static HashMap<String, ImmutablePair<String, DrawableResource>> imageMap = new HashMap<>();
     public static HashMap<String, ImmutablePair<String, ItemStack>> stackMap = new HashMap<>();
     
-    public static final int TAB_WIDTH = 24;
-    public static final int TAB_HEIGHT = 24;
-    private static final DrawableResource selectedIcon = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 0, 16, 24, 24).build();
-    private static final DrawableResource unselectedIcon = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 24, 16, 24, 24).build();
+    public static final int TAB_WIDTH = 28;
+    public static final int TAB_HEIGHT = 31;
+    private static final DrawableResource selectedIcon = new DrawableBuilder("minecraft:textures/gui/container/creative_inventory/tabs.png", 28, 32, 28, 32).build();
+    private static final DrawableResource unselectedIcon = new DrawableBuilder("minecraft:textures/gui/container/creative_inventory/tabs.png", 28, 0, 28, 30).build();
 
     private final GuiRecipe guiRecipe;
     private final IRecipeHandler handler;
@@ -66,13 +66,13 @@ public class GuiRecipeTab extends Widget {
         else           image = unselectedIcon;
 
         final int iconX = x + (w - image.getWidth())  / 2;
-        final int iconY = y + (h - image.getHeight()) / 2;
+        final int iconY = y;
         image.draw(iconX, iconY);
     }
 
     public void drawForeground(int mouseX, int mouseY) {
-        final int iconX = x + 4;
-        final int iconY = y + 4;
+        final int iconX = x + (w - 16) / 2;
+        final int iconY = y + h - 22;
 
         final FontRenderer fontRenderer = GuiDraw.fontRenderer;
         final DrawableResource icon = getImage(handlerName);

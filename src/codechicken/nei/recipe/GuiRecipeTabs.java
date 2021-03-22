@@ -2,8 +2,9 @@ package codechicken.nei.recipe;
 
 import codechicken.nei.Button;
 import codechicken.nei.NEIClientConfig;
+import codechicken.nei.NEIClientUtils;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +39,7 @@ public class GuiRecipeTabs {
 
         area.width = totalWidth;
         area.height = GuiRecipeTab.TAB_HEIGHT;
-        area.x = guiRecipe.guiLeft + 2;
+        area.x = guiRecipe.guiLeft + 4;
         area.y = guiRecipe.guiTop - GuiRecipeTab.TAB_HEIGHT + 3;
 
         pageCount = (int) Math.ceil((float) numHandlers / categoriesPerPage);
@@ -56,51 +57,54 @@ public class GuiRecipeTabs {
         tabs.clear();
         buttons.clear();
         
-        int tabX = area.x;
-
         final int startIndex = pageNumber * categoriesPerPage;
         for (int i = 0 ; i < categoriesPerPage ; i++) {
             final int index = i + startIndex;
             if (index >= numHandlers) break;
             IRecipeHandler handler = guiRecipe.currenthandlers.get(index);
+            int tabX = area.x + (i * GuiRecipeTab.TAB_WIDTH);
             tabs.add(new GuiRecipeTab(guiRecipe, handler, tabX, area.y));
-            tabX += GuiRecipeTab.TAB_WIDTH;
         }
         
         // Maybe add buttons
         if (numHandlers > categoriesPerPage) {
+
             Button prevTab = new Button("prevTab") {
                 @Override
-                public boolean onButtonPress(boolean rightclick) {
-                    if (!rightclick) return previousPage();
-                    else             return false;
+                public boolean onButtonPress(boolean rightClick) {
+                    if (!rightClick) {
+                        NEIClientUtils.playClickSound();
+                        return previousPage();
+                    } else             return false;
                 }
                 @Override
                 public String getRenderLabel() {
                     return "<";
                 }
             };
-            prevTab.x = area.x - 7;
-            prevTab.y = area.y + 2;
-            prevTab.h = 20;
             prevTab.w = 8;
+            prevTab.h = GuiRecipeTab.TAB_HEIGHT - 4;
+            prevTab.x = area.x - prevTab.w;
+            prevTab.y = area.y + 4;
             buttons.add(prevTab);
             
             Button nextTab = new Button("nextTab") {
                 @Override
                 public boolean onButtonPress(boolean rightclick) {
-                    if(!rightclick) return nextPage();
-                    else            return false;
+                    if (!rightclick) {
+                        NEIClientUtils.playClickSound();
+                        return nextPage();
+                    } else            return false;
                 }
                 @Override
                 public String getRenderLabel() {
                     return ">";
                 }
             };
+            nextTab.w = prevTab.w;
+            nextTab.h = prevTab.h;
             nextTab.x = area.x + area.width;
-            nextTab.y = area.y + 2;
-            nextTab.h = 20;
-            nextTab.w = 8;
+            nextTab.y = prevTab.y;
             buttons.add(nextTab);
         }
     }
