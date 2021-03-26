@@ -102,6 +102,8 @@ public class DefaultOverlayHandler implements IOverlayHandler
     {        
         for(IngredientDistribution distrib : assignedIngredients)
         {
+            if(distrib.slots.length == 0) continue;
+            
             ItemStack pstack = distrib.permutation;
             int transferCap = quantity*pstack.stackSize;
             int transferred = 0;

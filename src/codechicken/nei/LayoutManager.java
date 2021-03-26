@@ -8,6 +8,8 @@ import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.api.IRecipeOverlayRenderer;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.api.LayoutStyle;
+import codechicken.nei.drawable.DrawableBuilder;
+import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerDrawHandler;
 import codechicken.nei.guihook.IContainerInputHandler;
@@ -22,6 +24,8 @@ import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
@@ -39,6 +43,7 @@ import static codechicken.nei.NEIClientConfig.getOptionList;
 import static codechicken.nei.NEIClientConfig.getSearchExpression;
 import static codechicken.nei.NEIClientConfig.hasSMPCounterPart;
 import static codechicken.nei.NEIClientConfig.invCreativeMode;
+import static codechicken.nei.NEIClientConfig.isBookmarkPanelHidden;
 import static codechicken.nei.NEIClientConfig.isEnabled;
 import static codechicken.nei.NEIClientConfig.isHidden;
 import static codechicken.nei.NEIClientConfig.showIDs;
@@ -50,6 +55,7 @@ import static codechicken.nei.NEIClientUtils.decreaseSlotStack;
 import static codechicken.nei.NEIClientUtils.deleteEverything;
 import static codechicken.nei.NEIClientUtils.deleteHeldItem;
 import static codechicken.nei.NEIClientUtils.deleteItemsOfType;
+import static codechicken.nei.NEIClientUtils.getGamemode;
 import static codechicken.nei.NEIClientUtils.getGuiContainer;
 import static codechicken.nei.NEIClientUtils.getHeldItem;
 import static codechicken.nei.NEIClientUtils.getNextGamemode;
@@ -81,8 +87,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public static SubsetWidget dropDown;
     public static TextField searchField;
 
-    public static Button options;
-    public static Button bookmarks;
+    public static ButtonCycled options;
+    public static ButtonCycled bookmarksButton;
 
     public static Button more;
     public static Button less;
@@ -99,12 +105,9 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     public static HashMap<Integer, LayoutStyle> layoutStyles = new HashMap<>();
 
-    public static boolean ftbUtilsLoaded = false;
     public static boolean itemsLoaded = false;
 
     public static void load() {
-        ftbUtilsLoaded = Loader.isModLoaded("FTBU");
-
         API.addLayoutStyle(0, new LayoutStyleMinecraft());
 
         instance = new LayoutManager();
@@ -136,7 +139,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         return gui.width - 3;
     }
     public static int getLeftSize(GuiContainer gui) {
-        return getSideWidth(gui) - (ftbUtilsLoaded ? 18 : 0);
+        return getSideWidth(gui);
     }
 
     @Override
@@ -198,6 +201,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             toggleBooleanSetting("inventory.hidden");
             return true;
         }
+        if (keyID == getKeyBinding("gui.hide_bookmarks")) {
+            toggleBooleanSetting("inventory.bookmarksEnabled");
+            return true;
+        }
+
         if (isEnabled() && !isHidden()) {
             for (Widget widget : controlWidgets)
                 if (inputFocused == null)
@@ -242,13 +250,14 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                     widget.draw(mousex, mousey);
             } else {
                 options.draw(mousex, mousey);
+                bookmarksButton.draw(mousex, mousey);
             }
 
             GL11.glEnable(GL11.GL_LIGHTING);
             GL11.glEnable(GL11.GL_DEPTH_TEST);
         }
     }
-
+    
     @Override
     public void postRenderObjects(GuiContainer gui, int mousex, int mousey) {
         if (!isHidden() && isEnabled()) {
@@ -293,8 +302,13 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         VisiblityData visiblity = new VisiblityData();
         if (isHidden())
             visiblity.showNEI = false;
+        
+        if (isBookmarkPanelHidden())
+            visiblity.showBookmarkPanel = false;
+        
         if (gui.height - gui.ySize <= 40)
             visiblity.showSearchSection = false;
+        
         if (gui.guiLeft - 4 < 76)
             visiblity.showWidgets = false;
 
@@ -318,28 +332,65 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         dropDown = new SubsetWidget();
         searchField = new SearchField("search");
 
-        options = new Button("Options")
+        options = new ButtonCycled(3)
         {
+            @Override
+            public void init() {
+                this.icons[0] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 32, 0, 16, 16).build();
+                this.icons[1] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 48, 0, 16, 16).build();
+                this.icons[2] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 64, 0, 16, 16).build();
+            }
+            
             @Override
             public boolean onButtonPress(boolean rightclick) {
                 if (!rightclick) {
-                    getOptionList().openGui(getGuiContainer(), false);
+                    if (Keyboard.getEventKeyState() && (Keyboard.getEventKey() == Keyboard.KEY_LCONTROL || Keyboard.getEventKey() == Keyboard.KEY_RCONTROL)) {
+                        NEIClientConfig.cycleSetting("inventory.cheatmode", 3);
+                    } else {
+                        getOptionList().openGui(getGuiContainer(), false);
+                    }
                     return true;
                 }
                 return false;
             }
-
+            
+            @Override
+            public void addTooltips(List<String> tooltip) {
+                tooltip.add(translate("inventory.options.tip"));
+                String modeColor = "";
+                final int cheatMode = NEIClientConfig.getCheatMode();
+                if (cheatMode == 1)
+                    modeColor = EnumChatFormatting.GOLD.toString();
+                else if (cheatMode == 2)
+                    modeColor = EnumChatFormatting.RED.toString();
+                String controlKeyLocalization = translate(Minecraft.isRunningOnMac ? "key.ctrl.mac" : "key.ctrl");
+                tooltip.add(modeColor + translate("inventory.options.tip.cheatmode." + cheatMode));
+                tooltip.add(modeColor + translate("inventory.options.tip.cheatmode.disable", controlKeyLocalization));
+                
+            }
+            
             @Override
             public String getRenderLabel() {
                 return translate("inventory.options");
             }
         };
 
-        bookmarks = new Button("Bookmarks")
+        bookmarksButton = new ButtonCycled(2)
         {
             @Override
+            public void init() {
+                this.icons[0] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 0, 0, 16, 16).build();
+                this.icons[1] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 16, 0, 16, 16).build();
+            }
+            
+            @Override
             public boolean onButtonPress(boolean rightclick) {
-                return false;
+                NEIClientConfig.toggleBooleanSetting("inventory.bookmarksEnabled");
+                return true;
+            }
+
+            public String getButtonTip() {
+                return translate("bookmark.toggle.tip");
             }
 
             @Override
@@ -424,7 +475,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                     GuiDraw.drawTip(mousex + 9, mousey, translate("inventory.delete." + (shiftKey() ? "all" : "one"), GuiContainerManager.itemDisplayNameShort(getHeldItem())));
             }
         };
-        gamemode = new ButtonCycled()
+        gamemode = new ButtonCycled(3)
         {
             @Override
             public boolean onButtonPress(boolean rightclick) {
@@ -434,12 +485,12 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 }
                 return false;
             }
-
-            public String getButtonTip() {
-                return translate("inventory.gamemode." + getNextGamemode());
+            public void addTooltips(List<String> tooltip) {
+                tooltip.add(translate("inventory.current.gamemode." + getGamemode()));
+                tooltip.add(EnumChatFormatting.GRAY + translate("inventory.gamemode." + getNextGamemode()));
             }
+
         };
-        gamemode.icons = new Image[3];
         rain = new Button()
         {
             @Override
@@ -605,6 +656,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
 
         addWidget(options);
+        addWidget(bookmarksButton);
         if (visiblity.showItemPanel) {
             addWidget(itemPanel);
             itemPanel.setVisible();
@@ -728,48 +780,55 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     }
 
     public static void drawIcon(int x, int y, Image image) {
-        changeTexture("nei:textures/nei_sprites.png");
+        final boolean isDrawableResource = image instanceof DrawableResource;
+        
+        if (!isDrawableResource)
+            changeTexture("nei:textures/nei_sprites.png");
+        
         GL11.glColor4f(1, 1, 1, 1);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        drawTexturedModalRect(x, y, image.x, image.y, image.width, image.height);
+        if(!isDrawableResource)
+            drawTexturedModalRect(x, y, image.x, image.y, image.width, image.height);
+        else 
+            ((DrawableResource)image).draw(x, y);
         GL11.glDisable(GL11.GL_BLEND);
     }
 
     public static void drawButtonBackground(int x, int y, int w, int h, boolean edges, int type) {
-        int wtiles = 0;
+        int wTiles = 0;
         int ew = w;//end width
         if (w / 2 > 100) {
-            wtiles = (w - 200) / 50 + 1;
+            wTiles = (w - 200) / 50 + 1;
             ew = 200;
         }
 
-        int w1 = ew / 2;
-        int h1 = h / 2;
-        int w2 = (ew + 1) / 2;
-        int h2 = (h + 1) / 2;
+        final int w1 = ew / 2;
+        final int h1 = h / 2;
+        final int w2 = (ew + 1) / 2;
+        final int h2 = (h + 1) / 2;
 
-        int x2 = x + w - w2;
-        int y2 = y + h - h2;
+        final int x2 = x + w - w2;
+        final int y2 = y + h - h2;
 
-        int ty = 46 + type * 20;
-        int te = (edges ? 0 : 1);//tex edges
+        final int ty = 46 + type * 20;
+        final int te = (edges ? 0 : 1);//tex edges
 
-        int ty1 = ty + te;
-        int tx1 = te;
-        int tx3 = 75;
+        final int ty1 = ty + te;
+        final int tx1 = te;
+        final int tx3 = 75;
         //halfway the 1 is for odd number adjustment
-        int ty2 = ty + 20 - h2 - te;
-        int tx2 = 200 - w2 - te;
+        final int ty2 = ty + 20 - h2 - te;
+        final int tx2 = 200 - w2 - te;
 
         changeTexture("textures/gui/widgets.png");
         drawTexturedModalRect(x, y, tx1, ty1, w1, h1);//top left
         drawTexturedModalRect(x, y2, tx1, ty2, w1, h2);//bottom left
 
-        for (int tile = 0; tile < wtiles; tile++) {
-            int tilex = x + w1 + 50 * tile;
-            drawTexturedModalRect(tilex, y, tx3, ty1, 50, h1);//top
-            drawTexturedModalRect(tilex, y2, tx3, ty2, 50, h2);//bottom
+        for (int tile = 0; tile < wTiles; tile++) {
+            final int tileX = x + w1 + 50 * tile;
+            drawTexturedModalRect(tileX, y, tx3, ty1, 50, h1);//top
+            drawTexturedModalRect(tileX, y2, tx3, ty2, 50, h2);//bottom
         }
 
         drawTexturedModalRect(x2, y, tx2, ty1, w2, h1);//top right

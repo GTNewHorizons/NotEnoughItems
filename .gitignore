@@ -10,3 +10,6 @@ run/*
 .gradle/
 
 *.bat
+.classpath
+.project
+.settings/**

@@ -42,15 +42,20 @@ public abstract class Button extends Widget
         if (!contains(mx, my))
             return tooltip;
 
-        String tip = getButtonTip();
+        final String tip = getButtonTip();
         if (tip != null)
             tooltip.add(tip);
+        
+        addTooltips(tooltip);
+        
         return tooltip;
     }
 
     public String getButtonTip() {
         return null;
     }
+    
+    public void addTooltips(List<String> tooltip) {} 
 
     public String getRenderLabel() {
         return label;

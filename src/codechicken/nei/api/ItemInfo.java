@@ -10,6 +10,7 @@ import codechicken.nei.ItemStackSet;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.PopupInputHandler;
 import codechicken.nei.config.ArrayDumper;
+import codechicken.nei.config.HandlerDumper;
 import codechicken.nei.config.ItemPanelDumper;
 import codechicken.nei.config.RegistryDumper;
 import codechicken.nei.guihook.GuiContainerManager;
@@ -261,6 +262,7 @@ public class ItemInfo
             }
         });
         API.addOption(new ItemPanelDumper("tools.dump.itempanel"));
+        API.addOption(new HandlerDumper("tools.dump.handlers"));
     }
 
     private static void parseModItems() {

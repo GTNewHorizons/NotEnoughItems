@@ -1,6 +1,13 @@
 nei.load=Load
 nei.save=Save
+
+# PC/Linux Control Key
+nei.key.ctrl=CTRL
+# Mac Command Key
+nei.key.ctrl.mac=CMD
+
 nei.bookmark.toggle=Bookmarks
+nei.bookmark.toggle.tip=Toggle visibility of the Bookmark Panel
 
 nei.enchant=Enchant
 nei.enchant.level=Level
@@ -12,6 +19,11 @@ nei.potion.duration=Duration
 nei.potion.level=Level
 
 nei.inventory.options=Options
+nei.inventory.options.tip=NEI Config
+nei.inventory.options.tip.cheatmode.0=Recipe Mode
+nei.inventory.options.tip.cheatmode.1=Utility Mode
+nei.inventory.options.tip.cheatmode.2=Cheat Mode
+nei.inventory.options.tip.cheatmode.disable=%s-click here to cycle between Recipe, Utility, and Cheat Mode.
 nei.inventory.prev=Prev
 nei.inventory.next=Next
 nei.inventory.item_subsets=Item Subsets
@@ -36,10 +48,15 @@ nei.inventory.dusk.set=Set time to dusk
 nei.inventory.midnight.enable=Enable midnight-dawn
 nei.inventory.midnight.set=Set time to midnight
 nei.inventory.heal=Heal the player
-nei.inventory.gamemode.0=Set gamemode to survival
-nei.inventory.gamemode.1=Set gamemode to creative
-nei.inventory.gamemode.2=Set gamemode to creative+
-nei.inventory.gamemode.3=Set gamemode to adventure
+nei.inventory.current.gamemode.0=Current gamemode: survival
+nei.inventory.current.gamemode.1=Current gamemode: creative
+nei.inventory.current.gamemode.2=Current gamemode: creative+
+nei.inventory.current.gamemode.3=Current gamemode: adventure
+
+nei.inventory.gamemode.0=Click: Set gamemode to survival
+nei.inventory.gamemode.1=Click: Set gamemode to creative
+nei.inventory.gamemode.2=Click: Set gamemode to creative+
+nei.inventory.gamemode.3=Click: Set gamemode to adventure
 
 nei.chat.gamemode.0=You are now playing survival
 nei.chat.gamemode.1=You are now playing creative
@@ -76,6 +93,7 @@ nei.options.keys.gui.next_machine=Next Machine
 nei.options.keys.gui.prev_machine=Prev Machine
 nei.options.keys.gui.search=Focus Search Bar
 nei.options.keys.gui.bookmark=Add Bookmark
+nei.options.keys.gui.hide_bookmarks=Toggle Bookmark Panel Visibility
 nei.options.keys.world=World
 nei.options.keys.world.chunkoverlay=Chunk Boundary Overlay
 nei.options.keys.world.moboverlay=Mob Spawn Overlay
@@ -90,6 +108,15 @@ nei.options.keys.world.creative=Gamemode
 nei.options.keys.world.creative.tip=Cycle Gamemode
 
 nei.options.inventory=Inventory
+nei.options.inventory.bookmarksEnabled=Bookmarks Panel Visibility
+nei.options.inventory.bookmarksEnabled.true=Visible
+nei.options.inventory.bookmarksEnabled.false=Hidden
+nei.options.inventory.jei_style_tabs=JEI Style Tabs
+nei.options.inventory.jei_style_tabs.true=Yes
+nei.options.inventory.jei_style_tabs.false=No [Weirdo]
+nei.options.inventory.creative_tab_style=Creative or JEI tab style
+nei.options.inventory.creative_tab_style.true=Creative
+nei.options.inventory.creative_tab_style.false=JEI
 nei.options.inventory.widgetsenabled.true=NEI Enabled
 nei.options.inventory.widgetsenabled.false=NEI Disabled
 nei.options.inventory.cheatmode.0=Recipe Mode
@@ -166,9 +193,10 @@ nei.options.tools.dump.itempanel.mode.2=Json
 nei.options.tools.dump.itempanel.mode.3=PNG
 nei.options.tools.dump.itempanel.icon.dumped=Item Panel icons were dumped to %s
 nei.options.tools.dump.itempanel.icon.cancelled=Dump cancelled
-
-
-
+nei.options.tools.dump.handlers=NEI Handlers
+nei.options.tools.dump.handlers.dumped=handlers were dumped to %s
+nei.options.tools.dump.handlers.mode.0=CSV
+nei.options.tools.dump.handlers.mode.1=Json
 
 nei.recipe.page=Page %s/%s
 nei.recipe.tooltip=Recipes

@@ -22,6 +22,7 @@ import codechicken.nei.config.OptionList;
 import codechicken.nei.config.OptionOpenGui;
 import codechicken.nei.config.OptionTextField;
 import codechicken.nei.config.OptionToggleButton;
+import codechicken.nei.config.OptionToggleButtonBoubs;
 import codechicken.nei.config.OptionUtilities;
 import codechicken.nei.recipe.RecipeInfo;
 import codechicken.obfuscator.ObfuscationRun;
@@ -77,7 +78,7 @@ public class NEIClientConfig
 
         tag.getTag("inventory.widgetsenabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.widgetsenabled"));
-
+        
         tag.getTag("inventory.hidden").getBooleanValue(false);
         tag.getTag("inventory.cheatmode").getIntValue(2);
         tag.getTag("inventory.lockmode").setComment("For those who can't help themselves.\nSet this to a mode and you will be unable to change it ingame").getIntValue(-1);
@@ -123,7 +124,15 @@ public class NEIClientConfig
         API.addOption(new OptionTextField("command.rain"));
         tag.getTag("command.heal").setDefaultValue("");
         API.addOption(new OptionTextField("command.heal"));
-
+        
+        tag.getTag("inventory.bookmarksEnabled").setComment("Enable/disable bookmarks").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.bookmarksEnabled", true));
+        tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
+        API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
+        
+        tag.getTag("inventory.creative_tab_style").setComment("Creative or JEI style tabs").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.creative_tab_style", true));
+        
         setDefaultKeyBindings();
     }
 
@@ -167,6 +176,7 @@ public class NEIClientConfig
         API.addKeyBind("gui.hide", Keyboard.KEY_O);
         API.addKeyBind("gui.search", Keyboard.KEY_F);
         API.addKeyBind("gui.bookmark", Keyboard.KEY_A);
+        API.addKeyBind("gui.hide_bookmarks", Keyboard.KEY_B);
         API.addKeyBind("world.chunkoverlay", Keyboard.KEY_F9);
         API.addKeyBind("world.moboverlay", Keyboard.KEY_F7);
         API.addKeyBind("world.highlight_tips", Keyboard.KEY_NUMPAD0);
@@ -281,7 +291,15 @@ public class NEIClientConfig
     public static boolean isHidden() {
         return !enabledOverride || getBooleanSetting("inventory.hidden");
     }
-
+    public static boolean isBookmarkPanelHidden() {
+        return !getBooleanSetting("inventory.bookmarksEnabled");
+    }
+    public static boolean areJEIStyleTabsVisible() {
+        return getBooleanSetting("inventory.jei_style_tabs");
+    }
+    public static boolean useCreativeTabStyle() {
+        return getBooleanSetting("inventory.creative_tab_style");
+    }
     public static boolean isEnabled() {
         return enabledOverride && getBooleanSetting("inventory.widgetsenabled");
     }
@@ -433,4 +451,5 @@ public class NEIClientConfig
             if (file.isDirectory() && !saveFileNames.contains(file.getName()))
                 ObfuscationRun.deleteDir(file, true);
     }
+    
 }
