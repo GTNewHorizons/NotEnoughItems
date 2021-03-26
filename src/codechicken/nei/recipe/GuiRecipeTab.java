@@ -201,7 +201,6 @@ public abstract class GuiRecipeTab extends Widget {
         
         // Gregtech 5u
         if (!Loader.isModLoaded("gregapi_post") && Loader.isModLoaded("gregtech")) {
-            addToStackMap("gt.recipe.alloyblastsmelter", "gregtech", "gregtech:gt.blockmachines:810");               // gt.blockmachines.industrialsalloyamelter.controller.tier.single
             addToStackMap("gt.recipe.alloysmelter", "gregtech", "gregtech:gt.blockmachines:201");                    // gt.blockmachines.basicmachine.alloysmelter.tier.01
             addToStackMap("gt.recipe.arcfurnace", "gregtech", "gregtech:gt.blockmachines:651");                      // gt.blockmachines.basicmachine.arcfurnace.tier.01
             addToStackMap("gt.recipe.assembler", "gregtech", "gregtech:gt.blockmachines:211");                       // gt.blockmachines.basicmachine.assembler.tier.01
@@ -210,36 +209,28 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("gt.recipe.brewer", "gregtech", "gregtech:gt.blockmachines:491");                          // gt.blockmachines.basicmachine.brewery.tier.01
             addToStackMap("gt.recipe.canner", "gregtech", "gregtech:gt.blockmachines:231");                          // gt.blockmachines.basicmachine.canner.tier.01
             addToStackMap("gt.recipe.centrifuge", "gregtech", "gregtech:gt.blockmachines:361");                      // gt.blockmachines.basicmachine.centrifuge.tier.01
-            addToStackMap("gt.recipe.chemicalbath", "gregtech", "gregtech:gt.blockmachines:541");                    // gt.blockmachines.basicmachine.chemicalbath.tier.01
-            addToStackMap("gt.recipe.chemicaldehydrator", "gregtech", "gregtech:gt.blockmachines:912");              // gt.blockmachines.machine.dehydrator.tier.01
+            addToStackMap("gt.recipe.chemicalbath", "gregtech", "gregtech:gt.blockmachines:541");                    // gt.blockmachines.basicmachine.chemicalbath.tier.01   
             addToStackMap("gt.recipe.chemicalreactor", "gregtech", "gregtech:gt.blockmachines:421");                 // gt.blockmachines.basicmachine.chemicalreactor.tier.01
             addToStackMap("gt.recipe.circuitassembler", "gregtech", "gregtech:gt.blockmachines:1180");               // gt.blockmachines.basicmachine.circuitassembler.tier.01
             addToStackMap("gt.recipe.cokeoven", "gregtech", "gregtech:gt.blockmachines:791");                        // gt.blockmachines.industrialcokeoven.controller.tier.single
             addToStackMap("gt.recipe.compressor", "gregtech", "gregtech:gt.blockmachines:241");                      // gt.blockmachines.basicmachine.compressor.tier.01
             addToStackMap("gt.recipe.craker", "gregtech", "gregtech:gt.blockmachines:1160");                         // gt.blockmachines.multimachine.cracker
-            addToStackMap("gt.recipe.cuttingsaw", "gregtech", "gregtech:gt.blockmachines:251");                      // gt.blockmachines.basicmachine.cutter.tier.01
-            addToStackMap("gt.recipe.cyclotron", "gregtech", "gregtech:gt.blockmachines:828");                       // gt.blockmachines.cyclotron.tier.single
-            addToStackMap("gt.recipe.dieselgeneratorfuel", "gregtech", "gregtech:gt.blockmachines:1110");            // LV Combustion gen
+            addToStackMap("gt.recipe.cuttingsaw", "gregtech", "gregtech:gt.blockmachines:251");                      // gt.blockmachines.basicmachine.cutter.tier.01             
             addToStackMap("gt.recipe.distillationtower", "gregtech", "gregtech:gt.blockmachines:1126");              // gt.blockmachines.multimachine.distillationtower
             addToStackMap("gt.recipe.distillery", "gregtech", "gregtech:gt.blockmachines:531");                      // gt.blockmachines.basicmachine.distillery.tier.01
-            addToStackMap("gt.recipe.electricimplosioncompressor", "gregtech", "gregtech:gt.blockmachines:12734");   // gt.blockmachines.electricimplosioncompressor
             addToStackMap("gt.recipe.electrolyzer", "gregtech", "gregtech:gt.blockmachines:371");                    // gt.blockmachines.basicmachine.electrolyzer.tier.01
             addToStackMap("gt.recipe.electromagneticseparator", "gregtech", "gregtech:gt.blockmachines:561");        // gt.blockmachines.basicmachine.electromagneticseparator.tier.01
             addToStackMap("gt.recipe.extractor", "gregtech", "gregtech:gt.blockmachines:271");                       // gt.blockmachines.basicmachine.extractor.tier.01
             addToStackMap("gt.recipe.extruder", "gregtech", "gregtech:gt.blockmachines:281");                        // gt.blockmachines.basicmachine.extruder.tier.01
             addToStackMap("gt.recipe.fakeAssemblylineProcess", "gregtech", "gregtech:gt.blockmachines:1170");        // gt.blockmachines.multimachine.assemblyline
-            addToStackMap("gt.recipe.fermenter", "gregtech", "gregtech:gt.blockmachines:501");                       // gt.blockmachines.basicmachine.fermenter.tier.01
-            addToStackMap("gt.recipe.fishpond", "gregtech", "gregtech:gt.blockmachines:829");                        // gt.blockmachines.industrial.fishpond.controller.tier.single
+            addToStackMap("gt.recipe.fermenter", "gregtech", "gregtech:gt.blockmachines:501");                       // gt.blockmachines.basicmachine.fermenter.tier.01     
             addToStackMap("gt.recipe.fluidcanner", "gregtech", "gregtech:gt.blockmachines:431");                     // gt.blockmachines.basicmachine.fluidcanner.tier.01
             addToStackMap("gt.recipe.fluidextractor", "gregtech", "gregtech:gt.blockmachines:511");                  // gt.blockmachines.basicmachine.fluidextractor.tier.01
             addToStackMap("gt.recipe.fluidheater", "gregtech", "gregtech:gt.blockmachines:621");                     // gt.blockmachines.basicmachine.fluidheater.tier.01
             addToStackMap("gt.recipe.fluidsolidifier", "gregtech", "gregtech:gt.blockmachines:521");                 // gt.blockmachines.basicmachine.fluidsolidifier.tier.01
-            addToStackMap("gt.recipe.fusionreactor", "gregtech", "gregtech:gt.blockmachines:1193");                  // gt.blockmachines.fusioncomputer.tier.06
-            addToStackMap("gt.recipe.gasturbinefuel", "gregtech", "gregtech:gt.blockmachines:1115");                 // LV gas turbine
-            addToStackMap("gt.recipe.geothermalfuel", "gregtech", "gregtech:gt.blockmachines:830");                  // gt.blockmachines.advancedgenerator.geothermalfuel.tier.01
+            addToStackMap("gt.recipe.fusionreactor", "gregtech", "gregtech:gt.blockmachines:1193");                  // gt.blockmachines.fusioncomputer.tier.06            
             addToStackMap("gt.recipe.hammer", "gregtech", "gregtech:gt.blockmachines:611");                          // gt.blockmachines.basicmachine.hammer.tier.01
-            addToStackMap("gt.recipe.implosioncompressor", "gregtech", "gregtech:gt.blockmachines:12734");           // gt.blockmachines.electricimplosioncompressor
-            addToStackMap("gt.recipe.largeboilerfakefuels", "gregtech", "gregtech:gt.blockmachines:1020");           // gt.blockmachines.multimachine.boiler.bronze
+            addToStackMap("gt.recipe.implosioncompressor", "gregtech", "gregtech:gt.blockmachines:12734");           // gt.blockmachines.electricimplosioncompressor            
             addToStackMap("gt.recipe.largechemicalreactor", "gregtech", "gregtech:gt.blockmachines:1169");           // gt.blockmachines.multimachine.chemicalreactor
             addToStackMap("gt.recipe.laserengraver", "gregtech", "gregtech:gt.blockmachines:591");                   // gt.blockmachines.basicmachine.laserengraver.tier.01
             addToStackMap("gt.recipe.lathe", "gregtech", "gregtech:gt.blockmachines:291");                           // gt.blockmachines.basicmachine.lathe.tier.01
@@ -251,8 +242,7 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("gt.recipe.mixer", "gregtech", "gregtech:gt.blockmachines:581");                           // gt.blockmachines.basicmachine.mixer.tier.01
             addToStackMap("gt.recipe.orewasher", "gregtech", "gregtech:gt.blockmachines:391");                       // gt.blockmachines.basicmachine.orewasher.tier.01
             addToStackMap("gt.recipe.packager", "gregtech", "gregtech:gt.blockmachines:401");                        // gt.blockmachines.basicmachine.boxinator.tier.01
-            addToStackMap("gt.recipe.plasmaarcfurnace", "gregtech", "gregtech:gt.blockmachines:661");                // gt.blockmachines.basicmachine.plasmaarcfurnace.tier.01
-            addToStackMap("gt.recipe.plasmageneratorfuels", "gregtech", "gregtech:gt.blockmachines:1196");           // gt.blockmachines.basicgenerator.plasmagenerator.tier.05
+            addToStackMap("gt.recipe.plasmaarcfurnace", "gregtech", "gregtech:gt.blockmachines:661");                // gt.blockmachines.basicmachine.plasmaarcfurnace.tier.01            
             addToStackMap("gt.recipe.polarizer", "gregtech", "gregtech:gt.blockmachines:551");                       // gt.blockmachines.basicmachine.polarizer.tier.01
             addToStackMap("gt.recipe.press", "gregtech", "gregtech:gt.blockmachines:601");                           // gt.blockmachines.basicmachine.press.tier.01
             addToStackMap("gt.recipe.primitiveblastfurnace", "gregtech", "gregtech:gt.blockmachines:140");           // gt.blockmachines.multimachine.brickedblastfurnace
@@ -260,34 +250,35 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("gt.recipe.pyro", "gregtech", "gregtech:gt.blockmachines:1159");                           // gt.blockmachines.multimachine.pyro
             addToStackMap("gt.recipe.replicator", "gregtech", "gregtech:gt.blockmachines:481");                      // gt.blockmachines.basicmachine.replicator.tier.01
             addToStackMap("gt.recipe.rockbreaker", "gregtech", "gregtech:gt.blockmachines:441");                     // gt.blockmachines.basicmachine.rockbreaker.tier.01
-            addToStackMap("gt.recipe.scanner", "gregtech", "gregtech:gt.blockmachines:341");                         // gt.blockmachines.basicmachine.scanner.tier.01
-            addToStackMap("gt.recipe.semifluidboilerfuels", "gregtech", "gregtech:gt.blockmachines:1020");           // Bronze boiler
-            addToStackMap("gt.recipe.semifluidgeneratorfuels", "gregtech", "gregtech:gt.blockmachines:837");         // gt.blockmachines.basicgenerator.semifluid.tier.01
+            addToStackMap("gt.recipe.scanner", "gregtech", "gregtech:gt.blockmachines:341");                         // gt.blockmachines.basicmachine.scanner.tier.01            
             addToStackMap("gt.recipe.sifter", "gregtech", "gregtech:gt.blockmachines:641");                          // gt.blockmachines.basicmachine.sifter.tier.01
-            addToStackMap("gt.recipe.slicer", "gregtech", "gregtech:gt.blockmachines:631");                          // gt.blockmachines.basicmachine.slicer.tier.01
-            addToStackMap("gt.recipe.slowfusionreactor", "gregtech", "gregtech:gt.blockmachines:31015");             // gt.blockmachines.gtplusplus.fusion.single
-            addToStackMap("gt.recipe.smallnaquadahreactor", "gregtech", "gregtech:gt.blockmachines:1188");           // gt.blockmachines.basicgenerator.naquadah.tier.07
+            addToStackMap("gt.recipe.slicer", "gregtech", "gregtech:gt.blockmachines:631");                          // gt.blockmachines.basicmachine.slicer.tier.01        
             addToStackMap("gt.recipe.thermalcentrifuge", "gregtech", "gregtech:gt.blockmachines:381");               // gt.blockmachines.basicmachine.thermalcentrifuge.tier.01
-            addToStackMap("gt.recipe.thermalgeneratorfuel", "gregtech", "gregtech:gt.blockmachines:830");            // gt.blockmachines.advancedgenerator.geothermalfuel.tier.01
             addToStackMap("gt.recipe.unpackager", "gregtech", "gregtech:gt.blockmachines:411");                      // gt.blockmachines.basicmachine.unboxinator.tier.01
             addToStackMap("gt.recipe.vacuumfreezer", "gregtech", "gregtech:gt.blockmachines:1002");                  // gt.blockmachines.multimachine.vacuumfreezer
             addToStackMap("gt.recipe.wiremill", "gregtech", "gregtech:gt.blockmachines:351");                        // gt.blockmachines.basicmachine.wiremill.tier.01
             addToStackMap("ic.recipe.recycler", "gregtech", "gregtech:gt.blockmachines:331");                        // gt.blockmachines.basicmachine.recycler.tier.01
-            addToStackMap("gt.recipe.byproductlist", "gregtech", "gregtech:gt.metaitem.01:2019");
-            addToStackMap("gt.recipe.cncmachine", "gregtech", "gregtech:gt.metaitem.01:23305");
-            addToStackMap("gt.recipe.uuamplifier", "gregtech", "gregtech:gt.metaitem.02:32512");
+            addToStackMap("gt.recipe.uuamplifier", "gregtech", "gregtech:gt.blockmachines:471");                     // Amplifabricator
             
-            addToStackMap("gt.recipe.extremedieselgeneratorfuel", "gregtech", "gregtech:gt.blockmachines:1171");
-            addToStackMap("gt.recipe.largenaquadahreactor", "gregtech", "gregtech:gt.blockmachines:97");
-            addToStackMap("gt.recipe.fluidnaquadahreactor", "gregtech", "gregtech:gt.blockmachines:97");
-            addToStackMap("gt.recipe.hugenaquadahreactor", "gregtech", "gregtech:gt.blockmachines:97");
-            addToStackMap("gt.recipe.extrahugenaquadahreactor", "gregtech", "gregtech:gt.blockmachines:97");
-            addToStackMap("gt.recipe.rocketenginefuel", "gregtech", "gregtech:gt.blockmachines:793");                // Basic (EV) rocket fuel gen
-            addToStackMap("gt.recipe.RTGgenerators", "gregtech", "IC2:itemRTGPellet");
-            addToStackMap("gt.recipe.componentassembler", "gregtech", "gregtech:gt.blockmachines:211");
-            addToStackMap("bw.fuels.acidgens", "gregtech", "gregtech:gt.blockmachines:12726");
-            addToStackMap("bw.recipe.cal", "gregtech", "gregtech:gt.blockmachines:12735");
-
+            addToStackMap("gt.recipe.byproductlist", "gregtech", "gregtech:gt.metaitem.01:2019");                    // Byproducts from ore processing
+            
+            addToStackMap("gt.recipe.dieselgeneratorfuel", "gregtech", "gregtech:gt.blockmachines:1110");            // LV Combustion gen
+            addToStackMap("gt.recipe.extremedieselgeneratorfuel", "gregtech", "gregtech:gt.blockmachines:2105");     // ECE, HOG-only
+            addToStackMap("gt.recipe.gasturbinefuel", "gregtech", "gregtech:gt.blockmachines:1115");                 // LV gas turbine
+            addToStackMap("gt.recipe.largeboilerfakefuels", "gregtech", "gregtech:gt.blockmachines:1020");           // gt.blockmachines.multimachine.boiler.bronze
+            addToStackMap("gt.recipe.plasmageneratorfuels", "gregtech", "gregtech:gt.blockmachines:1196");           // gt.blockmachines.basicgenerator.plasmagenerator.tier.05
+            addToStackMap("gt.recipe.semifluidboilerfuels", "gregtech", "gregtech:gt.blockmachines:1020");           // Bronze boiler          
+            
+            addToStackMap("gt.recipe.smallnaquadahreactor", "gregtech", "gregtech:gt.blockmachines:1190");           // Naq Reactor Mark I
+            addToStackMap("gt.recipe.largenaquadahreactor", "gregtech", "gregtech:gt.blockmachines:1191");           // Naq Reactor Mark II
+            addToStackMap("gt.recipe.fluidnaquadahreactor", "gregtech", "gregtech:gt.blockmachines:1192");           // Naq Reactor Mark III. Misnamed in code
+            addToStackMap("gt.recipe.hugenaquadahreactor", "gregtech", "gregtech:gt.blockmachines:1188");            // Naq Reactor Mark IV. Slightly different name for recipe map
+            addToStackMap("gt.recipe.extrahugenaquadahreactor", "gregtech", "gregtech:gt.blockmachines:1189");       // Naq Reactor Mark V. Slightly different name for recipe map
+            //Fluid naq shares name with what should be huge, so it doesn't show up I guess. Also disabled.
+            
+            addToStackMap("gt.recipe.componentassembler", "gregtech", "gregtech:gt.blockmachines:211");              // GT++'s incomplete compound fabricator?
+            addToStackMap("gt.recipe.cncmachine", "gregtech", "gregtech:gt.metaitem.01:23305");                      // Disabled CNC machine?
+            addToStackMap("gt.recipe.thermalgeneratorfuel", "gregtech", "IC2:blockGenerator:1");                     // Disabled 'Thermal Generator'? Or compat for the IC2 geothermal?
         }
 
         if (Loader.isModLoaded("appliedenergistics2")) {
@@ -325,6 +316,7 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("buildcraft.compat.nei.RecipeHandlerAssemblyTable", "BuildCraft", "BuildCraft|Silicon:laserTableBlock");
             addToStackMap("buildcraft.compat.nei.RecipeHandlerIntegrationTable", "BuildCraft", "BuildCraft|Silicon:laserTableBlock:2");
         }
+        
         if (Loader.isModLoaded("BuildCraft|Factory")) {
             addToStackMap("buildcraft.compat.nei.RecipeHandlerRefinery", "BuildCraft", "BuildCraft|Factory:refineryBlock");
         }
@@ -340,11 +332,19 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("com.github.bartimaeusnek.bartworks.neiHandler.BW_NEI_BioLabHandler", "BartWorks", "gregtech:gt.blockmachines:12699");
             addToStackMap("com.github.bartimaeusnek.bartworks.neiHandler.BW_NEI_BioVatHandler", "BartWorks", "gregtech:gt.blockmachines:12712");
             addToStackMap("com.github.bartimaeusnek.bartworks.neiHandler.BW_NEI_OreHandler", "BartWorks", "bartworks:bw.blockores.01:89");
+            
+            addToStackMap("gt.recipe.electricimplosioncompressor", "BartWorks", "gregtech:gt.blockmachines:12734");   // Electric implosion compressor
+            
+            addToStackMap("bw.recipe.cal", "BartWorks", "gregtech:gt.blockmachines:12735");
+            
+            addToStackMap("bw.fuels.acidgens", "BartWorks", "gregtech:gt.blockmachines:12726");
         }
+        
         if (Loader.isModLoaded("tectech")) {
             addToStackMap("com.github.technus.tectech.nei.TT_NEI_ResearchHandler", "TecTech", "gregtech:gt.blockmachines:15331");
             addToStackMap("com.github.technus.tectech.nei.TT_NEI_ScannerHandler", "TecTech", "tectech:item.em.definitionScanStorage");
         }
+        
         if (Loader.isModLoaded("ExtraUtilities")) {
             addToStackMap("com.rwtema.extrautils.nei.EnderConstructorHandler", "ExtraUtilities", "ExtraUtilities:endConstructor");
             addToStackMap("com.rwtema.extrautils.nei.FMPMicroBlocksHandler", "ExtraUtilities", "ForgeMicroblock:sawIron");
@@ -352,6 +352,7 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("com.rwtema.extrautils.nei.MicroBlocksHandler", "ExtraUtilities", "ExtraUtilities:microblocks:1");
             addToStackMap("com.rwtema.extrautils.nei.SoulHandler", "ExtraUtilities", "ExtraUtilities:mini-soul");
         }
+        
         if (Loader.isModLoaded("EnderIO")) {
             addToStackMap("crazypants.enderio.nei.AlloySmelterRecipeHandler", "EnderIO", "EnderIO:blockAlloySmelter");
             addToStackMap("crazypants.enderio.nei.EnchanterRecipeHandler", "EnderIO", "EnderIO:blockEnchanter");
@@ -375,20 +376,22 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("forestry.factory.recipes.nei.NEIHandlerSqueezer", "Forestry", "Forestry:factory:5");
             addToStackMap("forestry.factory.recipes.nei.NEIHandlerStill", "Forestry", "Forestry:factory:6");
         }
+        
         if (Loader.isModLoaded("Avaritia")) {
             addToStackMap("fox.spiteful.avaritia.compat.nei.CompressionHandler", "Avaritia", "Avaritia:Neutronium_Compressor");
             addToStackMap("fox.spiteful.avaritia.compat.nei.ExtremeShapedRecipeHandler", "Avaritia", "Avaritia:Dire_Crafting");
             addToStackMap("fox.spiteful.avaritia.compat.nei.ExtremeShapelessRecipeHandler", "Avaritia", "Avaritia:Dire_Crafting");
         }
 
-
         if (Loader.isModLoaded("GalacticraftCore")) {
             addToStackMap("galaxyspace.core.nei.rocket.RocketT1RecipeHandler", "Galacticraft", "GalacticraftCore:item.spaceship");
         }
+        
         if (Loader.isModLoaded("GalacticraftMars")) {
             addToStackMap("galaxyspace.core.nei.rocket.RocketT2RecipeHandler", "Galacticraft", "GalacticraftMars:item.spaceshipTier2:1");
             addToStackMap("galaxyspace.core.nei.rocket.RocketT3RecipeHandler", "Galacticraft", "GalacticraftMars:item.itemTier3Rocket");
         }
+        
         if (Loader.isModLoaded("GalaxySpace")) {
             addToStackMap("galaxyspace.core.nei.AssemblyMachineRecipeHandler", "GalaxySpace", "GalaxySpace:assemblymachine");
             addToStackMap("galaxyspace.core.nei.rocket.RocketT4RecipeHandler", "GalaxySpace", "GalaxySpace:item.Tier4Rocket");
@@ -397,37 +400,42 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("galaxyspace.core.nei.rocket.RocketT7RecipeHandler", "GalaxySpace", "GalaxySpace:item.Tier7Rocket");
             addToStackMap("galaxyspace.core.nei.rocket.RocketT8RecipeHandler", "GalaxySpace", "GalaxySpace:item.Tier8Rocket");
         }
+        
         if (Loader.isModLoaded("ProjectBlue")) {
             addToStackMap("gcewing.projectblue.nei.NEIRecipeHandler", "ProjectBlue", "ProjectBlue:sprayCan");
         }
-
-        if (Loader.isModLoaded("miscutils")) {
+        /* GT++ */
+        if (Loader.isModLoaded("miscutils")) { 
             addToStackMap("gtPlusPlus.nei.DecayableRecipeHandler", "GT++", "miscutils:dustRadium226");
             addToStackMap("gtPlusPlus.nei.GT_NEI_FlotationCell", "GT++", "gregtech:gt.blockmachines:31028");
             addToStackMap("gtPlusPlus.nei.GT_NEI_FluidReactor", "GT++", "gregtech:gt.blockmachines:998");
             addToStackMap("gtPlusPlus.nei.GT_NEI_MillingMachine", "GT++", "gregtech:gt.blockmachines:31027");
+            
+            addToStackMap("gt.recipe.advanced.mixer", "GT++", "gregtech:gt.blockmachines:811");
+            addToStackMap("gt.recipe.alloyblastsmelter", "gregtech", "gregtech:gt.blockmachines:810");              // ABS
+            addToStackMap("gt.recipe.cokeoven", "GT++", "gregtech:gt.blockmachines:791");                           // ICO
             addToStackMap("gt.recipe.cryogenicfreezer", "GT++", "gregtech:gt.blockmachines:910");
+            addToStackMap("gt.recipe.cyclotron", "GT++", "gregtech:gt.blockmachines:828");                          // Cyclotron
+            addToStackMap("gt.recipe.fishpond", "GT++", "gregtech:gt.blockmachines:829");                           // Zhuhai
+            addToStackMap("gt.recipe.matterfab2", "GT++", "gregtech:gt.blockmachines:799");
             addToStackMap("gt.recipe.multicentrifuge", "GT++", "gregtech:gt.blockmachines:790");
-            addToStackMap("gt.recipe.multielectro", "GT++", "gregtech:gt.blockmachines:796");
+            addToStackMap("gt.recipe.multielectro", "GT++", "gregtech:gt.blockmachines:796");     
+            addToStackMap("gt.recipe.vacfurnace", "GT++", "gregtech:gt.blockmachines:995");
+            
+            addToStackMap("gt.recipe.lftr", "GT++", "gregtech:gt.blockmachines:751");
+            addToStackMap("gt.recipe.lftr.2", "GT++", "gregtech:gt.blockmachines:751");
 
             addToStackMap("gt.recipe.fissionfuel", "GT++", "gregtech:gt.blockmachines:835");
-            addToStackMap("gt.recipe.vacfurnace", "GT++", "gregtech:gt.blockmachines:995");
-            addToStackMap("gt.recipe.lftr", "GT++", "gregtech:gt.blockmachines:751");
-            addToStackMap("gt.recipe.advanced.mixer", "GT++", "gregtech:gt.blockmachines:811");
-            addToStackMap("gt.recipe.lftr.2", "GT++", "gregtech:gt.blockmachines:751");
-            addToStackMap("gt.recipe.alloyblastsmelter", "GT++", "gregtech:gt.blockmachines:810");
-
             addToStackMap("gt.recipe.geothermalfuel", "GT++", "gregtech:gt.blockmachines:830");
-
-            addToStackMap("gt.recipe.cyclotron", "GT++", "gregtech:gt.blockmachines:828");
+            addToStackMap("gt.recipe.rocketenginefuel", "GT++", "gregtech:gt.blockmachines:793");                   // Basic (EV) rocket fuel gen
+            addToStackMap("gt.recipe.RTGgenerators", "GT++", "gregtech:gt.blockmachines:869");                      // GT++ version of the RTG
+            addToStackMap("gt.recipe.semifluidgeneratorfuels", "GT++", "gregtech:gt.blockmachines:837");            // Semifluid gen
+            
+            addToStackMap("gt.recipe.chemicaldehydrator", "GT++", "gregtech:gt.blockmachines:911");                 // Dehydrator
             addToStackMap("gt.recipe.simplewasher", "GT++", "gregtech:gt.blockmachines:767");
-            addToStackMap("gt.recipe.matterfab2", "GT++", "gregtech:gt.blockmachines:799");
-            addToStackMap("gt.recipe.chemicaldehydrator", "GT++", "gregtech:gt.blockmachines:813");
-            addToStackMap("gt.recipe.slowfusionreactor", "GT++", "gregtech:gt.blockmachines:31015");
-            addToStackMap("gt.recipe.fishpond", "GT++", "gregtech:gt.blockmachines:829");
-            addToStackMap("gt.recipe.geothermalfuel", "GT++", "gregtech:gt.blockmachines:830");
-            addToStackMap("gt.recipe.cokeoven", "GT++", "gregtech:gt.blockmachines:791");
+            addToStackMap("gt.recipe.slowfusionreactor", "gregtech", "gregtech:gt.blockmachines:31015");             // gt.blockmachines.gtplusplus.fusion.single
         }
+        
         if (Loader.isModLoaded("Forestry")) {
             addToStackMap("hellfirepvp.beebetteratbees.client.gui.BBABGuiRecipeTreeHandler", "Bees", "Forestry:beeQueenGE");
         }
@@ -447,6 +455,7 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("micdoodle8.mods.galacticraft.planets.mars.nei.GasLiquefierRecipeHandler", "Galacticraft", "GalacticraftMars:tile.marsMachineT2");
             addToStackMap("micdoodle8.mods.galacticraft.planets.mars.nei.MethaneSynthesizerRecipeHandler", "Galacticraft", "GalacticraftMars:tile.marsMachineT2:4");
         }
+        
         if (Loader.isModLoaded("ProjRed|Transmission")) {
             addToStackMap("mrtjp.projectred.core.libmc.recipe.PRShapedRecipeHandler", "ProjectRed", "ProjRed|Transmission:projectred.transmission.wire:7");
             addToStackMap("mrtjp.projectred.core.libmc.recipe.PRShapelessRecipeHandler", "ProjectRed", "ProjRed|Transmission:projectred.transmission.wire:7");
@@ -474,11 +483,12 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("net.bdew.neiaddons.forestry.butterflies.ButterflyBreedingHandler", "Forestry", "Forestry:butterflyGE");
             addToStackMap("net.bdew.neiaddons.forestry.trees.TreeBreedingHandler", "Forestry", "Forestry:saplingGE");
             addToStackMap("net.bdew.neiaddons.forestry.trees.TreeProduceHandler", "Forestry", "Forestry:saplingGE");
-
         }
+        
         if (Loader.isModLoaded("ae2wct")) {
             addToStackMap("net.p455w0rd.wirelesscraftingterminal.integration.modules.NEIHelpers.NEIAEShapedRecipeHandler", "WirelessCraftingTerminal", "ae2wct:wirelessCraftingTerminal");
         }
+        
         if (Loader.isModLoaded("gregtech")) {
             addToStackMap("pers.gwyog.gtneioreplugin.plugin.gregtech5.PluginGT5SmallOreStat", "Gregtech", "gregtech:gt.blockores:85");
             addToStackMap("pers.gwyog.gtneioreplugin.plugin.gregtech5.PluginGT5VeinStat", "Gregtech", "gregtech:gt.blockores:386");
@@ -498,6 +508,7 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("tconstruct.plugins.nei.RecipeHandlerMelting", "Tinker's Construct", "TConstruct:LavaTank:2");
             addToStackMap("tconstruct.plugins.nei.RecipeHandlerToolMaterials", "Tinker's Construct", "TConstruct:ToolStationBlock");
         }
+        
         if (Loader.isModLoaded("chisel")) {
             addToStackMap("team.chisel.compat.nei.RecipeHandlerChisel", "Chisel", "chisel:chisel");
         }
@@ -509,6 +520,7 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("tonius.neiintegration.mods.harvestcraft.RecipeHandlerPresser", "Pam's Harvestcraft", "harvestcraft:presser");
             addToStackMap("tonius.neiintegration.mods.harvestcraft.RecipeHandlerQuern", "Pam's Harvestcraft", "harvestcraft:quern");
         }
+        
         if (Loader.isModLoaded("harvestcraft")) {
             addToStackMap("tonius.neiintegration.mods.mcforge.RecipeHandlerFluidRegistry", "Minecraft", "minecraft:water");
             addToStackMap("tonius.neiintegration.mods.mcforge.RecipeHandlerOreDictionary", "Minecraft", "minecraft:iron_ore");
@@ -521,7 +533,7 @@ public abstract class GuiRecipeTab extends Widget {
             addToStackMap("tonius.neiintegration.mods.railcraft.RecipeHandlerRollingMachineShaped", "Railcraft", "Railcraft:machine.alpha:8");
             addToStackMap("tonius.neiintegration.mods.railcraft.RecipeHandlerRollingMachineShapeless", "Railcraft", "Railcraft:machine.alpha:8");
         }
-
+        /* Blood Magic */
         if (Loader.isModLoaded("AWWayofTime")) {
             addToStackMap("WayofTime.alchemicalWizardry.client.nei.NEIAlchemyRecipeHandler", "BloodMagic", "AWWayofTime:blockWritingTable");
             addToStackMap("WayofTime.alchemicalWizardry.client.nei.NEIAltarRecipeHandler", "BloodMagic", "AWWayofTime:Altar");
