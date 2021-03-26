@@ -18,8 +18,12 @@ public class GuiUsageRecipe extends GuiRecipe
 
         ArrayList<IUsageHandler> handlers;
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
+
+        // Pre-find the fuels so we're not fighting over it
+        FuelRecipeHandler.findFuelsOnceParallel();
+
+        profiler.start("recipe.concurrent.usage");
         try {
-            profiler.start("recipe.concurrent.usage");
             handlers = ItemList.forkJoinPool.submit(() -> usagehandlers.parallelStream()
                 .map(h -> h.getUsageHandler(inputId, ingredients))
                 .filter(h -> h.numRecipes() > 0)

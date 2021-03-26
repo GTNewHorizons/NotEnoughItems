@@ -49,7 +49,12 @@ public class ShapelessRecipeHandler extends ShapedRecipeHandler
 
         public void setIngredients(List<?> items) {
             ingredients.clear();
-            for (int ingred = 0; ingred < items.size(); ingred++) {
+            int itemsSize = items.size();
+            if (itemsSize > stackorder.length) {
+                NEIClientConfig.logger.error("RECIPE BUG: Too many items (" + itemsSize + ") for " + this.result.toString());
+                itemsSize = stackorder.length;
+            }
+            for (int ingred = 0; ingred < itemsSize; ingred++) {
                 PositionedStack stack = new PositionedStack(items.get(ingred), 25 + stackorder[ingred][0] * 18, 6 + stackorder[ingred][1] * 18);
                 stack.setMaxSize(1);
                 ingredients.add(stack);

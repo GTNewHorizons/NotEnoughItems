@@ -5,7 +5,6 @@ import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.inventory.GuiContainer;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -19,8 +18,12 @@ public class GuiCraftingRecipe extends GuiRecipe
 
         ArrayList<ICraftingHandler> handlers;
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
+        profiler.start("recipe.concurrent.crafting");
+       
+        // Pre-find the fuels so we're not fighting over it
+        FuelRecipeHandler.findFuelsOnceParallel();
+
         try {
-            profiler.start("recipe.concurrent.crafting");
             handlers = ItemList.forkJoinPool.submit(() -> craftinghandlers.parallelStream()
                 .map(h -> h.getRecipeHandler(outputId, results))
                 .filter(h -> h.numRecipes() > 0)

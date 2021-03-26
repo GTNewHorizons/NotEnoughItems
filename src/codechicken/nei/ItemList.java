@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class ItemList
 {
@@ -245,20 +246,15 @@ public class ItemList
         @Override
         public void execute() {
             // System.out.println("Executing NEI Item Filtering");
-            ArrayList<ItemStack> filtered = new ArrayList<>();
+            ArrayList<ItemStack> filtered;
             ItemFilter filter = getItemListFilter();
 
             try {
-                ItemList.forkJoinPool.submit(() -> items.parallelStream().forEach(item -> {
-                    if (interrupted()) return;
-
-                    if(filter.matches(item)) {
-                        synchronized (filtered){
-                            filtered.add(item);
-                        }
-                    }
-                })).get();
+                filtered = ItemList.forkJoinPool.submit(() -> items.parallelStream()
+                    .filter(filter::matches)
+                    .collect(Collectors.toCollection(ArrayList::new))).get();
             } catch (InterruptedException | ExecutionException e) {
+                filtered = new ArrayList<>();
                 e.printStackTrace();
                 stop();
             }
