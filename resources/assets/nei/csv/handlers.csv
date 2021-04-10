@@ -27,7 +27,7 @@ bw.recipe.cal,BartWorks,gregtech:gt.blockmachines:12735,,bartworks,TRUE,,,135,,2
 com.github.bartimaeusnek.bartworks.neiHandler.BW_NEI_BioLabHandler,BartWorks,gregtech:gt.blockmachines:12699,,bartworks,TRUE,,,145,,2,,,,,,
 com.github.bartimaeusnek.bartworks.neiHandler.BW_NEI_BioVatHandler,BartWorks,gregtech:gt.blockmachines:12712,,bartworks,TRUE,,,140,,2,,,,,,
 com.github.bartimaeusnek.bartworks.neiHandler.BW_NEI_OreHandler,BartWorks,bartworks:bw.blockores.01:89,,bartworks,TRUE,,,135,,2,,,,,,
-gt.recipe.electricimplosioncompressor,BartWorks,gregtech:gt.blockmachines:12734 Electric implosion compressor,,bartworks,TRUE,,,135,,2,,,,,,
+gt.recipe.electricimplosioncompressor,BartWorks,gregtech:gt.blockmachines:12734,,bartworks,TRUE,,,135,,2,,,,,,
 net.bdew.neiaddons.botany.flowers.FlowerBreedingHandler,Botany,Botany:flower,,Botany,TRUE,,,65,,5,,,,,,
 buildcraft.compat.nei.RecipeHandlerRefinery,BuildCraft,BuildCraft|Factory:refineryBlock,,BuildCraft|Factory,TRUE,,,60,,5,,,,,,There's only 2 recipes though
 buildcraft.compat.nei.RecipeHandlerAssemblyTable,BuildCraft,BuildCraft|Silicon:laserTableBlock,,BuildCraft|Silicon,TRUE,,,100,,3,,,,,,
@@ -84,80 +84,80 @@ net.bdew.gendustry.nei.MutagenProducerHandler,Gendustry,gendustry:MutagenProduce
 net.bdew.gendustry.nei.MutatronHandler,Gendustry,gendustry:Mutatron,,gendustry,TRUE,,,65,,5,,,,,,
 net.bdew.gendustry.nei.ReplicatorHandler,Gendustry,gendustry:Replicator,,gendustry,TRUE,,,68,,5,,,,,,
 net.bdew.gendustry.nei.SamplerHandler,Gendustry,gendustry:Sampler,,gendustry,TRUE,,,68,,5,,,,,,
-net.bdew.gendustry.nei.TemplateCraftingHandler,Gendustry,gendustry:GeneTemplate,,gendustry,TRUE,,,105,,3,,,,,,"I don't think there's any actual recipes here, just a generic one"
+net.bdew.gendustry.nei.TemplateCraftingHandler,Gendustry,gendustry:GeneTemplate,,gendustry,TRUE,,,105,,3,,,,,,
 net.bdew.gendustry.nei.TransposerHandler,Gendustry,gendustry:Transposer,,gendustry,TRUE,,,68,,5,,,,,,
-gt.recipe.alloysmelter,gregtech,gregtech:gt.blockmachines:201,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,Amplifabricator
-gt.recipe.arcfurnace,gregtech,gregtech:gt.blockmachines:651,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,Bronze boiler
-gt.recipe.assembler,gregtech,gregtech:gt.blockmachines:211,,gregtech,TRUE,gregapi_post,6,145,166,2,,,,,,Byproducts from ore processing
-gt.recipe.autoclave,gregtech,gregtech:gt.blockmachines:571,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,Disabled 'Thermal Generator'? Or compat for the IC2 geothermal?
-gt.recipe.blastfurnace,gregtech,gregtech:gt.blockmachines:1000,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,Disabled CNC machine?
-gt.recipe.brewer,gregtech,gregtech:gt.blockmachines:491,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,ECE
-gt.recipe.byproductlist,gregtech,gregtech:gt.metaitem.01:2019,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicgenerator.magicenergyconverter.tier.01
-gt.recipe.canner,gregtech,gregtech:gt.blockmachines:231,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicgenerator.plasmagenerator.tier.05
-gt.recipe.centrifuge,gregtech,gregtech:gt.blockmachines:361,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.arcfurnace.tier.01
-gt.recipe.chemicalbath,gregtech,gregtech:gt.blockmachines:541,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.assembler.tier.01
-gt.recipe.chemicalreactor,gregtech,gregtech:gt.blockmachines:421,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.autoclave.tier.01
-gt.recipe.circuitassembler,gregtech,gregtech:gt.blockmachines:1180,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.bender.tier.01
-gt.recipe.cncmachine,gregtech,gregtech:gt.metaitem.01:23305,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.boxinator.tier.01
-gt.recipe.cokeoven,gregtech,gregtech:gt.blockmachines:791,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.brewery.tier.01
-gt.recipe.componentassembler,gregtech,gregtech:gt.blockmachines:211,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.canner.tier.01
-gt.recipe.compressor,gregtech,gregtech:gt.blockmachines:241,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.centrifuge.tier.01
-gt.recipe.craker,gregtech,gregtech:gt.blockmachines:1160,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.chemicalbath.tier.01
-gt.recipe.cuttingsaw,gregtech,gregtech:gt.blockmachines:251,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.chemicalreactor.tier.01
-gt.recipe.dieselgeneratorfuel,gregtech,gregtech:gt.blockmachines:1110,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.circuitassembler.tier.01
-gt.recipe.distillationtower,gregtech,gregtech:gt.blockmachines:1126,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.compressor.tier.01
-gt.recipe.distillery,gregtech,gregtech:gt.blockmachines:531,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.cutter.tier.01
-gt.recipe.electrolyzer,gregtech,gregtech:gt.blockmachines:371,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.distillery.tier.01
-gt.recipe.electromagneticseparator,gregtech,gregtech:gt.blockmachines:561,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.electrolyzer.tier.01
-gt.recipe.extractor,gregtech,gregtech:gt.blockmachines:271,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.electromagneticseparator.tier.01
-gt.recipe.extrahugenaquadahreactor,gregtech,gregtech:gt.blockmachines:1189,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.extractor.tier.01
-gt.recipe.extremedieselgeneratorfuel,gregtech,gregtech:gt.blockmachines:2105,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.extruder.tier.01
-gt.recipe.extruder,gregtech,gregtech:gt.blockmachines:281,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.fermenter.tier.01
-gt.recipe.fakeAssemblylineProcess,gregtech,gregtech:gt.blockmachines:1170,,gregtech,TRUE,gregapi_post,12,135,166,2,,,,,,gt.blockmachines.basicmachine.fluidcanner.tier.01
-gt.recipe.fermenter,gregtech,gregtech:gt.blockmachines:501,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.fluidextractor.tier.01
-gt.recipe.fluidcanner,gregtech,gregtech:gt.blockmachines:431,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.fluidheater.tier.01
-gt.recipe.fluidextractor,gregtech,gregtech:gt.blockmachines:511,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.fluidsolidifier.tier.01
-gt.recipe.fluidheater,gregtech,gregtech:gt.blockmachines:621,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.hammer.tier.01
-gt.recipe.fluidnaquadahreactor,gregtech,gregtech:gt.blockmachines:1192,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.laserengraver.tier.01
-gt.recipe.fluidsolidifier,gregtech,gregtech:gt.blockmachines:521,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.lathe.tier.01
-gt.recipe.fusionreactor,gregtech,gregtech:gt.blockmachines:1193,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.macerator.tier.01
-gt.recipe.gasturbinefuel,gregtech,gregtech:gt.blockmachines:1115,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.massfab.tier.01
-gt.recipe.hammer,gregtech,gregtech:gt.blockmachines:611,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.microwave.tier.01
-gt.recipe.hugenaquadahreactor,gregtech,gregtech:gt.blockmachines:1188,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.mixer.tier.01
-gt.recipe.implosioncompressor,gregtech,gregtech:gt.blockmachines:12734,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.orewasher.tier.01
-gt.recipe.largeboilerfakefuels,gregtech,gregtech:gt.blockmachines:1020,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.plasmaarcfurnace.tier.01
-gt.recipe.largechemicalreactor,gregtech,gregtech:gt.blockmachines:1169,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.polarizer.tier.01
-gt.recipe.largenaquadahreactor,gregtech,gregtech:gt.blockmachines:1191,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.press.tier.01
-gt.recipe.laserengraver,gregtech,gregtech:gt.blockmachines:591,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.printer.tier.01
-gt.recipe.lathe,gregtech,gregtech:gt.blockmachines:291,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.recycler.tier.01
-gt.recipe.macerator,gregtech,gregtech:gt.blockmachines:301,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.replicator.tier.01
-gt.recipe.magicfuels,gregtech,gregtech:gt.blockmachines:1123,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.rockbreaker.tier.01
-gt.recipe.massfab,gregtech,gregtech:gt.blockmachines:461,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.scanner.tier.01
-gt.recipe.metalbender,gregtech,gregtech:gt.blockmachines:221,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.sifter.tier.01
-gt.recipe.microwave,gregtech,gregtech:gt.blockmachines:311,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.slicer.tier.01
-gt.recipe.mixer,gregtech,gregtech:gt.blockmachines:581,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.thermalcentrifuge.tier.01
-gt.recipe.orewasher,gregtech,gregtech:gt.blockmachines:391,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.unboxinator.tier.01
-gt.recipe.packager,gregtech,gregtech:gt.blockmachines:401,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.basicmachine.wiremill.tier.01
-gt.recipe.plasmaarcfurnace,gregtech,gregtech:gt.blockmachines:661,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.electricimplosioncompressor
-gt.recipe.plasmageneratorfuels,gregtech,gregtech:gt.blockmachines:1196,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.fusioncomputer.tier.06
-gt.recipe.polarizer,gregtech,gregtech:gt.blockmachines:551,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.industrialcokeoven.controller.tier.single
-gt.recipe.press,gregtech,gregtech:gt.blockmachines:601,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,Needs more Yshift? Or doesn't apply properly? Added more
-gt.recipe.primitiveblastfurnace,gregtech,gregtech:gt.blockmachines:140,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.multimachine.blastfurnace
-gt.recipe.printer,gregtech,gregtech:gt.blockmachines:321,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.multimachine.boiler.bronze
-gt.recipe.pyro,gregtech,gregtech:gt.blockmachines:1159,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.multimachine.brickedblastfurnace
-gt.recipe.replicator,gregtech,gregtech:gt.blockmachines:481,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.multimachine.chemicalreactor
-gt.recipe.rockbreaker,gregtech,gregtech:gt.blockmachines:441,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.multimachine.cracker
-gt.recipe.scanner,gregtech,gregtech:gt.blockmachines:341,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.multimachine.distillationtower
-gt.recipe.semifluidboilerfuels,gregtech,gregtech:gt.blockmachines:1020,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.multimachine.pyro
-gt.recipe.sifter,gregtech,gregtech:gt.blockmachines:641,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,gt.blockmachines.multimachine.vacuumfreezer
-gt.recipe.slicer,gregtech,gregtech:gt.blockmachines:631,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,GT++'s incomplete compound fabricator?
-gt.recipe.smallnaquadahreactor,gregtech,gregtech:gt.blockmachines:1190,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,LV Combustion gen
-gt.recipe.thermalcentrifuge,gregtech,gregtech:gt.blockmachines:381,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,LV gas turbine
-gt.recipe.thermalgeneratorfuel,gregtech,IC2:blockGenerator:1,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,Naq Reactor Mark I
-gt.recipe.unpackager,gregtech,gregtech:gt.blockmachines:411,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,Naq Reactor Mark II
-gt.recipe.uuamplifier,gregtech,gregtech:gt.blockmachines:471,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,Naq Reactor Mark III. Misnamed in code
-gt.recipe.vacuumfreezer,gregtech,gregtech:gt.blockmachines:1002,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,Naq Reactor Mark IV. Slightly different name for recipe map
-gt.recipe.wiremill,gregtech,gregtech:gt.blockmachines:351,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,Naq Reactor Mark V. Slightly different name for recipe map
+gt.recipe.alloysmelter,gregtech,gregtech:gt.blockmachines:201,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.arcfurnace,gregtech,gregtech:gt.blockmachines:651,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.assembler,gregtech,gregtech:gt.blockmachines:211,,gregtech,TRUE,gregapi_post,6,145,166,2,,,,,,
+gt.recipe.autoclave,gregtech,gregtech:gt.blockmachines:571,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.blastfurnace,gregtech,gregtech:gt.blockmachines:1000,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.brewer,gregtech,gregtech:gt.blockmachines:491,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.byproductlist,gregtech,gregtech:gt.metaitem.01:2019,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.canner,gregtech,gregtech:gt.blockmachines:231,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.centrifuge,gregtech,gregtech:gt.blockmachines:361,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.chemicalbath,gregtech,gregtech:gt.blockmachines:541,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.chemicalreactor,gregtech,gregtech:gt.blockmachines:421,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.circuitassembler,gregtech,gregtech:gt.blockmachines:1180,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.cncmachine,gregtech,gregtech:gt.metaitem.01:23305,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.cokeoven,gregtech,gregtech:gt.blockmachines:791,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.componentassembler,gregtech,gregtech:gt.blockmachines:211,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.compressor,gregtech,gregtech:gt.blockmachines:241,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.craker,gregtech,gregtech:gt.blockmachines:1160,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.cuttingsaw,gregtech,gregtech:gt.blockmachines:251,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.dieselgeneratorfuel,gregtech,gregtech:gt.blockmachines:1110,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.distillationtower,gregtech,gregtech:gt.blockmachines:1126,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.distillery,gregtech,gregtech:gt.blockmachines:531,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.electrolyzer,gregtech,gregtech:gt.blockmachines:371,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.electromagneticseparator,gregtech,gregtech:gt.blockmachines:561,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.extractor,gregtech,gregtech:gt.blockmachines:271,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.extrahugenaquadahreactor,gregtech,gregtech:gt.blockmachines:1189,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.extremedieselgeneratorfuel,gregtech,gregtech:gt.blockmachines:2105,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.extruder,gregtech,gregtech:gt.blockmachines:281,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.fakeAssemblylineProcess,gregtech,gregtech:gt.blockmachines:1170,,gregtech,TRUE,gregapi_post,12,135,166,2,,,,,,
+gt.recipe.fermenter,gregtech,gregtech:gt.blockmachines:501,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.fluidcanner,gregtech,gregtech:gt.blockmachines:431,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.fluidextractor,gregtech,gregtech:gt.blockmachines:511,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.fluidheater,gregtech,gregtech:gt.blockmachines:621,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.fluidnaquadahreactor,gregtech,gregtech:gt.blockmachines:1192,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.fluidsolidifier,gregtech,gregtech:gt.blockmachines:521,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.fusionreactor,gregtech,gregtech:gt.blockmachines:1193,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.gasturbinefuel,gregtech,gregtech:gt.blockmachines:1115,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.hammer,gregtech,gregtech:gt.blockmachines:611,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.hugenaquadahreactor,gregtech,gregtech:gt.blockmachines:1188,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.implosioncompressor,gregtech,gregtech:gt.blockmachines:12734,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.largeboilerfakefuels,gregtech,gregtech:gt.blockmachines:1020,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.largechemicalreactor,gregtech,gregtech:gt.blockmachines:1169,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.largenaquadahreactor,gregtech,gregtech:gt.blockmachines:1191,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.laserengraver,gregtech,gregtech:gt.blockmachines:591,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.lathe,gregtech,gregtech:gt.blockmachines:291,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.macerator,gregtech,gregtech:gt.blockmachines:301,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.magicfuels,gregtech,gregtech:gt.blockmachines:1123,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.massfab,gregtech,gregtech:gt.blockmachines:461,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.metalbender,gregtech,gregtech:gt.blockmachines:221,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.microwave,gregtech,gregtech:gt.blockmachines:311,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.mixer,gregtech,gregtech:gt.blockmachines:581,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.orewasher,gregtech,gregtech:gt.blockmachines:391,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.packager,gregtech,gregtech:gt.blockmachines:401,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.plasmaarcfurnace,gregtech,gregtech:gt.blockmachines:661,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.plasmageneratorfuels,gregtech,gregtech:gt.blockmachines:1196,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.polarizer,gregtech,gregtech:gt.blockmachines:551,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.press,gregtech,gregtech:gt.blockmachines:601,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.primitiveblastfurnace,gregtech,gregtech:gt.blockmachines:140,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.printer,gregtech,gregtech:gt.blockmachines:321,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.pyro,gregtech,gregtech:gt.blockmachines:1159,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.replicator,gregtech,gregtech:gt.blockmachines:481,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.rockbreaker,gregtech,gregtech:gt.blockmachines:441,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.scanner,gregtech,gregtech:gt.blockmachines:341,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.semifluidboilerfuels,gregtech,gregtech:gt.blockmachines:1020,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.sifter,gregtech,gregtech:gt.blockmachines:641,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.slicer,gregtech,gregtech:gt.blockmachines:631,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.smallnaquadahreactor,gregtech,gregtech:gt.blockmachines:1190,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.thermalcentrifuge,gregtech,gregtech:gt.blockmachines:381,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.thermalgeneratorfuel,gregtech,IC2:blockGenerator:1,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.unpackager,gregtech,gregtech:gt.blockmachines:411,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.uuamplifier,gregtech,gregtech:gt.blockmachines:471,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.vacuumfreezer,gregtech,gregtech:gt.blockmachines:1002,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
+gt.recipe.wiremill,gregtech,gregtech:gt.blockmachines:351,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
 ic.recipe.recycler,gregtech,gregtech:gt.blockmachines:331,,gregtech,TRUE,gregapi_post,6,135,166,2,,,,,,
 pers.gwyog.gtneioreplugin.plugin.gregtech5.PluginGT5SmallOreStat,Gregtech,gregtech:gt.blockores:85,,gregtech,TRUE,,,145,,2,,,,,,
 pers.gwyog.gtneioreplugin.plugin.gregtech5.PluginGT5VeinStat,Gregtech,gregtech:gt.blockores:386,,gregtech,TRUE,,,135,,2,,,,,,
@@ -338,5 +338,50 @@ gt.recipe.unboxinator,Gregtech 6,gregtech:gt.multitileentity:20591,,gregapi_post
 gt.recipe.welder,Gregtech 6,gregtech:gt.multitileentity:20331,,gregapi_post,TRUE,,15,145,166,2,,,,,,
 gt.recipe.well,Gregtech 6,gregtech:gt.multitileentity:17124,,gregapi_post,TRUE,,15,145,166,2,,,,,,
 gt.recipe.wiremill,Gregtech 6,gregtech:gt.multitileentity:20151,,gregapi_post,TRUE,,15,145,166,2,,,,,,
-mc.recipe.smelting,Gregtech 6,gregtech:gt.multitileentity:20001,,gregapi_post,TRUE,,15,145,166,2,,,,,,
+smelting,Gregtech 6,gregtech:gt.multitileentity:20001,,gregapi_post,TRUE,,15,145,166,2,,,,,,This uses the same recipe map as the MC furnace
 gt.recipe.trees,Gregtech 6,minecraft:sapling,,gregapi_post,TRUE,,15,145,166,2,,,,,,
+moze_intel.projecte.integration.NEI.NEIWorldTransmuteHandler,ProjectE,ProjectE:item.pe_philosophers_stone,,ProjectE,TRUE,,,45,,10,,,,,,
+moze_intel.projecte.integration.NEI.NEIPhiloSmeltingHandler,ProjectE,ProjectE:item.pe_philosophers_stone,,ProjectE,TRUE,,,,,5,,,,,,
+moze_intel.projecte.integration.NEI.NEIKleinStarHandler,ProjectE,ProjectE:item.pe_klein_star,,ProjectE,TRUE,,,,,5,,,,,,
+moze_intel.projecte.integration.NEI.NEIAlchBagHandler,ProjectE,ProjectE:item.pe_alchemical_bag,,ProjectE,TRUE,,,,,5,,,,,,
+de.katzenpapst.amunra.nei.recipehandler.ARCircuitFab,Pra's Galacticraft Mod,GalacticraftCore:tile.machine2:4,,GalacticraftAmunRa,TRUE,,,,,,,,,,,
+de.katzenpapst.amunra.nei.recipehandler.ARNasaWorkbenchShuttle,Pra's Galacticraft Mod,GalacticraftAmunRa:item.itemShuttle,,GalacticraftAmunRa,TRUE,,,130,168,16,,,,,,
+vazkii.botania.client.integration.nei.recipe.RecipeHandlerFloatingFlowers,Botania,Botania:miniIsland,,Botania,TRUE,,,,,5,,,,,,
+vazkii.botania.client.integration.nei.recipe.RecipeHandlerPetalApothecary,Botania,Botania:altar,,Botania,TRUE,,,102,137,4,,,,,,
+vazkii.botania.client.integration.nei.recipe.RecipeHandlerRunicAltar,Botania,Botania:runeAltar,,Botania,TRUE,,,122,137,4,,,,,,
+vazkii.botania.client.integration.nei.recipe.RecipeHandlerManaPool,Botania,Botania:pool,,Botania,TRUE,,,90,137,4,,,,,,
+vazkii.botania.client.integration.nei.recipe.RecipeHandlerElvenTrade,Botania,Botania:alfheimPortal,,Botania,TRUE,,,90,130,4,,,,,,
+vazkii.botania.client.integration.nei.recipe.RecipeHandlerBrewery,Botania,Botania:brewery,,Botania,TRUE,,,,,4,,,,,,
+vazkii.botania.client.integration.nei.recipe.RecipeHandlerPureDaisy,Botania,Botania:specialFlower,"{""type"": ""puredaisy""}",Botania,TRUE,,,,,4,,,,,,
+vazkii.botania.client.integration.nei.recipe.RecipeHandlerLexicaBotania,Botania,Botania:lexicon,,Botania,TRUE,,,,,,,,,,,
+com.jaquadro.minecraft.storagedrawers.integration.notenoughitems.UpgradeItemRecipeHandler,Storage Drawers,minecraft:crafting_table,,StorageDrawers,TRUE,,,65,166,5,,,,,,
+ieArcFurnace,Immersive Engineering,ImmersiveEngineering:graphiteElectrode,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+NEIArcFurnaceHandlerAlloying,Immersive Engineering,terrafirmacraftplus:item.Bronze Ingot,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+NEIArcFurnaceHandlerOres,Immersive Engineering,minecraft:iron_ore,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+NEIArcFurnaceHandlerSmelting,Immersive Engineering,terrafirmacraftplus:item.Ore:100,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+NEIArcFurnaceHandlerGlassworking,Immersive Engineering,minecraft:glass,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+NEIArcFurnaceHandlerDecarburization,Immersive Engineering,terrafirmacraftplus:item.Wrought Iron Ingot,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+NEIArcFurnaceHandlerCarburization,Immersive Engineering,terrafirmacraftplus:item.HC Steel Ingot,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+NEIArcFurnaceHandlerHeating,Immersive Engineering,,,ImmersiveEngineering,TRUE,,,65,166,5,nei:textures/nei_tabbed_sprites.png,80,0,14,14,
+NEIArcFurnaceHandlerMelting,Immersive Engineering,terrafirmacraftplus:item.Molten Glass,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+NEIArcFurnaceHandlerWelding,Immersive Engineering,terrafirmacraftplus:item.Bismuth Double Ingot,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+NEIArcFurnaceHandlerElectrolysis,Immersive Engineering,teloaddon:Alumina,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+blusunrize.immersiveengineering.client.nei.NEIShaderBagHandler,Immersive Engineering,ImmersiveEngineering:shaderBag,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+blusunrize.immersiveengineering.client.nei.NEIBlueprintHandler,Immersive Engineering,ImmersiveEngineering:blueprint,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+blusunrize.immersiveengineering.client.nei.NEICokeOvenHandler,Immersive Engineering,ImmersiveEngineering:stoneDecoration:1,,ImmersiveEngineering,TRUE,,,71,166,5,,,,,,
+blusunrize.immersiveengineering.client.nei.NEIBlastFurnaceHandler,Immersive Engineering,ImmersiveEngineering:stoneDecoration:2,,ImmersiveEngineering,TRUE,,,71,166,5,,,,,,
+blusunrize.immersiveengineering.client.nei.NEISqueezerHandler,Immersive Engineering,ImmersiveEngineering:metalMultiblock:2,,ImmersiveEngineering,TRUE,,,71,166,5,,,,,,
+blusunrize.immersiveengineering.client.nei.NEIFermenterHandler,Immersive Engineering,ImmersiveEngineering:metalMultiblock:3,,ImmersiveEngineering,TRUE,,,71,166,5,,,,,,
+blusunrize.immersiveengineering.client.nei.NEIRefineryHandler,Immersive Engineering,ImmersiveEngineering:metalDevice2:5,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+blusunrize.immersiveengineering.client.nei.NEIBottlingMachineHandler,Immersive Engineering,minecraft:glass_bottle,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+blusunrize.immersiveengineering.client.nei.NEIMetalPressHandler,Immersive Engineering,ImmersiveEngineering:mold,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
+blusunrize.immersiveengineering.client.nei.NEICrusherHandler,Immersive Engineering,minecraft:hopper,,ImmersiveEngineering,TRUE,,,71,166,5,,,,,,
+net.dries007.tfcnei.recipeHandlers.AnvilRecipeHandler,TerraFirmaCraft+,terrafirmacraftplus:Anvil,,terrafirmacraftplus,TRUE,,10,138,208,2,,,,,,
+net.dries007.tfcnei.recipeHandlers.QuernRecipeHandler,TerraFirmaCraft+,terrafirmacraftplus:item.Quern,,terrafirmacraftplus,TRUE,,,65,166,5,,,,,,
+net.dries007.tfcnei.recipeHandlers.KilnRecipeHandler,TerraFirmaCraft+,,,terrafirmacraftplus,TRUE,,,65,166,5,terrafirmacraftneiplugin:textures/gui/pitkiln.png,47,38,14,14,
+net.dries007.tfcnei.recipeHandlers.LoomRecipeHandler,TerraFirmaCraft+,terrafirmacraftplus:Loom,,terrafirmacraftplus,TRUE,,,65,166,5,,,,,,
+net.dries007.tfcnei.recipeHandlers.KnappingRecipeHandler,TerraFirmaCraft+,terrafirmacraftplus:item.LooseRock,,terrafirmacraftplus,TRUE,,,96,166,3,,,,,,
+net.dries007.tfcnei.recipeHandlers.ClothingRecipeHandler,TerraFirmaCraft+,terrafirmacraftplus:item.Bone Needle Thread,,terrafirmacraftplus,TRUE,,,65,166,5,,,,,,
+net.dries007.tfcnei.recipeHandlers.BarrelRecipeHandler,TerraFirmaCraft+,terrafirmacraftplus:Barrel,,terrafirmacraftplus,TRUE,,,65,166,5,,,,,,
+net.dries007.tfcnei.recipeHandlers.AlloyRecipeHandler,TerraFirmaCraft+,terrafirmacraftplus:Crucible,,terrafirmacraftplus,TRUE,,,65,166,5,,,,,,
+net.dries007.tfcnei.recipeHandlers.HeatRecipeHandler,TerraFirmaCraft+,terrafirmacraftplus:Firepit,,terrafirmacraftplus,TRUE,,,65,166,5,,,,,,
