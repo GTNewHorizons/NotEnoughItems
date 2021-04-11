@@ -352,7 +352,7 @@ vazkii.botania.client.integration.nei.recipe.RecipeHandlerRunicAltar,Botania,Bot
 vazkii.botania.client.integration.nei.recipe.RecipeHandlerManaPool,Botania,Botania:pool,,Botania,TRUE,,,90,137,4,,,,,,
 vazkii.botania.client.integration.nei.recipe.RecipeHandlerElvenTrade,Botania,Botania:alfheimPortal,,Botania,TRUE,,,90,130,4,,,,,,
 vazkii.botania.client.integration.nei.recipe.RecipeHandlerBrewery,Botania,Botania:brewery,,Botania,TRUE,,,,,4,,,,,,
-vazkii.botania.client.integration.nei.recipe.RecipeHandlerPureDaisy,Botania,Botania:specialFlower,"{""type"": ""puredaisy""}",Botania,TRUE,,,,,4,,,,,,
+vazkii.botania.client.integration.nei.recipe.RecipeHandlerPureDaisy,Botania,Botania:specialFlower,"{type: ""puredaisy""}",Botania,TRUE,,,,,4,,,,,,
 vazkii.botania.client.integration.nei.recipe.RecipeHandlerLexicaBotania,Botania,Botania:lexicon,,Botania,TRUE,,,,,,,,,,,
 com.jaquadro.minecraft.storagedrawers.integration.notenoughitems.UpgradeItemRecipeHandler,Storage Drawers,minecraft:crafting_table,,StorageDrawers,TRUE,,,65,166,5,,,,,,
 ieArcFurnace,Immersive Engineering,ImmersiveEngineering:graphiteElectrode,,ImmersiveEngineering,TRUE,,,65,166,5,,,,,,
