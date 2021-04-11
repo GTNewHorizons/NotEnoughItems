@@ -327,14 +327,17 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
     
     public void refreshPage() {
         refreshSlots();
-        area.width = handlerInfo.getWidth();
-        area.height = handlerInfo.getHeight();
-        area.x = guiLeft - 2;
-        area.y = guiTop  - 4;
-        checkYShift();
-
         final int recipesPerPage = getRecipesPerPage();
         final boolean multiplepages = handler.numRecipes() > recipesPerPage;
+
+        final int numRecipes = Math.min(handler.numRecipes() - (page * recipesPerPage), recipesPerPage);
+
+        area.width = handlerInfo.getWidth();
+        area.height = handlerInfo.getHeight() * numRecipes;
+        area.x = guiLeft - 2;
+        area.y = guiTop  - 4 + yShift;
+        checkYShift();
+
         nextpage.enabled = prevpage.enabled = multiplepages;
         
         if(firstGui == null) {
@@ -342,7 +345,6 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
                 overlay.visible = false;
             }
         } else {
-            final int numRecipes = Math.min(handler.numRecipes() - (page * recipesPerPage), recipesPerPage);  
             for(int i = 0 ; i < overlayButtons.length ; i ++) {
                 if (i >= numRecipes) {
                     overlayButtons[i].visible = false;
