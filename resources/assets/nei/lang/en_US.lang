@@ -150,6 +150,12 @@ nei.options.inventory.gamemodes.tip=Select the gamemodes to cycle through
 nei.options.inventory.gamemodes.creative=Creative
 nei.options.inventory.gamemodes.creative+=Creative+
 nei.options.inventory.gamemodes.adventure=Adventure
+nei.options.inventory.disableMouseScrollTransfer=Disable Mouse Wheel Transfer
+nei.options.inventory.disableMouseScrollTransfer.true=True
+nei.options.inventory.disableMouseScrollTransfer.false=False
+nei.options.inventory.invertMouseScrollTransfer=Invert Mouse Wheel Transfer Direction
+nei.options.inventory.invertMouseScrollTransfer.true=True
+nei.options.inventory.invertMouseScrollTransfer.false=False
 
 nei.options.command=Commands
 nei.options.command.creative=Gamemode

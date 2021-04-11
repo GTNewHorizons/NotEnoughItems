@@ -224,12 +224,15 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
 
     @Override
     public boolean mouseScrolled(GuiContainer gui, int mousex, int mousey, int scrolled) {
-        if (!NEIClientConfig.isEnabled() || GuiInfo.hasCustomSlots(gui))
+        if (!NEIClientConfig.isEnabled() || GuiInfo.hasCustomSlots(gui) || !NEIClientConfig.isMouseScrollTransferEnabled())
             return false;
 
         Point mousePos = getMousePosition();
         Slot mouseover = manager.window.getSlotAtPosition(mousePos.x, mousePos.y);
         if (mouseover != null && mouseover.getHasStack()) {
+            if(NEIClientConfig.shouldInvertMouseScrollTransfer()) {
+                scrolled = -scrolled;
+            }
             if (scrolled > 0)
                 fastTransferManager.transferItem(manager.window, mouseover.slotNumber);
             else

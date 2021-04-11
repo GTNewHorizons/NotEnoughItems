@@ -116,6 +116,17 @@ public class NEIClientConfig
         tag.getTag("inventory.profileRecipes").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.profileRecipes", true));
 
+        tag.getTag("inventory.disableMouseScrollTransfer").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.disableMouseScrollTransfer", true));
+
+        tag.getTag("inventory.invertMouseScrollTransfer").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.invertMouseScrollTransfer", true) {
+            @Override
+            public boolean isEnabled() {
+                return isMouseScrollTransferEnabled();
+            }
+        });
+
         tag.getTag("command.creative").setDefaultValue("/gamemode {0} {1}");
         API.addOption(new OptionTextField("command.creative"));
         tag.getTag("command.item").setDefaultValue("/give {0} {1} {2} {3} {4}");
@@ -379,6 +390,14 @@ public class NEIClientConfig
         world.saveNBT();
     }
 
+    public static boolean isMouseScrollTransferEnabled() {
+        return !getBooleanSetting("inventory.disableMouseScrollTransfer");
+    }
+
+    public static boolean shouldInvertMouseScrollTransfer() {
+        return !getBooleanSetting("inventory.invertMouseScrollTransfer");
+    }
+    
     public static boolean getMagnetMode() {
         return enabledActions.contains("magnet");
     }
