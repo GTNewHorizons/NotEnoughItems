@@ -19,9 +19,10 @@ We've tested this against all of the mods included in GTNH, as well as a limited
 * Utility/Cheat buttons line up and wrap based on GUI size
 * ItemList is no longer regenerated from the ItemRegistry on every inventory load
 * JEI (Or Creative) Style tabs [Optional]  Note: Requires explicit support to be added for an ItemStack to render, otherwise falls back to the first two letters of the handler name.  
-* Tabs/Handlers are loaded from a CSV config in the JAR (or optionally from the config folder).  IMCEvent for mod authors to register this information is planned.
+* Tabs/Handlers are loaded from a CSV config in the JAR (or optionally from the config folder).  NBT IMCEvents `registerHandlerInfo` and `removeHandlerInfo` are available for mod authors to add handler information, using the same fields as the CSV file
 * `@[Mod]->[item]` searching.  ex: `@Gregtech->iron ingot`
-* Cycle between Recipe, Utility, and Cheat mode by cntrl clicking on the Wrench Icon 
+* Cycle between Recipe, Utility, and Cheat mode by ctrl clicking on the Wrench Icon 
+* GT5u Tools/Items should now properly work with the Overlay Recipe Transfer
 
 ## Other items of note:
 

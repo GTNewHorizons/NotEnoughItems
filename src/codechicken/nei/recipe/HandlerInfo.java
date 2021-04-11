@@ -3,8 +3,14 @@ package codechicken.nei.recipe;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
+import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.JsonToNBT;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTException;
+import net.minecraft.nbt.NBTTagCompound;
+import org.apache.logging.log4j.Level;
 
 public class HandlerInfo {
     public static int DEFAULT_HEIGHT = 65;
@@ -71,6 +77,20 @@ public class HandlerInfo {
             itemStack = GameRegistry.makeItemStack(itemLookupId, meta, 1, nbtString == null ? "" : nbtString);
         } else {
             itemStack = GameRegistry.findItemStack(split[0], split[1], 1);
+            if (nbtString != null && !nbtString.equals("")) {
+                try {
+                    final NBTBase nbttag = JsonToNBT.func_150315_a(nbtString);
+                    if (!(nbttag instanceof NBTTagCompound)) {
+                        NEIClientConfig.logger.info("Unexpected NBT string - multiple values {}", nbtString);
+                        return false;
+                    }
+
+                    itemStack.setTagCompound((NBTTagCompound) nbttag);
+                } catch (NBTException e) {
+                    FMLLog.getLogger().log(Level.WARN, "Encountered an exception parsing ItemStack NBT string {}", nbtString, e);
+                    return false;
+                }
+            }
         }
         if (itemStack == null)
             NEIClientConfig.logger.info("Couldn't find " + modName + " - " + itemLookupId);
