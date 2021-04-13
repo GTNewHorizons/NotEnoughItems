@@ -93,6 +93,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
 
    
     @Override
+    @SuppressWarnings("unchecked")
     public void initGui() {
         xSize = 176;
         ySize = Math.min(Math.max(height - 68, 166), 370);
@@ -128,7 +129,8 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
 
 
     }
-    
+
+    @SuppressWarnings("unchecked")
     private void initOverlayButtons() {
         if (overlayButtons != null) {
             buttonList.removeIf(Arrays.asList(overlayButtons)::contains);

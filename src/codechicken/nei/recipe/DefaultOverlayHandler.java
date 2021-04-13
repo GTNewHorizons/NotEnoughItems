@@ -303,8 +303,10 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         if(stack1.getItem() == stack2.getItem() && stack1.getItemDamage() == stack2.getItemDamage()) {
             if (ItemStack.areItemStackTagsEqual(stack2, stack1)) return true;
             
-            // GT Items don't have any NBT set for the recipe
-            if (gtItem != null && gtItem.isInstance(stack1.getItem())  && (stack1.stackTagCompound == null || stack2.stackTagCompound == null)) 
+            // GT Items don't have any NBT set for the recipe, so if either of the stacks has a NULL nbt, and the other doesn't, pretend they stack
+            if (((gtItem != null && gtItem.isInstance(stack1.getItem())) || (stack1.getMaxStackSize() == 1 && stack2.getMaxStackSize() == 1))  
+                && (stack1.stackTagCompound == null ^ stack2.stackTagCompound == null)
+            ) 
                 return true;
             
         }
