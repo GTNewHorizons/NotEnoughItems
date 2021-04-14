@@ -7,6 +7,7 @@ import codechicken.nei.api.API;
 import codechicken.nei.api.ItemInfo;
 import cpw.mods.fml.client.CustomModLoadingErrorDisplayException;
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
@@ -23,13 +24,25 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
+import org.apache.commons.io.IOUtils;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
 public class ClientHandler
 {
+    private static String[] defaultSerialHandlers = {
+        "WayofTime.alchemicalWizardry.client.nei.NEIAlchemyRecipeHandler"
+    };
     private static ClientHandler instance;
 
     private ArrayList<EntityItem> SMPmagneticItems = new ArrayList<>();
@@ -114,7 +127,28 @@ public class ClientHandler
     }
 
     public static void preInit() {
+        loadSerialHandlers();
         ItemInfo.preInit();
+    }
+    
+    public static void loadSerialHandlers() {
+        File file = NEIClientConfig.serialHandlersFile;
+        if(!file.exists()) {
+            try(FileWriter writer = new FileWriter(file)) {
+                NEIClientConfig.logger.info("Creating default serial handlers list {}", file);
+                Collection<String> toSave = Loader.isModLoaded("dreamcraft") ? Collections.singletonList("") : Arrays.asList(defaultSerialHandlers);
+                IOUtils.writeLines(toSave, "\n", writer);
+            } catch (IOException e) {
+                NEIClientConfig.logger.error("Failed to save default serial handlers list to file {}", file, e);
+            }
+        }
+        try (FileReader reader = new FileReader(file)) {
+            NEIClientConfig.logger.info("Loading serial handlers from file {}", file);
+            NEIClientConfig.serialHandlers = new HashSet<>(IOUtils.readLines(reader));
+        } catch (IOException e) {
+            NEIClientConfig.logger.error("Failed to load serial handlers from file {}", file, e);
+        }
+        
     }
 
     public static void load() {

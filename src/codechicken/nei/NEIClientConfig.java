@@ -41,8 +41,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 
-public class NEIClientConfig
-{
+public class NEIClientConfig {
     private static boolean configLoaded;
     private static boolean enabledOverride;
 
@@ -54,6 +53,11 @@ public class NEIClientConfig
     public static ConfigSet world;
     public static final File bookmarkFile = new File(configDir, "bookmarks.ini");
     public static final File handlerFile = new File(configDir, "handlers.csv");
+    public static final File serialHandlersFile = new File(configDir, "serialhandlers.cfg");
+
+    // Set of handlers that need to be run in serial
+    public static HashSet<String> serialHandlers = new HashSet<>(); 
+   
 
     public static ItemStack[] creativeInv;
 

@@ -2,6 +2,7 @@ package codechicken.nei.recipe;
 
 import codechicken.core.TaskProfiler;
 import codechicken.nei.ItemList;
+import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -58,7 +59,7 @@ public class GuiUsageRecipe extends GuiRecipe
             return;
 
         final String handlerClassStr = handlerClass.getName();
-        if(Arrays.asList(serialHandlers).contains(handlerClassStr))
+        if(NEIClientConfig.serialHandlers.contains(handlerClassStr))
             serialUsageHandlers.add(handler);
         else
             usagehandlers.add(handler);
