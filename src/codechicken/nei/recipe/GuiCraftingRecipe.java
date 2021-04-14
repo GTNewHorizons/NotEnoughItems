@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -24,10 +25,14 @@ public class GuiCraftingRecipe extends GuiRecipe
         FuelRecipeHandler.findFuelsOnceParallel();
 
         try {
-            handlers = ItemList.forkJoinPool.submit(() -> craftinghandlers.parallelStream()
+            handlers = serialCraftingHandlers.stream().map(h -> h.getRecipeHandler(outputId, results))
+                .filter(h -> h.numRecipes() > 0)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+            handlers.addAll(ItemList.forkJoinPool.submit(() -> craftinghandlers.parallelStream()
                 .map(h -> h.getRecipeHandler(outputId, results))
                 .filter(h -> h.numRecipes() > 0)
-                .collect(Collectors.toCollection(ArrayList::new))).get();
+                .collect(Collectors.toCollection(ArrayList::new))).get());
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return false;
@@ -48,11 +53,15 @@ public class GuiCraftingRecipe extends GuiRecipe
     }
 
     public static void registerRecipeHandler(ICraftingHandler handler) {
-        for (ICraftingHandler handler1 : craftinghandlers)
-            if (handler1.getClass() == handler.getClass())
-                return;
+        final Class<? extends ICraftingHandler> handlerClass = handler.getClass();
+        if(craftinghandlers.stream().anyMatch(h -> h.getClass() == handlerClass) || serialCraftingHandlers.stream().anyMatch(h -> h.getClass() == handlerClass))
+            return;
 
-        craftinghandlers.add(handler);
+        final String handlerClassStr = handlerClass.getName();
+        if(Arrays.asList(serialHandlers).contains(handlerClassStr))
+            serialCraftingHandlers.add(handler);
+        else
+            craftinghandlers.add(handler);
     }
 
     public ArrayList<? extends IRecipeHandler> getCurrentRecipeHandlers() {
@@ -62,4 +71,5 @@ public class GuiCraftingRecipe extends GuiRecipe
     public ArrayList<ICraftingHandler> currenthandlers;
 
     public static ArrayList<ICraftingHandler> craftinghandlers = new ArrayList<>();
+    public static ArrayList<ICraftingHandler> serialCraftingHandlers = new ArrayList<>();
 }

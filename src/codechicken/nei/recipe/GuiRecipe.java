@@ -36,6 +36,10 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOverlay, IGuiClientSide, IGuiHandleMouseWheel, IContainerTooltipHandler, INEIGuiHandler {
+    // List of handlers that need to be run in serial
+    protected static final String[] serialHandlers = {
+        "WayofTime.alchemicalWizardry.client.nei.NEIAlchemyRecipeHandler"
+    };
     // Background image calculations
     private static final int BG_TOP_HEIGHT = 6;
     private static final int BG_MIDDLE_HEIGHT = 154;
