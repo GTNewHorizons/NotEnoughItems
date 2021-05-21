@@ -1,6 +1,7 @@
 package codechicken.nei;
 
 import codechicken.nei.api.LayoutStyle;
+import codechicken.nei.drawable.DrawableBuilder;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import org.lwjgl.opengl.GL11;
 
@@ -12,6 +13,7 @@ import static codechicken.nei.LayoutManager.dropDown;
 import static codechicken.nei.LayoutManager.gamemode;
 import static codechicken.nei.LayoutManager.heal;
 import static codechicken.nei.LayoutManager.itemPanel;
+import static codechicken.nei.LayoutManager.itemPresenceOverlays;
 import static codechicken.nei.LayoutManager.less;
 import static codechicken.nei.LayoutManager.magnet;
 import static codechicken.nei.LayoutManager.more;
@@ -49,6 +51,8 @@ public class LayoutStyleMinecraft extends LayoutStyle
         timeButtons[2].icon = new Image(144, 24, 12, 12);
         timeButtons[3].icon = new Image(156, 24, 12, 12);
         heal.icon = new Image(168, 24, 12, 12);
+        itemPresenceOverlays[0] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 0, 40, 8, 8).build();
+        itemPresenceOverlays[1] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 8, 40, 8, 8).build();
     }
 
     @Override

@@ -108,6 +108,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     public static boolean itemsLoaded = false;
 
+    /**
+     * Not present, Present
+     */
+    public static Image[] itemPresenceOverlays = new Image[2];
+
     public static void load() {
         API.addLayoutStyle(0, new LayoutStyleMinecraft());
 
@@ -841,6 +846,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
         drawTexturedModalRect(x2, y, tx2, ty1, w2, h1);//top right
         drawTexturedModalRect(x2, y2, tx2, ty2, w2, h2);//bottom right
+    }
+
+    public static void drawItemPresenceOverlay(int slotX, int slotY, boolean isPresent) {
+        Image icon = itemPresenceOverlays[isPresent ? 1 : 0];
+        drawIcon(slotX + 16 - icon.width, slotY + 16 - icon.height, icon);
     }
 
     public static LayoutManager instance() {

@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOverlay, IGuiClientSide, IGuiHandleMouseWheel, IContainerTooltipHandler, INEIGuiHandler {
     // Background image calculations
@@ -148,6 +150,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
                  "?");
         }
         Collections.addAll(buttonList, overlayButtons);
+        itemPresenceCacheRecipe = -1;
 
     }
     
@@ -380,6 +383,30 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         }
     }
 
+    private int itemPresenceCacheRecipe = -1;
+    private ArrayList<Boolean> itemPresenceCacheSlots;
+
+    private void updateItemPresenceCache(int recipe) {
+        if (itemPresenceCacheSlots == null) {
+            itemPresenceCacheSlots = new ArrayList<>();
+        }
+        itemPresenceCacheRecipe = recipe;
+        itemPresenceCacheSlots.clear();
+        List<PositionedStack> ingredients = handler.getIngredientStacks(recipe);
+        ArrayList<ItemStack> invStacks = ((List<Slot>) firstGui.inventorySlots.inventorySlots).stream()
+                .filter(s -> s != null && s.getStack() != null && s.getStack().stackSize > 0 && s.isItemValid(s.getStack()))
+                .map(s -> s.getStack().copy())
+                .collect(Collectors.toCollection(ArrayList::new));
+        for (PositionedStack stack : ingredients) {
+            Optional<ItemStack> used = invStacks.stream().filter(is -> is.stackSize > 0 && stack.contains(is)).findFirst();
+            itemPresenceCacheSlots.add(used.isPresent());
+            if (used.isPresent()) {
+                ItemStack is = used.get();
+                is.stackSize -= 1;
+            }
+        }
+    }
+
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         GuiContainerManager.enable2DRender();
@@ -388,11 +415,24 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         fontRendererObj.drawStringWithShadow(s, (xSize - fontRendererObj.getStringWidth(s)) / 2, 5, 0xffffff);
         s = NEIClientUtils.translate("recipe.page", page + 1, (handler.numRecipes() - 1) / recipesPerPage + 1);
         fontRendererObj.drawStringWithShadow(s, (xSize - fontRendererObj.getStringWidth(s)) / 2, 19, 0xffffff);
+        final boolean drawItemPresence = NEIClientConfig.isJEIStyleItemPresenceOverlayVisible();
 
         GL11.glPushMatrix();
         GL11.glTranslatef(5, 32 + yShift, 0);
         for (int i = page * recipesPerPage; i < handler.numRecipes() && i < (page + 1) * recipesPerPage; i++) {
             handler.drawForeground(i);
+            if (drawItemPresence && isMouseOverOverlayButton(i - page * recipesPerPage)
+                    && firstGui.inventorySlots != null) {
+                List<PositionedStack> ingredients = handler.getIngredientStacks(i);
+                if (itemPresenceCacheRecipe != i || itemPresenceCacheSlots == null || itemPresenceCacheSlots.size() != ingredients.size()) {
+                    updateItemPresenceCache(i);
+                }
+                for (int j = 0; j < ingredients.size(); j++) {
+                    PositionedStack stack = ingredients.get(j);
+                    boolean isPresent = itemPresenceCacheSlots.get(j);
+                    LayoutManager.drawItemPresenceOverlay(stack.relx, stack.rely, isPresent);
+                }
+            }
             GL11.glTranslatef(0, handlerInfo.getHeight(), 0);
         }
         GL11.glPopMatrix();
@@ -470,6 +510,17 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         Slot mouseoverSlot = getSlotAtPosition(mousepos.x, mousepos.y);
 
         return stackSlot == mouseoverSlot;
+    }
+
+    private boolean isMouseOverOverlayButton(int buttonId) {
+        if(buttonId >= 0 && buttonId < overlayButtons.length) {
+            GuiButton button = overlayButtons[buttonId];
+            Point mousePos = GuiDraw.getMousePosition();
+            return button.visible && mousePos.x >= button.xPosition && mousePos.y >= button.yPosition
+                    && mousePos.x < button.xPosition + button.width && mousePos.y < button.yPosition + button.height;
+        } else {
+            return false;
+        }
     }
     
     private int getRecipesPerPage() {
