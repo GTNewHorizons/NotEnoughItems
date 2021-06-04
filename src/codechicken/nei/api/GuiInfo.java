@@ -9,11 +9,16 @@ import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class GuiInfo
-{
+public class GuiInfo {
     public static final LinkedList<INEIGuiHandler> guiHandlers = new LinkedList<>();
     public static final HashSet<Class<? extends GuiContainer>> customSlotGuis = new HashSet<>();
+    public static ReentrantReadWriteLock guiHandlersLock = new ReentrantReadWriteLock();
+    public static Lock writeLock = guiHandlersLock.writeLock();
+    public static Lock readLock = guiHandlersLock.readLock();
+
 
     public static void load() {
         API.registerNEIGuiHandler(new NEICreativeGuiHandler());
@@ -23,9 +28,12 @@ public class GuiInfo
     }
 
     public static void clearGuiHandlers() {
-        for (Iterator<INEIGuiHandler> iterator = guiHandlers.iterator(); iterator.hasNext(); )
-            if (iterator.next() instanceof GuiContainer)
-                iterator.remove();
+        try {
+            GuiInfo.writeLock.lock();
+            guiHandlers.removeIf(ineiGuiHandler -> ineiGuiHandler instanceof GuiContainer);
+        } finally {
+            GuiInfo.writeLock.unlock();
+        }
     }
 
     public static boolean hasCustomSlots(GuiContainer gui) {

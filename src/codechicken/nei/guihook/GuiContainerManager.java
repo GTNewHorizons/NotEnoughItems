@@ -19,6 +19,7 @@ import java.awt.Point;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -249,12 +250,12 @@ public class GuiContainerManager
     }
 
     private int clickHandled = 0;
-    private List<IContainerTooltipHandler> instanceTooltipHandlers;
+    private final List<IContainerTooltipHandler> instanceTooltipHandlers;
 
     public GuiContainerManager(GuiContainer screen) {
         window = screen;
         if (screen instanceof IContainerTooltipHandler) {
-            instanceTooltipHandlers = new LinkedList<>();
+            instanceTooltipHandlers = Collections.synchronizedList(new LinkedList<>());
             instanceTooltipHandlers.add((IContainerTooltipHandler) screen);
             instanceTooltipHandlers.addAll(tooltipHandlers);
         } else
@@ -398,17 +399,21 @@ public class GuiContainerManager
         List<String> tooltip = new LinkedList<>();
         FontRenderer font = GuiDraw.fontRenderer;
 
-        for (IContainerTooltipHandler handler : instanceTooltipHandlers)
-            tooltip = handler.handleTooltip(window, mousex, mousey, tooltip);
-
+        synchronized (instanceTooltipHandlers) {
+            for (IContainerTooltipHandler handler : instanceTooltipHandlers)
+                tooltip = handler.handleTooltip(window, mousex, mousey, tooltip);
+        }
+        
         if (tooltip.isEmpty() && shouldShowTooltip(window)) {//mouseover tip, not holding an item
             ItemStack stack = getStackMouseOver(window);
             font = getFontRenderer(stack);
             if (stack != null)
                 tooltip = itemDisplayNameMultiline(stack, window, true);
 
-            for (IContainerTooltipHandler handler : instanceTooltipHandlers)
-                tooltip = handler.handleItemTooltip(window, stack, mousex, mousey, tooltip);
+            synchronized (instanceTooltipHandlers) {
+                for (IContainerTooltipHandler handler : instanceTooltipHandlers)
+                    tooltip = handler.handleItemTooltip(window, stack, mousex, mousey, tooltip);
+            }
         }
 
         if (tooltip.size() > 0)

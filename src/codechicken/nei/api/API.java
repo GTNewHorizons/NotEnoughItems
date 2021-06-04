@@ -112,7 +112,12 @@ public class API
     }
 
     public static void registerNEIGuiHandler(INEIGuiHandler handler) {
-        GuiInfo.guiHandlers.add(handler);
+        try {
+            GuiInfo.writeLock.lock();
+            GuiInfo.guiHandlers.add(handler);
+        } finally {
+            GuiInfo.writeLock.unlock();
+        }
     }
 
     /**

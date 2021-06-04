@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static codechicken.nei.NEIClientConfig.canCheatItem;
 import static codechicken.nei.NEIClientConfig.canPerformAction;
@@ -157,9 +158,13 @@ public class NEIClientUtils extends NEIServerUtils
             ItemStack typestack = copyStack(stack, 1);
             if (!infinite && !canItemFitInInventory(mc().thePlayer, stack) && (mc().currentScreen instanceof GuiContainer)) {
                 GuiContainer gui = getGuiContainer();
-                List<Iterable<Integer>> handlerSlots = new LinkedList<>();
-                for(INEIGuiHandler handler : GuiInfo.guiHandlers)
-                    handlerSlots.add(handler.getItemSpawnSlots(gui, typestack));
+                final List<Iterable<Integer>> handlerSlots;
+                try {
+                    GuiInfo.readLock.lock();
+                    handlerSlots = GuiInfo.guiHandlers.stream().map(handler -> handler.getItemSpawnSlots(gui, typestack)).collect(Collectors.toCollection(LinkedList::new));
+                } finally {
+                    GuiInfo.readLock.unlock();
+                }
 
                 int increment = typestack.getMaxStackSize();
                 int given = 0;

@@ -231,9 +231,13 @@ public class ItemPanel extends Widget {
 
     private boolean slotValid(GuiContainer gui, int i) {
         Rectangle4i rect = getSlotRect(i);
-        for (INEIGuiHandler handler : GuiInfo.guiHandlers)
-            if (handler.hideItemPanelSlot(gui, rect.x, rect.y, rect.w, rect.h))
+        try {
+            GuiInfo.readLock.lock();
+            if(GuiInfo.guiHandlers.stream().anyMatch(handler -> handler.hideItemPanelSlot(gui, rect.x, rect.y, rect.w, rect.h)))
                 return false;
+        } finally {
+            GuiInfo.readLock.unlock();
+        }
         return true;
     }
 
@@ -297,9 +301,13 @@ public class ItemPanel extends Widget {
             return true;
 
         if (NEIClientUtils.getHeldItem() != null) {
-            for (INEIGuiHandler handler : GuiInfo.guiHandlers)
-                if (handler.hideItemPanelSlot(NEIClientUtils.getGuiContainer(), mousex, mousey, 1, 1))
+            try {
+                GuiInfo.readLock.lock();
+                if (GuiInfo.guiHandlers.stream().anyMatch(handler -> handler.hideItemPanelSlot(NEIClientUtils.getGuiContainer(), mousex, mousey, 1, 1)))
                     return false;
+            } finally {
+                GuiInfo.readLock.unlock();
+            }
 
             if (NEIClientConfig.canPerformAction("delete") && NEIClientConfig.canPerformAction("item"))
                 if (button == 1)
@@ -337,15 +345,21 @@ public class ItemPanel extends Widget {
 
         GuiContainer gui = NEIClientUtils.getGuiContainer();
         boolean handled = false;
-        for (INEIGuiHandler handler : GuiInfo.guiHandlers)
-            if (handler.handleDragNDrop(gui, mousex, mousey, draggedStack, button)) {
-                handled = true;
-                if (draggedStack.stackSize == 0) {
-                    draggedStack = null;
-                    return true;
+        try {
+            GuiInfo.readLock.lock();
+            for (INEIGuiHandler handler : GuiInfo.guiHandlers) {
+                if (handler.handleDragNDrop(gui, mousex, mousey, draggedStack, button)) {
+                    handled = true;
+                    if (draggedStack.stackSize == 0) {
+                        draggedStack = null;
+                        return true;
+                    }
                 }
             }
-
+        } finally {
+            GuiInfo.readLock.unlock();
+        }
+        
         if (handled)
             return true;
 
@@ -470,10 +484,13 @@ public class ItemPanel extends Widget {
     public boolean contains(int px, int py) {
         GuiContainer gui = NEIClientUtils.getGuiContainer();
         Rectangle4i rect = new Rectangle4i(px, py, 1, 1);
-        for (INEIGuiHandler handler : GuiInfo.guiHandlers)
-            if (handler.hideItemPanelSlot(gui, rect.x, rect.y, rect.w, rect.h))
+        try {
+            GuiInfo.readLock.lock();
+            if(GuiInfo.guiHandlers.stream().anyMatch(handler -> handler.hideItemPanelSlot(gui, rect.x, rect.y, rect.w, rect.h)))
                 return false;
-
+        } finally {
+            GuiInfo.readLock.unlock();
+        }
         return super.contains(px, py);
     }
 }

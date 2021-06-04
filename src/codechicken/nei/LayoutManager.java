@@ -317,10 +317,13 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         
         if (gui.guiLeft - 4 < 76)
             visiblity.showWidgets = false;
-
-        for (INEIGuiHandler handler : GuiInfo.guiHandlers)
-            handler.modifyVisiblity(gui, visiblity);
-
+        try {
+            GuiInfo.readLock.lock();
+            GuiInfo.guiHandlers.forEach(handler -> handler.modifyVisiblity(gui, visiblity));
+        } finally {
+            GuiInfo.readLock.unlock();
+        }
+        
         visiblity.translateDependancies();
 
         getLayoutStyle().layout(gui, visiblity);
