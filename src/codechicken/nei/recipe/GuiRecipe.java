@@ -394,7 +394,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         itemPresenceCacheSlots.clear();
         List<PositionedStack> ingredients = handler.getIngredientStacks(recipe);
         ArrayList<ItemStack> invStacks = ((List<Slot>) firstGui.inventorySlots.inventorySlots).stream()
-                .filter(s -> s != null && s.getStack() != null && s.getStack().stackSize > 0 && s.isItemValid(s.getStack()))
+                .filter(s -> s != null && s.getStack() != null && s.getStack().stackSize > 0 && s.isItemValid(s.getStack()) && s.canTakeStack(mc.thePlayer))
                 .map(s -> s.getStack().copy())
                 .collect(Collectors.toCollection(ArrayList::new));
         for (PositionedStack stack : ingredients) {
