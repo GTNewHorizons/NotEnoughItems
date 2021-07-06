@@ -15,6 +15,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -100,9 +101,13 @@ public abstract class GuiRecipeTab extends Widget {
         if (icon != null) {
             icon.draw(iconX + 1, iconY + 1);
         } else if (itemStack != null) {
+            boolean isEnabled = GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL);
+            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
             GuiContainerManager.drawItems.zLevel += 100;
             GuiContainerManager.drawItem(iconX, iconY, itemStack);
             GuiContainerManager.drawItems.zLevel -= 100;
+            if (!isEnabled)
+                GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         } else {
             // Text fallback
             String text = handler.getRecipeName();
