@@ -145,6 +145,12 @@ task devJar(type: Jar) {
     from sourceSets.main.output
     getArchiveClassifier().set("dev")
     manifest commonManifest
+
+    configurations.shade.each { dep ->
+        from(project.zipTree(dep)){
+            exclude 'META-INF', 'META-INF/**'
+        }
+    }
 }
 
 // Tell the artifact system about our extra jars
