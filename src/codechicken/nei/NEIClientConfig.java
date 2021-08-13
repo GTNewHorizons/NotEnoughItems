@@ -7,23 +7,9 @@ import codechicken.core.CommonUtils;
 import codechicken.lib.config.ConfigFile;
 import codechicken.lib.config.ConfigTag;
 import codechicken.lib.config.ConfigTagParent;
-import codechicken.nei.api.API;
-import codechicken.nei.api.GuiInfo;
-import codechicken.nei.api.IConfigureNEI;
-import codechicken.nei.api.ItemInfo;
-import codechicken.nei.api.NEIInfo;
-import codechicken.nei.config.ConfigSet;
-import codechicken.nei.config.GuiHighlightTips;
-import codechicken.nei.config.GuiNEIOptionList;
-import codechicken.nei.config.GuiOptionList;
-import codechicken.nei.config.OptionCycled;
-import codechicken.nei.config.OptionGamemodes;
-import codechicken.nei.config.OptionList;
-import codechicken.nei.config.OptionOpenGui;
-import codechicken.nei.config.OptionTextField;
-import codechicken.nei.config.OptionToggleButton;
-import codechicken.nei.config.OptionToggleButtonBoubs;
-import codechicken.nei.config.OptionUtilities;
+import codechicken.nei.api.*;
+import codechicken.nei.config.*;
+import codechicken.nei.event.NEIConfigsLoadedEvent;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.RecipeInfo;
 import codechicken.obfuscator.ObfuscationRun;
@@ -33,6 +19,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraft.world.storage.SaveFormatComparator;
+import net.minecraftforge.common.MinecraftForge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;
@@ -297,6 +284,8 @@ public class NEIClientConfig {
                         logger.error("Failed to Load " + clazz.getName(), e);
                     }
                 }
+
+                MinecraftForge.EVENT_BUS.post(new NEIConfigsLoadedEvent());
             }
         }.start();
         ItemSorter.loadConfig();

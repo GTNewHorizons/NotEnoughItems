@@ -5,11 +5,13 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.Widget;
 import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.event.RegisterHandlerInfosEvent;
 import codechicken.nei.guihook.GuiContainerManager;
 import cpw.mods.fml.common.Loader;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.common.MinecraftForge;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -17,12 +19,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -259,9 +256,10 @@ public abstract class GuiRecipeTab extends Widget {
         } catch (Exception e) {
             NEIClientConfig.logger.info("Error parsing CSV");
             e.printStackTrace();
-            
         }
 
+        NEIClientConfig.logger.info("Sending {}", RegisterHandlerInfosEvent.class.getSimpleName());
+        MinecraftForge.EVENT_BUS.post(new RegisterHandlerInfosEvent());
     }
     
     private static HandlerInfo getDefaultHandlerInfo() {

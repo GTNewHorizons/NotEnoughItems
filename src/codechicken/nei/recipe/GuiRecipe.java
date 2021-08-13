@@ -1,17 +1,9 @@
 package codechicken.nei.recipe;
 
 import codechicken.lib.gui.GuiDraw;
-import codechicken.nei.GuiNEIButton;
 import codechicken.nei.LayoutManager;
-import codechicken.nei.NEIClientConfig;
-import codechicken.nei.NEIClientUtils;
-import codechicken.nei.PositionedStack;
-import codechicken.nei.VisiblityData;
-import codechicken.nei.api.IGuiContainerOverlay;
-import codechicken.nei.api.INEIGuiHandler;
-import codechicken.nei.api.IOverlayHandler;
-import codechicken.nei.api.IRecipeOverlayRenderer;
-import codechicken.nei.api.TaggedInventoryArea;
+import codechicken.nei.*;
+import codechicken.nei.api.*;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
@@ -28,13 +20,9 @@ import net.minecraft.item.ItemStack;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.awt.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOverlay, IGuiClientSide, IGuiHandleMouseWheel, IContainerTooltipHandler, INEIGuiHandler {
@@ -299,16 +287,14 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         setRecipePage(--recipetype);
     }
 
-
     public HandlerInfo getHandlerInfo(IRecipeHandler handler) {
-        final String handlerName = handler.toString().split("@")[0];
         final String handlerID;
         if(handler instanceof TemplateRecipeHandler) {
             handlerID = (((TemplateRecipeHandler)handler).getOverlayIdentifier());
         } else {
             handlerID = null;
         }
-        HandlerInfo info = GuiRecipeTab.getHandlerInfo(handlerName, handlerID);
+        HandlerInfo info = GuiRecipeTab.getHandlerInfo(handler.getClass().getName(), handlerID);
         
         if (info == null)
             return GuiRecipeTab.DEFAULT_HANDLER_INFO;
