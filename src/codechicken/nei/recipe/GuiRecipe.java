@@ -1,9 +1,17 @@
 package codechicken.nei.recipe;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.GuiNEIButton;
 import codechicken.nei.LayoutManager;
-import codechicken.nei.*;
-import codechicken.nei.api.*;
+import codechicken.nei.NEIClientConfig;
+import codechicken.nei.NEIClientUtils;
+import codechicken.nei.PositionedStack;
+import codechicken.nei.VisiblityData;
+import codechicken.nei.api.IGuiContainerOverlay;
+import codechicken.nei.api.INEIGuiHandler;
+import codechicken.nei.api.IOverlayHandler;
+import codechicken.nei.api.IRecipeOverlayRenderer;
+import codechicken.nei.api.TaggedInventoryArea;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
@@ -20,9 +28,13 @@ import net.minecraft.item.ItemStack;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.*;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOverlay, IGuiClientSide, IGuiHandleMouseWheel, IContainerTooltipHandler, INEIGuiHandler {
