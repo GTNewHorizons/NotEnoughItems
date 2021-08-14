@@ -136,14 +136,7 @@ public class ItemPanel extends Widget {
     }
 
     public int getHeight(GuiContainer gui) {
-        return gui.height - 15 - y + getHightAdjustment();
-    }
-
-    public int getHightAdjustment() {
-        int hAdj = 0;
-        if (!canPerformAction("item"))
-            hAdj += 15;
-        return hAdj;
+        return gui.height - 15 - y;
     }
 
     public int getWidth(GuiContainer gui) {

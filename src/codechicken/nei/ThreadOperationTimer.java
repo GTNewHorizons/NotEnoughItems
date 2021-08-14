@@ -55,8 +55,11 @@ public class ThreadOperationTimer extends Thread
 
         while (thread.isAlive()) {
             synchronized (this) {
-                if (operation != null && System.currentTimeMillis() - opTime > limit)
-                    thread.stop(new TimeoutException("Operation took too long", operation));
+                if (operation != null && System.currentTimeMillis() - opTime > limit) {
+                    // Thread.stop(Throwable) is hard-deprecated and IntelliJ complains about it.
+                    //thread.stop(new TimeoutException("Operation took too long", operation));
+                    thread.stop();
+                }
             }
             try {
                 Thread.sleep(50);

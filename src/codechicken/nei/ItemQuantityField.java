@@ -7,7 +7,7 @@ public class ItemQuantityField extends TextField
         centered = true;
     }
 
-    // Find a way to work this this back in
+    // Find a way to work this back in
     public boolean isValid(String string) {
         if (string.equals(""))
             return true;

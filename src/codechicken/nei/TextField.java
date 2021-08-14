@@ -79,6 +79,7 @@ public abstract class TextField extends Widget
         if (!focused())
             return false;
 
+        String oldText = text();
         boolean handled = field.textboxKeyTyped(keyChar, keyID);
         if(!handled) {
             if (keyID == Keyboard.KEY_RETURN || keyID == Keyboard.KEY_NUMPADENTER || keyID == Keyboard.KEY_ESCAPE) {
@@ -88,7 +89,7 @@ public abstract class TextField extends Widget
         }
 
         if(handled) {
-            onTextChange(text());
+            onTextChange(oldText);
         }
 
         return handled;

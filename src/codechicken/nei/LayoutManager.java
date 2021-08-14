@@ -673,11 +673,9 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             addWidget(itemPanel);
             itemPanel.setVisible();
 
-            if (canPerformAction("item")) {
-                addWidget(more);
-                addWidget(less);
-                addWidget(quantity);
-            }
+            addWidget(more);
+            addWidget(less);
+            addWidget(quantity);
         }
 
         if (visiblity.showBookmarkPanel) {
