@@ -7,27 +7,22 @@ public class ItemQuantityField extends TextField
         centered = true;
     }
 
-    // Find a way to work this back in
-    public boolean isValid(String string) {
-        if (string.equals(""))
-            return true;
-
-        try {
-            return Integer.parseInt(string) >= 0;
-        } catch (NumberFormatException nfe) {
-            return false;
-        }
-    }
-
     public int intValue() {
         return intValue(text());
     }
 
     public int intValue(String s) {
         try {
-            return Integer.parseInt(s);
+            return Math.max(0, Integer.parseInt(s));
         } catch (NumberFormatException nfe) {
             return 0;
+        }
+    }
+
+    @Override
+    public void gainFocus() {
+        if (text().equals("0")) {
+            setText("");
         }
     }
 
@@ -38,7 +33,6 @@ public class ItemQuantityField extends TextField
 
     @Override
     public void onTextChange(String oldText) {
-        if (intValue(oldText) != intValue())//hacky recursion stopper
-            NEIClientUtils.setItemQuantity(intValue());
+        NEIClientUtils.setItemQuantity(intValue());
     }
 }

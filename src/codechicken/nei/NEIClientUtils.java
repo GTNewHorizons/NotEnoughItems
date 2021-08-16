@@ -352,7 +352,6 @@ public class NEIClientUtils extends NEIServerUtils
     public static void setItemQuantity(int i) {
         world.nbt.setInteger("quantity", i);
         world.saveNBT();
-        LayoutManager.quantity.setText(Integer.toString(i));
     }
 
     public static GuiContainer getGuiContainer() {

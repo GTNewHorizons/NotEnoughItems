@@ -121,8 +121,10 @@ public abstract class TextField extends Widget
             if (focus) {
                 previousKeyboardRepeatEnabled = Keyboard.areRepeatEventsEnabled();
                 Keyboard.enableRepeatEvents(true);
+                gainFocus();
             } else {
                 Keyboard.enableRepeatEvents(previousKeyboardRepeatEnabled);
+                loseFocus();
             }
 
         }

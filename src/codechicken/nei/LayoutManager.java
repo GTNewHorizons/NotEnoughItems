@@ -423,7 +423,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 if (quantity < 0)
                     quantity = 0;
 
-                setItemQuantity(quantity);
+                LayoutManager.quantity.setText(Integer.toString(quantity));
                 return true;
             }
         };
@@ -440,7 +440,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 if (quantity < 0)
                     quantity = 0;
 
-                setItemQuantity(quantity);
+                LayoutManager.quantity.setText(Integer.toString(quantity));
                 return true;
             }
         };
@@ -626,8 +626,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public void load(GuiContainer gui) {
         if (isEnabled()) {
-            setInputFocused(null);
-
             if(!itemsLoaded) {
                 ItemList.loadItems.restart();
                 itemsLoaded = true;
@@ -760,19 +758,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public boolean shouldShowTooltip(GuiContainer gui) {
         return itemPanel.draggedStack == null;
-    }
-
-    public static Widget getInputFocused() {
-        return inputFocused;
-    }
-
-    public static void setInputFocused(Widget widget) {
-        if (inputFocused != null)
-            inputFocused.loseFocus();
-
-        inputFocused = widget;
-        if (inputFocused != null)
-            inputFocused.gainFocus();
     }
 
     @Override
