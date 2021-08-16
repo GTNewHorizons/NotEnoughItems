@@ -5,7 +5,7 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.Widget;
 import codechicken.nei.drawable.DrawableResource;
-import codechicken.nei.event.RegisterHandlerInfosEvent;
+import codechicken.nei.event.NEIRegisterHandlerInfosEvent;
 import codechicken.nei.guihook.GuiContainerManager;
 import cpw.mods.fml.common.Loader;
 import net.minecraft.client.gui.FontRenderer;
@@ -262,8 +262,8 @@ public abstract class GuiRecipeTab extends Widget {
             e.printStackTrace();
         }
 
-        NEIClientConfig.logger.info("Sending {}", RegisterHandlerInfosEvent.class.getSimpleName());
-        MinecraftForge.EVENT_BUS.post(new RegisterHandlerInfosEvent());
+        NEIClientConfig.logger.info("Sending {}", NEIRegisterHandlerInfosEvent.class.getSimpleName());
+        MinecraftForge.EVENT_BUS.post(new NEIRegisterHandlerInfosEvent());
     }
     
     private static HandlerInfo getDefaultHandlerInfo() {
