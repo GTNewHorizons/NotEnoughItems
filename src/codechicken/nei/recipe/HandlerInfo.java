@@ -10,6 +10,7 @@ import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ResourceLocation;
 import org.apache.logging.log4j.Level;
 
 public class HandlerInfo {
@@ -17,11 +18,11 @@ public class HandlerInfo {
     public static int DEFAULT_WIDTH = 166;
     public static int DEFAULT_MAX_PER_PAGE = 2;
     
-    private String handler;
+    private String handlerName;
     
     private String modName;
     private String modId;
-    private boolean requiresMod = true;
+    private boolean requiresMod;
     private String excludedModId;
     
     private String itemId;
@@ -35,8 +36,8 @@ public class HandlerInfo {
     private ItemStack itemStack = null;
     private DrawableResource image = null;
     
-    public HandlerInfo(String handler, String modName, String modId, boolean requiresMod, String excludedModId) {
-        this.handler = handler;
+    public HandlerInfo(String handlerName, String modName, String modId, boolean requiresMod, String excludedModId) {
+        this.handlerName = handlerName;
         this.modName = modName;
         this.modId = modId;
         this.requiresMod = requiresMod;
@@ -55,7 +56,7 @@ public class HandlerInfo {
         
         int meta = -1;
         if (!itemId.contains(":")) {
-            NEIClientConfig.logger.info("Item ID missing colon for handler " + handler + " - " + modName);
+            NEIClientConfig.logger.info("Item ID missing colon for handler " + handlerName + " - " + modName);
             return false;
         }
         final String[] split = itemId.split(":");
@@ -125,7 +126,6 @@ public class HandlerInfo {
         return modId;
     }
 
-
     public int getHeight() {
         return height;
     }
@@ -142,6 +142,10 @@ public class HandlerInfo {
         return yShift;
     }
 
+    public String getHandlerName() {
+        return handlerName;
+    }
+
     public boolean hasImageOrItem() {
         if (image != null) return true;
         if (itemStack != null) return true;
@@ -149,8 +153,52 @@ public class HandlerInfo {
         return false;
     }
 
-
     public void setYShift(int yShift) {
         this.yShift = yShift;
+    }
+
+    public static class Builder {
+        private final HandlerInfo info;
+
+        public Builder(Class<?> handlerClazz, String modName, String modId) {
+            this.info = new HandlerInfo(handlerClazz.getName(), modName, modId, true, null);
+            setMaxRecipesPerPage(Integer.MAX_VALUE);
+        }
+
+        public Builder setDisplayStack(ItemStack stack) {
+            info.image = null;
+            info.itemStack = stack;
+            return this;
+        }
+
+        public Builder setDisplayImage(ResourceLocation location, int imageX, int imageY, int imageWidth, int imageHeight) {
+            info.itemStack = null;
+            info.setImage(location.toString(), imageX, imageY, imageWidth, imageHeight);
+            return this;
+        }
+
+        public Builder setShiftY(int shiftY) {
+            info.setYShift(shiftY);
+            return this;
+        }
+
+        public Builder setWidth(int width) {
+            info.setHandlerDimensions(info.height, width, info.maxRecipesPerPage);
+            return this;
+        }
+
+        public Builder setHeight(int height) {
+            info.setHandlerDimensions(height, info.width, info.maxRecipesPerPage);
+            return this;
+        }
+
+        public Builder setMaxRecipesPerPage(int maxRecipesPerPage) {
+            info.setHandlerDimensions(info.height, info.width, maxRecipesPerPage);
+            return this;
+        }
+
+        public HandlerInfo build() {
+            return info;
+        }
     }
 }
