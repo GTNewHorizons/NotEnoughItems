@@ -29,4 +29,8 @@ public class NEIRegisterHandlerInfosEvent extends Event {
             NEIClientConfig.logger.info("Added handler info for {}", info.getHandlerName());
         }
     }
+
+    public void registerHandlerInfo(Class<? extends IRecipeHandler> handlerClazz, String modName, String modId, Consumer<HandlerInfo.Builder> builder) {
+        registerHandlerInfo(handlerClazz.getName(), modName, modId, builder);
+    }
 }

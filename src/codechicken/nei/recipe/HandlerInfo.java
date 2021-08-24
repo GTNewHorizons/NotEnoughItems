@@ -165,6 +165,10 @@ public class HandlerInfo {
             setMaxRecipesPerPage(Integer.MAX_VALUE);
         }
 
+        public Builder(Class<? extends IRecipeHandler> handlerClazz, String modName, String modId) {
+            this(handlerClazz.getName(), modName, modId);
+        }
+
         public Builder setDisplayStack(ItemStack stack) {
             info.image = null;
             info.itemStack = stack;
