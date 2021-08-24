@@ -54,12 +54,11 @@ public class GuiUsageRecipe extends GuiRecipe
     }
 
     public static void registerUsageHandler(IUsageHandler handler) {
-        final Class<? extends IUsageHandler> handlerClass = handler.getClass();
-        if(usagehandlers.stream().anyMatch(h -> h.getClass() == handlerClass) || serialUsageHandlers.stream().anyMatch(h -> h.getClass() == handlerClass))
+        final String handlerId = handler.getHandlerId();
+        if(usagehandlers.stream().anyMatch(h -> h.getHandlerId().equals(handlerId)) || serialUsageHandlers.stream().anyMatch(h -> h.getHandlerId().equals(handlerId)))
             return;
 
-        final String handlerClassStr = handlerClass.getName();
-        if(NEIClientConfig.serialHandlers.contains(handlerClassStr))
+        if(NEIClientConfig.serialHandlers.contains(handlerId))
             serialUsageHandlers.add(handler);
         else
             usagehandlers.add(handler);

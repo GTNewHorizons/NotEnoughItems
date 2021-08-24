@@ -16,6 +16,15 @@ import java.util.List;
 public interface IRecipeHandler
 {
     /**
+     * For legacy compatibility reasons, this method's default implementation returns the class name.
+     *
+     * @return A unique identifier for this handler, used for finding duplicate handlers as well as GUI tab {@link HandlerInfo}.
+     */
+    default String getHandlerId() {
+        return getClass().getName();
+    }
+
+    /**
      * 
      * @return The name of this inventory. 
      * To be displayed at the top of the viewing container.

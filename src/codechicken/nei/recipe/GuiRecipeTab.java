@@ -60,7 +60,7 @@ public abstract class GuiRecipeTab extends Widget {
         this.w = getWidth();
         this.h = getHeight();
         this.handler = handler;
-        this.handlerName = handler.toString().split("@")[0];
+        this.handlerName = handler.getHandlerId();
         this.guiRecipe = guiRecipe;
         this.selected = false;
         

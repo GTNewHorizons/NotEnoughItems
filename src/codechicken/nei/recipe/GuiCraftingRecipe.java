@@ -54,12 +54,11 @@ public class GuiCraftingRecipe extends GuiRecipe
     }
 
     public static void registerRecipeHandler(ICraftingHandler handler) {
-        final Class<? extends ICraftingHandler> handlerClass = handler.getClass();
-        if(craftinghandlers.stream().anyMatch(h -> h.getClass() == handlerClass) || serialCraftingHandlers.stream().anyMatch(h -> h.getClass() == handlerClass))
+        final String handlerId = handler.getHandlerId();
+        if(craftinghandlers.stream().anyMatch(h -> h.getHandlerId().equals(handlerId)) || serialCraftingHandlers.stream().anyMatch(h -> h.getHandlerId().equals(handlerId)))
             return;
 
-        final String handlerClassStr = handlerClass.getName();
-        if(NEIClientConfig.serialHandlers.contains(handlerClassStr))
+        if(NEIClientConfig.serialHandlers.contains(handlerId))
             serialCraftingHandlers.add(handler);
         else
             craftinghandlers.add(handler);

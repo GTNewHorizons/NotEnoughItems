@@ -36,7 +36,7 @@ public class HandlerDumper extends DataDumper
     public Iterable<String[]> dump(int mode) {
         LinkedList<String[]> list = new LinkedList<>();
         for (IRecipeHandler handler : GuiUsageRecipe.usagehandlers) {
-            final String handlerName = handler.toString().split("@")[0];
+            final String handlerName = handler.getHandlerId();
             final String handlerId = Objects.firstNonNull(handler instanceof TemplateRecipeHandler ? ((TemplateRecipeHandler)handler).getOverlayIdentifier() : null, "null");
             HandlerInfo info = GuiRecipeTab.getHandlerInfo(handlerName, handlerId);
 

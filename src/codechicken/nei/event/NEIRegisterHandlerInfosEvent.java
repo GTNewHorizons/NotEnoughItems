@@ -8,7 +8,6 @@ import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraftforge.common.MinecraftForge;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * Event is posted every time the handler infos got registered or reloaded.
@@ -20,8 +19,8 @@ import java.util.function.Supplier;
  * This event is fired on the {@link MinecraftForge#EVENT_BUS}.
  */
 public class NEIRegisterHandlerInfosEvent extends Event {
-    public void registerHandlerInfo(Class<? extends IRecipeHandler> handlerClazz, String modName, String modId, Consumer<HandlerInfo.Builder> builder) {
-        HandlerInfo.Builder b = new HandlerInfo.Builder(handlerClazz, modName, modId);
+    public void registerHandlerInfo(String handlerName, String modName, String modId, Consumer<HandlerInfo.Builder> builder) {
+        HandlerInfo.Builder b = new HandlerInfo.Builder(handlerName, modName, modId);
         builder.accept(b);
         HandlerInfo info = b.build();
         if (GuiRecipeTab.handlerMap.put(info.getHandlerName(), info) != null) {
