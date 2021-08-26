@@ -6,8 +6,6 @@ import codechicken.nei.api.IConfigureNEI;
 import codechicken.nei.asm.NEICorePlugin;
 import codechicken.nei.config.IMCHandler;
 import codechicken.nei.recipe.GuiRecipeTab;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import cpw.mods.fml.client.FMLFileResourcePack;
@@ -26,7 +24,6 @@ import cpw.mods.fml.common.versioning.VersionRange;
 import net.minecraft.util.EnumChatFormatting;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -102,24 +99,13 @@ public class NEIModContainer extends DummyModContainer
     public void postInit(FMLPostInitializationEvent event) {
         if (CommonUtils.isClient())
             GuiRecipeTab.loadHandlerInfo();
-        handleIMCMessages();
     }
 
-    @SuppressWarnings("unchecked")
-    private void handleIMCMessages() {
-        try {
-            /* Pay no attention to these unholy hacks:
-             *  NEI Apparently doesn't have a registered mod container, so let's use some reflection to simulate what `fetchRuntimeMessages` does
-             */
-            Field modMessagesField = FMLInterModComms.class.getDeclaredField("modMessages");
-            modMessagesField.setAccessible(true);
-            IMCHandler.processIMC(ImmutableList.copyOf(((ArrayListMultimap<String, FMLInterModComms.IMCMessage>)modMessagesField.get(FMLInterModComms.class)).removeAll("NotEnoughItems")));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
+    @Subscribe
+    public void handleIMCMessages(FMLInterModComms.IMCEvent event) {
+        IMCHandler.processIMC(event.getMessages());
     }
 
-    
     @Override
     public VersionRange acceptableMinecraftVersionRange() {
         return VersionParser.parseRange(CodeChickenCorePlugin.mcVersion);
