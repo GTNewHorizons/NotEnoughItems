@@ -33,6 +33,7 @@ public class SpawnerRenderer implements IItemRenderer
 
         String bossName = BossStatus.bossName;
         int bossTimeout = BossStatus.statusBarTime;
+        boolean bossHasColorModifier = BossStatus.hasColorModifier;
         try
         {
             World world = NEIClientUtils.mc().theWorld;
@@ -66,6 +67,7 @@ public class SpawnerRenderer implements IItemRenderer
         }
         BossStatus.bossName = bossName;
         BossStatus.statusBarTime = bossTimeout;
+        BossStatus.hasColorModifier = bossHasColorModifier;
     }
     
     @SuppressWarnings("incomplete-switch")
