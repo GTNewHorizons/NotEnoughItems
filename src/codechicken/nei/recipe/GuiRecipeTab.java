@@ -35,6 +35,7 @@ import java.util.List;
 public abstract class GuiRecipeTab extends Widget {
     public static HandlerInfo DEFAULT_HANDLER_INFO = getDefaultHandlerInfo();
     public static HashMap<String, HandlerInfo> handlerMap = new HashMap<>();
+    public static HashMap<String, HandlerInfo> handlerMapFromIMC = new HashMap<>();
 
     private final GuiRecipe guiRecipe;
     private final IRecipeHandler handler;
@@ -177,7 +178,8 @@ public abstract class GuiRecipeTab extends Widget {
         NEIClientConfig.logger.info("Loading handler info from " + (fromJar ? "JAR" : "Config"));
         handlerMap.clear();
         URL handlerUrl = Thread.currentThread().getContextClassLoader().getResource("assets/nei/csv/handlers.csv");
-        
+        handlerMap.putAll(handlerMapFromIMC);
+
         URL url;
         if (fromJar) {
             url = handlerUrl;
