@@ -75,7 +75,7 @@ public class IMCHandler {
             NEIClientConfig.logger.info("Error setting handler dimensions for " + handler);
         }
 
-        GuiRecipeTab.handlerAdderFromIMC.remove(handler, info);
+        GuiRecipeTab.handlerAdderFromIMC.remove(handler);
         GuiRecipeTab.handlerAdderFromIMC.put(handler, info);
     }
 
