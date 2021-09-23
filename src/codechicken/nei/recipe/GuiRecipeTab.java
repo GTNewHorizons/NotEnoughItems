@@ -29,13 +29,16 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Queue;
 
 public abstract class GuiRecipeTab extends Widget {
     public static HandlerInfo DEFAULT_HANDLER_INFO = getDefaultHandlerInfo();
     public static HashMap<String, HandlerInfo> handlerMap = new HashMap<>();
-    public static HashMap<String, HandlerInfo> handlerMapFromIMC = new HashMap<>();
+    public static HashMap<String, HandlerInfo> handlerAdderFromIMC = new HashMap<>();
+    public static Queue<String> handlerRemoverFromIMC = new ArrayDeque<>();
 
     private final GuiRecipe guiRecipe;
     private final IRecipeHandler handler;
@@ -178,7 +181,12 @@ public abstract class GuiRecipeTab extends Widget {
         NEIClientConfig.logger.info("Loading handler info from " + (fromJar ? "JAR" : "Config"));
         handlerMap.clear();
         URL handlerUrl = Thread.currentThread().getContextClassLoader().getResource("assets/nei/csv/handlers.csv");
-        handlerMap.putAll(handlerMapFromIMC);
+        handlerMap.putAll(handlerAdderFromIMC);
+        handlerMap.forEach((s, h) -> {
+            if (handlerRemoverFromIMC.contains(s)) {
+                handlerMap.remove(s);
+            }
+        });
 
         URL url;
         if (fromJar) {
