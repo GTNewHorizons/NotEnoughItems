@@ -73,7 +73,9 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 {
     private static LayoutManager instance;
 
+    /** Note: this variable isn't actually used by this mod, but NEI add-ons might need it. */
     private static Widget inputFocused;
+
     /**
      * Sorted bottom first
      */
@@ -626,6 +628,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public void load(GuiContainer gui) {
         if (isEnabled()) {
+            setInputFocused(null);
+
             if(!itemsLoaded) {
                 ItemList.loadItems.restart();
                 itemsLoaded = true;
@@ -758,6 +762,21 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public boolean shouldShowTooltip(GuiContainer gui) {
         return itemPanel.draggedStack == null;
+    }
+
+    /** Note: this method isn't actually used by this mod, but NEI add-ons might need it. */
+    public static Widget getInputFocused() {
+        return inputFocused;
+    }
+
+    /** Note: this method isn't actually used by this mod, but NEI add-ons might need it. */
+    public static void setInputFocused(Widget widget) {
+        if (inputFocused != null)
+            inputFocused.loseFocus();
+
+        inputFocused = widget;
+        if (inputFocused != null)
+            inputFocused.gainFocus();
     }
 
     @Override
