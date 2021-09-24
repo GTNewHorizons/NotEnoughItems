@@ -29,12 +29,13 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public abstract class GuiRecipeTab extends Widget {
     public static HandlerInfo DEFAULT_HANDLER_INFO = getDefaultHandlerInfo();
     public static HashMap<String, HandlerInfo> handlerMap = new HashMap<>();
+    public static HashMap<String, HandlerInfo> handlerAdderFromIMC = new HashMap<>();
+    public static Set<String> handlerRemoverFromIMC = new HashSet<>();
 
     private final GuiRecipe guiRecipe;
     private final IRecipeHandler handler;
@@ -177,7 +178,7 @@ public abstract class GuiRecipeTab extends Widget {
         NEIClientConfig.logger.info("Loading handler info from " + (fromJar ? "JAR" : "Config"));
         handlerMap.clear();
         URL handlerUrl = Thread.currentThread().getContextClassLoader().getResource("assets/nei/csv/handlers.csv");
-        
+
         URL url;
         if (fromJar) {
             url = handlerUrl;
@@ -261,6 +262,9 @@ public abstract class GuiRecipeTab extends Widget {
             NEIClientConfig.logger.info("Error parsing CSV");
             e.printStackTrace();
         }
+
+        handlerMap.keySet().removeAll(handlerRemoverFromIMC);
+        handlerMap.putAll(handlerAdderFromIMC);
 
         NEIClientConfig.logger.info("Sending {}", NEIRegisterHandlerInfosEvent.class.getSimpleName());
         MinecraftForge.EVENT_BUS.post(new NEIRegisterHandlerInfosEvent());
