@@ -215,6 +215,19 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
     }
 
     @Override
+    public void mouseScrolled(int i) {
+        final int recipesPerPage = getRecipesPerPage();
+        for (int recipe = page * recipesPerPage; recipe < handler.numRecipes() && recipe < (page + 1) * recipesPerPage; recipe++)
+            if (handler.mouseScrolled(this, i, recipe))
+                return;
+
+        if (new Rectangle(guiLeft, guiTop, xSize, ySize).contains(GuiDraw.getMousePosition())) {
+            if (i > 0) prevPage();
+            else       nextPage();
+        }
+    }
+
+    @Override
     protected void actionPerformed(GuiButton guibutton) {
         super.actionPerformed(guibutton);
         final int recipesPerPage = getRecipesPerPage();
@@ -530,14 +543,6 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
 
     public Point getRecipePosition(int recipe) {
         return new Point(5, 32 + yShift + ((recipe % getRecipesPerPage()) * handlerInfo.getHeight()));
-    }
-
-    @Override
-    public void mouseScrolled(int i) {
-        if (new Rectangle(guiLeft, guiTop, xSize, ySize).contains(GuiDraw.getMousePosition())) {
-            if (i > 0) prevPage();
-            else       nextPage();
-        }
     }
 
     public abstract ArrayList<? extends IRecipeHandler> getCurrentRecipeHandlers();

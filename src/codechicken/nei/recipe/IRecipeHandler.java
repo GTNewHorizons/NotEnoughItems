@@ -120,6 +120,7 @@ public interface IRecipeHandler
      * @return true to terminate further processing of this event.
      */
     public boolean keyTyped(GuiRecipe gui, char keyChar, int keyCode, int recipe);
+
     /**
      * 
      * @param gui An instance of the currentscreen
@@ -127,4 +128,15 @@ public interface IRecipeHandler
      * @return true to terminate further processing of this event.
      */
     public boolean mouseClicked(GuiRecipe gui, int button, int recipe);
+
+    /**
+     * For legacy compatibility reasons, this method has a do-nothing default implementation.
+     *
+     * @param gui An instance of the currentscreen
+     * @param scroll The scroll direction, {> 0 = Up, < 0 = Down}
+     * @return true to terminate further processing of this event.
+     */
+    default boolean mouseScrolled(GuiRecipe gui, int scroll, int recipe) {
+        return false;
+    }
 }
