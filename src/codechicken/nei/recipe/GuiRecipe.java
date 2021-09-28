@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOverlay, IGuiClientSide, IGuiHandleMouseWheel, IContainerTooltipHandler, INEIGuiHandler {
     // Background image calculations
@@ -170,6 +171,18 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         recipeTabs.calcPageNumber();
         checkYShift();
         initOverlayButtons();
+    }
+
+    public IRecipeHandler getHandler() {
+        return handler;
+    }
+
+    public List<Integer> getRecipeIndices() {
+        final int recipesPerPage = getRecipesPerPage();
+        int minIndex = page * recipesPerPage;
+        int maxIndex = Math.min(handler.numRecipes(), (page + 1) * recipesPerPage);
+
+        return IntStream.range(minIndex, maxIndex).boxed().collect(Collectors.toList());
     }
 
 
