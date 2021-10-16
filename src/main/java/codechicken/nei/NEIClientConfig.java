@@ -168,6 +168,8 @@ public class NEIClientConfig {
                 return isMouseScrollTransferEnabled();
             }
         });
+        
+        tag.getTag("itemLoadingTimeout").getIntValue(500);
 
         tag.getTag("command.creative").setDefaultValue("/gamemode {0} {1}");
         API.addOption(new OptionTextField("command.creative"));
@@ -445,6 +447,10 @@ public class NEIClientConfig {
     public static boolean showIDs() {
         int i = getIntSetting("inventory.itemIDs");
         return i == 2 || (i == 1 && isEnabled() && !isHidden());
+    }
+    
+    public static int getItemLoadingTimeout() {
+        return getIntSetting("itemLoadingTimeout");
     }
 
     public static void toggleBooleanSetting(String setting) {

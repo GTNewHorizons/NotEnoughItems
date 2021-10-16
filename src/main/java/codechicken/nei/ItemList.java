@@ -185,13 +185,13 @@ public class ItemList
         @SuppressWarnings("unchecked")
         public void execute() {
             // System.out.println("Executing NEI Item Loading");
-            ThreadOperationTimer timer = getTimer(500);
+            ThreadOperationTimer timer = getTimer(NEIClientConfig.getItemLoadingTimeout());
 
             LinkedList<ItemStack> items = new LinkedList<>();
             LinkedList<ItemStack> permutations = new LinkedList<>();
             ListMultimap<Item, ItemStack> itemMap = ArrayListMultimap.create();
 
-            timer.setLimit(500);
+            timer.setLimit(NEIClientConfig.getItemLoadingTimeout());
             for (Item item : (Iterable<Item>) Item.itemRegistry) {
                 if (interrupted()) return;
 
