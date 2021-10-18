@@ -97,10 +97,10 @@ public class NEIModContainer extends DummyModContainer
     }
     @Subscribe
     public void postInit(FMLPostInitializationEvent event) {
-        if (CommonUtils.isClient())
+        if (CommonUtils.isClient()) {
             GuiRecipeTab.loadHandlerInfo();
-
-        ClientHandler.postInit();
+            ClientHandler.postInit();
+        }
     }
 
     @Subscribe
