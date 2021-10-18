@@ -5,6 +5,8 @@ import codechicken.core.GuiModListScroll;
 import codechicken.lib.packet.PacketCustom;
 import codechicken.nei.api.API;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.recipe.GuiRecipeTab;
+import com.google.common.collect.Lists;
 import cpw.mods.fml.client.CustomModLoadingErrorDisplayException;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
@@ -24,12 +26,19 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.IOUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,6 +51,21 @@ public class ClientHandler
 {
     private static String[] defaultSerialHandlers = {
         "WayofTime.alchemicalWizardry.client.nei.NEIAlchemyRecipeHandler"
+    };
+    private static String[] defaultHeightHackHandlers = {
+            "ic2.neiIntegration.core.recipehandler.FluidCannerRecipeHandler",
+            "tconstruct.plugins.nei.RecipeHandlerAlloying",
+            "tconstruct.plugins.nei.RecipeHandlerCastingBasin",
+            "tconstruct.plugins.nei.RecipeHandlerCastingTable",
+            "tconstruct.plugins.nei.RecipeHandlerMelting",
+    };
+    private static String[] defaultHandlerOrdering = {
+            "# Each line in this file should either be a comment (starts with '#') or an ordering.",
+            "# Ordering lines are <handler ID>,<ordering number>.",
+            "# Handlers will be sorted in order of number ascending, so smaller numbers first.",
+            "# Any handlers that are missing from this file will be assigned to 0.",
+            "# Negative numbers are fine.",
+            "# If you delete this file, it will be regenerated with all registered handler IDs.",
     };
     private static ClientHandler instance;
 
@@ -128,6 +152,7 @@ public class ClientHandler
 
     public static void preInit() {
         loadSerialHandlers();
+        loadHeightHackHandlers();
         ItemInfo.preInit();
     }
     
@@ -148,7 +173,26 @@ public class ClientHandler
         } catch (IOException e) {
             NEIClientConfig.logger.error("Failed to load serial handlers from file {}", file, e);
         }
-        
+    }
+
+    public static void loadHeightHackHandlers() {
+        File file = NEIClientConfig.heightHackHandlersFile;
+        if (!file.exists()) {
+            try (FileWriter writer = new FileWriter(file)) {
+                NEIClientConfig.logger.info("Creating default height hack handlers list {}", file);
+                Collection<String> toSave = Loader.isModLoaded("dreamcraft") ? Collections.singletonList("") : Arrays.asList(defaultHeightHackHandlers);
+                IOUtils.writeLines(toSave, "\n", writer);
+            } catch (IOException e) {
+                NEIClientConfig.logger.error("Failed to save default height hack handlers list to file {}", file, e);
+            }
+        }
+
+        try (FileReader reader = new FileReader(file)) {
+            NEIClientConfig.logger.info("Loading height hack handlers from file {}", file);
+            NEIClientConfig.heightHackHandlers = new HashSet<>(IOUtils.readLines(reader));
+        } catch (IOException e) {
+            NEIClientConfig.logger.error("Failed to load height hack handlers from file {}", file, e);
+        }
     }
 
     public static void load() {
@@ -162,6 +206,58 @@ public class ClientHandler
         API.registerHighlightHandler(new DefaultHighlightHandler(), ItemInfo.Layout.HEADER);
         HUDRenderer.load();
         WorldOverlayRenderer.load();
+    }
+
+    public static void postInit() {
+        loadHandlerOrdering();
+    }
+
+    public static void loadHandlerOrdering() {
+        File file = NEIClientConfig.handlerOrderingFile;
+        if (!file.exists()) {
+            try (FileWriter writer = new FileWriter(file)) {
+                NEIClientConfig.logger.info("Creating default handler ordering CSV {}", file);
+
+                List<String> toWrite = Lists.newArrayList(defaultHandlerOrdering);
+                GuiRecipeTab.handlerMap.keySet().stream()
+                        .sorted()
+                        .forEach(handlerId -> toWrite.add(String.format("%s,0", handlerId)));
+
+                IOUtils.writeLines(toWrite, "\n", writer);
+            } catch (IOException e) {
+                NEIClientConfig.logger.error("Failed to save default handler ordering to file {}", file, e);
+            }
+        }
+
+        URL url;
+        try {
+            url = file.toURI().toURL();
+        } catch (MalformedURLException e) {
+            NEIClientConfig.logger.info("Invalid URL for handler ordering CSV.");
+            e.printStackTrace();
+            return;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+            NEIClientConfig.logger.info("Loading handler ordering from file {}", file);
+            CSVParser csvParser = CSVFormat.EXCEL.withCommentMarker('#').parse(reader);
+            for (CSVRecord record : csvParser) {
+                final String handlerId = record.get(0);
+
+                int ordering;
+                try {
+                    ordering = Integer.parseInt(record.get(1));
+                } catch (NumberFormatException e) {
+                    NEIClientConfig.logger.error("Error parsing CSV record {}: {}", record, e);
+                    continue;
+                }
+
+                NEIClientConfig.handlerOrdering.put(handlerId, ordering);
+            }
+        } catch (Exception e) {
+            NEIClientConfig.logger.info("Error parsing CSV");
+            e.printStackTrace();
+        }
     }
 
     @SubscribeEvent

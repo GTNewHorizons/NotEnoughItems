@@ -639,6 +639,11 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         return false;
     }
 
+    @Override
+    public boolean mouseScrolled(GuiRecipe gui, int scroll, int recipe) {
+        return false;
+    }
+
     private boolean transferRect(GuiRecipe gui, int recipe, boolean usage) {
         Point offset = gui.getRecipePosition(recipe);
         return transferRect(gui, transferRects, offset.x, offset.y, usage);

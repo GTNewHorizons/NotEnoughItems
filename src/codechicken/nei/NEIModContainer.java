@@ -16,8 +16,8 @@ import cpw.mods.fml.common.MetadataCollection;
 import cpw.mods.fml.common.ModMetadata;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLInterModComms;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.versioning.ArtifactVersion;
 import cpw.mods.fml.common.versioning.VersionParser;
 import cpw.mods.fml.common.versioning.VersionRange;
@@ -99,6 +99,8 @@ public class NEIModContainer extends DummyModContainer
     public void postInit(FMLPostInitializationEvent event) {
         if (CommonUtils.isClient())
             GuiRecipeTab.loadHandlerInfo();
+
+        ClientHandler.postInit();
     }
 
     @Subscribe

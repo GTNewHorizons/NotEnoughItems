@@ -26,8 +26,11 @@ import codechicken.nei.config.OptionToggleButtonBoubs;
 import codechicken.nei.config.OptionUtilities;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
 import codechicken.nei.recipe.GuiRecipeTab;
+import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.RecipeInfo;
+import codechicken.nei.recipe.TemplateRecipeHandler;
 import codechicken.obfuscator.ObfuscationRun;
+import com.google.common.base.Objects;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
@@ -40,8 +43,11 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;
 
 import java.io.File;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Function;
 
 public class NEIClientConfig {
     private static boolean configLoaded;
@@ -56,10 +62,35 @@ public class NEIClientConfig {
     public static final File bookmarkFile = new File(configDir, "bookmarks.ini");
     public static final File handlerFile = new File(configDir, "handlers.csv");
     public static final File serialHandlersFile = new File(configDir, "serialhandlers.cfg");
+    public static final File heightHackHandlersFile = new File(configDir, "heighthackhandlers.cfg");
+    public static final File handlerOrderingFile = new File(configDir, "handlerordering.csv");
 
     // Set of handlers that need to be run in serial
-    public static HashSet<String> serialHandlers = new HashSet<>(); 
-   
+    public static HashSet<String> serialHandlers = new HashSet<>();
+
+    // Set of handler ID of handlers that need the hack in GuiRecipe.startHeightHack().
+    public static HashSet<String> heightHackHandlers = new HashSet<>();
+
+    // Map of handler ID to sort order.
+    // Handlers will be sorted in ascending order, so smaller numbers show up earlier.
+    // Any handler not in the map will be assigned to 0, and negative numbers are fine.
+    public static HashMap<String, Integer> handlerOrdering = new HashMap<>();
+
+    // Function that extracts the handler ID from a handler, with special logic for
+    // TemplateRecipeHandler: prefer using the overlay ID if it exists.
+    public static final Function<IRecipeHandler, String> HANDLER_ID_FUNCTION =
+            handler -> handler instanceof TemplateRecipeHandler
+                    ? Objects.firstNonNull(
+                            ((TemplateRecipeHandler) handler).getOverlayIdentifier(),
+                            handler.getHandlerId())
+                    : handler.getHandlerId();
+
+    // Comparator that compares handlers using the handlerOrdering map.
+    public static final Comparator<IRecipeHandler> HANDLER_COMPARATOR =
+            Comparator.comparingInt(
+                    handler -> handlerOrdering.getOrDefault(
+                            HANDLER_ID_FUNCTION.apply(handler), 0));
+
 
     public static ItemStack[] creativeInv;
 

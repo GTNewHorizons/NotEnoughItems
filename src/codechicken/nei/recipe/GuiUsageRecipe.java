@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -43,6 +42,8 @@ public class GuiUsageRecipe extends GuiRecipe
 
         if (handlers.isEmpty())
             return false;
+
+        handlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
 
         mc.displayGuiScreen(new GuiUsageRecipe(prevscreen, handlers));
         return true;

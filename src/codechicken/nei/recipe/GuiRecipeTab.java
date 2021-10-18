@@ -209,9 +209,8 @@ public abstract class GuiRecipeTab extends Widget {
                 return;
             }
         }
-        try {
-            BufferedReader input = new BufferedReader(new InputStreamReader(url.openStream()));
-            CSVParser csvParser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(input);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+            CSVParser csvParser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(reader);
             for (CSVRecord record : csvParser) {
                 final String handler = record.get("handler");
                 final String modName = record.get("modName");
