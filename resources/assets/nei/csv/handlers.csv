@@ -182,26 +182,26 @@ ic2.neiIntegration.core.recipehandler.SolidCannerRecipeHandler,IndustrialCraft 2
 speiger.src.crops.prediction.NEIPlugin,IC2CropsNEI,IC2:blockCrop,,Ic2Nei,TRUE,,,135,,2,,,,,,"Not actual recipes, just info"
 tonius.neiintegration.mods.mcforge.RecipeHandlerFluidRegistry,Minecraft,minecraft:water,,minecraft,FALSE,,,,,,,,,,,
 tonius.neiintegration.mods.mcforge.RecipeHandlerOreDictionary,Minecraft,minecraft:iron_ore,,minecraft,FALSE,,,,,,,,,,,
-gt.recipe.alloyblastsmelter,GT++,gregtech:gt.blockmachines:810,,miscutils,TRUE,,6,135,166,2,,,,,,ABS
-gt.recipe.rocketenginefuel,GT++,gregtech:gt.blockmachines:793,,miscutils,TRUE,,6,135,166,2,,,,,,Basic (EV) rocket fuel gen
-gt.recipe.cyclotron,GT++,gregtech:gt.blockmachines:828,,miscutils,TRUE,,6,135,166,2,,,,,,Cyclotron
-gt.recipe.chemicaldehydrator,GT++,gregtech:gt.blockmachines:911,,miscutils,TRUE,,6,135,166,2,,,,,,Dehydrator
-gt.recipe.slowfusionreactor,GT++,gregtech:gt.blockmachines:31015,,miscutils,TRUE,,6,135,166,2,,,,,,gt.blockmachines.gtplusplus.fusion.single
-gt.recipe.RTGgenerators,GT++,gregtech:gt.blockmachines:869,,miscutils,TRUE,,6,135,166,2,,,,,,GT++ version of the RTG
-gt.recipe.cokeoven,GT++,gregtech:gt.blockmachines:791,,miscutils,TRUE,,6,135,166,2,,,,,,ICO
-gt.recipe.semifluidgeneratorfuels,GT++,gregtech:gt.blockmachines:837,,miscutils,TRUE,,6,135,166,2,,,,,,Semifluid gen
-gt.recipe.fishpond,GT++,gregtech:gt.blockmachines:829,,miscutils,TRUE,,6,135,166,2,,,,,,Zhuhai
-gt.recipe.advanced.mixer,GT++,gregtech:gt.blockmachines:811,,miscutils,TRUE,,6,135,166,2,,,,,,
-gt.recipe.cryogenicfreezer,GT++,gregtech:gt.blockmachines:910,,miscutils,TRUE,,6,135,166,2,,,,,,
-gt.recipe.fissionfuel,GT++,gregtech:gt.blockmachines:835,,miscutils,TRUE,,6,135,166,2,,,,,,
-gt.recipe.geothermalfuel,GT++,gregtech:gt.blockmachines:830,,miscutils,TRUE,,6,135,166,2,,,,,,
-gt.recipe.lftr,GT++,gregtech:gt.blockmachines:751,,miscutils,TRUE,,6,135,166,2,,,,,,
-gt.recipe.lftr.2,GT++,gregtech:gt.blockmachines:751,,miscutils,TRUE,,6,135,166,2,,,,,,
-gt.recipe.matterfab2,GT++,gregtech:gt.blockmachines:799,,miscutils,TRUE,,6,135,166,2,,,,,,
-gt.recipe.multicentrifuge,GT++,gregtech:gt.blockmachines:790,,miscutils,TRUE,,6,135,166,2,,,,,,
-gt.recipe.multielectro,GT++,gregtech:gt.blockmachines:796,,miscutils,TRUE,,6,135,166,2,,,,,,
-gt.recipe.simplewasher,GT++,gregtech:gt.blockmachines:767,,miscutils,TRUE,,6,135,166,2,,,,,,
-gt.recipe.vacfurnace,GT++,gregtech:gt.blockmachines:995,,miscutils,TRUE,,6,135,166,2,,,,,,
+gtpp.recipe.alloyblastsmelter,GT++,gregtech:gt.blockmachines:810,,miscutils,TRUE,,6,135,166,2,,,,,,ABS
+gtpp.recipe.rocketenginefuel,GT++,gregtech:gt.blockmachines:793,,miscutils,TRUE,,6,135,166,2,,,,,,Basic (EV) rocket fuel gen
+gtpp.recipe.cyclotron,GT++,gregtech:gt.blockmachines:828,,miscutils,TRUE,,6,135,166,2,,,,,,Cyclotron
+gtpp.recipe.chemicaldehydrator,GT++,gregtech:gt.blockmachines:911,,miscutils,TRUE,,6,135,166,2,,,,,,Dehydrator
+gtpp.recipe.slowfusionreactor,GT++,gregtech:gt.blockmachines:31015,,miscutils,TRUE,,6,135,166,2,,,,,,gt.blockmachines.gtplusplus.fusion.single
+gtpp.recipe.RTGgenerators,GT++,gregtech:gt.blockmachines:869,,miscutils,TRUE,,6,135,166,2,,,,,,GT++ version of the RTG
+gtpp.recipe.cokeoven,GT++,gregtech:gt.blockmachines:791,,miscutils,TRUE,,6,135,166,2,,,,,,ICO
+gtpp.recipe.semifluidgeneratorfuels,GT++,gregtech:gt.blockmachines:837,,miscutils,TRUE,,6,135,166,2,,,,,,Semifluid gen
+gtpp.recipe.fishpond,GT++,gregtech:gt.blockmachines:829,,miscutils,TRUE,,6,135,166,2,,,,,,Zhuhai
+gtpp.recipe.advanced.mixer,GT++,gregtech:gt.blockmachines:811,,miscutils,TRUE,,6,135,166,2,,,,,,
+gtpp.recipe.cryogenicfreezer,GT++,gregtech:gt.blockmachines:910,,miscutils,TRUE,,6,135,166,2,,,,,,
+gtpp.recipe.fissionfuel,GT++,gregtech:gt.blockmachines:835,,miscutils,TRUE,,6,135,166,2,,,,,,
+gtpp.recipe.geothermalfuel,GT++,gregtech:gt.blockmachines:830,,miscutils,TRUE,,6,135,166,2,,,,,,
+gtpp.recipe.lftr,GT++,gregtech:gt.blockmachines:751,,miscutils,TRUE,,6,135,166,2,,,,,,
+gtpp.recipe.lftr.2,GT++,gregtech:gt.blockmachines:751,,miscutils,TRUE,,6,135,166,2,,,,,,
+gtpp.recipe.matterfab2,GT++,gregtech:gt.blockmachines:799,,miscutils,TRUE,,6,135,166,2,,,,,,
+gtpp.recipe.multicentrifuge,GT++,gregtech:gt.blockmachines:790,,miscutils,TRUE,,6,135,166,2,,,,,,
+gtpp.recipe.multielectro,GT++,gregtech:gt.blockmachines:796,,miscutils,TRUE,,6,135,166,2,,,,,,
+gtpp.recipe.simplewasher,GT++,gregtech:gt.blockmachines:767,,miscutils,TRUE,,6,135,166,2,,,,,,
+gtpp.recipe.vacfurnace,GT++,gregtech:gt.blockmachines:995,,miscutils,TRUE,,6,135,166,2,,,,,,
 gtPlusPlus.nei.DecayableRecipeHandler,GT++,miscutils:dustRadium226,,miscutils,TRUE,,,75,,4,,,,,,
 gtPlusPlus.nei.GT_NEI_FlotationCell,GT++,gregtech:gt.blockmachines:31028,,miscutils,TRUE,,,120,,2,,,,,,
 gtPlusPlus.nei.GT_NEI_FluidReactor,GT++,gregtech:gt.blockmachines:998,,miscutils,TRUE,,,120,,2,,,,,,
