@@ -25,7 +25,12 @@ public class RecipeItemInputHandler implements IContainerInputHandler
 
         if(keyCode == NEIClientConfig.getKeyBinding("gui.bookmark")) {
             NEIClientConfig.logger.debug("Adding or removing {} from bookmarks", stackover.getDisplayName());
-            ItemPanels.bookmarkPanel.addOrRemoveItem(stackover.copy());
+            String recipeId = "";
+
+            if (gui instanceof GuiRecipe && NEIClientConfig.saveCurrentRecipeInBookmarksEnabled())
+                recipeId = ((GuiRecipe)gui).getFocusedRecipeId();
+
+            ItemPanels.bookmarkPanel.addOrRemoveItem(stackover.copy(), recipeId);
         }
 
         return false;

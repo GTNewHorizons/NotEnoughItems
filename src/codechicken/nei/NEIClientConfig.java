@@ -177,10 +177,14 @@ public class NEIClientConfig {
         
         tag.getTag("inventory.bookmarksEnabled").setComment("Enable/disable bookmarks").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.bookmarksEnabled", true));
+        tag.getTag("inventory.saveCurrentRecipeInBookmarksEnabled").setComment("Save Current Recipe in Bookmarks").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.saveCurrentRecipeInBookmarksEnabled", true));
+
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
         tag.getTag("inventory.jei_style_item_presence_overlay").setComment("Enable/disable JEI Style item presence overlay on ?-hover").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.jei_style_item_presence_overlay", true));
+
         
         tag.getTag("inventory.creative_tab_style").setComment("Creative or JEI style tabs").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.creative_tab_style", true));
@@ -356,6 +360,9 @@ public class NEIClientConfig {
     }
     public static boolean isBookmarkPanelHidden() {
         return !getBooleanSetting("inventory.bookmarksEnabled");
+    }
+    public static boolean saveCurrentRecipeInBookmarksEnabled() {
+        return getBooleanSetting("inventory.saveCurrentRecipeInBookmarksEnabled");
     }
     public static boolean areJEIStyleTabsVisible() {
         return getBooleanSetting("inventory.jei_style_tabs");

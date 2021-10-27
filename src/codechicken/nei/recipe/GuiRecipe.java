@@ -23,8 +23,10 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Item;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
@@ -193,18 +195,138 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         yShift = handlerInfo == null ? 0 : handlerInfo.getYShift();
     }
 
-
     public void setRecipePage(int idx) {
+        setRecipePage(idx, 0);
+    }
+
+    public void setRecipePage(int idx, int idp) {
         recipetype = idx;
         if (recipetype < 0) recipetype = currenthandlers.size() - 1;
         else if (recipetype >= currenthandlers.size()) recipetype = 0;
 
         handler = currenthandlers.get(recipetype);
         handlerInfo = getHandlerInfo(handler);
-        page = 0;
+        page = Math.min(idp, (handler.numRecipes() - 1) / getRecipesPerPage());
         recipeTabs.calcPageNumber();
         checkYShift();
         initOverlayButtons();
+    }
+
+    public void openTargetRecipe(String recipeId) 
+    {
+
+        if (recipeId == "") {
+            return;
+        }
+
+        String[] expected = recipeId.split("\\|", 2);
+        Integer recipetype = 0;
+        Integer page = 0;
+
+        for (int j = 0; j < currenthandlers.size(); j++) {
+            IRecipeHandler localHandler = currenthandlers.get(j);
+            HandlerInfo localHandlerInfo = getHandlerInfo(localHandler);
+
+            if (localHandlerInfo.getHandlerName().equals(expected[0])) {
+                recipetype = j;
+
+                for (int i = 0; i < localHandler.numRecipes(); i++) {
+                    if (createRecipeId(localHandler, i).equals(expected[1])) {
+                        page = i / getRecipesPerPage(localHandlerInfo);
+                        break;
+                    }
+                }
+
+                break;
+            }
+        }
+
+        if (this.recipetype != recipetype || this.page != page) {
+            setRecipePage(recipetype, page);
+        }
+            
+    }
+
+    public String getFocusedRecipeId()
+    {
+        String handlerName = handlerInfo.getHandlerName();
+        Point mousePos = GuiDraw.getMousePosition();
+        int recipesPerPage = getRecipesPerPage();
+
+        for (int i = page * recipesPerPage; i < handler.numRecipes() && i < (page + 1) * recipesPerPage; i++) {
+            if (recipeInFocus(i)) {
+                return handlerName + "|" + createRecipeId(handler, i);
+            }
+        }
+        
+        return "";
+    }
+
+    protected Boolean recipeInFocus(int idx)
+    {
+        PositionedStack result = handler.getResultStack(idx);
+        if (result != null && isMouseOver(result, idx)) {
+            return true;
+        }
+
+        List<PositionedStack> stacks = handler.getOtherStacks(idx);
+        for (PositionedStack stack : stacks) {
+            if (isMouseOver(stack, idx)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected String createRecipeId(IRecipeHandler handler, int idx) 
+    {
+        List<String> strings = new ArrayList<>();
+
+        List<PositionedStack> stacks = handler.getIngredientStacks(idx);
+        for (PositionedStack stack : stacks) {
+            strings.add(getItemStackId(getItemStackWithMinimumDamage(stack.items)));
+        }
+
+        stacks = handler.getOtherStacks(idx);
+        for (PositionedStack stack : stacks) {
+            strings.add(getItemStackId(getItemStackWithMinimumDamage(stack.items)));
+        }
+
+        PositionedStack result = handler.getResultStack(idx);
+        if (result != null) {
+            strings.add(getItemStackId(result.item));
+        }
+
+        return String.join(":", strings);
+    }
+
+    protected static ItemStack getItemStackWithMinimumDamage(ItemStack[] stacks)
+    {
+        int damage = Short.MAX_VALUE;
+        ItemStack result = stacks[0];
+
+        if (stacks.length > 1) {
+            for (ItemStack stack : stacks) {
+                if (stack.getItemDamage() < damage) {
+                    result = stack;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    protected static String getItemStackId(ItemStack stack)
+    {
+        String strId = Item.itemRegistry.getNameForObject(stack.getItem());
+        String id = strId + ":" + String.valueOf(stack.stackSize) + ":" + String.valueOf(stack.getItemDamage());
+
+        if (stack.hasTagCompound()) {
+            id += ":" + stack.getTagCompound().toString();
+        }
+
+        return id;
     }
 
     public IRecipeHandler getHandler() {
@@ -579,8 +701,12 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
             return false;
         }
     }
-    
+
     private int getRecipesPerPage() {
+        return getRecipesPerPage(handlerInfo);
+    }
+    
+    private int getRecipesPerPage(HandlerInfo handlerInfo) {
         if(handlerInfo != null) 
             return Math.max(Math.min(((ySize - (buttonHeight*3)) / handlerInfo.getHeight()), handlerInfo.getMaxRecipesPerPage()), 1);
         else

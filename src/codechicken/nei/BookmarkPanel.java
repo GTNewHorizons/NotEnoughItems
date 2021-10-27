@@ -23,6 +23,8 @@ import java.util.List;
  */
 public class BookmarkPanel extends ItemPanel {
 
+    protected ArrayList<String> _recipes = new ArrayList<>();
+
     public void init() {
         super.init();
     }
@@ -37,9 +39,14 @@ public class BookmarkPanel extends ItemPanel {
     }
 
     public void addOrRemoveItem(ItemStack item) {
+        addOrRemoveItem(item, "");
+    }
+
+    public void addOrRemoveItem(ItemStack item, String recipeId) {
         ItemStack normalized = normalize(item);
-        if(!remove(normalized)) {
+        if (!remove(normalized)) {
             _items.add(normalized);
+            _recipes.add(recipeId);
         }
         saveBookmarks();
     }
@@ -51,9 +58,8 @@ public class BookmarkPanel extends ItemPanel {
         nbTag.setByte("Count", (byte)stack.stackSize);
         nbTag.setShort("Damage", (short)stack.getItemDamage());
 
-        if (stack.stackTagCompound != null)
-        {
-            nbTag.setTag("tag", stack.stackTagCompound);
+        if (stack.hasTagCompound()) {
+            nbTag.setTag("tag", stack.getTagCompound());
         }
 
         return nbTag;
@@ -69,10 +75,27 @@ public class BookmarkPanel extends ItemPanel {
         return stack;
     }
 
+    public String getRecipeId(ItemStack item)
+    {
+        int i = 0;
+        for (ItemStack existing : _items) {
+            if (existing == item || existing.isItemEqual(item)) {
+                return _recipes.get(i);
+            }
+            i++;
+        }
+
+        return "";
+    }
+
     public void saveBookmarks() {
         List<String> strings = new ArrayList<>();
-        for (ItemStack item:_items) {
-            strings.add(NBTJson.toJson(itemStackToNBT(item, new NBTTagCompound())));
+        int index = 0;
+        for (ItemStack item: _items) {
+            NBTTagCompound nbTag = itemStackToNBT(item, new NBTTagCompound());
+            nbTag.setString("recipeId", _recipes.get(index));
+            strings.add(NBTJson.toJson(nbTag));
+            index++;
         }
         File file = NEIClientConfig.bookmarkFile;
         if(file != null) {
@@ -103,8 +126,15 @@ public class BookmarkPanel extends ItemPanel {
             try {
                 NBTTagCompound itemStackNBT = (NBTTagCompound) NBTJson.toNbt(parser.parse(itemStr));
                 ItemStack itemStack = loadFromNBT(itemStackNBT);
+                String recipeId = "";
+        
+                if (itemStackNBT.hasKey("recipeId")) {
+                    recipeId = itemStackNBT.getString("recipeId");
+                }
+
                 if (itemStack != null) {
                     _items.add(itemStack);
+                    _recipes.add(recipeId);
                 } else {
                     NEIClientConfig.logger.warn("Failed to load bookmarked ItemStack from json string, the item no longer exists:\n{}", itemStr);
                 }
@@ -124,6 +154,7 @@ public class BookmarkPanel extends ItemPanel {
         for (ItemStack existing : _items) {
             if (existing == item || existing.isItemEqual(item)) {
                 _items.remove(i);
+                _recipes.remove(i);
                 return true;
             }
             i++;

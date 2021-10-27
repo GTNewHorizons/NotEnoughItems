@@ -6,6 +6,8 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.item.ItemStack;
+import codechicken.nei.ItemPanels;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -46,7 +48,16 @@ public class GuiCraftingRecipe extends GuiRecipe
         handlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
 
         mc.displayGuiScreen(new GuiCraftingRecipe(prevscreen, handlers));
+        
+        if (NEIClientConfig.saveCurrentRecipeInBookmarksEnabled() && !NEIClientUtils.shiftKey() && outputId.equals("item") && mc.currentScreen instanceof GuiRecipe) {
+            GuiCraftingRecipe.openTargetRecipe((GuiRecipe)mc.currentScreen, (ItemStack)results[0]);
+        }
+
         return true;
+    }
+
+    protected static void openTargetRecipe(GuiRecipe currentScreen, ItemStack stackover) {
+        currentScreen.openTargetRecipe(ItemPanels.bookmarkPanel.getRecipeId(stackover));
     }
 
     private GuiCraftingRecipe(GuiScreen prevgui, ArrayList<ICraftingHandler> handlers) {
