@@ -23,6 +23,8 @@ import java.util.List;
  */
 public class BookmarkPanel extends ItemPanel {
 
+    public int sortedStackIndex = -1;
+
     public void init() {
         super.init();
     }
@@ -169,6 +171,70 @@ public class BookmarkPanel extends ItemPanel {
 
     public int getWidth(GuiContainer gui) {
         return LayoutManager.getLeftSize(gui) - ( (gui.xSize + gui.width) / 2 + 3 ) - 16;
+    }
+
+    @Override
+    public void mouseDragged(int mousex, int mousey, int button, long heldTime)
+    {
+
+        if (button == 0 && NEIClientUtils.shiftKey() && mouseDownSlot >= 0) {
+            ItemPanelSlot mouseOverSlot = getSlotMouseOver(mousex, mousey);
+
+            if (mouseOverSlot == null) {
+                return;
+            }
+
+            if (sortedStackIndex == -1) {
+                ItemStack stack = _items.get(mouseDownSlot);
+
+                if (stack != null && (mouseOverSlot == null || mouseOverSlot.slotIndex != mouseDownSlot || heldTime > 500)) {
+                    sortedStackIndex = mouseDownSlot;
+                }
+
+            } else if (mouseOverSlot != null && mouseOverSlot.slotIndex != sortedStackIndex) {
+
+                int maxStackIndex = Math.max(mouseOverSlot.slotIndex, sortedStackIndex);
+                int slotIndex = mouseOverSlot.slotIndex;
+                ItemStack cacheItem = _items.get(sortedStackIndex);
+                String recipeId = _recipes.get(sortedStackIndex);
+
+                if (sortedStackIndex == maxStackIndex) {
+
+                    for (int i = sortedStackIndex - 1; i >= slotIndex; --i) {
+                        _items.set(i + 1, _items.get(i));
+                        _recipes.set(i + 1, _recipes.get(i));
+                    }
+
+                } else {
+
+                    for (int i = sortedStackIndex + 1; i <= slotIndex; ++i) {
+                        _items.set(i - 1, _items.get(i));
+                        _recipes.set(i - 1, _recipes.get(i));
+                    }
+
+                }
+
+                _items.set(slotIndex, cacheItem);
+                _recipes.set(slotIndex, recipeId);
+                sortedStackIndex = mouseOverSlot.slotIndex;
+            }
+
+            return;
+        }
+
+        super.mouseDragged(mousex, mousey, button, heldTime);
+    }
+
+    @Override
+    public void mouseUp(int mousex, int mousey, int button)
+    {
+        if (sortedStackIndex >= 0) {
+            sortedStackIndex = -1;
+            mouseDownSlot = -1;
+            saveBookmarks();
+        } else {
+            super.mouseUp(mousex, mousey, button);
+        }
     }
 
 }
