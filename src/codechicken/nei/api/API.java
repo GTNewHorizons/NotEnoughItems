@@ -20,6 +20,7 @@ import codechicken.nei.recipe.GuiUsageRecipe;
 import codechicken.nei.recipe.ICraftingHandler;
 import codechicken.nei.recipe.IUsageHandler;
 import codechicken.nei.recipe.RecipeInfo;
+import codechicken.nei.recipe.StackInfo;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Slot;
@@ -284,4 +285,10 @@ public class API
         ItemInfo.itemVariants.put(item, variant);
         LayoutManager.markItemsDirty();
     }
+
+    public static void registerStackStringifyHandler(IStackStringifyHandler handler)
+    {
+        StackInfo.stackStringifyHandlers.add(handler);
+    }
+
 }

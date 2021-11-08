@@ -18,6 +18,7 @@ import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.guihook.IGuiClientSide;
 import codechicken.nei.guihook.IGuiHandleMouseWheel;
+import codechicken.nei.recipe.StackInfo;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -285,48 +286,20 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
 
         List<PositionedStack> stacks = handler.getIngredientStacks(idx);
         for (PositionedStack stack : stacks) {
-            strings.add(getItemStackId(getItemStackWithMinimumDamage(stack.items)));
+            strings.add(StackInfo.getItemStackId(stack.items));
         }
 
         stacks = handler.getOtherStacks(idx);
         for (PositionedStack stack : stacks) {
-            strings.add(getItemStackId(getItemStackWithMinimumDamage(stack.items)));
+            strings.add(StackInfo.getItemStackId(stack.items));
         }
 
         PositionedStack result = handler.getResultStack(idx);
         if (result != null) {
-            strings.add(getItemStackId(result.item));
+            strings.add(StackInfo.getItemStackId(result.items));
         }
 
         return String.join(":", strings);
-    }
-
-    protected static ItemStack getItemStackWithMinimumDamage(ItemStack[] stacks)
-    {
-        int damage = Short.MAX_VALUE;
-        ItemStack result = stacks[0];
-
-        if (stacks.length > 1) {
-            for (ItemStack stack : stacks) {
-                if (stack.getItemDamage() < damage) {
-                    result = stack;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    protected static String getItemStackId(ItemStack stack)
-    {
-        String strId = Item.itemRegistry.getNameForObject(stack.getItem());
-        String id = strId + ":" + String.valueOf(stack.stackSize) + ":" + String.valueOf(stack.getItemDamage());
-
-        if (stack.hasTagCompound()) {
-            id += ":" + stack.getTagCompound().toString();
-        }
-
-        return id;
     }
 
     public IRecipeHandler getHandler() {
