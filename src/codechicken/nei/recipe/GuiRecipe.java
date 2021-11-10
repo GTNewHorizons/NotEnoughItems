@@ -216,13 +216,13 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
     public void openTargetRecipe(String recipeId) 
     {
 
-        if (recipeId == "") {
+        if (recipeId.isEmpty()) {
             return;
         }
 
         String[] expected = recipeId.split("\\|", 2);
-        Integer recipetype = 0;
-        Integer page = 0;
+        int recipetype = 0;
+        int page = 0;
 
         for (int j = 0; j < currenthandlers.size(); j++) {
             IRecipeHandler localHandler = currenthandlers.get(j);

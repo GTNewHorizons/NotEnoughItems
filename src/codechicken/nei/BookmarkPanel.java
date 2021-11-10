@@ -61,16 +61,30 @@ public class BookmarkPanel extends ItemPanel {
 
     public String getRecipeId(ItemStack item)
     {
-        int i = 0;
+        int index = findStackIndex(item);
 
-        for (ItemStack existing : _items) {
-            if (existing == item || existing.isItemEqual(item)) {
-                return _recipes.get(i);
-            }
-            i++;
+        if (index >= 0) {
+            return  _recipes.get(index);
         }
 
         return "";
+    }
+
+    public int findStackIndex(ItemStack stack1)
+    {
+        boolean useNBT = NEIClientConfig.useNBTInBookmarks();
+        int i = 0;
+
+        for (ItemStack stack2 : _items) {
+
+            if (stack1 == stack2 || stack1.isItemEqual(stack2) && (!useNBT || ItemStack.areItemStackTagsEqual(stack1, stack2))) {
+                return i;
+            }
+
+            i++;
+        }
+
+        return -1;
     }
 
     public void saveBookmarks() {
@@ -156,16 +170,16 @@ public class BookmarkPanel extends ItemPanel {
         super.draw(mousex, mousey);
     }
 
-    private boolean remove(ItemStack item) {
-        int i = 0;
-        for (ItemStack existing : _items) {
-            if (existing == item || existing.isItemEqual(item)) {
-                _items.remove(i);
-                _recipes.remove(i);
-                return true;
-            }
-            i++;
+    private boolean remove(ItemStack item) 
+    {
+        int index = findStackIndex(item);
+
+        if (index >= 0) {
+            _items.remove(index);
+            _recipes.remove(index);
+            return true; 
         }
+
         return false;
     }
 
