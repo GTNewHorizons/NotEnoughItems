@@ -47,27 +47,32 @@ public class RecipeItemInputHandler implements IContainerInputHandler
         if (!(gui instanceof GuiRecipe))
             return false;
 
+        //disabled open recipe gui if hold shift (player have move recipe)
+        if (button == 0 && ItemPanels.bookmarkPanel.getStackMouseOver(mousex, mousey) != null && NEIClientUtils.shiftKey()) {
+            return false;
+        }
+
         if(button == 0)
             return GuiCraftingRecipe.openRecipeGui("item", stackover.copy());
 
         if(button == 1)
             return GuiUsageRecipe.openRecipeGui("item", stackover.copy());
-        
+
         return false;
     }
 
     @Override
-    public void onKeyTyped(GuiContainer gui, char keyChar, int keyID) 
+    public void onKeyTyped(GuiContainer gui, char keyChar, int keyID)
     {
     }
 
     @Override
-    public void onMouseClicked(GuiContainer gui, int mousex, int mousey, int button) 
+    public void onMouseClicked(GuiContainer gui, int mousex, int mousey, int button)
     {
     }
 
     @Override
-    public void onMouseUp(GuiContainer gui, int mousex, int mousey, int button) 
+    public void onMouseUp(GuiContainer gui, int mousex, int mousey, int button)
     {
     }
 
@@ -76,18 +81,18 @@ public class RecipeItemInputHandler implements IContainerInputHandler
     {
         return false;
     }
-    
+
     @Override
     public boolean mouseScrolled(GuiContainer gui, int mousex, int mousey, int scrolled)
     {
         return false;
     }
-    
+
     @Override
     public void onMouseScrolled(GuiContainer gui, int mousex, int mousey, int scrolled)
     {
     }
-    
+
     @Override
     public void onMouseDragged(GuiContainer gui, int mousex, int mousey, int button, long heldTime)
     {
