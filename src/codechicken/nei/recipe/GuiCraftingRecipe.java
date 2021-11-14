@@ -56,8 +56,9 @@ public class GuiCraftingRecipe extends GuiRecipe
         return true;
     }
 
-    protected static void openTargetRecipe(GuiRecipe currentScreen, ItemStack stackover) {
-        currentScreen.openTargetRecipe(ItemPanels.bookmarkPanel.getRecipeId(stackover));
+    protected static void openTargetRecipe(GuiRecipe currentScreen, ItemStack stackover)
+    {
+        currentScreen.openTargetRecipe(ItemPanels.bookmarkPanel.getBookmarkRecipeId(stackover));
     }
 
     private GuiCraftingRecipe(GuiScreen prevgui, ArrayList<ICraftingHandler> handlers) {

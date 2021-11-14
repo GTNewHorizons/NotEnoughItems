@@ -10,8 +10,6 @@ public interface IStackStringifyHandler
 
     public ItemStack convertNBTToItemStack(NBTTagCompound nbtTag);
 
-    public String getItemStackId(ItemStack[] stacks);
-
     public ItemStack normalize(ItemStack item);
 
 }

@@ -1,7 +1,6 @@
 package codechicken.nei.recipe;
 
 import codechicken.nei.api.IStackStringifyHandler;
-import codechicken.nei.NEIClientConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -45,16 +44,16 @@ public class StackInfo
         return copy;
     }
 
-    public static String getItemStackId(ItemStack[] stacks)
+    public static boolean equalItemAndNBT(ItemStack stackA, ItemStack stackB, boolean useNBT) 
     {
-        String id = null;
+        if (stackA.isItemEqual(stackB)) {
+            NBTTagCompound tagCompoundA = stackA.getTagCompound();
+            NBTTagCompound tagCompoundB = stackB.getTagCompound();
 
-        for (int i = stackStringifyHandlers.size() - 1; i >= 0 && id == null; i--) {
-            id = stackStringifyHandlers.get(i).getItemStackId(stacks);
+            return !useNBT || (tagCompoundA == null && tagCompoundB == null) || (tagCompoundA != null && tagCompoundB != null && tagCompoundA.equals(tagCompoundB));
         }
 
-        return id;
+        return false;
     }
-
 
 }

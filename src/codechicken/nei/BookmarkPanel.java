@@ -2,7 +2,10 @@ package codechicken.nei;
 
 import codechicken.nei.util.NBTJson;
 import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.recipe.BookmarkRecipeId;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
 import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -24,7 +27,7 @@ import java.util.List;
  */
 public class BookmarkPanel extends ItemPanel {
 
-    protected ArrayList<String> _recipes = new ArrayList<>();
+    protected ArrayList<BookmarkRecipeId> _recipes = new ArrayList<>();
     protected boolean bookmarksIsLoaded = false;
     public int sortedStackIndex = -1;
 
@@ -41,11 +44,12 @@ public class BookmarkPanel extends ItemPanel {
         return super.getLabelText() + " [" + realItems.size() + "]";
     }
 
-    public void addOrRemoveItem(ItemStack item) {
-        addOrRemoveItem(item, "");
+    public void addOrRemoveItem(ItemStack item)
+    {
+        addOrRemoveItem(item, null);
     }
 
-    public void addOrRemoveItem(ItemStack item, String recipeId)
+    public void addOrRemoveItem(ItemStack item, BookmarkRecipeId recipeId)
     {
         loadBookmarksIfNeeded();
 
@@ -59,25 +63,25 @@ public class BookmarkPanel extends ItemPanel {
         saveBookmarks();
     }
 
-    public String getRecipeId(ItemStack item)
+    public BookmarkRecipeId getBookmarkRecipeId(ItemStack item)
     {
         int index = findStackIndex(item);
 
         if (index >= 0) {
-            return  _recipes.get(index);
+            return _recipes.get(index);
         }
 
-        return "";
+        return null;
     }
 
-    public int findStackIndex(ItemStack stack1)
+    public int findStackIndex(ItemStack stackA)
     {
         boolean useNBT = NEIClientConfig.useNBTInBookmarks();
         int i = 0;
 
-        for (ItemStack stack2 : _items) {
+        for (ItemStack stackB : _items) {
 
-            if (stack1 == stack2 || stack1.isItemEqual(stack2) && (!useNBT || ItemStack.areItemStackTagsEqual(stack1, stack2))) {
+            if (StackInfo.equalItemAndNBT(stackA, stackB, useNBT)) {
                 return i;
             }
 
@@ -87,16 +91,30 @@ public class BookmarkPanel extends ItemPanel {
         return -1;
     }
 
-    public void saveBookmarks() {
+    public void saveBookmarks()
+    {
         List<String> strings = new ArrayList<>();
         int index = 0;
 
         for (ItemStack item: _items) {
-            NBTTagCompound nbTag = StackInfo.itemStackToNBT(item);
+            try {
+                final NBTTagCompound nbTag = StackInfo.itemStackToNBT(item);
 
-            if (nbTag != null) {
-                nbTag.setString("recipeId", _recipes.get(index));
-                strings.add(NBTJson.toJson(nbTag));
+                if (nbTag != null) {
+                    JsonObject row = new JsonObject();
+                    BookmarkRecipeId recipeId = _recipes.get(index);
+
+                    row.add("item", NBTJson.toJsonObject(nbTag));
+
+                    if (recipeId != null) {
+                        row.add("recipeId", recipeId.toJsonObject());
+                    }
+
+                    strings.add(NBTJson.toJson(row));
+                }
+
+            } catch (JsonSyntaxException e) {
+                NEIClientConfig.logger.error("Failed to stringify bookmarked ItemStack to json string");
             }
 
             index++;
@@ -134,27 +152,32 @@ public class BookmarkPanel extends ItemPanel {
             NEIClientConfig.logger.error("Failed to load bookmarks from file {}", file, e);
             return;
         }
+
         _items.clear();
         JsonParser parser = new JsonParser();
         for (String itemStr: itemStrings) {
             try {
-                NBTTagCompound itemStackNBT = (NBTTagCompound) NBTJson.toNbt(parser.parse(itemStr));
+                JsonObject jsonObject = parser.parse(itemStr).getAsJsonObject();
+                NBTTagCompound itemStackNBT = (NBTTagCompound) NBTJson.toNbt(jsonObject);
+                BookmarkRecipeId recipeId = null;
+
+                if (jsonObject.get("item") != null) {
+                    itemStackNBT = (NBTTagCompound) NBTJson.toNbt(jsonObject.get("item"));
+                } else {//old format
+                    itemStackNBT = (NBTTagCompound) NBTJson.toNbt(jsonObject);
+                }
+
+                if (jsonObject.get("recipeId") != null && jsonObject.get("recipeId") instanceof JsonObject) {
+                    recipeId = new BookmarkRecipeId((JsonObject) jsonObject.get("recipeId"));
+                }
+
                 ItemStack itemStack = StackInfo.loadFromNBT(itemStackNBT);
 
                 if (itemStack != null) {
-                    String recipeId = "";
-
-                    if (itemStackNBT.hasKey("recipeId")) {
-                        recipeId = itemStackNBT.getString("recipeId");
-                    }
-
-                    if (itemStack != null) {
-                        _items.add(itemStack);
-                        _recipes.add(recipeId);
-                    } else {
-                        NEIClientConfig.logger.warn("Failed to load bookmarked ItemStack from json string, the item no longer exists:\n{}", itemStr);
-                    }
-
+                    _items.add(itemStack);
+                    _recipes.add(recipeId);
+                } else {
+                    NEIClientConfig.logger.warn("Failed to load bookmarked ItemStack from json string, the item no longer exists:\n{}", itemStr);
                 }
 
             } catch (IllegalArgumentException | JsonSyntaxException e) {

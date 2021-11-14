@@ -34,7 +34,11 @@ public class NBTJson {
     private static final Gson gson = new GsonBuilder().create();
 
     public static String toJson(NBTTagCompound tag) {
-        final String jsonString = toJsonObject(tag).toString();
+        return toJson(toJsonObject(tag));
+    }
+
+    public static String toJson(JsonElement json) {
+        final String jsonString = json.toString();
         return gson.toJson(parser.parse(jsonString));
     }
     

@@ -42,19 +42,6 @@ public class StackStringifyHandler implements IStackStringifyHandler
         return ItemStack.loadItemStackFromNBT(nbtTag);
     }
 
-    public String getItemStackId(ItemStack[] stacks)
-    {
-        ItemStack stack = getItemStackWithMinimumDamage(stacks);
-        String strId = Item.itemRegistry.getNameForObject(stack.getItem());
-        String id = strId + ":" + String.valueOf(stack.getItemDamage());
-
-        if (stack.hasTagCompound()) {
-            id += ":" + stack.getTagCompound().toString();
-        }
-
-        return id;
-    }
-
     public ItemStack normalize(ItemStack item)
     {
         ItemStack copy = item.copy();
