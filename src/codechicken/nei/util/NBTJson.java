@@ -54,6 +54,24 @@ public class NBTJson {
                 root.add(nbtEntry.getKey(), toJsonObject(nbtEntry.getValue()));
             }
             return root;
+        } else if (nbt instanceof NBTTagByte) {
+            // Number (byte)
+            return new JsonPrimitive(Byte.toString(((NBTTagByte) nbt).func_150290_f()) + 'B');
+        } else if (nbt instanceof NBTTagShort) {
+            // Number (short)
+            return new JsonPrimitive(Short.toString(((NBTTagShort) nbt).func_150289_e()) + 'S');
+        } else if (nbt instanceof NBTTagInt) {
+            // Number (int)
+            return new JsonPrimitive(((NBTTagInt) nbt).func_150287_d());
+        } else if (nbt instanceof NBTTagLong) {
+            // Number (long)
+            return new JsonPrimitive(Long.toString(((NBTTagLong) nbt).func_150291_c()) + 'L');
+        } else if (nbt instanceof NBTTagFloat) {
+            // Number (float)
+            return new JsonPrimitive(Float.toString(((NBTTagFloat) nbt).func_150288_h()) + 'F');
+        } else if (nbt instanceof NBTTagDouble) {
+           // Number (double)
+           return new JsonPrimitive(Double.toString(((NBTTagDouble) nbt).func_150286_g()) + 'D');
         } else if (nbt instanceof NBTBase.NBTPrimitive) {
             // Number
             return new JsonPrimitive(((NBTBase.NBTPrimitive) nbt).func_150286_g());
