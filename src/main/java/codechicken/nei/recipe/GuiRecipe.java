@@ -18,13 +18,16 @@ import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.guihook.IGuiClientSide;
 import codechicken.nei.guihook.IGuiHandleMouseWheel;
+import codechicken.nei.recipe.StackInfo;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Item;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
@@ -193,18 +196,96 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         yShift = handlerInfo == null ? 0 : handlerInfo.getYShift();
     }
 
-
     public void setRecipePage(int idx) {
+        setRecipePage(idx, 0);
+    }
+
+    public void setRecipePage(int idx, int position) {
         recipetype = idx;
         if (recipetype < 0) recipetype = currenthandlers.size() - 1;
         else if (recipetype >= currenthandlers.size()) recipetype = 0;
 
         handler = currenthandlers.get(recipetype);
         handlerInfo = getHandlerInfo(handler);
-        page = 0;
+        page = Math.min(Math.max(0, position), handler.numRecipes() - 1)  / getRecipesPerPage();
         recipeTabs.calcPageNumber();
         checkYShift();
         initOverlayButtons();
+    }
+
+    public void openTargetRecipe(BookmarkRecipeId recipeId) 
+    {
+
+        if (recipeId == null) {
+            return;
+        }
+
+        if (recipeId.recipetype == -1 || recipeId.position == -1) {
+            recipeId.recipetype = 0;
+            recipeId.position = 0;
+
+            if (recipeId.handlerName != null) {
+
+                for (int j = 0; j < currenthandlers.size(); j++) {
+                    IRecipeHandler localHandler = currenthandlers.get(j);
+                    HandlerInfo localHandlerInfo = getHandlerInfo(localHandler);
+        
+                    if (localHandlerInfo.getHandlerName().equals(recipeId.handlerName)) {
+                        recipeId.recipetype = j;
+
+                        if (!recipeId.ingredients.isEmpty()) {
+                            for (int i = 0; i < localHandler.numRecipes(); i++) {
+
+                                if (recipeId.equalsIngredients(localHandler.getIngredientStacks(i))) {
+                                    recipeId.position = i;
+                                    break;
+                                }
+    
+                            }
+                        }
+        
+                        break;
+                    }
+
+                }
+
+            }
+
+        }
+
+        setRecipePage(recipeId.recipetype, recipeId.position);    
+    }
+
+    public BookmarkRecipeId getFocusedRecipeId()
+    {
+        String handlerName = handlerInfo.getHandlerName();
+        Point mousePos = GuiDraw.getMousePosition();
+        int recipesPerPage = getRecipesPerPage();
+
+        for (int i = page * recipesPerPage; i < handler.numRecipes() && i < (page + 1) * recipesPerPage; i++) {
+            if (recipeInFocus(i)) {
+                return new BookmarkRecipeId(handlerName, handler.getIngredientStacks(i), recipetype, i);
+            }
+        }
+        
+        return null;
+    }
+
+    protected Boolean recipeInFocus(int idx)
+    {
+        PositionedStack result = handler.getResultStack(idx);
+        if (result != null && isMouseOver(result, idx)) {
+            return true;
+        }
+
+        List<PositionedStack> stacks = handler.getOtherStacks(idx);
+        for (PositionedStack stack : stacks) {
+            if (isMouseOver(stack, idx)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public IRecipeHandler getHandler() {
@@ -218,7 +299,6 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
 
         return IntStream.range(minIndex, maxIndex).boxed().collect(Collectors.toList());
     }
-
 
     @Override
     public void keyTyped(char c, int i) {
@@ -579,8 +659,12 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
             return false;
         }
     }
-    
+
     private int getRecipesPerPage() {
+        return getRecipesPerPage(handlerInfo);
+    }
+    
+    private int getRecipesPerPage(HandlerInfo handlerInfo) {
         if(handlerInfo != null) 
             return Math.max(Math.min(((ySize - (buttonHeight*3)) / handlerInfo.getHeight()), handlerInfo.getMaxRecipesPerPage()), 1);
         else

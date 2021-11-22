@@ -265,7 +265,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             GL11.glEnable(GL11.GL_DEPTH_TEST);
         }
     }
-    
+
     @Override
     public void postRenderObjects(GuiContainer gui, int mousex, int mousey) {
         if (!isHidden() && isEnabled()) {
@@ -310,13 +310,13 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         VisiblityData visiblity = new VisiblityData();
         if (isHidden())
             visiblity.showNEI = false;
-        
+
         if (isBookmarkPanelHidden())
             visiblity.showBookmarkPanel = false;
-        
+
         if (gui.height - gui.ySize <= 40)
             visiblity.showSearchSection = false;
-        
+
         if (gui.guiLeft - 4 < 76)
             visiblity.showWidgets = false;
         try {
@@ -325,7 +325,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         } finally {
             GuiInfo.readLock.unlock();
         }
-        
+
         visiblity.translateDependancies();
 
         getLayoutStyle().layout(gui, visiblity);
@@ -351,7 +351,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 this.icons[1] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 48, 0, 16, 16).build();
                 this.icons[2] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 64, 0, 16, 16).build();
             }
-            
+
             @Override
             public boolean onButtonPress(boolean rightclick) {
                 if (!rightclick) {
@@ -367,7 +367,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 }
                 return false;
             }
-            
+
             @Override
             public void addTooltips(List<String> tooltip) {
                 tooltip.add(translate("inventory.options.tip"));
@@ -380,9 +380,9 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 String controlKeyLocalization = translate(Minecraft.isRunningOnMac ? "key.ctrl.mac" : "key.ctrl");
                 tooltip.add(modeColor + translate("inventory.options.tip.cheatmode." + cheatMode));
                 tooltip.add(modeColor + translate("inventory.options.tip.cheatmode.disable", controlKeyLocalization));
-                
+
             }
-            
+
             @Override
             public String getRenderLabel() {
                 return translate("inventory.options");
@@ -396,7 +396,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 this.icons[0] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 0, 0, 16, 16).build();
                 this.icons[1] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 16, 0, 16, 16).build();
             }
-            
+
             @Override
             public boolean onButtonPress(boolean rightclick) {
                 NEIClientConfig.toggleBooleanSetting("inventory.bookmarksEnabled");
@@ -619,7 +619,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
         return true;
     }
-    
+
     public static void markItemsDirty() {
         // If anything has modified data this depends on, we'll need to reload the item list
         itemsLoaded = false;
@@ -683,7 +683,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (visiblity.showBookmarkPanel) {
             addWidget(bookmarkPanel);
             bookmarkPanel.setVisible();
-        } 
+        }
 
         if (visiblity.showSearchSection) {
             addWidget(searchField);
@@ -707,7 +707,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             if (canPerformAction("delete"))
                 addWidget(delete);
         }
-        
+
         if (!visiblity.showBookmarkPanel) {
             // Bookmarks or Subset/dropdown
             addWidget(dropDown);
@@ -761,7 +761,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     @Override
     public boolean shouldShowTooltip(GuiContainer gui) {
-        return itemPanel.draggedStack == null;
+        return itemPanel.draggedStack == null && bookmarkPanel.sortedStackIndex == -1;
     }
 
     /** Note: this method isn't actually used by this mod, but NEI add-ons might need it. */
@@ -799,16 +799,16 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     public static void drawIcon(int x, int y, Image image) {
         final boolean isDrawableResource = image instanceof DrawableResource;
-        
+
         if (!isDrawableResource)
             changeTexture("nei:textures/nei_sprites.png");
-        
+
         GL11.glColor4f(1, 1, 1, 1);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         if(!isDrawableResource)
             drawTexturedModalRect(x, y, image.x, image.y, image.width, image.height);
-        else 
+        else
             ((DrawableResource)image).draw(x, y);
         GL11.glDisable(GL11.GL_BLEND);
     }
@@ -884,4 +884,3 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     }
 
 }
-

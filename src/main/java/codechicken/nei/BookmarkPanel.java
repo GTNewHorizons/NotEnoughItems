@@ -1,7 +1,11 @@
 package codechicken.nei;
 
 import codechicken.nei.util.NBTJson;
+import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.recipe.BookmarkRecipeId;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
 import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -23,6 +27,10 @@ import java.util.List;
  */
 public class BookmarkPanel extends ItemPanel {
 
+    protected ArrayList<BookmarkRecipeId> _recipes = new ArrayList<>();
+    protected boolean bookmarksIsLoaded = false;
+    public int sortedStackIndex = -1;
+
     public void init() {
         super.init();
     }
@@ -36,55 +44,102 @@ public class BookmarkPanel extends ItemPanel {
         return super.getLabelText() + " [" + realItems.size() + "]";
     }
 
-    public void addOrRemoveItem(ItemStack item) {
-        ItemStack normalized = normalize(item);
-        if(!remove(normalized)) {
+    public void addOrRemoveItem(ItemStack item)
+    {
+        addOrRemoveItem(item, null);
+    }
+
+    public void addOrRemoveItem(ItemStack item, BookmarkRecipeId recipeId)
+    {
+        loadBookmarksIfNeeded();
+
+        ItemStack normalized = StackInfo.normalize(item);
+
+        if (normalized != null && !remove(normalized)) {
             _items.add(normalized);
+            _recipes.add(recipeId);
         }
+
         saveBookmarks();
     }
 
-    public static NBTTagCompound itemStackToNBT(ItemStack stack, NBTTagCompound nbTag)
+    public BookmarkRecipeId getBookmarkRecipeId(ItemStack item)
     {
-        String strId = Item.itemRegistry.getNameForObject(stack.getItem());
-        nbTag.setString("strId", strId);
-        nbTag.setByte("Count", (byte)stack.stackSize);
-        nbTag.setShort("Damage", (short)stack.getItemDamage());
+        int index = findStackIndex(item);
 
-        if (stack.stackTagCompound != null)
-        {
-            nbTag.setTag("tag", stack.stackTagCompound);
+        if (index >= 0) {
+            return _recipes.get(index);
         }
 
-        return nbTag;
+        return null;
     }
 
-    public static ItemStack loadFromNBT(NBTTagCompound nbtTag)
+    public int findStackIndex(ItemStack stackA)
     {
-        if (!nbtTag.hasKey("id")) {
-            final short id = (short)GameData.getItemRegistry().getId(nbtTag.getString("strId"));
-             nbtTag.setShort("id", id);
+        boolean useNBT = NEIClientConfig.useNBTInBookmarks();
+        int i = 0;
+
+        for (ItemStack stackB : _items) {
+
+            if (StackInfo.equalItemAndNBT(stackA, stackB, useNBT)) {
+                return i;
+            }
+
+            i++;
         }
-        ItemStack stack = ItemStack.loadItemStackFromNBT(nbtTag);
-        return stack;
+
+        return -1;
     }
 
-    public void saveBookmarks() {
+    public void saveBookmarks()
+    {
         List<String> strings = new ArrayList<>();
-        for (ItemStack item:_items) {
-            strings.add(NBTJson.toJson(itemStackToNBT(item, new NBTTagCompound())));
+        int index = 0;
+
+        for (ItemStack item: _items) {
+            try {
+                final NBTTagCompound nbTag = StackInfo.itemStackToNBT(item);
+
+                if (nbTag != null) {
+                    JsonObject row = new JsonObject();
+                    BookmarkRecipeId recipeId = _recipes.get(index);
+
+                    row.add("item", NBTJson.toJsonObject(nbTag));
+
+                    if (recipeId != null) {
+                        row.add("recipeId", recipeId.toJsonObject());
+                    }
+
+                    strings.add(NBTJson.toJson(row));
+                }
+
+            } catch (JsonSyntaxException e) {
+                NEIClientConfig.logger.error("Failed to stringify bookmarked ItemStack to json string");
+            }
+
+            index++;
         }
+
         File file = NEIClientConfig.bookmarkFile;
-        if(file != null) {
+        if (file != null) {
             try(FileWriter writer = new FileWriter(file)) {
                 IOUtils.writeLines(strings, "\n", writer);
             } catch (IOException e) {
                 NEIClientConfig.logger.error("Filed to save bookmarks list to file {}", file, e);
             }
         }
+
     }
 
-    public void loadBookmarks() {
+    public void loadBookmarksIfNeeded()
+    {
+
+        if (bookmarksIsLoaded == true) {
+            return;
+        }
+
+        bookmarksIsLoaded = true;
+
         File file = NEIClientConfig.bookmarkFile;
         if (file == null || !file.exists()) {
             return;
@@ -97,37 +152,57 @@ public class BookmarkPanel extends ItemPanel {
             NEIClientConfig.logger.error("Failed to load bookmarks from file {}", file, e);
             return;
         }
+
         _items.clear();
         JsonParser parser = new JsonParser();
         for (String itemStr: itemStrings) {
             try {
-                NBTTagCompound itemStackNBT = (NBTTagCompound) NBTJson.toNbt(parser.parse(itemStr));
-                ItemStack itemStack = loadFromNBT(itemStackNBT);
+                JsonObject jsonObject = parser.parse(itemStr).getAsJsonObject();
+                NBTTagCompound itemStackNBT = (NBTTagCompound) NBTJson.toNbt(jsonObject);
+                BookmarkRecipeId recipeId = null;
+
+                if (jsonObject.get("item") != null) {
+                    itemStackNBT = (NBTTagCompound) NBTJson.toNbt(jsonObject.get("item"));
+                } else {//old format
+                    itemStackNBT = (NBTTagCompound) NBTJson.toNbt(jsonObject);
+                }
+
+                if (jsonObject.get("recipeId") != null && jsonObject.get("recipeId") instanceof JsonObject) {
+                    recipeId = new BookmarkRecipeId((JsonObject) jsonObject.get("recipeId"));
+                }
+
+                ItemStack itemStack = StackInfo.loadFromNBT(itemStackNBT);
+
                 if (itemStack != null) {
                     _items.add(itemStack);
+                    _recipes.add(recipeId);
                 } else {
                     NEIClientConfig.logger.warn("Failed to load bookmarked ItemStack from json string, the item no longer exists:\n{}", itemStr);
                 }
+
             } catch (IllegalArgumentException | JsonSyntaxException e) {
                 NEIClientConfig.logger.error("Failed to load bookmarked ItemStack from json string:\n{}", itemStr);
             }
         }
     }
 
-    protected ItemStack normalize(ItemStack item) {
-        ItemStack copy = item.copy();
-        copy.stackSize = 1;
-        return copy;
+    @Override
+    public void draw(int mousex, int mousey)
+    {
+        loadBookmarksIfNeeded();
+        super.draw(mousex, mousey);
     }
-    private boolean remove(ItemStack item) {
-        int i = 0;
-        for (ItemStack existing : _items) {
-            if (existing == item || existing.isItemEqual(item)) {
-                _items.remove(i);
-                return true;
-            }
-            i++;
+
+    private boolean remove(ItemStack item) 
+    {
+        int index = findStackIndex(item);
+
+        if (index >= 0) {
+            _items.remove(index);
+            _recipes.remove(index);
+            return true; 
         }
+
         return false;
     }
 
@@ -169,6 +244,53 @@ public class BookmarkPanel extends ItemPanel {
 
     public int getWidth(GuiContainer gui) {
         return LayoutManager.getLeftSize(gui) - ( (gui.xSize + gui.width) / 2 + 3 ) - 16;
+    }
+
+    @Override
+    public void mouseDragged(int mousex, int mousey, int button, long heldTime)
+    {
+
+        if (button == 0 && NEIClientUtils.shiftKey() && mouseDownSlot >= 0) {
+            ItemPanelSlot mouseOverSlot = getSlotMouseOver(mousex, mousey);
+
+            if (mouseOverSlot == null) {
+                return;
+            }
+
+            if (sortedStackIndex == -1) {
+                ItemStack stack = _items.get(mouseDownSlot);
+
+                if (stack != null && (mouseOverSlot == null || mouseOverSlot.slotIndex != mouseDownSlot || heldTime > 500)) {
+                    sortedStackIndex = mouseDownSlot;
+                }
+
+            } else if (mouseOverSlot != null && mouseOverSlot.slotIndex != sortedStackIndex) {
+
+                int maxStackIndex = Math.max(mouseOverSlot.slotIndex, sortedStackIndex);
+                int slotIndex = mouseOverSlot.slotIndex;
+
+                _items.add(slotIndex, _items.remove(sortedStackIndex));
+                _recipes.add(slotIndex, _recipes.remove(sortedStackIndex));
+
+                sortedStackIndex = mouseOverSlot.slotIndex;
+            }
+
+            return;
+        }
+
+        super.mouseDragged(mousex, mousey, button, heldTime);
+    }
+
+    @Override
+    public void mouseUp(int mousex, int mousey, int button)
+    {
+        if (sortedStackIndex >= 0) {
+            sortedStackIndex = -1;
+            mouseDownSlot = -1;
+            saveBookmarks();
+        } else {
+            super.mouseUp(mousex, mousey, button);
+        }
     }
 
 }
