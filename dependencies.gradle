@@ -1,0 +1,7 @@
+// Add your dependencies here
+
+dependencies {
+    compile("com.github.GTNewHorizons:CodeChickenLib:master-SNAPSHOT:dev")
+    compile("com.github.GTNewHorizons:CodeChickenCore:master-SNAPSHOT:dev")
+    shadowImplementation("org.apache.commons:commons-csv:1.5")
+}
