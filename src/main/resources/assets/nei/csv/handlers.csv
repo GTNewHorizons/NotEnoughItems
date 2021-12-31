@@ -208,6 +208,7 @@ gtPlusPlus.nei.GT_NEI_FluidReactor,GT++,gregtech:gt.blockmachines:998,,miscutils
 gtPlusPlus.nei.GT_NEI_MillingMachine,GT++,gregtech:gt.blockmachines:31027,,miscutils,TRUE,,,120,,2,,,,,,
 li.cil.oc.integration.nei.CallbackDocHandler,OpenComputers,OpenComputers:item:98,,OpenComputers,TRUE,,,120,,2,,,,,,
 li.cil.oc.integration.nei.ManualUsageHandler,OpenComputers,OpenComputers:item:98,,OpenComputers,TRUE,,,120,,2,,,,,,
+com.pam.harvestcraft.GardenRecipeHandler,Pam's Harvestcraft,harvestcraft:berrygarden,,harvestcraft,TRUE,,,100,,5,,,,,,
 tonius.neiintegration.mods.harvestcraft.RecipeHandlerApiary,Pam's Harvestcraft,harvestcraft:apiary,,harvestcraft,TRUE,,,70,,5,,,,,,There's only 1 though
 tonius.neiintegration.mods.harvestcraft.RecipeHandlerChurn,Pam's Harvestcraft,harvestcraft:churn,,harvestcraft,TRUE,,,65,,5,,,,,,Same as above
 tonius.neiintegration.mods.harvestcraft.RecipeHandlerOven,Pam's Harvestcraft,harvestcraft:oven,,harvestcraft,TRUE,,,65,,5,,,,,,
@@ -449,4 +450,4 @@ neresources.nei.NEIEnchantmentHandler,Not Enough Resources,minecraft:anvil,,nere
 neresources.nei.NEIMobHandler,Not Enough Resources,minecraft:skull:4,,neresources,TRUE,,,130,166,2,,,,,,
 neresources.nei.NEIOreHandler,Not Enough Resources,minecraft:diamond_ore,,neresources,TRUE,,,65,166,5,,,,,,
 neresources.nei.NEIPlantHandler,Not Enough Resources,minecraft:wheat,,neresources,TRUE,,,130,166,2,,,,,,
-wanion.biggercraftingtables.nei.BigShapedRecipeHandler,Bigger Crafting Tables,minecraft:crafting_table,,biggercraftingtables,TRUE,,,130,,2,,,,,,,,
+wanion.biggercraftingtables.nei.BigShapedRecipeHandler,Bigger Crafting Tables,minecraft:crafting_table,,biggercraftingtables,TRUE,,,130,,2,,,,,,
