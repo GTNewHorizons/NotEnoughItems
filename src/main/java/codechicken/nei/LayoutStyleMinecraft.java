@@ -119,7 +119,7 @@ public class LayoutStyleMinecraft extends LayoutStyle
         bookmarkPanel.resize(gui);
 
         more.w = more.h = less.w = less.h = 16;
-        less.x = itemPanel.prev.x;
+        less.x = itemPanel.pagePrev.x;
         more.x = gui.width - less.w - 2;
         more.y = less.y = gui.height - more.h - 2;
 

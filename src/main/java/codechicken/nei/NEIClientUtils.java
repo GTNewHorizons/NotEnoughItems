@@ -5,7 +5,6 @@ import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.util.LangProxy;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.IInfiniteItemHandler;
-import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.api.ItemInfo;
 import com.google.common.collect.Iterables;
 import net.minecraft.client.Minecraft;
@@ -136,10 +135,7 @@ public class NEIClientUtils extends NEIServerUtils
             if (mode == 1 && stack.stackSize < stack.getMaxStackSize()) {
                 giveStack(stack, stack.getMaxStackSize() - stack.stackSize);
             } else {
-                int amount = getItemQuantity();
-                if (amount == 0)
-                    amount = stack.getMaxStackSize();
-                giveStack(stack, amount);
+                giveStack(stack);
             }
         }
     }

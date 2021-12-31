@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
 import codechicken.nei.util.NBTJson;
+import codechicken.nei.NEIClientConfig;
 import codechicken.nei.PositionedStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.item.ItemStack;
@@ -12,30 +13,29 @@ import net.minecraft.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class BookmarkRecipeId
 {
-    public int position = -1;
-    public int recipetype = -1;
-    public String handlerName = null;
-    public List<ItemStack> ingredients = new ArrayList<>();
 
-    public BookmarkRecipeId(String handlerName, List<PositionedStack> stacks, int recipetype, int position)
+    public int position = -1;
+
+    public int recipetype = -1;
+
+    public String handlerName = null;
+
+    public List<NBTTagCompound> ingredients = new ArrayList<>();
+
+    
+    public BookmarkRecipeId(String handlerName, List<PositionedStack> stacks)
     {
         this.handlerName = handlerName;
 
-        for (PositionedStack pStack : stacks) {
-            ingredients.add(getItemStackWithMinimumDamage(pStack.items));
+        for (PositionedStack pos : stacks) {
+            final NBTTagCompound nbt = StackInfo.itemStackToNBT(getItemStackWithMinimumDamage(pos.items));
+            if (nbt != null) {
+                ingredients.add(nbt);
+            }
         }
 
-        this.ingredients = ingredients;
-        this.recipetype = recipetype;
-        this.position = position;
-    }
-
-    public BookmarkRecipeId(String handlerName, List<PositionedStack> stacks)
-    {
-        this(handlerName, stacks, -1, -1);
     }
 
     public BookmarkRecipeId(JsonObject json)
@@ -47,10 +47,10 @@ public class BookmarkRecipeId
 
         if (json.get("ingredients") != null) {
             JsonArray arr = (JsonArray) json.get("ingredients");
-            List<ItemStack> itemStacks = convertJsonArrayToIngredients(arr);
+            List<NBTTagCompound> ingredients = convertJsonArrayToIngredients(arr);
 
-            if (itemStacks != null) {
-                ingredients = itemStacks;
+            if (ingredients != null) {
+                this.ingredients = ingredients;
             }
     
         }
@@ -67,10 +67,10 @@ public class BookmarkRecipeId
         Short idx = 0;
 
         for (PositionedStack pStack : stacks) {
-            final ItemStack stackA = getItemStackWithMinimumDamage(pStack.items);
-            final ItemStack stackB = ingredients.get(idx);
+            final NBTTagCompound tagCompoundA = StackInfo.itemStackToNBT(getItemStackWithMinimumDamage(pStack.items));
+            final NBTTagCompound tagCompoundB = ingredients.get(idx);
 
-            if (stackB == null || !StackInfo.equalItemAndNBT(stackA, stackB, true)) {
+            if (tagCompoundB == null || !tagCompoundA.equals(tagCompoundB)) {
                 return false;
             }
 
@@ -80,7 +80,7 @@ public class BookmarkRecipeId
         return true;
     }
 
-    protected ItemStack getItemStackWithMinimumDamage(ItemStack[] stacks)
+    public ItemStack getItemStackWithMinimumDamage(ItemStack[] stacks)
     {
         int damage = Short.MAX_VALUE;
         ItemStack result = stacks[0];
@@ -109,38 +109,61 @@ public class BookmarkRecipeId
         return json;
     }
 
-    protected List<ItemStack> convertJsonArrayToIngredients(JsonArray arr)
+    protected List<NBTTagCompound> convertJsonArrayToIngredients(JsonArray arr)
     {
-        List<ItemStack> ingredients = new ArrayList<>();
+        List<NBTTagCompound> ingredients = new ArrayList<>();
 
         for (JsonElement elem : arr) {
-            final ItemStack stack = StackInfo.loadFromNBT((NBTTagCompound) NBTJson.toNbt(elem));
+            final NBTTagCompound nbt = (NBTTagCompound) NBTJson.toNbt(elem);
 
-            if (stack == null) {
+            if (nbt == null) {
                 return null;
             }
 
-            ingredients.add(stack);
+            ingredients.add(nbt);
         }
 
         return ingredients;
     }
 
-    protected JsonArray convertIngredientsToJsonArray(List<ItemStack> ingredients)
+    protected JsonArray convertIngredientsToJsonArray(List<NBTTagCompound> ingredients)
     {
         JsonArray arr = new JsonArray();
 
-        for (ItemStack stack : ingredients) {
-            final NBTTagCompound nbTag = StackInfo.itemStackToNBT(stack);
-
-            if (nbTag == null) {
-                return null;
-            }
-
+        for (NBTTagCompound nbTag : ingredients) {
             arr.add(NBTJson.toJsonObject(nbTag));
         }
 
         return arr;
+    }
+
+    public boolean equals(Object anObject)
+    {
+        if (this == anObject) {    
+            return true;    
+        }
+
+        if (anObject instanceof BookmarkRecipeId) {
+            final BookmarkRecipeId anRecipeId = (BookmarkRecipeId) anObject;
+
+            if (!handlerName.equals(anRecipeId.handlerName)) {
+                return false;
+            }
+
+            if (ingredients.size() != anRecipeId.ingredients.size()) {
+                return false;
+            }
+
+            for (int idx = 0; idx < ingredients.size(); idx++) {
+                if (!ingredients.get(idx).equals(anRecipeId.ingredients.get(idx))) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;    
     }
 
 }

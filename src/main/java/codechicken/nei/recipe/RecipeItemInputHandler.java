@@ -5,8 +5,11 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
+import codechicken.nei.PositionedStack;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
+
+import java.util.List;
 
 public class RecipeItemInputHandler implements IContainerInputHandler
 {
@@ -23,14 +26,17 @@ public class RecipeItemInputHandler implements IContainerInputHandler
         if(keyCode == NEIClientConfig.getKeyBinding("gui.usage"))
             return GuiUsageRecipe.openRecipeGui("item", stackover.copy());
 
-        if(keyCode == NEIClientConfig.getKeyBinding("gui.bookmark")) {
+        if (keyCode == NEIClientConfig.getKeyBinding("gui.bookmark")) {
             NEIClientConfig.logger.debug("Adding or removing {} from bookmarks", stackover.getDisplayName());
-            BookmarkRecipeId recipeId = null;
+            List<PositionedStack> ingredients = null;
+            String handlerName = "";
 
-            if (gui instanceof GuiRecipe && NEIClientConfig.saveCurrentRecipeInBookmarksEnabled())
-                recipeId = ((GuiRecipe)gui).getFocusedRecipeId();
+            if (gui instanceof GuiRecipe && NEIClientConfig.saveCurrentRecipeInBookmarksEnabled()) {
+                ingredients = ((GuiRecipe) gui).getFocusedRecipeIngredients();
+                handlerName = ((GuiRecipe) gui).getHandlerName();
+            }
 
-            ItemPanels.bookmarkPanel.addOrRemoveItem(stackover.copy(), recipeId);
+            ItemPanels.bookmarkPanel.addOrRemoveItem(stackover.copy(), handlerName, ingredients);
         }
 
         return false;

@@ -157,6 +157,24 @@ public abstract class GuiRecipeTab extends Widget {
         selected = handler == current;
     }
 
+    public static HandlerInfo getHandlerInfo(IRecipeHandler handler)
+    {
+        final String handlerID;
+
+        if (handler instanceof TemplateRecipeHandler) {
+            handlerID = ((TemplateRecipeHandler) handler).getOverlayIdentifier();
+        } else {
+            handlerID = null;
+        }
+
+        HandlerInfo info = getHandlerInfo(handler.getHandlerId(), handlerID);
+        
+        if (info == null)
+            return GuiRecipeTab.DEFAULT_HANDLER_INFO;
+        
+        return info;
+    }
+
     public static HandlerInfo getHandlerInfo(String name, String name2) {
         HandlerInfo res = handlerMap.get(name);
         if (res == null) res = handlerMap.get(name2);

@@ -208,7 +208,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         else if (recipetype >= currenthandlers.size()) recipetype = 0;
 
         handler = currenthandlers.get(recipetype);
-        handlerInfo = getHandlerInfo(handler);
+        handlerInfo = GuiRecipeTab.getHandlerInfo(handler);
         page = Math.min(Math.max(0, position), handler.numRecipes() - 1)  / getRecipesPerPage();
         recipeTabs.calcPageNumber();
         checkYShift();
@@ -230,7 +230,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
 
                 for (int j = 0; j < currenthandlers.size(); j++) {
                     IRecipeHandler localHandler = currenthandlers.get(j);
-                    HandlerInfo localHandlerInfo = getHandlerInfo(localHandler);
+                    HandlerInfo localHandlerInfo = GuiRecipeTab.getHandlerInfo(localHandler);
         
                     if (localHandlerInfo.getHandlerName().equals(recipeId.handlerName)) {
                         recipeId.recipetype = j;
@@ -258,29 +258,27 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         setRecipePage(recipeId.recipetype, recipeId.position);    
     }
 
-    public BookmarkRecipeId getFocusedRecipeId()
+    public List<PositionedStack> getFocusedRecipeIngredients()
     {
-        String handlerName = handlerInfo.getHandlerName();
-        Point mousePos = GuiDraw.getMousePosition();
-        int recipesPerPage = getRecipesPerPage();
+        final int recipesPerPage = getRecipesPerPage();
 
-        for (int i = page * recipesPerPage; i < handler.numRecipes() && i < (page + 1) * recipesPerPage; i++) {
-            if (recipeInFocus(i)) {
-                return new BookmarkRecipeId(handlerName, handler.getIngredientStacks(i), recipetype, i);
+        for (int idx = page * recipesPerPage; idx < handler.numRecipes() && idx < (page + 1) * recipesPerPage; idx++) {
+            if (recipeInFocus(idx)) {
+                return handler.getIngredientStacks(idx);
             }
         }
         
         return null;
     }
 
-    protected Boolean recipeInFocus(int idx)
+    protected boolean recipeInFocus(int idx)
     {
-        PositionedStack result = handler.getResultStack(idx);
+        final PositionedStack result = handler.getResultStack(idx);
         if (result != null && isMouseOver(result, idx)) {
             return true;
         }
 
-        List<PositionedStack> stacks = handler.getOtherStacks(idx);
+        final List<PositionedStack> stacks = handler.getOtherStacks(idx);
         for (PositionedStack stack : stacks) {
             if (isMouseOver(stack, idx)) {
                 return true;
@@ -288,6 +286,11 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         }
 
         return false;
+    }
+
+    public String getHandlerName()
+    {
+        return handlerInfo.getHandlerName();
     }
 
     public IRecipeHandler getHandler() {
@@ -434,21 +437,6 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
 
     private void prevType() {
         setRecipePage(--recipetype);
-    }
-
-    public HandlerInfo getHandlerInfo(IRecipeHandler handler) {
-        final String handlerID;
-        if(handler instanceof TemplateRecipeHandler) {
-            handlerID = (((TemplateRecipeHandler)handler).getOverlayIdentifier());
-        } else {
-            handlerID = null;
-        }
-        HandlerInfo info = GuiRecipeTab.getHandlerInfo(handler.getHandlerId(), handlerID);
-        
-        if (info == null)
-            return GuiRecipeTab.DEFAULT_HANDLER_INFO;
-        
-        return info;
     }
 
     private void overlayRecipe(int recipe) {

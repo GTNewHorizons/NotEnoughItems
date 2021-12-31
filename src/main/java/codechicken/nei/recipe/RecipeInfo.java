@@ -119,8 +119,6 @@ public class RecipeInfo
         
         API.registerRecipeHandler(new ProfilerRecipeHandler(true));
         API.registerUsageHandler(new ProfilerRecipeHandler(false));
-
-        API.registerStackStringifyHandler(new StackStringifyHandler());
     }
 
 }
