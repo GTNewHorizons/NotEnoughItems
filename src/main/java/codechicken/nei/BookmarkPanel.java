@@ -258,7 +258,7 @@ public class BookmarkPanel extends ItemPanel
         final boolean addFullRecipe = NEIClientUtils.shiftKey();
         final BookmarkGrid BGrid = (BookmarkGrid) grid;
 
-        if (slot != null) {
+        if (slot != null && StackInfo.equalItemAndNBT(slot.item, stackover, true)) {
             BGrid.removeRecipe(slot.slotIndex, addFullRecipe);
         } else {
             final boolean saveStackSize = NEIClientUtils.controlKey();
@@ -772,6 +772,8 @@ public class BookmarkPanel extends ItemPanel
                 BGrid.replaceItem(slot.slotIndex, StackInfo.loadFromNBT(nbTag));
 
                 saveBookmarks();
+
+                return true;
             }
 
         }

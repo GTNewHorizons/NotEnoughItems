@@ -282,7 +282,7 @@ public class ItemPanel extends Widget
             return false;
         }
 
-        if (button == 1 && handleFillFluidContainerClick(mouseX, mouseY)) {
+        if (handleFillFluidContainerClick(mouseX, mouseY, button)) {
             return true;
         }
 
@@ -302,8 +302,13 @@ public class ItemPanel extends Widget
         return true;
     }
 
-    protected boolean handleFillFluidContainerClick(int mouseX, int mouseY)
+    protected boolean handleFillFluidContainerClick(int mouseX, int mouseY, int button)
     {
+
+        if (button == 2) {
+            return false;
+        }
+
         ItemPanelSlot mouseOverSlot = ItemPanels.itemPanel.getSlotMouseOver(mouseX, mouseY);
 
         if (mouseOverSlot == null) {
@@ -327,6 +332,11 @@ public class ItemPanel extends Widget
                 draggedStack.stackSize = 1;
                 ((IFluidContainerItem) draggedStack.getItem()).fill(draggedStack, fluidStack, true);
                 draggedStack.stackSize = stackSize;
+
+                if (button == 1) {
+                    ItemPanels.bookmarkPanel.addOrRemoveItem(draggedStack.copy());
+                }
+
             }
 
             return true;
