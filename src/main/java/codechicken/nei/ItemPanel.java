@@ -327,13 +327,15 @@ public class ItemPanel extends Widget
                     fluidStack.amount = 1000;
                 }
 
-                fluidStack.amount *= mouseOverSlot.item.stackSize;
+                if (mouseOverSlot.item.stackSize > 1) {
+                    fluidStack.amount *= mouseOverSlot.item.stackSize;
+                }
 
                 draggedStack.stackSize = 1;
                 ((IFluidContainerItem) draggedStack.getItem()).fill(draggedStack, fluidStack, true);
                 draggedStack.stackSize = stackSize;
 
-                if (button == 1) {
+                if (button == 1 && ((IFluidContainerItem) draggedStack.getItem()).getFluid(draggedStack) != null) {
                     ItemPanels.bookmarkPanel.addOrRemoveItem(draggedStack.copy());
                 }
 
