@@ -3,7 +3,6 @@ package codechicken.nei;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.guihook.GuiContainerManager;
-import codechicken.nei.ItemsGrid.ItemPanelSlot;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
@@ -27,8 +26,36 @@ public class ItemPanel extends Widget
     public Button pageNext;
     public Label pageLabel;
 
-    //info fix for OpenComputers
+    /**
+     *  Backwards compat :-/
+     */
+    @Deprecated
     private int itemsPerPage = 0;
+
+    @Deprecated
+    public static ArrayList<ItemStack> items = new ArrayList<>();
+
+    @Deprecated
+    public ArrayList<ItemStack> realItems = new ArrayList<>();
+
+    public static class ItemPanelSlot
+    {
+        public ItemStack item;
+        public int slotIndex;
+
+        public ItemPanelSlot(int idx, ItemStack stack)
+        {
+            slotIndex = idx;
+            item = stack;
+        }
+
+        @Deprecated
+        public ItemPanelSlot(int idx)
+        {
+            this(idx, ItemPanels.itemPanel.getGrid().getItem(idx));
+        }
+
+    }
 
     protected static class ItemPanelGrid extends ItemsGrid
     {
@@ -63,6 +90,13 @@ public class ItemPanel extends Widget
     public static void updateItemList(ArrayList<ItemStack> newItems)
     {
         ((ItemPanelGrid) ItemPanels.itemPanel.getGrid()).setItems(newItems);
+        ItemPanels.itemPanel.realItems = newItems;
+    }
+
+    @Deprecated
+    public void scroll(int i)
+    {
+        grid.shiftPage(i);
     }
 
     public ItemsGrid getGrid()

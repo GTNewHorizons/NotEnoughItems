@@ -4,6 +4,7 @@ import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.ItemPanel.ItemPanelSlot;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
@@ -39,19 +40,6 @@ public class ItemsGrid
 
     protected boolean needRefresh = false;
 
-
-    public static class ItemPanelSlot
-    {
-        public ItemStack item;
-        public int slotIndex;
-
-        public ItemPanelSlot(int idx, ItemStack stack)
-        {
-            slotIndex = idx;
-            item = stack;
-        }
-
-    }
 
     public ArrayList<ItemStack> getItems()
     {
