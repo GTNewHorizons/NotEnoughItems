@@ -157,7 +157,10 @@ public class NEIClientUtils extends NEIServerUtils
                 final List<Iterable<Integer>> handlerSlots;
                 try {
                     GuiInfo.readLock.lock();
-                    handlerSlots = GuiInfo.guiHandlers.stream().map(handler -> handler.getItemSpawnSlots(gui, typestack)).collect(Collectors.toCollection(LinkedList::new));
+                    handlerSlots = GuiInfo.guiHandlers.stream()
+                        .map(handler -> handler.getItemSpawnSlots(gui, typestack))
+                        .filter(x -> x != null)
+                        .collect(Collectors.toCollection(LinkedList::new));
                 } finally {
                     GuiInfo.readLock.unlock();
                 }

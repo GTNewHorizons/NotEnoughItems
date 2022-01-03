@@ -14,7 +14,10 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
+import static codechicken.nei.LayoutManager.searchField;
+
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 public class ItemPanel extends Widget
 {
@@ -37,6 +40,8 @@ public class ItemPanel extends Widget
 
     @Deprecated
     public ArrayList<ItemStack> realItems = new ArrayList<>();
+
+    protected Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
 
     public static class ItemPanelSlot
     {
@@ -64,7 +69,6 @@ public class ItemPanel extends Widget
         public void setItems(ArrayList<ItemStack> items)
         {
             newItems = items;
-            needRefresh = true;
         }
 
         public void refresh(GuiContainer gui)
@@ -320,6 +324,10 @@ public class ItemPanel extends Widget
             return true;
         }
 
+        if (handleSearchInputClick(mouseX, mouseY, button)) {
+            return true;
+        }
+
         if (handleGUIContainerClick(mouseX, mouseY, button)) {
             return true;
         }
@@ -434,6 +442,24 @@ public class ItemPanel extends Widget
 
             } else {
                 draggedStack = null;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    protected boolean handleSearchInputClick(int mouseX, int mouseY, int button)
+    {
+
+        if (searchField.contains(mouseX, mouseY)) {
+            final FluidStack fluidStack = StackInfo.getFluid(draggedStack);
+
+            if (fluidStack != null) {
+                searchField.setText(SPECIAL_REGEX_CHARS.matcher(fluidStack.getLocalizedName()).replaceAll("\\\\$0"));
+            } else {
+                searchField.setText(SPECIAL_REGEX_CHARS.matcher(draggedStack.getDisplayName()).replaceAll("\\\\$0"));
             }
 
             return true;

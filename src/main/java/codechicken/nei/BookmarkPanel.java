@@ -88,7 +88,6 @@ public class BookmarkPanel extends ItemPanel
         {
             realItems.add(stackA);
             metadata.add(meta);
-            needRefresh = true;
         }
 
         public void replaceItem(int idx, ItemStack stack)
@@ -127,7 +126,6 @@ public class BookmarkPanel extends ItemPanel
         {
             realItems.remove(idx);
             metadata.remove(idx);
-            needRefresh = true;
             return true;
         }
 
@@ -153,7 +151,6 @@ public class BookmarkPanel extends ItemPanel
         {
             realItems.add(dst, realItems.remove(src));
             metadata.add(dst, metadata.remove(src));
-            needRefresh = true;
         }
 
         @Override

@@ -36,11 +36,6 @@ public class ItemsGrid
     protected boolean[] validSlotMap;
     protected boolean[] invalidSlotMap;
 
-    private int[] guiSize;
-
-    protected boolean needRefresh = false;
-
-
     public ArrayList<ItemStack> getItems()
     {
         return realItems;
@@ -107,8 +102,6 @@ public class ItemsGrid
 
             columns = width / SLOT_SIZE;
             rows = height / SLOT_SIZE;
-
-            needRefresh = true;
         }
 
     }
@@ -134,51 +127,14 @@ public class ItemsGrid
         }
 
         page = Math.max(0, Math.min(page, numPages - 1));
-
-        needRefresh = true;
     }
 
     public void refresh(GuiContainer gui)
     {
-        if (!needRefresh(gui)) {
-            return;
-        }
-
         updateGuiOverlapSlots(gui);
         shiftPage(0);
-
-        needRefresh = false;
     }
 
-    private boolean needRefresh(GuiContainer gui)
-    {
-
-        if (needRefresh == true) {
-            return true;
-        }
-
-        if (gui == null && guiSize == null) {
-            return false;
-        }
-
-        if (gui == null) {
-            guiSize = null;
-            return true;
-        }
-        
-        if (guiSize == null) {
-            guiSize = new int[]{ gui.guiLeft, gui.guiTop, gui.width, gui.height };
-            return true;
-        }
-
-        if (gui.guiLeft != guiSize[0] || gui.guiTop != guiSize[1] || gui.width != guiSize[2] || gui.height != guiSize[3]) {
-            guiSize = new int[]{ gui.guiLeft, gui.guiTop, gui.width, gui.height };
-            return true;
-        }
-
-        return false;
-    }
-    
     private void updateGuiOverlapSlots(GuiContainer gui)
     {
         invalidSlotMap = new boolean[rows * columns];
