@@ -5,7 +5,6 @@ import codechicken.nei.util.NBTJson;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.recipe.BookmarkRecipeId;
 import codechicken.nei.guihook.GuiContainerManager;
-import codechicken.nei.ItemPanel.ItemPanelSlot;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonObject;
@@ -308,6 +307,7 @@ public class BookmarkPanel extends ItemPanel
 
         }
 
+        fixCountOfNamespaces();
         saveBookmarks();
     }
 
