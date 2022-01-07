@@ -281,15 +281,11 @@ public class BookmarkPanel extends ItemPanel
                     for (PositionedStack stack : ingredients) { 
                         final NBTTagCompound nbTag = StackInfo.itemStackToNBT(stack.item, saveStackSize);
 
-                        if (nbTag.getInteger("Count") > 0) {
-
-                            if (unique.get(nbTag) == null) {
-                                unique.put(nbTag, 1);
-                                sorted.add(nbTag);
-                            } else if (saveStackSize) {
-                                unique.put(nbTag, unique.get(nbTag) + 1);
-                            }
-
+                        if (unique.get(nbTag) == null) {
+                            unique.put(nbTag, 1);
+                            sorted.add(nbTag);
+                        } else if (saveStackSize) {
+                            unique.put(nbTag, unique.get(nbTag) + 1);
                         }
 
                     }
