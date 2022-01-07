@@ -31,12 +31,15 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler
     {
 
         if (GTDisplayFluid != null && GTDisplayFluid.isInstance(stack.getItem())) {
-            final NBTTagCompound nbTag = new NBTTagCompound();
             final FluidStack fluidStack = getFluid(stack);
 
-            nbTag.setString("gtFluidName", fluidStack.getFluid().getName());
-            nbTag.setInteger("Count", saveStackSize? fluidStack.amount: 1);
-            return nbTag;
+            if (fluidStack != null) {
+                final NBTTagCompound nbTag = new NBTTagCompound();
+                nbTag.setString("gtFluidName", fluidStack.getFluid().getName());
+                nbTag.setInteger("Count", saveStackSize? fluidStack.amount: 1);
+                return nbTag;
+            }
+
         }
 
         return null;
