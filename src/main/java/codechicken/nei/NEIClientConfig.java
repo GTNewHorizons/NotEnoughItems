@@ -60,7 +60,7 @@ public class NEIClientConfig {
             new File("saves/NEI/client.dat"),
             new ConfigFile(new File(configDir, "client.cfg")));
     public static ConfigSet world;
-    public static final File bookmarkFile = new File(configDir, "bookmarks.ini");
+    public static File bookmarkFile;
     public static final File handlerFile = new File(configDir, "handlers.csv");
     public static final File serialHandlersFile = new File(configDir, "serialhandlers.cfg");
     public static final File heightHackHandlersFile = new File(configDir, "heighthackhandlers.cfg");
@@ -272,6 +272,7 @@ public class NEIClientConfig {
         if (newWorld)
             saveDir.mkdirs();
 
+        bookmarkFile = new File(saveDir, "bookmarks.ini");
         world = new ConfigSet(new File(saveDir, "NEI.dat"), new ConfigFile(new File(saveDir, "NEI.cfg")));
         onWorldLoad(newWorld);
     }
