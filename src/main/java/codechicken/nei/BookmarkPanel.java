@@ -1,5 +1,6 @@
 package codechicken.nei;
 
+import codechicken.core.CommonUtils;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.util.NBTJson;
 import codechicken.nei.recipe.StackInfo;
@@ -21,6 +22,10 @@ import java.awt.Point;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +35,7 @@ import java.util.HashMap;
 public class BookmarkPanel extends ItemPanel
 {
 
+    protected File bookmarkFile;
     protected boolean bookmarksIsLoaded = false;
     public int sortedStackIndex = -1;
     public int sortedNamespaceIndex = -1;
@@ -403,6 +409,43 @@ public class BookmarkPanel extends ItemPanel
         return true;
     }
 
+    public void setBookmarkFile(String worldPath)
+    {
+
+        final File dir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
+
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        bookmarkFile = new File(dir, "bookmarks.ini");
+
+        if (!bookmarkFile.exists()) {
+            final File globalBookmarks = new File(CommonUtils.getMinecraftDir(), "saves/NEI/global/bookmarks.ini");
+            final File configBookmarks = new File(NEIClientConfig.configDir, "bookmarks.ini");
+            final File defaultBookmarks = configBookmarks.exists()? configBookmarks: globalBookmarks;
+
+            if (defaultBookmarks.exists()) {
+
+                try {
+                    bookmarkFile.createNewFile();
+
+                    InputStream src = new FileInputStream(defaultBookmarks);
+                    OutputStream dst = new FileOutputStream(bookmarkFile);
+
+                    IOUtils.copy(src, dst);
+
+                    src.close();
+                    dst.close();
+
+                } catch(IOException e) {}
+                
+            }
+
+        }
+
+        bookmarksIsLoaded = false;
+    }
 
     public void saveBookmarks()
     {
@@ -444,12 +487,11 @@ public class BookmarkPanel extends ItemPanel
 
         }
 
-        File file = NEIClientConfig.bookmarkFile;
-        if (file != null) {
-            try(FileWriter writer = new FileWriter(file)) {
+        if (bookmarkFile != null) {
+            try(FileWriter writer = new FileWriter(bookmarkFile)) {
                 IOUtils.writeLines(strings, "\n", writer);
             } catch (IOException e) {
-                NEIClientConfig.logger.error("Filed to save bookmarks list to file {}", file, e);
+                NEIClientConfig.logger.error("Filed to save bookmarks list to file {}", bookmarkFile, e);
             }
         }
 
@@ -464,17 +506,16 @@ public class BookmarkPanel extends ItemPanel
 
         bookmarksIsLoaded = true;
 
-        File file = NEIClientConfig.bookmarkFile;
-        if (file == null || !file.exists()) {
+        if (bookmarkFile == null || !bookmarkFile.exists()) {
             return;
         }
 
         List<String> itemStrings;
-        try (FileReader reader = new FileReader(file)) {
-            NEIClientConfig.logger.info("Loading bookmarks from file {}", file);
+        try (FileReader reader = new FileReader(bookmarkFile)) {
+            NEIClientConfig.logger.info("Loading bookmarks from file {}", bookmarkFile);
             itemStrings = IOUtils.readLines(reader);
         } catch (IOException e) {
-            NEIClientConfig.logger.error("Failed to load bookmarks from file {}", file, e);
+            NEIClientConfig.logger.error("Failed to load bookmarks from file {}", bookmarkFile, e);
             return;
         }
 

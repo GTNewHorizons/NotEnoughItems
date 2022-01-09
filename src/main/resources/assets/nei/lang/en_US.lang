@@ -108,6 +108,9 @@ nei.options.keys.world.creative=Gamemode
 nei.options.keys.world.creative.tip=Cycle Gamemode
 
 nei.options.inventory=Inventory
+nei.options.inventory.worldSpecificBookmarks=World Specific Bookmarks
+nei.options.inventory.worldSpecificBookmarks.true=Yes
+nei.options.inventory.worldSpecificBookmarks.false=No
 nei.options.inventory.bookmarksEnabled=Bookmarks Panel Visibility
 nei.options.inventory.bookmarksEnabled.true=Visible
 nei.options.inventory.bookmarksEnabled.false=Hidden

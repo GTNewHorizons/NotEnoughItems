@@ -53,6 +53,7 @@ import java.util.regex.Pattern;
 public class NEIClientConfig {
     private static boolean configLoaded;
     private static boolean enabledOverride;
+    private static String worldPath;
 
     public static Logger logger = LogManager.getLogger("NotEnoughItems");
     public static File configDir = new File(CommonUtils.getMinecraftDir(), "config/NEI/");
@@ -60,11 +61,13 @@ public class NEIClientConfig {
             new File("saves/NEI/client.dat"),
             new ConfigFile(new File(configDir, "client.cfg")));
     public static ConfigSet world;
-    public static File bookmarkFile;
     public static final File handlerFile = new File(configDir, "handlers.csv");
     public static final File serialHandlersFile = new File(configDir, "serialhandlers.cfg");
     public static final File heightHackHandlersFile = new File(configDir, "heighthackhandlers.cfg");
     public static final File handlerOrderingFile = new File(configDir, "handlerordering.csv");
+
+    @Deprecated
+    public static File bookmarkFile;
 
     // Set of handlers that need to be run in serial
     public static HashSet<String> serialHandlers = new HashSet<>();
@@ -177,6 +180,15 @@ public class NEIClientConfig {
         tag.getTag("command.heal").setDefaultValue("");
         API.addOption(new OptionTextField("command.heal"));
 
+        tag.getTag("inventory.worldSpecificBookmarks").setComment("Global or world specific bookmarks").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.worldSpecificBookmarks", true) {
+            @Override
+            public boolean onClick(int button) {
+                super.onClick(button);
+                initBookmarkFile(worldPath);
+                return true;
+            }
+        });
         tag.getTag("inventory.bookmarksEnabled").setComment("Enable/disable bookmarks").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.bookmarksEnabled", true));
         tag.getTag("inventory.saveCurrentRecipeInBookmarksEnabled").setComment("Save Current Recipe in Bookmarks").getBooleanValue(true);
@@ -262,18 +274,22 @@ public class NEIClientConfig {
         return OptionList.getOptionList("nei.options");
     }
 
-    public static void loadWorld(String saveName) {
+    public static void loadWorld(String worldPath) {
+        NEIClientConfig.worldPath = worldPath;
+
         setInternalEnabled(true);
         logger.debug("Loading "+(Minecraft.getMinecraft().isSingleplayer() ? "Local" : "Remote")+" World");
         bootNEI(ClientUtils.getWorld());
 
-        File saveDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + saveName);
-        boolean newWorld = !saveDir.exists();
-        if (newWorld)
-            saveDir.mkdirs();
+        final File specificDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
+        final boolean newWorld = !specificDir.exists();
 
-        bookmarkFile = new File(saveDir, "bookmarks.ini");
-        world = new ConfigSet(new File(saveDir, "NEI.dat"), new ConfigFile(new File(saveDir, "NEI.cfg")));
+        if (newWorld) {
+            specificDir.mkdirs();
+        }
+
+        initBookmarkFile(worldPath);
+        world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
         onWorldLoad(newWorld);
     }
 
@@ -343,6 +359,16 @@ public class NEIClientConfig {
             }
         }.start();
         ItemSorter.loadConfig();
+    }
+
+    private static void initBookmarkFile(String worldPath)
+    {
+        
+        if (!global.config.getTag("inventory.worldSpecificBookmarks").getBooleanValue()) {
+            worldPath = "global";
+        }
+
+        ItemPanels.bookmarkPanel.setBookmarkFile(worldPath);
     }
 
     public static boolean isWorldSpecific(String setting) {
