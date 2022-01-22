@@ -89,11 +89,6 @@ public class RecipeCatalysts {
     public static void addRecipeCatalyst(List<ItemStack> stacks, Class<? extends IRecipeHandler> handler) {
     }
 
-//    @Deprecated
-//    public static Map<Class<? extends IRecipeHandler>, List<PositionedStack>> getPositionedRecipeCatalystMap() {
-//        return new HashMap<>();
-//    }
-
     @Deprecated
     public static List<PositionedStack> getRecipeCatalysts(Class<? extends IRecipeHandler> handler) {
         return Collections.emptyList();
