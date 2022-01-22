@@ -340,4 +340,12 @@ public class API
         RecipeCatalysts.addRecipeCatalyst(stacks, handlerID);
     }
 
+    @Deprecated
+    public static void addRecipeCatalyst(ItemStack stack, Class<? extends IRecipeHandler> handler) {
+    }
+
+    @Deprecated
+    public static void addRecipeCatalyst(List<ItemStack> stacks, Class<? extends IRecipeHandler> handler) {
+    }
+
 }
