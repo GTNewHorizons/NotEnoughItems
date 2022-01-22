@@ -300,7 +300,7 @@ public class API
      * @param stack the ingredient that can craft recipes (like a furnace or crafting table)
      * @param handler the recipe category handled by the ingredient
      */
-    public static void addRecipeCatalyst(ItemStack stack, Class<? extends IRecipeHandler> handler) {
+    public static void addRecipeCatalyst(ItemStack stack, IRecipeHandler handler) {
         addRecipeCatalyst(Collections.singletonList(stack), handler);
     }
 
@@ -310,8 +310,34 @@ public class API
      * @param stacks the ingredients that can craft recipes (like a furnace or crafting table)
      * @param handler the recipe category handled by the ingredient
      */
-    public static void addRecipeCatalyst(List<ItemStack> stacks, Class<? extends IRecipeHandler> handler) {
-        RecipeCatalysts.addRecipeCatalyst(stacks, handler);
+    public static void addRecipeCatalyst(List<ItemStack> stacks, IRecipeHandler handler) {
+        String handlerID = handler.getOverlayIdentifier();
+        if (handlerID != null) {
+            addRecipeCatalyst(stacks, handler.getOverlayIdentifier());
+        }
+        else {
+            NEIClientConfig.logger.warn(String.format("failed to add recipe catalyst, implement IRecipeHandler#getOverlayIdentifier for your handler %s", handler.getClass().getName()));
+        }
+    }
+
+    /**
+     * Adds an association between an ingredient and what it can craft. (i.e. Furnace ItemStack -> Smelting and Fuel Recipes)
+     * Allows players to see what ingredient they need to craft in order to make recipes from a recipe category.
+     * @param stack the ingredient that can craft recipes (like a furnace or crafting table)
+     * @param handlerID recipe category identifier (see {@link IRecipeHandler#getOverlayIdentifier()})
+     */
+    public static void addRecipeCatalyst(ItemStack stack, String handlerID) {
+        addRecipeCatalyst(Collections.singletonList(stack), handlerID);
+    }
+
+    /**
+     * Adds an association between an ingredient and what it can craft. (i.e. Furnace ItemStack -> Smelting and Fuel Recipes)
+     * Allows players to see what ingredient they need to craft in order to make recipes from a recipe category.
+     * @param stacks the ingredients that can craft recipes (like a furnace or crafting table)
+     * @param handlerID recipe category identifier (see {@link IRecipeHandler#getOverlayIdentifier()})
+     */
+    public static void addRecipeCatalyst(List<ItemStack> stacks, String handlerID) {
+        RecipeCatalysts.addRecipeCatalyst(stacks, handlerID);
     }
 
 }

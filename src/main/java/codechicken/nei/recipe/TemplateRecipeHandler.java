@@ -442,6 +442,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
      *
      * @return The overlay identifier of this recipe type.
      */
+    @Override
     public String getOverlayIdentifier() {
         return null;
     }
@@ -559,7 +560,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         TemplateRecipeHandler handler = newInstance();
         if (inputId.equals("item")) {
             ItemStack candidate = (ItemStack) ingredients[0];
-            if (RecipeCatalysts.containsCatalyst(handler.getClass(), candidate)) {
+            if (RecipeCatalysts.containsCatalyst(handler, candidate)) {
                 for (RecipeTransferRect rect : transferRects) {
                     if (specifyTransferRect() == null || Objects.equals(rect.outputId, specifyTransferRect())) {
                         handler.loadCraftingRecipes(rect.outputId, rect.results);

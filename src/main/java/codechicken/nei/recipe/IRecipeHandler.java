@@ -90,6 +90,15 @@ public interface IRecipeHandler
      */
     public IOverlayHandler getOverlayHandler(GuiContainer gui, int recipe);
     /**
+     * Simply works with the {@link codechicken.nei.api.DefaultOverlayRenderer}
+     * If the current container has been registered with this identifier, the question mark appears and an overlay guide can be drawn.
+     *
+     * @return The overlay identifier of this recipe type.
+     */
+    public default String getOverlayIdentifier() {
+        return null;
+    }
+    /**
      * 
      * @return The number of recipes that can fit on a page in the viewer (1 or 2)
      */

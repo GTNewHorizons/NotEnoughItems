@@ -24,7 +24,7 @@ public class GuiRecipeCatalyst extends INEIGuiAdapter {
 
     public void draw() {
         if (guiRecipe == null) return;
-        int catalystsSize = RecipeCatalysts.getRecipeCatalysts(guiRecipe.getHandler().getClass()).size();
+        int catalystsSize = RecipeCatalysts.getRecipeCatalysts(guiRecipe.getHandler()).size();
         if (catalystsSize == 0) return;
 
         int availableHeight = RecipeCatalysts.getHeight();
@@ -49,7 +49,7 @@ public class GuiRecipeCatalyst extends INEIGuiAdapter {
     public boolean hideItemPanelSlot(GuiContainer gui, int x, int y, int w, int h) {
         if (!(gui instanceof GuiRecipe)) return false;
         guiRecipe = (GuiRecipe) gui;
-        int catalystsSize = RecipeCatalysts.getRecipeCatalysts(guiRecipe.getHandler().getClass()).size();
+        int catalystsSize = RecipeCatalysts.getRecipeCatalysts(guiRecipe.getHandler()).size();
         if (catalystsSize == 0) return false;
 
         int availableHeight = RecipeCatalysts.getHeight();

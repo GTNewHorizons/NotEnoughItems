@@ -12,39 +12,49 @@ import java.util.List;
 import java.util.Map;
 
 public class RecipeCatalysts {
-    private static final Map<Class<? extends IRecipeHandler>, List<ItemStack>> recipeCatalystMap = new HashMap<>();
-    private static Map<Class<? extends IRecipeHandler>, List<PositionedStack>> positionedRecipeCatalystMap = new HashMap<>();
+    private static final Map<String, List<ItemStack>> recipeCatalystMap = new HashMap<>();
+    private static Map<String, List<PositionedStack>> positionedRecipeCatalystMap = new HashMap<>();
     private static int heightCache;
 
-    public static void addRecipeCatalyst(List<ItemStack> stacks, Class<? extends IRecipeHandler> handler) {
-        if (recipeCatalystMap.containsKey(handler)) {
-            recipeCatalystMap.get(handler).addAll(stacks);
+    public static void addRecipeCatalyst(List<ItemStack> stacks, String handlerID) {
+        if (handlerID == null) return;
+        if (recipeCatalystMap.containsKey(handlerID)) {
+            recipeCatalystMap.get(handlerID).addAll(stacks);
         } else {
-            recipeCatalystMap.put(handler, new ArrayList<>(stacks));
+            // use ArrayList initializer to prevent UOE
+            recipeCatalystMap.put(handlerID, new ArrayList<>(stacks));
         }
     }
 
-    public static Map<Class<? extends IRecipeHandler>, List<PositionedStack>> getPositionedRecipeCatalystMap() {
+    public static Map<String, List<PositionedStack>> getPositionedRecipeCatalystMap() {
         return positionedRecipeCatalystMap;
     }
 
-    public static List<PositionedStack> getRecipeCatalysts(Class<? extends IRecipeHandler> handler) {
+    public static List<PositionedStack> getRecipeCatalysts(IRecipeHandler handler) {
+        return getRecipeCatalysts(handler.getOverlayIdentifier());
+    }
+
+    public static List<PositionedStack> getRecipeCatalysts(String handlerID) {
         if (!NEIClientConfig.areJEIStyleTabsVisible() || !NEIClientConfig.areJEIStyleRecipeCatalystsVisible()) {
             return Collections.emptyList();
         }
-        return positionedRecipeCatalystMap.getOrDefault(handler, Collections.emptyList());
+        return positionedRecipeCatalystMap.getOrDefault(handlerID, Collections.emptyList());
     }
 
-    public static boolean containsCatalyst(Class<? extends IRecipeHandler> handler, ItemStack candidate) {
-        return recipeCatalystMap.getOrDefault(handler, Collections.emptyList()).stream()
+    public static boolean containsCatalyst(IRecipeHandler handler, ItemStack candidate) {
+        return containsCatalyst(handler.getOverlayIdentifier(), candidate);
+    }
+
+    public static boolean containsCatalyst(String handlerID, ItemStack candidate) {
+        return recipeCatalystMap.getOrDefault(handlerID, Collections.emptyList()).stream()
             .anyMatch(s -> NEIServerUtils.areStacksSameType(s, candidate));
     }
 
     public static void updatePosition(int availableHeight) {
         if (availableHeight == heightCache) return;
 
-        Map<Class<? extends IRecipeHandler>, List<PositionedStack>> newMap = new HashMap<>();
-        for (Map.Entry<Class<? extends IRecipeHandler>, List<ItemStack>> entry : recipeCatalystMap.entrySet()) {
+        Map<String, List<PositionedStack>> newMap = new HashMap<>();
+        for (Map.Entry<String, List<ItemStack>> entry : recipeCatalystMap.entrySet()) {
             List<ItemStack> catalysts = entry.getValue();
             List<PositionedStack> newStacks = new ArrayList<>();
             int rowCount = getRowCount(availableHeight, catalysts.size());
