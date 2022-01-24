@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class RecipeCatalysts {
     private static final Map<String, List<ItemStack>> recipeCatalystMap = new HashMap<>();
@@ -18,11 +19,13 @@ public class RecipeCatalysts {
 
     public static void addRecipeCatalyst(List<ItemStack> stacks, String handlerID) {
         if (handlerID == null) return;
+        // use ArrayList initializer to prevent UOE
+        List<ItemStack> stacksToAdd = new ArrayList<>(stacks);
+        stacksToAdd.removeIf(Objects::isNull);
         if (recipeCatalystMap.containsKey(handlerID)) {
-            recipeCatalystMap.get(handlerID).addAll(stacks);
+            recipeCatalystMap.get(handlerID).addAll(stacksToAdd);
         } else {
-            // use ArrayList initializer to prevent UOE
-            recipeCatalystMap.put(handlerID, new ArrayList<>(stacks));
+            recipeCatalystMap.put(handlerID, stacksToAdd);
         }
     }
 
