@@ -84,11 +84,9 @@ public class NEIClientConfig {
     // Function that extracts the handler ID from a handler, with special logic for
     // TemplateRecipeHandler: prefer using the overlay ID if it exists.
     public static final Function<IRecipeHandler, String> HANDLER_ID_FUNCTION =
-            handler -> handler instanceof TemplateRecipeHandler
-                    ? Objects.firstNonNull(
-                            ((TemplateRecipeHandler) handler).getOverlayIdentifier(),
-                            handler.getHandlerId())
-                    : handler.getHandlerId();
+            handler -> Objects.firstNonNull(
+                            handler.getOverlayIdentifier(),
+                            handler.getHandlerId());
 
     // Comparator that compares handlers using the handlerOrdering map.
     public static final Comparator<IRecipeHandler> HANDLER_COMPARATOR =

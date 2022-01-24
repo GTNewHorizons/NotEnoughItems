@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static codechicken.nei.NEIClientConfig.HANDLER_ID_FUNCTION;
+
 public class RecipeCatalysts {
     private static final Map<String, List<ItemStack>> recipeCatalystMap = new HashMap<>();
     private static Map<String, List<PositionedStack>> positionedRecipeCatalystMap = new HashMap<>();
@@ -39,7 +41,7 @@ public class RecipeCatalysts {
     }
 
     public static List<PositionedStack> getRecipeCatalysts(IRecipeHandler handler) {
-        return getRecipeCatalysts(handler.getOverlayIdentifier());
+        return getRecipeCatalysts(HANDLER_ID_FUNCTION.apply(handler));
     }
 
     public static List<PositionedStack> getRecipeCatalysts(String handlerID) {
@@ -50,7 +52,7 @@ public class RecipeCatalysts {
     }
 
     public static boolean containsCatalyst(IRecipeHandler handler, ItemStack candidate) {
-        return containsCatalyst(handler.getOverlayIdentifier(), candidate);
+        return containsCatalyst(HANDLER_ID_FUNCTION.apply(handler), candidate);
     }
 
     public static boolean containsCatalyst(String handlerID, ItemStack candidate) {
