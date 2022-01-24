@@ -10,29 +10,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static codechicken.nei.NEIClientConfig.HANDLER_ID_FUNCTION;
 
 public class RecipeCatalysts {
-    private static final Map<String, List<ItemStack>> recipeCatalystMap = new HashMap<>();
+    private static final Map<String, CatalystInfoList> recipeCatalystMap = new HashMap<>();
     private static Map<String, List<PositionedStack>> positionedRecipeCatalystMap = new HashMap<>();
     private static int heightCache;
 
-    public static void addRecipeCatalyst(List<ItemStack> stacks, String handlerID) {
-        if (handlerID == null || handlerID.isEmpty()) return;
-        // use ArrayList initializer to prevent UOE
-        List<ItemStack> stacksToAdd = new ArrayList<>(stacks);
-        stacksToAdd.removeIf(Objects::isNull);
+    public static void addRecipeCatalyst(String handlerID, CatalystInfo catalystInfo) {
+        if (handlerID == null || handlerID.isEmpty() || catalystInfo.getStack() == null) return;
         if (recipeCatalystMap.containsKey(handlerID)) {
-            List<ItemStack> entries = recipeCatalystMap.get(handlerID);
-            for (ItemStack stack : stacksToAdd) {
-                if (entries.stream().noneMatch(s -> ItemStack.areItemStacksEqual(s, stack))) {
-                    entries.add(stack);
-                }
-            }
+            recipeCatalystMap.get(handlerID).add(catalystInfo);
         } else {
-            recipeCatalystMap.put(handlerID, stacksToAdd);
+            recipeCatalystMap.put(handlerID, new CatalystInfoList(handlerID, catalystInfo));
         }
     }
 
@@ -56,21 +47,24 @@ public class RecipeCatalysts {
     }
 
     public static boolean containsCatalyst(String handlerID, ItemStack candidate) {
-        return recipeCatalystMap.getOrDefault(handlerID, Collections.emptyList()).stream()
-            .anyMatch(s -> NEIServerUtils.areStacksSameType(s, candidate));
+        if (recipeCatalystMap.containsKey(handlerID)) {
+            return recipeCatalystMap.get(handlerID).contains(candidate);
+        }
+        return false;
     }
 
     public static void updatePosition(int availableHeight) {
         if (availableHeight == heightCache) return;
 
         Map<String, List<PositionedStack>> newMap = new HashMap<>();
-        for (Map.Entry<String, List<ItemStack>> entry : recipeCatalystMap.entrySet()) {
-            List<ItemStack> catalysts = entry.getValue();
+        for (Map.Entry<String, CatalystInfoList> entry : recipeCatalystMap.entrySet()) {
+            CatalystInfoList catalysts = entry.getValue();
+            catalysts.sort();
             List<PositionedStack> newStacks = new ArrayList<>();
             int rowCount = getRowCount(availableHeight, catalysts.size());
 
             for (int index = 0; index < catalysts.size(); index++) {
-                ItemStack catalyst = catalysts.get(index);
+                ItemStack catalyst = catalysts.get(index).getStack();
                 int column = index / rowCount;
                 int row = index % rowCount;
                 newStacks.add(new PositionedStack(catalyst, -column * GuiRecipeCatalyst.ingredientSize, row * GuiRecipeCatalyst.ingredientSize));
