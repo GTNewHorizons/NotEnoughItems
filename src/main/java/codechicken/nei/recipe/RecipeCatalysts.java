@@ -23,7 +23,12 @@ public class RecipeCatalysts {
         List<ItemStack> stacksToAdd = new ArrayList<>(stacks);
         stacksToAdd.removeIf(Objects::isNull);
         if (recipeCatalystMap.containsKey(handlerID)) {
-            recipeCatalystMap.get(handlerID).addAll(stacksToAdd);
+            List<ItemStack> entries = recipeCatalystMap.get(handlerID);
+            for (ItemStack stack : stacksToAdd) {
+                if (entries.stream().noneMatch(s -> ItemStack.areItemStacksEqual(s, stack))) {
+                    entries.add(stack);
+                }
+            }
         } else {
             recipeCatalystMap.put(handlerID, stacksToAdd);
         }
