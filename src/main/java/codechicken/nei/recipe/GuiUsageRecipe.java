@@ -25,21 +25,14 @@ public class GuiUsageRecipe extends GuiRecipe
 
         profiler.start("recipe.concurrent.usage");
         try {
-            handlers = serialUsageHandlers.stream().map(h -> h.getUsageHandler(inputId, ingredients))
+            handlers = serialUsageHandlers.stream().map(h -> getUsageOrCatalystHandler(h, inputId, ingredients))
                 .filter(h -> h.numRecipes() > 0)
                 .collect(Collectors.toCollection(ArrayList::new));
 
-            if (NEIClientConfig.areJEIStyleRecipeCatalystsVisible()) {
-                handlers.addAll(ItemList.forkJoinPool.submit(() -> usagehandlers.parallelStream()
-                        .map(h -> h.getUsageAndCatalystHandler(inputId, ingredients))
-                        .filter(h -> h.numRecipes() > 0)
-                        .collect(Collectors.toCollection(ArrayList::new))).get());
-            } else {
-                handlers.addAll(ItemList.forkJoinPool.submit(() -> usagehandlers.parallelStream()
-                        .map(h -> h.getUsageHandler(inputId, ingredients))
-                        .filter(h -> h.numRecipes() > 0)
-                        .collect(Collectors.toCollection(ArrayList::new))).get());
-            }
+            handlers.addAll(ItemList.forkJoinPool.submit(() -> usagehandlers.parallelStream()
+                .map(h -> getUsageOrCatalystHandler(h, inputId, ingredients))
+                .filter(h -> h.numRecipes() > 0)
+                .collect(Collectors.toCollection(ArrayList::new))).get());
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return false;
@@ -74,6 +67,14 @@ public class GuiUsageRecipe extends GuiRecipe
 
     public ArrayList<? extends IRecipeHandler> getCurrentRecipeHandlers() {
         return currenthandlers;
+    }
+
+    private static IUsageHandler getUsageOrCatalystHandler(IUsageHandler handler, String inputId, Object... ingredients) {
+        if (NEIClientConfig.areJEIStyleRecipeCatalystsVisible()) {
+            return handler.getUsageAndCatalystHandler(inputId, ingredients);
+        } else {
+            return handler.getUsageHandler(inputId, ingredients);
+        }
     }
 
     public ArrayList<IUsageHandler> currenthandlers;
