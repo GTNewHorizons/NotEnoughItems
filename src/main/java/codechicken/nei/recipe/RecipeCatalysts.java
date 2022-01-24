@@ -18,7 +18,7 @@ public class RecipeCatalysts {
     private static int heightCache;
 
     public static void addRecipeCatalyst(List<ItemStack> stacks, String handlerID) {
-        if (handlerID == null) return;
+        if (handlerID == null || handlerID.isEmpty()) return;
         // use ArrayList initializer to prevent UOE
         List<ItemStack> stacksToAdd = new ArrayList<>(stacks);
         stacksToAdd.removeIf(Objects::isNull);
