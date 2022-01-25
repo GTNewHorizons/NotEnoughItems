@@ -3,8 +3,22 @@ package codechicken.nei.recipe;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
+import cpw.mods.fml.common.Loader;
 import net.minecraft.item.ItemStack;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,17 +28,14 @@ import java.util.Map;
 import static codechicken.nei.NEIClientConfig.HANDLER_ID_FUNCTION;
 
 public class RecipeCatalysts {
+    private static final Map<String, CatalystInfoList> catalystsFromAPI = new HashMap<>();
     private static final Map<String, CatalystInfoList> recipeCatalystMap = new HashMap<>();
     private static Map<String, List<PositionedStack>> positionedRecipeCatalystMap = new HashMap<>();
     private static int heightCache;
 
     public static void addRecipeCatalyst(String handlerID, CatalystInfo catalystInfo) {
         if (handlerID == null || handlerID.isEmpty() || catalystInfo.getStack() == null) return;
-        if (recipeCatalystMap.containsKey(handlerID)) {
-            recipeCatalystMap.get(handlerID).add(catalystInfo);
-        } else {
-            recipeCatalystMap.put(handlerID, new CatalystInfoList(handlerID, catalystInfo));
-        }
+        addOrPut(catalystsFromAPI, handlerID, catalystInfo);
     }
 
     public static Map<String, List<PositionedStack>> getPositionedRecipeCatalystMap() {
@@ -53,8 +64,8 @@ public class RecipeCatalysts {
         return false;
     }
 
-    public static void updatePosition(int availableHeight) {
-        if (availableHeight == heightCache) return;
+    public static void updatePosition(int availableHeight, boolean force) {
+        if (availableHeight == heightCache && !force) return;
 
         Map<String, List<PositionedStack>> newMap = new HashMap<>();
         for (Map.Entry<String, CatalystInfoList> entry : recipeCatalystMap.entrySet()) {
@@ -75,6 +86,10 @@ public class RecipeCatalysts {
         heightCache = availableHeight;
     }
 
+    public static void updatePosition(int availableHeight) {
+        updatePosition(availableHeight, false);
+    }
+
     public static int getHeight() {
         return heightCache;
     }
@@ -87,6 +102,119 @@ public class RecipeCatalysts {
     public static int getRowCount(int availableHeight, int catalystsSize) {
         int columnCount = getColumnCount(availableHeight, catalystsSize);
         return NEIServerUtils.divideCeil(catalystsSize, columnCount);
+    }
+
+    /**
+     * The intent for using csv is to allow catalysts to work outside GTNH.
+     * GTNH-specific or actively maintained mods can add their catalysts through API.
+     * I hope nobody will have a terrible idea of adding all GT machines by csv...
+     */
+    public static void loadCatalystInfo() {
+        final boolean fromJar = NEIClientConfig.loadCatalystsFromJar();
+        NEIClientConfig.logger.info("Loading catalyst info from " + (fromJar ? "JAR" : "Config"));
+        recipeCatalystMap.clear();
+        URL handlerUrl = Thread.currentThread().getContextClassLoader().getResource("assets/nei/csv/catalysts.csv");
+
+        URL url;
+        if (fromJar) {
+            url = handlerUrl;
+            if (url == null) {
+                NEIClientConfig.logger.warn("Invalid URL for catalysts csv.");
+                return;
+            }
+        } else {
+            File catalystFile = NEIClientConfig.catalystFile;
+            if(!catalystFile.exists()) {
+                NEIClientConfig.logger.info("Config file doesn't exist, creating");
+                try {
+                    assert handlerUrl != null;
+                    ReadableByteChannel readableByteChannel = Channels.newChannel(handlerUrl.openStream());
+                    FileOutputStream fileOutputStream = new FileOutputStream(catalystFile.getAbsoluteFile());
+                    FileChannel fileChannel = fileOutputStream.getChannel();
+                    fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
+            try {
+                url = NEIClientConfig.catalystFile.toURI().toURL();
+            } catch (MalformedURLException e) {
+                NEIClientConfig.logger.warn("Invalid URL for catalysts csv (via config).");
+                e.printStackTrace();
+                return;
+            }
+        }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+            CSVParser csvParser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(reader);
+            for (CSVRecord record : csvParser) {
+                final String handler = record.get("handler");
+                final String modId = record.get("modId");
+                final boolean requiresMod = Boolean.parseBoolean(record.get("modRequired"));
+                final String excludedModId = record.get("excludedModId");
+                final int priority = intOrDefault(record.get("priority"), 0);
+
+                if (requiresMod && !Loader.isModLoaded(modId)) continue;
+                if (excludedModId != null && Loader.isModLoaded(excludedModId)) continue;
+
+                String itemName = record.get("itemName");
+                if (itemName == null || itemName.isEmpty()) continue;
+                ItemStack stack = NEIServerUtils.getModdedItem(itemName, record.get("nbtInfo"));
+                if (stack == null) {
+                    NEIClientConfig.logger.warn("Couldn't find ItemStack " + itemName);
+                    continue;
+                }
+                CatalystInfo catalystInfo = new CatalystInfo(stack, priority);
+
+                String handlerID;
+                try {
+                    // gently handling copy&paste from handlers.csv
+                    Class<?> clazz = Class.forName(handler);
+                    Object object = clazz.newInstance();
+                    if (object instanceof IRecipeHandler) {
+                        handlerID = HANDLER_ID_FUNCTION.apply((IRecipeHandler) object);
+                    } else {
+                        handlerID = handler;
+                    }
+                } catch (ClassNotFoundException ignored) {
+                    handlerID = handler;
+                } catch (InstantiationException ignored) {
+                    NEIClientConfig.logger.warn("failed to create instance for " + handler);
+                    handlerID = handler;
+                }
+
+                addOrPut(recipeCatalystMap, handlerID, catalystInfo);
+            }
+        } catch (Exception e) {
+            NEIClientConfig.logger.warn("Error parsing CSV");
+            e.printStackTrace();
+        }
+
+        for (Map.Entry<String, CatalystInfoList> entry : catalystsFromAPI.entrySet()) {
+            String handlerID = entry.getKey();
+            for (CatalystInfo catalyst : entry.getValue()) {
+                addOrPut(recipeCatalystMap, handlerID, catalyst);
+            }
+        }
+
+        updatePosition(getHeight(), true);
+    }
+
+    private static void addOrPut(Map<String, CatalystInfoList> map, String handlerID, CatalystInfo catalyst) {
+        if (map.containsKey(handlerID)) {
+            map.get(handlerID).add(catalyst);
+        } else {
+            map.put(handlerID, new CatalystInfoList(handlerID, catalyst));
+        }
+    }
+
+    private static int intOrDefault(String str, int defaultValue) {
+        if (str == null || str.equals("")) return defaultValue;
+        try {
+            return Integer.parseInt(str);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 
     @Deprecated
@@ -102,5 +230,4 @@ public class RecipeCatalysts {
     public static boolean containsCatalyst(Class<? extends IRecipeHandler> handler, ItemStack candidate) {
         return false;
     }
-
 }

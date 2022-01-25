@@ -27,8 +27,8 @@ import codechicken.nei.config.OptionUtilities;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.RecipeCatalysts;
 import codechicken.nei.recipe.RecipeInfo;
-import codechicken.nei.recipe.TemplateRecipeHandler;
 import codechicken.obfuscator.ObfuscationRun;
 import com.google.common.base.Objects;
 import net.minecraft.client.Minecraft;
@@ -62,6 +62,7 @@ public class NEIClientConfig {
             new ConfigFile(new File(configDir, "client.cfg")));
     public static ConfigSet world;
     public static final File handlerFile = new File(configDir, "handlers.csv");
+    public static final File catalystFile = new File(configDir, "catalysts.csv");
     public static final File serialHandlersFile = new File(configDir, "serialhandlers.cfg");
     public static final File heightHackHandlersFile = new File(configDir, "heighthackhandlers.cfg");
     public static final File handlerOrderingFile = new File(configDir, "handlerordering.csv");
@@ -216,6 +217,17 @@ public class NEIClientConfig {
                 return true;
             }
         });
+
+        tag.getTag("tools.catalyst_load_from_config").setComment("ADVANCED: Load catalysts from config").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("tools.catalyst_load_from_config", true) {
+            @Override
+            public boolean onClick(int button) {
+                super.onClick(button);
+                RecipeCatalysts.loadCatalystInfo();
+                return true;
+            }
+        });
+
         setDefaultKeyBindings();
     }
 
@@ -336,6 +348,7 @@ public class NEIClientConfig {
         RecipeInfo.load();
         LayoutManager.load();
         NEIController.load();
+        RecipeCatalysts.loadCatalystInfo();
 
         configLoaded = true;
 
@@ -416,6 +429,9 @@ public class NEIClientConfig {
     }
     public static boolean loadHandlersFromJar() {
         return !getBooleanSetting("tools.handler_load_from_config");
+    }
+    public static boolean loadCatalystsFromJar() {
+        return !getBooleanSetting("tools.catalyst_load_from_config");
     }
 
     public static void setEnabled(boolean flag) {
