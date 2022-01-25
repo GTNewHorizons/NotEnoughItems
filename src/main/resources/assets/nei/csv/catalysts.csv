@@ -1,4 +1,16 @@
 handler,itemName,nbtInfo,modId,modRequired,excludedModId,priority,itemNotes
+fox.spiteful.avaritia.compat.nei.CompressionHandler,Avaritia:Neutronium_Compressor,,Avaritia,TRUE,,,
+extreme,Avaritia:Dire_Crafting,,Avaritia,TRUE,,,
+WayofTime.alchemicalWizardry.client.nei.NEIAlchemyRecipeHandler,AWWayofTime:blockWritingTable,,AWWayofTime,TRUE,,,
+WayofTime.alchemicalWizardry.client.nei.NEIAltarRecipeHandler,AWWayofTime:Altar,,AWWayofTime,TRUE,,,
+forestry.factory.recipes.nei.NEIHandlerBottler,Forestry:factory,,Forestry,TRUE,,,
+forestry.factory.recipes.nei.NEIHandlerCarpenter,Forestry:factory:1,,Forestry,TRUE,,,
+forestry.factory.recipes.nei.NEIHandlerCentrifuge,Forestry:factory:2,,Forestry,TRUE,,,
+forestry.factory.recipes.nei.NEIHandlerFabricator,Forestry:factory2,,Forestry,TRUE,,,
+forestry.factory.recipes.nei.NEIHandlerFermenter,Forestry:factory:3,,Forestry,TRUE,,,
+forestry.factory.recipes.nei.NEIHandlerMoistener,Forestry:factory:4,,Forestry,TRUE,,,
+forestry.factory.recipes.nei.NEIHandlerSqueezer,Forestry:factory:5,,Forestry,TRUE,,,
+forestry.factory.recipes.nei.NEIHandlerStill,Forestry:factory:6,,Forestry,TRUE,,,
 smelting,IC2:blockMachine:1,,IC2,TRUE,,-10,vanilla->IC2
 smelting,IC2:blockMachine:2,,IC2,TRUE,,-10,
 smelting,IC2:blockMachine:13,,IC2,TRUE,,-10,
