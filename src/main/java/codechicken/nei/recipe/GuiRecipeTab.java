@@ -64,7 +64,7 @@ public abstract class GuiRecipeTab extends Widget {
         this.handlerName = handler.getHandlerId();
         this.guiRecipe = guiRecipe;
         this.selected = false;
-        
+
         if(handler instanceof TemplateRecipeHandler) {
             handlerID = (((TemplateRecipeHandler)handler).getOverlayIdentifier());
         } else {
@@ -207,7 +207,7 @@ public abstract class GuiRecipeTab extends Widget {
         } else {
             File handlerFile = NEIClientConfig.handlerFile;
             if(!handlerFile.exists()) {
-                NEIClientConfig.logger.info("Config file doesn't exit, creating");
+                NEIClientConfig.logger.info("Config file doesn't exist, creating");
                 try {
                     assert handlerUrl != null;
                     ReadableByteChannel readableByteChannel = Channels.newChannel(handlerUrl.openStream());
