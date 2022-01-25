@@ -332,6 +332,15 @@ public class API
         addRecipeCatalyst(stack, handlerID, 0);
     }
 
+    public static void removeRecipeCatalyst(ItemStack stack, IRecipeHandler handler) {
+        String handlerID = NEIClientConfig.HANDLER_ID_FUNCTION.apply(handler);
+        removeRecipeCatalyst(stack, handlerID);
+    }
+
+    public static void removeRecipeCatalyst(ItemStack stack, String handlerID) {
+        RecipeCatalysts.removeRecipeCatalyst(handlerID, stack);
+    }
+
     @Deprecated
     public static void addRecipeCatalyst(List<ItemStack> stacks, IRecipeHandler handler) {
         for (ItemStack stack : stacks) {

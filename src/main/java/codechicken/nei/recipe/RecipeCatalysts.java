@@ -28,14 +28,24 @@ import java.util.Map;
 import static codechicken.nei.NEIClientConfig.HANDLER_ID_FUNCTION;
 
 public class RecipeCatalysts {
-    private static final Map<String, CatalystInfoList> catalystsFromAPI = new HashMap<>();
+    private static final Map<String, CatalystInfoList> catalystsAdderFromAPI = new HashMap<>();
+    private static final Map<String, List<ItemStack>> catalystsRemoverFromAPI = new HashMap<>();
     private static final Map<String, CatalystInfoList> recipeCatalystMap = new HashMap<>();
     private static Map<String, List<PositionedStack>> positionedRecipeCatalystMap = new HashMap<>();
     private static int heightCache;
 
     public static void addRecipeCatalyst(String handlerID, CatalystInfo catalystInfo) {
         if (handlerID == null || handlerID.isEmpty() || catalystInfo.getStack() == null) return;
-        addOrPut(catalystsFromAPI, handlerID, catalystInfo);
+        addOrPut(catalystsAdderFromAPI, handlerID, catalystInfo);
+    }
+
+    public static void removeRecipeCatalyst(String handlerID, ItemStack stack) {
+        if (handlerID == null || handlerID.isEmpty() || stack == null) return;
+        if (catalystsRemoverFromAPI.containsKey(handlerID)) {
+            catalystsRemoverFromAPI.get(handlerID).add(stack);
+        } else {
+            catalystsRemoverFromAPI.put(handlerID, new ArrayList<>(Collections.singletonList(stack)));
+        }
     }
 
     public static Map<String, List<PositionedStack>> getPositionedRecipeCatalystMap() {
@@ -190,10 +200,18 @@ public class RecipeCatalysts {
             e.printStackTrace();
         }
 
-        for (Map.Entry<String, CatalystInfoList> entry : catalystsFromAPI.entrySet()) {
+        for (Map.Entry<String, CatalystInfoList> entry : catalystsAdderFromAPI.entrySet()) {
             String handlerID = entry.getKey();
             for (CatalystInfo catalyst : entry.getValue()) {
                 addOrPut(recipeCatalystMap, handlerID, catalyst);
+            }
+        }
+
+        for (Map.Entry<String, List<ItemStack>> entry : catalystsRemoverFromAPI.entrySet()) {
+            String handlerID = entry.getKey();
+            if (recipeCatalystMap.containsKey(handlerID)) {
+                CatalystInfoList catalysts = recipeCatalystMap.get(handlerID);
+                entry.getValue().forEach(catalysts::remove);
             }
         }
 

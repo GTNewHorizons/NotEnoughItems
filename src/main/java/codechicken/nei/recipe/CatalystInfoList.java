@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 // Do not directly extend ArrayList, see Effective Java Item 16
@@ -49,6 +50,18 @@ public class CatalystInfoList extends ForwardingList<CatalystInfo> {
 
     public boolean contains(ItemStack stack) {
         return catalystInfoList.stream().anyMatch(c -> NEIServerUtils.areStacksSameType(c.getStack(), stack));
+    }
+
+    public boolean remove(ItemStack stack) {
+        Iterator<CatalystInfo> iter = catalystInfoList.iterator();
+        while (iter.hasNext()) {
+            ItemStack next = iter.next().getStack();
+            if (NEIServerUtils.areStacksSameType(next, stack)) {
+                iter.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     public void sort() {
