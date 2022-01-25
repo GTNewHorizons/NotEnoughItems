@@ -567,6 +567,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
                         return handler;
                     }
                 }
+                NEIClientConfig.logger.info("failed to load catalyst handler, implement `loadTransferRects` for your handler " + handler.getClass().getName());
             }
         }
         return this.getUsageHandler(inputId, ingredients);
