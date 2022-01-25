@@ -40,9 +40,8 @@ public class CatalystInfoList extends ForwardingList<CatalystInfo> {
 
     @Override
     public boolean contains(Object object) {
-        ItemStack stack;
         if (object instanceof CatalystInfo) {
-            stack = ((CatalystInfo) object).getStack();
+            ItemStack stack = ((CatalystInfo) object).getStack();
             return contains(stack);
         }
         return false;
