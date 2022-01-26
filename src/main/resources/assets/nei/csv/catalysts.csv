@@ -265,7 +265,7 @@ gt.recipe.trees,minecraft:sapling,,gregapi_post,TRUE,,,,,GT6 end
 moze_intel.projecte.integration.NEI.NEIWorldTransmuteHandler,ProjectE:item.pe_philosophers_stone,,ProjectE,TRUE,,,,,
 crafting,ProjectE:item.pe_philosophers_stone,,ProjectE,TRUE,,,,,
 de.katzenpapst.amunra.nei.recipehandler.ARCircuitFab,GalacticraftCore:tile.machine2:4,,GalacticraftAmunRa,TRUE,,,,,not tested
-de.katzenpapst.amunra.nei.recipehandler.ARNasaWorkbenchShuttle,GalacticraftAmunRa:item.itemShuttle,,GalacticraftAmunRa,TRUE,,,,,not tested
+de.katzenpapst.amunra.nei.recipehandler.ARNasaWorkbenchShuttle,GalacticraftCore:tile.rocketWorkbench,,GalacticraftAmunRa,TRUE,,,,,not tested
 vazkii.botania.client.integration.nei.recipe.RecipeHandlerPetalApothecary,Botania:altar,,Botania,TRUE,,,,,
 vazkii.botania.client.integration.nei.recipe.RecipeHandlerPetalApothecary,Botania:altar:1,,Botania,TRUE,,,,,
 vazkii.botania.client.integration.nei.recipe.RecipeHandlerPetalApothecary,Botania:altar:2,,Botania,TRUE,,,,,
