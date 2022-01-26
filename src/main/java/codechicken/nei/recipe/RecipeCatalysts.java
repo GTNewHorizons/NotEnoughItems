@@ -114,11 +114,6 @@ public class RecipeCatalysts {
         return NEIServerUtils.divideCeil(catalystsSize, columnCount);
     }
 
-    /**
-     * The intent for using csv is to allow catalysts to work outside GTNH.
-     * GTNH-specific or actively maintained mods can add their catalysts through API.
-     * I hope nobody will have a terrible idea of adding all GT machines by csv...
-     */
     public static void loadCatalystInfo() {
         final boolean fromJar = NEIClientConfig.loadCatalystsFromJar();
         NEIClientConfig.logger.info("Loading catalyst info from " + (fromJar ? "JAR" : "Config"));
@@ -163,6 +158,9 @@ public class RecipeCatalysts {
                 final boolean requiresMod = Boolean.parseBoolean(record.get("modRequired"));
                 final String excludedModId = record.get("excludedModId");
                 final int priority = intOrDefault(record.get("priority"), 0);
+                // todo
+                final String minVersion = record.get("minVersion");
+                final String maxVersion = record.get("maxVersion");
 
                 if (requiresMod && !Loader.isModLoaded(modId)) continue;
                 if (excludedModId != null && Loader.isModLoaded(excludedModId)) continue;
