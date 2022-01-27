@@ -3,6 +3,7 @@ package codechicken.nei.recipe;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
+import com.google.common.base.Objects;
 import cpw.mods.fml.common.Loader;
 import net.minecraft.item.ItemStack;
 import org.apache.commons.csv.CSVFormat;
@@ -25,13 +26,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static codechicken.nei.NEIClientConfig.HANDLER_ID_FUNCTION;
-
 public class RecipeCatalysts {
     private static final Map<String, CatalystInfoList> catalystsAdderFromAPI = new HashMap<>();
     private static final Map<String, List<ItemStack>> catalystsRemoverFromAPI = new HashMap<>();
     private static final Map<String, CatalystInfoList> recipeCatalystMap = new HashMap<>();
     private static Map<String, List<PositionedStack>> positionedRecipeCatalystMap = new HashMap<>();
+    private static final List<String> forceClassNameList = new ArrayList<>();
     private static int heightCache;
 
     public static void addRecipeCatalyst(String handlerID, CatalystInfo catalystInfo) {
@@ -53,7 +53,7 @@ public class RecipeCatalysts {
     }
 
     public static List<PositionedStack> getRecipeCatalysts(IRecipeHandler handler) {
-        return getRecipeCatalysts(HANDLER_ID_FUNCTION.apply(handler));
+        return getRecipeCatalysts(getRecipeID(handler));
     }
 
     public static List<PositionedStack> getRecipeCatalysts(String handlerID) {
@@ -64,7 +64,7 @@ public class RecipeCatalysts {
     }
 
     public static boolean containsCatalyst(IRecipeHandler handler, ItemStack candidate) {
-        return containsCatalyst(HANDLER_ID_FUNCTION.apply(handler), candidate);
+        return containsCatalyst(getRecipeID(handler), candidate);
     }
 
     public static boolean containsCatalyst(String handlerID, ItemStack candidate) {
@@ -161,6 +161,7 @@ public class RecipeCatalysts {
                 // todo
                 final String minVersion = record.get("minVersion");
                 final String maxVersion = record.get("maxVersion");
+                final boolean forceClassName = Boolean.parseBoolean(record.get("forceClassName"));
 
                 if (requiresMod && !Loader.isModLoaded(modId)) continue;
                 if (excludedModId != null && Loader.isModLoaded(excludedModId)) continue;
@@ -180,7 +181,10 @@ public class RecipeCatalysts {
                     Class<?> clazz = Class.forName(handler);
                     Object object = clazz.newInstance();
                     if (object instanceof IRecipeHandler) {
-                        handlerID = HANDLER_ID_FUNCTION.apply((IRecipeHandler) object);
+                        if (forceClassName) {
+                            forceClassNameList.add(handler);
+                        }
+                        handlerID = getRecipeID((IRecipeHandler) object);
                     } else {
                         handlerID = handler;
                     }
@@ -214,6 +218,20 @@ public class RecipeCatalysts {
         }
 
         updatePosition(getHeight(), true);
+    }
+
+    /**
+     * Basically {@link NEIClientConfig#HANDLER_ID_FUNCTION}.
+     * Force using {@link IRecipeHandler#getHandlerId()} if specified in catalysts.csv.
+     * In other words, refuse to share handlerID defined in {@link TemplateRecipeHandler#getOverlayIdentifier()}.
+     */
+    public static String getRecipeID(IRecipeHandler handler) {
+        if (forceClassNameList.stream().anyMatch(s -> s.equals(handler.getHandlerId()))) {
+            return handler.getHandlerId();
+        }
+        return Objects.firstNonNull(
+                handler.getOverlayIdentifier(),
+                handler.getHandlerId());
     }
 
     private static void addOrPut(Map<String, CatalystInfoList> map, String handlerID, CatalystInfo catalyst) {

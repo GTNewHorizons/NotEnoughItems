@@ -303,7 +303,7 @@ public class API
      * @param priority higher priority comes first, default to 0
      */
     public static void addRecipeCatalyst(ItemStack stack, IRecipeHandler handler, int priority) {
-        String handlerID = NEIClientConfig.HANDLER_ID_FUNCTION.apply(handler);
+        String handlerID = RecipeCatalysts.getRecipeID(handler);
         addRecipeCatalyst(stack, handlerID, priority);
     }
 
@@ -318,7 +318,7 @@ public class API
      * Adds an association between an ingredient and what it can craft. (i.e. Furnace ItemStack -> Smelting and Fuel Recipes)
      * Allows players to see what ingredient they need to craft in order to make recipes from a recipe category.
      * @param stack the ingredient that can craft recipes (like a furnace or crafting table)
-     * @param handlerID recipe category identifier (see also {@link NEIClientConfig#HANDLER_ID_FUNCTION})
+     * @param handlerID recipe category identifier (see also {@link RecipeCatalysts#getRecipeID(IRecipeHandler)})
      * @param priority higher priority comes first, default to 0
      */
     public static void addRecipeCatalyst(ItemStack stack, String handlerID, int priority) {
@@ -333,7 +333,7 @@ public class API
     }
 
     public static void removeRecipeCatalyst(ItemStack stack, IRecipeHandler handler) {
-        String handlerID = NEIClientConfig.HANDLER_ID_FUNCTION.apply(handler);
+        String handlerID = RecipeCatalysts.getRecipeID(handler);
         removeRecipeCatalyst(stack, handlerID);
     }
 
