@@ -36,11 +36,11 @@ public class GuiContainerManager
     public GuiContainer window;
 
     public static RenderItem drawItems = new RenderItem();
-    public static LinkedList<IContainerTooltipHandler> tooltipHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
-    public static LinkedList<IContainerInputHandler> inputHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
-    public static LinkedList<IContainerDrawHandler> drawHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
-    public static LinkedList<IContainerObjectHandler> objectHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
-    public static LinkedList<IContainerSlotClickHandler> slotClickHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerTooltipHandler> tooltipHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerInputHandler> inputHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerDrawHandler> drawHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerObjectHandler> objectHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerSlotClickHandler> slotClickHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
 
     static {
         addSlotClickHandler(new DefaultSlotClickHandler());
