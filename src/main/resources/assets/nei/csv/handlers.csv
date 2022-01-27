@@ -466,3 +466,5 @@ nc.crafting.nei.RecyclerRecipeHandler,NuclearCraft,NuclearCraft:recyclerIdle,,Nu
 nc.crafting.nei.NuclearWorkspaceRecipeHandler,NuclearCraft,NuclearCraft:nuclearWorkspace,,NuclearCraft,TRUE,,,130,,2,,,,,,
 ganymedes01.etfuturum.NEI_EtFuturum_Config$NEI_Recipes_Smoker,EtFuturum Requiem,etfuturum:lit_smoker,,etfuturum,TRUE,,,65,166,5,,,,,,
 ganymedes01.etfuturum.NEI_EtFuturum_Config$NEI_Recipes_BlastFurnace,EtFuturum Requiem,etfuturum:lit_blast_furnace,,etfuturum,TRUE,,,65,166,5,,,,,,
+connor135246.campfirebackport.client.compat.nei.NEICampfireRecipeHandler,Campfire Backport,campfirebackport:campfire,,campfirebackport,TRUE,,,65,166,5,,,,,,
+connor135246.campfirebackport.client.compat.nei.NEICampfireStateChangerHandler,Campfire Backport,campfirebackport:campfire_base,,campfirebackport,TRUE,,,65,166,5,,,,,,
