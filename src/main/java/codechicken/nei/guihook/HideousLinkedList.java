@@ -52,7 +52,98 @@ final class HideousLinkedList<E> extends LinkedList<E> {
     public boolean add(E e) {
         return backing.add(e);
     }
+    
+    @Override
+    public void addFirst(E e) {
+        backing.add(0, e);
+    }
+    
+    @Override
+    public E getFirst() {
+        if (backing.size() == 0) throw new NoSuchElementException();
+        return(backing.get(0));
+    }
+    
+    @Override
+    public E removeFirst() {
+        E item = getFirst();
+        backing.remove(0);
+        return item;
+    }
 
+    @Override
+    public void addLast(E e) {
+        backing.add(backing.size(), e);
+    }
+
+    @Override
+    public E getLast() {
+        if (backing.size() == 0) throw new NoSuchElementException();
+        return backing.get(backing.size() - 1);
+    }
+
+    @Override
+    public E removeLast() {
+        E item = getLast();
+        backing.remove(backing.size() - 1);
+        return item;
+    }
+    
+    @Override
+    public E peek() {
+        return backing.size() > 0 ? backing.get(0) : null;
+    }
+    
+    @Override
+    public E peekFirst() {
+        return backing.size() > 0 ? getFirst() : null;
+    }
+    
+    @Override
+    public E peekLast() {
+        return backing.size() > 0 ? getLast() : null;
+    }
+    
+    @Override
+    public E poll() {
+        return backing.size() > 0 ? removeFirst() : null;
+    }
+    
+    @Override
+    public E pollFirst() {
+        return poll();
+    }
+    
+    @Override
+    public E pollLast() {
+        return backing.size() > 0 ? removeLast() : null;
+    }
+    
+    @Override
+    public void push(E e) {
+        addFirst(e);
+    }
+    
+    @Override
+    public E pop() {
+        return removeFirst();
+    }
+
+    @Override
+    public boolean removeFirstOccurrence(Object e) {
+        return remove(e);
+    }
+    
+    @Override
+    public boolean removeLastOccurrence(Object e) {
+        int idx = this.backing.lastIndexOf(e);
+        if (idx != -1) {
+            this.backing.remove(idx);
+            return true;
+        }
+        return false;
+    }
+    
     @Override
     public boolean remove(Object o) {
         return backing.remove(o);
