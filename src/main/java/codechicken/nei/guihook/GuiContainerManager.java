@@ -194,7 +194,6 @@ public class GuiContainerManager
     private static final HashSet<String> stackTraces = new HashSet<>();
 
     public static void drawItem(int i, int j, ItemStack itemstack, FontRenderer fontRenderer, boolean smallAmount) {
-        GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
         enable3DRender();
         float zLevel = drawItems.zLevel += 100F;
         try {
@@ -230,7 +229,6 @@ public class GuiContainerManager
 
         enable2DRender();
         drawItems.zLevel = zLevel - 100;
-        GL11.glPopAttrib();
     }
 
     //copy from appeng.client.render.AppEngRenderItem
