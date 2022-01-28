@@ -1,8 +1,8 @@
 handler,itemName,nbtInfo,modId,modRequired,excludedModId,priority,minVersion,maxVersion,forceClassName,itemNotes
-crafting,minecraft:crafting_table,,minecraft,FALSE,,100,,,
-smelting,minecraft:furnace,,minecraft,FALSE,,100,,,
-codechicken.nei.recipe.BrewingRecipeHandler,minecraft:brewing_stand,,minecraft,FALSE,,100,,,
-codechicken.nei.recipe.FuelRecipeHandler,minecraft:furnace,,minecraft,FALSE,,100,,,
+crafting,minecraft:crafting_table,,minecraft,FALSE,,100,,,,
+smelting,minecraft:furnace,,minecraft,FALSE,,100,,,,
+codechicken.nei.recipe.BrewingRecipeHandler,minecraft:brewing_stand,,minecraft,FALSE,,100,,,,
+codechicken.nei.recipe.FuelRecipeHandler,minecraft:furnace,,minecraft,FALSE,,100,,,,
 advsolar.client.nei.MTRecipeHandler,AdvancedSolarPanel:BlockMolecularTransformer,,AdvancedSolarPanel,TRUE,,,,,,
 crafting,appliedenergistics2:item.ItemMultiPart:360,,appliedenergistics2,TRUE,,,,,,
 appeng.integration.modules.NEIHelpers.NEIGrinderRecipeHandler,appliedenergistics2:tile.BlockGrinder,,appliedenergistics2,TRUE,dreamcraft,,,,,
@@ -365,6 +365,24 @@ crafting,DraconicEvolution:draconiumChest,,DraconicEvolution,TRUE,,-50,,,,
 smelting,DraconicEvolution:draconiumChest,,DraconicEvolution,TRUE,,-50,,,,
 crafting,ProjRed|Expansion:projectred.expansion.machine2:11,,ProjRed|Expansion,TRUE,,,,,,
 crafting,TwilightForest:tile.TFUncraftingTable,,TwilightForest,TRUE,,,,,,
+com.teammetallurgy.metallurgy.nei.CrusherHandler,Metallurgy:crusher,,Metallurgy,TRUE,,,,,,
+nc.crafting.nei.MetalFurnaceRecipeHandler,NuclearCraft:furnaceIdle,,NuclearCraft,TRUE,,,,,,not working well
+nc.crafting.nei.ElectricFurnaceRecipeHandler,NuclearCraft:electricFurnaceIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.NuclearFurnaceRecipeHandler,NuclearCraft:nuclearFurnaceIdle,,NuclearCraft,TRUE,,,,,,not working well
+nc.crafting.nei.FactoryRecipeHandler,NuclearCraft:factoryIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.AssemblerRecipeHandler,NuclearCraft:assemblerIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.SeparatorRecipeHandler,NuclearCraft:separatorIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.HastenerRecipeHandler,NuclearCraft:hastenerIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.CollectorRecipeHandler,NuclearCraft:collectorIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.OxidiserRecipeHandler,NuclearCraft:oxidiserIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.IoniserRecipeHandler,NuclearCraft:ioniserIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.IrradiatorRecipeHandler,NuclearCraft:irradiatorIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.CoolerRecipeHandler,NuclearCraft:coolerIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.HeliumExtractorRecipeHandler,NuclearCraft:heliumExtractorIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.RecyclerRecipeHandler,NuclearCraft:recyclerIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.NuclearWorkspaceRecipeHandler,NuclearCraft:nuclearWorkspace,,NuclearCraft,TRUE,,,,,,
+ganymedes01.etfuturum.NEI_EtFuturum_Config$NEI_Recipes_Smoker,etfuturum:smoker,,etfuturum,TRUE,,,,,,not working well
+ganymedes01.etfuturum.NEI_EtFuturum_Config$NEI_Recipes_BlastFurnace,etfuturum:blast_furnace,,etfuturum,TRUE,,,,,,not working well
 crafting,gregtech:gt.metaitem.01:32744,,gregtech,TRUE,,,,,,"GT5 start: for readability, keep all GTNH-related catalysts below"
 gt.recipe.primitiveblastfurnace,gregtech:gt.blockmachines:140,,gregtech,TRUE,,,,,,
 gt.recipe.primitiveblastfurnace,gregtech:gt.blockmachines:108,,gregtech,TRUE,,,,,,
