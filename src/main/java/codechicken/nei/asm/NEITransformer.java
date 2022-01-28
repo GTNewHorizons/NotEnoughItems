@@ -41,6 +41,7 @@ public class NEITransformer implements IClassTransformer
         ASMInit.init();
     }
 
+    private final boolean paranoidMode = Boolean.getBoolean("nei.paranoid");
     private final ModularASMTransformer transformer = new ModularASMTransformer();
     private final Map<String, ASMBlock> asmblocks = ASMReader.loadResource("/assets/nei/asm/blocks.asm");
 
@@ -263,6 +264,14 @@ public class NEITransformer implements IClassTransformer
                     bytes = cw.toByteArray();
                 }
                 bytes = transformSubclasses(name, bytes);
+            }
+            if (paranoidMode && !tname.startsWith("codechicken.nei")) {
+                ClassReader cr = new ClassReader(bytes);
+                ClassWriter cw = new ClassWriter(0);
+                GuiContainerManagerAPITransformer cv = new GuiContainerManagerAPITransformer(ASM5, cw, tname);
+                cr.accept(cv, ClassReader.SKIP_DEBUG);
+                if (cv.isChanged())
+                    bytes = cw.toByteArray();
             }
 
             bytes = transformer.transform(name, bytes);

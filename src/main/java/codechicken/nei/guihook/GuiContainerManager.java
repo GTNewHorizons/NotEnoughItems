@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Pattern;
 
 import static codechicken.lib.gui.GuiDraw.drawMultilineTip;
@@ -35,11 +36,11 @@ public class GuiContainerManager
     public GuiContainer window;
 
     public static RenderItem drawItems = new RenderItem();
-    public static LinkedList<IContainerTooltipHandler> tooltipHandlers = new LinkedList<>();
-    public static LinkedList<IContainerInputHandler> inputHandlers = new LinkedList<>();
-    public static LinkedList<IContainerDrawHandler> drawHandlers = new LinkedList<>();
-    public static LinkedList<IContainerObjectHandler> objectHandlers = new LinkedList<>();
-    public static LinkedList<IContainerSlotClickHandler> slotClickHandlers = new LinkedList<>();
+    public static final LinkedList<IContainerTooltipHandler> tooltipHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerInputHandler> inputHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerDrawHandler> drawHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerObjectHandler> objectHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerSlotClickHandler> slotClickHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
 
     static {
         addSlotClickHandler(new DefaultSlotClickHandler());
