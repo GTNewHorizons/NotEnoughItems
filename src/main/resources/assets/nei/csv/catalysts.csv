@@ -15,7 +15,7 @@ WayofTime.alchemicalWizardry.client.nei.NEIAltarRecipeHandler,AWWayofTime:Altar,
 crafting,BuildCraft|Factory:autoWorkbenchBlock,,BuildCraft|Factory,TRUE,,,,,,
 buildcraft.compat.nei.RecipeHandlerRefinery,BuildCraft|Factory:refineryBlock,,BuildCraft|Factory,TRUE,,,,,,
 buildcraft.compat.nei.RecipeHandlerAssemblyTable,BuildCraft|Silicon:laserTableBlock,,BuildCraft|Silicon,TRUE,,,,,,
-buildcraft.compat.nei.RecipeHandlerIntegrationTable,BuildCraft|Silicon:laserTableBlock:2,,BuildCraft|Silicon,TRUE,,,,,,missing transferRect
+buildcraft.compat.nei.RecipeHandlerIntegrationTable,BuildCraft|Silicon:laserTableBlock:2,,BuildCraft|Silicon,TRUE,,,,,,
 team.chisel.compat.nei.RecipeHandlerChisel,chisel:chisel,,chisel,TRUE,,,,,,
 team.chisel.compat.nei.RecipeHandlerChisel,chisel:diamondChisel,,chisel,TRUE,,,,,,
 team.chisel.compat.nei.RecipeHandlerChisel,chisel:obsidianChisel,,chisel,TRUE,,,,,,
@@ -41,34 +41,34 @@ forestry.factory.recipes.nei.NEIHandlerFermenter,Forestry:factory:3,,Forestry,TR
 forestry.factory.recipes.nei.NEIHandlerMoistener,Forestry:factory:4,,Forestry,TRUE,,,,,,
 forestry.factory.recipes.nei.NEIHandlerSqueezer,Forestry:factory:5,,Forestry,TRUE,,,,,,
 forestry.factory.recipes.nei.NEIHandlerStill,Forestry:factory:6,,Forestry,TRUE,,,,,,
-galaxyspace.core.nei.rocket.RocketT1RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalacticraftCore,TRUE,,,,,,missing transferRect
-micdoodle8.mods.galacticraft.core.nei.BuggyRecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalacticraftCore,TRUE,,,,,,missing transferRect
-micdoodle8.mods.galacticraft.core.nei.BuggyRecipeHandler,GalacticraftCore:item.schematic:0,,GalacticraftCore,TRUE,,,,,,missing transferRect
-micdoodle8.mods.galacticraft.core.nei.CircuitFabricatorRecipeHandler,GalacticraftCore:tile.machine2:4,,GalacticraftCore,TRUE,,,,,,missing transferRect
-micdoodle8.mods.galacticraft.core.nei.ElectricIngotCompressorRecipeHandler,GalacticraftCore:tile.machine2,,GalacticraftCore,TRUE,,,,,,not tested
-micdoodle8.mods.galacticraft.core.nei.IngotCompressorRecipeHandler,GalacticraftCore:tile.machine:12,,GalacticraftCore,TRUE,,,,,,not tested
-micdoodle8.mods.galacticraft.core.nei.RefineryRecipeHandler,GalacticraftCore:tile.refinery,,GalacticraftCore,TRUE,,,,,,not tested
-micdoodle8.mods.galacticraft.planets.asteroids.nei.AstroMinerRecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalacticraftCore,TRUE,,,,,,missing transferRect
-micdoodle8.mods.galacticraft.planets.asteroids.nei.AstroMinerRecipeHandler,GalacticraftMars:item.schematic:2,,GalacticraftCore,TRUE,,,,,,missing transferRect
-micdoodle8.mods.galacticraft.planets.mars.nei.CargoRocketRecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalacticraftCore,TRUE,,,,,,missing transferRect
-micdoodle8.mods.galacticraft.planets.mars.nei.CargoRocketRecipeHandler,GalacticraftMars:item.schematic:1,,GalacticraftCore,TRUE,,,,,,missing transferRect
-micdoodle8.mods.galacticraft.planets.mars.nei.GasLiquefierRecipeHandler,GalacticraftMars:tile.marsMachineT2,,GalacticraftCore,TRUE,,,,,,not tested
-micdoodle8.mods.galacticraft.planets.mars.nei.MethaneSynthesizerRecipeHandler,GalacticraftMars:tile.marsMachineT2:4,,GalacticraftCore,TRUE,,,,,,not tested
-galaxyspace.core.nei.rocket.RocketT2RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalacticraftMars,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.rocket.RocketT2RecipeHandler,GalacticraftCore:item.schematic:1,,GalacticraftMars,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.rocket.RocketT3RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalacticraftMars,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.rocket.RocketT3RecipeHandler,GalacticraftMars:item.schematic:0,,GalacticraftMars,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.AssemblyMachineRecipeHandler,GalaxySpace:assemblymachine,,GalaxySpace,TRUE,,,,,,cannot test
-galaxyspace.core.nei.rocket.RocketT4RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalaxySpace,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.rocket.RocketT4RecipeHandler,GalaxySpace:item.SchematicTier4,,GalaxySpace,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.rocket.RocketT5RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalaxySpace,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.rocket.RocketT5RecipeHandler,GalaxySpace:item.SchematicTier5,,GalaxySpace,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.rocket.RocketT6RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalaxySpace,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.rocket.RocketT6RecipeHandler,GalaxySpace:item.SchematicTier6,,GalaxySpace,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.rocket.RocketT7RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalaxySpace,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.rocket.RocketT7RecipeHandler,GalaxySpace:item.SchematicTier7,,GalaxySpace,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.rocket.RocketT8RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalaxySpace,TRUE,,,,,,missing transferRect
-galaxyspace.core.nei.rocket.RocketT8RecipeHandler,GalaxySpace:item.SchematicTier8,,GalaxySpace,TRUE,,,,,,missing transferRect
+galaxyspace.core.nei.rocket.RocketT1RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalacticraftCore,TRUE,,,,,,
+micdoodle8.mods.galacticraft.core.nei.BuggyRecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalacticraftCore,TRUE,,,,,,
+micdoodle8.mods.galacticraft.core.nei.BuggyRecipeHandler,GalacticraftCore:item.schematic:0,,GalacticraftCore,TRUE,,,,,,
+micdoodle8.mods.galacticraft.core.nei.CircuitFabricatorRecipeHandler,GalacticraftCore:tile.machine2:4,,GalacticraftCore,TRUE,,,,,,
+micdoodle8.mods.galacticraft.core.nei.ElectricIngotCompressorRecipeHandler,GalacticraftCore:tile.machine2,,GalacticraftCore,TRUE,,,,,,not in GTNH
+micdoodle8.mods.galacticraft.core.nei.IngotCompressorRecipeHandler,GalacticraftCore:tile.machine:12,,GalacticraftCore,TRUE,,,,,,not in GTNH
+micdoodle8.mods.galacticraft.core.nei.RefineryRecipeHandler,GalacticraftCore:tile.refinery,,GalacticraftCore,TRUE,,,,,,
+micdoodle8.mods.galacticraft.planets.asteroids.nei.AstroMinerRecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalacticraftCore,TRUE,,,,,,
+micdoodle8.mods.galacticraft.planets.asteroids.nei.AstroMinerRecipeHandler,GalacticraftMars:item.schematic:2,,GalacticraftCore,TRUE,,,,,,
+micdoodle8.mods.galacticraft.planets.mars.nei.CargoRocketRecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalacticraftCore,TRUE,,,,,,
+micdoodle8.mods.galacticraft.planets.mars.nei.CargoRocketRecipeHandler,GalacticraftMars:item.schematic:1,,GalacticraftCore,TRUE,,,,,,
+micdoodle8.mods.galacticraft.planets.mars.nei.GasLiquefierRecipeHandler,GalacticraftMars:tile.marsMachineT2,,GalacticraftCore,TRUE,,,,,,not in GTNH
+micdoodle8.mods.galacticraft.planets.mars.nei.MethaneSynthesizerRecipeHandler,GalacticraftMars:tile.marsMachineT2:4,,GalacticraftCore,TRUE,,,,,,not in GTNH
+galaxyspace.core.nei.rocket.RocketT2RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalacticraftMars,TRUE,,,,,,
+galaxyspace.core.nei.rocket.RocketT2RecipeHandler,GalacticraftCore:item.schematic:1,,GalacticraftMars,TRUE,,,,,,
+galaxyspace.core.nei.rocket.RocketT3RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalacticraftMars,TRUE,,,,,,
+galaxyspace.core.nei.rocket.RocketT3RecipeHandler,GalacticraftMars:item.schematic:0,,GalacticraftMars,TRUE,,,,,,
+galaxyspace.core.nei.AssemblyMachineRecipeHandler,GalaxySpace:assemblymachine,,GalaxySpace,TRUE,,,,,,not tested
+galaxyspace.core.nei.rocket.RocketT4RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalaxySpace,TRUE,,,,,,
+galaxyspace.core.nei.rocket.RocketT4RecipeHandler,GalaxySpace:item.SchematicTier4,,GalaxySpace,TRUE,,,,,,
+galaxyspace.core.nei.rocket.RocketT5RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalaxySpace,TRUE,,,,,,
+galaxyspace.core.nei.rocket.RocketT5RecipeHandler,GalaxySpace:item.SchematicTier5,,GalaxySpace,TRUE,,,,,,
+galaxyspace.core.nei.rocket.RocketT6RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalaxySpace,TRUE,,,,,,
+galaxyspace.core.nei.rocket.RocketT6RecipeHandler,GalaxySpace:item.SchematicTier6,,GalaxySpace,TRUE,,,,,,
+galaxyspace.core.nei.rocket.RocketT7RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalaxySpace,TRUE,,,,,,
+galaxyspace.core.nei.rocket.RocketT7RecipeHandler,GalaxySpace:item.SchematicTier7,,GalaxySpace,TRUE,,,,,,
+galaxyspace.core.nei.rocket.RocketT8RecipeHandler,GalacticraftCore:tile.rocketWorkbench,,GalaxySpace,TRUE,,,,,,
+galaxyspace.core.nei.rocket.RocketT8RecipeHandler,GalaxySpace:item.SchematicTier8,,GalaxySpace,TRUE,,,,,,
 net.bdew.gendustry.nei.ExtractorHandler,gendustry:Extractor,,gendustry,TRUE,,,,,,
 net.bdew.gendustry.nei.ImprinterHandler,gendustry:Imprinter,,gendustry,TRUE,,,,,,
 net.bdew.gendustry.nei.LiquifierHandler,gendustry:Liquifier,,gendustry,TRUE,,,,,,
@@ -118,14 +118,14 @@ tconstruct.plugins.nei.RecipeHandlerDryingRack,TConstruct:Armor.DryingRack,,TCon
 tconstruct.plugins.nei.RecipeHandlerMelting,TConstruct:Smeltery,,TConstruct,TRUE,,,,,,
 alkalus.main.nei.NEI_Handler_Cauldron,witchery:cauldron,,WitcheryExtras,TRUE,,,,,,
 alkalus.main.nei.NEI_Handler_Distillery,witchery:distilleryidle,,WitcheryExtras,TRUE,,,,,,
-alkalus.main.nei.NEI_Handler_Kettle,witchery:kettle,,WitcheryExtras,TRUE,,,,,,not working well
-alkalus.main.nei.NEI_Handler_Oven,witchery:witchesovenidle,,WitcheryExtras,TRUE,,,,,,not working well
+alkalus.main.nei.NEI_Handler_Kettle,witchery:kettle,,WitcheryExtras,TRUE,,,,,,
+alkalus.main.nei.NEI_Handler_Oven,witchery:witchesovenidle,,WitcheryExtras,TRUE,,,,,,
 alkalus.main.nei.NEI_Handler_SpinningWheel,witchery:spinningwheel,,WitcheryExtras,TRUE,,,,,,
 com.emoniph.witchery.integration.NEICauldronRecipeHandler,witchery:cauldron,,witchery,TRUE,WitcheryExtras,,,,,
 com.emoniph.witchery.integration.NEIDistilleryRecipeHandler,witchery:distilleryidle,,witchery,TRUE,WitcheryExtras,,,,,
-com.emoniph.witchery.integration.NEIKettleRecipeHandler,witchery:kettle,,witchery,TRUE,WitcheryExtras,,,,,
+com.emoniph.witchery.integration.NEIKettleRecipeHandler,witchery:kettle,,witchery,TRUE,WitcheryExtras,,,,,not working well
 com.emoniph.witchery.integration.NEISpinningWheelRecipeHandler,witchery:spinningwheel,,witchery,TRUE,WitcheryExtras,,,,,
-com.emoniph.witchery.integration.NEIWitchesOvenRecipeHandler,witchery:witchesovenidle,,witchery,TRUE,WitcheryExtras,,,,,
+com.emoniph.witchery.integration.NEIWitchesOvenRecipeHandler,witchery:witchesovenidle,,witchery,TRUE,WitcheryExtras,,,,,not working well
 witchinggadgets.client.nei.NEISpinningWheelHandler,WitchingGadgets:WG_WoodenDevice,,WitchingGadgets,TRUE,,,,,,
 gt.recipe.anvil,gregtech:gt.multitileentity:32031,,gregapi_post,TRUE,,,,,,All GT6 catalysts listed below are automatically converted from handlers.csv and untested. Feel free to make changes and submit PRs.
 gt.recipe.anvil.bend.big,gregtech:gt.multitileentity:32031,,gregapi_post,TRUE,,,,,,
