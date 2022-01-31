@@ -66,7 +66,7 @@ public abstract class GuiRecipeTab extends Widget {
         this.selected = false;
 
         if(handler instanceof TemplateRecipeHandler) {
-            handlerID = (((TemplateRecipeHandler)handler).getOverlayIdentifier());
+            handlerID = handler.getOverlayIdentifier();
         } else {
             handlerID = null;
         }
@@ -162,7 +162,7 @@ public abstract class GuiRecipeTab extends Widget {
         final String handlerID;
 
         if (handler instanceof TemplateRecipeHandler) {
-            handlerID = ((TemplateRecipeHandler) handler).getOverlayIdentifier();
+            handlerID = handler.getOverlayIdentifier();
         } else {
             handlerID = null;
         }
@@ -272,9 +272,6 @@ public abstract class GuiRecipeTab extends Widget {
                 handlerMap.put(handler, info);
                 NEIClientConfig.logger.info("Loaded " + handler);
             }
-        } catch (IOException e) {
-            NEIClientConfig.logger.info("Error parsing CSV");
-            e.printStackTrace();
         } catch (Exception e) {
             NEIClientConfig.logger.info("Error parsing CSV");
             e.printStackTrace();
