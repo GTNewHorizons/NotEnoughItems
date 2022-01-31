@@ -29,7 +29,17 @@ public interface IRecipeHandler
      * @return The name of this inventory. 
      * To be displayed at the top of the viewing container.
      */
-    public String getRecipeName();
+
+    /**
+     * For legacy compatibility reasons, this method's default implementation returns the recipe name. This is also the expected behavior
+     *
+     * @return The name of this inventory.
+     * To be displayed in the tooltip in the tab at the top of the viewing container.
+     */
+    default String getRecipeTabName() {
+        return getRecipeName();
+    }
+
     /**
      * 
      * @return The number of recipes that this handler contains.

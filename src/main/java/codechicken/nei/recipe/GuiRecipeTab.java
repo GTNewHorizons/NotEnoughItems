@@ -130,7 +130,7 @@ public abstract class GuiRecipeTab extends Widget {
     }
 
     public void addTooltips(List<String> tooltip) {
-        tooltip.add(handler.getRecipeName().trim());
+        tooltip.add(handler.getRecipeTabName().trim());
         
         String handlerMod = getHandlerMod(handlerName, handlerID);
         tooltip.add(EnumChatFormatting.BLUE + handlerMod);
