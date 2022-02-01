@@ -98,6 +98,14 @@ public class PositionedStack
         return false;
     }
 
+    public boolean containsWithNBT(ItemStack ingredient) {
+        for(ItemStack item : items)
+            if(NEIServerUtils.areStacksSameTypeCraftingWithNBT(item, ingredient))
+                return true;
+
+        return false;
+    }
+
     public boolean contains(Item ingred) {
         for(ItemStack item : items)
             if(item.getItem() == ingred)
