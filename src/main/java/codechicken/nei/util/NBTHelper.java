@@ -54,6 +54,6 @@ public class NBTHelper {
 
     private static NBTBase get(NBTTagList tag, int idx)
     {
-        return idx >= 0 && idx < tag.tagList.size() ? (NBTBase)tag.tagList.get(idx) : new NBTTagEnd();
+        return idx >= 0 && idx < tag.tagList.size() ? (NBTBase)tag.tagList.get(idx) : null;
     }
 }
