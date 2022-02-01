@@ -92,7 +92,7 @@ public class FurnaceRecipeHandler extends TemplateRecipeHandler
     public void loadCraftingRecipes(ItemStack result) {
         Map<ItemStack, ItemStack> recipes = (Map<ItemStack, ItemStack>) FurnaceRecipes.smelting().getSmeltingList();
         for (Entry<ItemStack, ItemStack> recipe : recipes.entrySet())
-            if (NEIServerUtils.areStacksSameType(recipe.getValue(), result))
+            if (NEIServerUtils.areStacksSameTypeWithNBT(recipe.getValue(), result))
                 arecipes.add(new SmeltingPair(recipe.getKey(), recipe.getValue()));
     }
 
@@ -108,7 +108,7 @@ public class FurnaceRecipeHandler extends TemplateRecipeHandler
     public void loadUsageRecipes(ItemStack ingredient) {
         Map<ItemStack, ItemStack> recipes = (Map<ItemStack, ItemStack>) FurnaceRecipes.smelting().getSmeltingList();
         for (Entry<ItemStack, ItemStack> recipe : recipes.entrySet())
-            if (NEIServerUtils.areStacksSameTypeCrafting(recipe.getKey(), ingredient)) {
+            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(recipe.getKey(), ingredient)) {
                 SmeltingPair arecipe = new SmeltingPair(recipe.getKey(), recipe.getValue());
                 arecipe.setIngredientPermutation(Collections.singletonList(arecipe.ingred), ingredient);
                 arecipes.add(arecipe);

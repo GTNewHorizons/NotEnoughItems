@@ -106,7 +106,7 @@ public class BrewingRecipeHandler extends TemplateRecipeHandler
 
         // Note: Not safe as written for parallelStream
         apotions.stream()
-            .filter(recipe -> NEIServerUtils.areStacksSameType(recipe.ingredient.item, ingredient) || NEIServerUtils.areStacksSameType(recipe.precursorPotion.item, ingredient))
+            .filter(recipe -> NEIServerUtils.areStacksSameTypeWithNBT(recipe.ingredient.item, ingredient) || NEIServerUtils.areStacksSameTypeWithNBT(recipe.precursorPotion.item, ingredient))
             .map(CachedBrewingRecipe::new)
             .collect(Collectors.toCollection(() -> arecipes));
     }

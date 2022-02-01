@@ -193,7 +193,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         public void setIngredientPermutation(Collection<PositionedStack> ingredients, ItemStack ingredient) {
             for (PositionedStack stack : ingredients) {
                 for (int i = 0; i < stack.items.length; i++) {
-                    if (NEIServerUtils.areStacksSameTypeCrafting(ingredient, stack.items[i])) {
+                    if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(ingredient, stack.items[i])) {
                         stack.item = stack.items[i];
                         stack.item.setItemDamage(ingredient.getItemDamage());
                         if (ingredient.hasTagCompound()) {

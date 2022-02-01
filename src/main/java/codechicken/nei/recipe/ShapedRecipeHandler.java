@@ -111,7 +111,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler
     @Override
     public void loadCraftingRecipes(ItemStack result) {
         for (IRecipe irecipe : (List<IRecipe>) CraftingManager.getInstance().getRecipeList()) {
-            if (NEIServerUtils.areStacksSameTypeCrafting(irecipe.getRecipeOutput(), result)) {
+            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(irecipe.getRecipeOutput(), result)) {
                 CachedShapedRecipe recipe = null;
                 if (irecipe instanceof ShapedRecipes)
                     recipe = new CachedShapedRecipe((ShapedRecipes) irecipe);

@@ -145,6 +145,19 @@ public class NEIServerUtils
      */
     public static boolean areStacksSameType(ItemStack stack1, ItemStack stack2) {
         return stack1 != null && stack2 != null &&
+                (stack1.getItem() == stack2.getItem() &&
+                (!stack2.getHasSubtypes() || stack2.getItemDamage() == stack1.getItemDamage()) &&
+                ItemStack.areItemStackTagsEqual(stack2, stack1));
+    }
+
+    /**
+     * NBT-friendly version of {@link #areStacksSameType(ItemStack, ItemStack)}
+     * @param stack1 The {@link ItemStack} being compared.
+     * @param stack2 The {@link ItemStack} to compare to.
+     * @return whether the two items are the same in terms of itemID, damage and NBT.
+     */
+    public static boolean areStacksSameTypeWithNBT(ItemStack stack1, ItemStack stack2) {
+        return stack1 != null && stack2 != null &&
                 stack1.getItem() == stack2.getItem() &&
                 (!stack2.getHasSubtypes() || stack2.getItemDamage() == stack1.getItemDamage()) &&
                 NBTHelper.matchTag(stack1.getTagCompound(), stack2.getTagCompound());
@@ -158,6 +171,18 @@ public class NEIServerUtils
      * @return whether the two items are the same from the perspective of a crafting inventory.
      */
     public static boolean areStacksSameTypeCrafting(ItemStack stack1, ItemStack stack2) {
+        return stack1 != null && stack2 != null &&
+                stack1.getItem() == stack2.getItem() &&
+                (stack1.getItemDamage() == stack2.getItemDamage() || stack1.getItemDamage() == OreDictionary.WILDCARD_VALUE || stack2.getItemDamage() == OreDictionary.WILDCARD_VALUE || stack1.getItem().isDamageable());
+    }
+
+    /**
+     * NBT-friendly version of {@link #areStacksSameTypeCrafting(ItemStack, ItemStack)}
+     * @param stack1 The {@link ItemStack} being compared.
+     * @param stack2 The {@link ItemStack} to compare to.
+     * @return whether the two items are the same from the perspective of a crafting inventory.
+     */
+    public static boolean areStacksSameTypeCraftingWithNBT(ItemStack stack1, ItemStack stack2) {
         return stack1 != null && stack2 != null &&
                 stack1.getItem() == stack2.getItem() &&
                 (
