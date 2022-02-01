@@ -540,15 +540,15 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     public ICraftingHandler getRecipeHandler(String outputId, Object... results) {
-        TemplateRecipeHandler handler = newInstance();
-        handler.loadCraftingRecipes(outputId, results);
-        return handler;
+        clearRecipes();
+        loadCraftingRecipes(outputId, results);
+        return this;
     }
 
     public IUsageHandler getUsageHandler(String inputId, Object... ingredients) {
-        TemplateRecipeHandler handler = newInstance();
-        handler.loadUsageRecipes(inputId, ingredients);
-        return handler;
+        clearRecipes();
+        loadUsageRecipes(inputId, ingredients);
+        return this;
     }
 
     /**
@@ -557,17 +557,17 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
      * Fallback to {@link TemplateRecipeHandler#getUsageHandler}.
      */
     public IUsageHandler getUsageAndCatalystHandler(String inputId, Object... ingredients) {
-        TemplateRecipeHandler handler = newInstance();
+        clearRecipes();
         if (inputId.equals("item")) {
             ItemStack candidate = (ItemStack) ingredients[0];
-            if (RecipeCatalysts.containsCatalyst(handler, candidate)) {
+            if (RecipeCatalysts.containsCatalyst(this, candidate)) {
                 for (RecipeTransferRect rect : transferRects) {
                     if (specifyTransferRect() == null || Objects.equals(rect.outputId, specifyTransferRect())) {
-                        handler.loadCraftingRecipes(rect.outputId, rect.results);
-                        return handler;
+                        loadCraftingRecipes(rect.outputId, rect.results);
+                        return this;
                     }
                 }
-                NEIClientConfig.logger.info("failed to load catalyst handler, implement `loadTransferRects` for your handler " + handler.getClass().getName());
+                NEIClientConfig.logger.info("failed to load catalyst handler, implement `loadTransferRects` for your handler " + getClass().getName());
             }
         }
         return this.getUsageHandler(inputId, ingredients);
@@ -579,6 +579,10 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
      */
     public String specifyTransferRect() {
         return null;
+    }
+
+    public void clearRecipes() {
+        arecipes.clear();
     }
 
     public int numRecipes() {
