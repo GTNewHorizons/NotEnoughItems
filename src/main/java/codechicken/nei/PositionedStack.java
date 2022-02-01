@@ -92,7 +92,7 @@ public class PositionedStack
 
     public boolean contains(ItemStack ingredient) {
         for(ItemStack item : items)
-            if(NEIServerUtils.areStacksSameTypeCraftingWithNBT(item, ingredient))
+            if(NEIServerUtils.areStacksSameTypeCrafting(item, ingredient))
                 return true;
         
         return false;
