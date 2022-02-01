@@ -5,6 +5,7 @@ import codechicken.core.ServerUtils;
 import codechicken.lib.inventory.InventoryRange;
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.packet.PacketCustom;
+import codechicken.nei.util.NBTHelper;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.command.ICommandSender;
@@ -144,9 +145,9 @@ public class NEIServerUtils
      */
     public static boolean areStacksSameType(ItemStack stack1, ItemStack stack2) {
         return stack1 != null && stack2 != null &&
-                (stack1.getItem() == stack2.getItem() &&
+                stack1.getItem() == stack2.getItem() &&
                 (!stack2.getHasSubtypes() || stack2.getItemDamage() == stack1.getItemDamage()) &&
-                ItemStack.areItemStackTagsEqual(stack2, stack1));
+                NBTHelper.matchTag(stack1.getTagCompound(), stack2.getTagCompound());
     }
 
     /**
@@ -159,7 +160,13 @@ public class NEIServerUtils
     public static boolean areStacksSameTypeCrafting(ItemStack stack1, ItemStack stack2) {
         return stack1 != null && stack2 != null &&
                 stack1.getItem() == stack2.getItem() &&
-                (stack1.getItemDamage() == stack2.getItemDamage() || stack1.getItemDamage() == OreDictionary.WILDCARD_VALUE || stack2.getItemDamage() == OreDictionary.WILDCARD_VALUE || stack1.getItem().isDamageable());
+                (
+                    stack1.getItemDamage() == stack2.getItemDamage() ||
+                    stack1.getItemDamage() == OreDictionary.WILDCARD_VALUE ||
+                    stack2.getItemDamage() == OreDictionary.WILDCARD_VALUE ||
+                    stack1.getItem().isDamageable()
+                ) &&
+                NBTHelper.matchTag(stack1.getTagCompound(), stack2.getTagCompound());
     }
 
     /**
