@@ -231,8 +231,12 @@ nei.recipe.shaped=Shaped Crafting
 nei.recipe.shapeless=Shapeless Crafting
 nei.recipe.furnace=Smelting
 nei.recipe.fuel=Fuel
+nei.recipe.fuel.smeltCount=Smelts %s items
+# Deprecated
 nei.recipe.fuel.required=%s required
+# Deprecated
 nei.recipe.fuel.processed=%s processed
+# Deprecated
 nei.recipe.fuel.produced=%s produced
 nei.recipe.firework=Fireworks
 nei.recipe.firework.tooltip0=Dyes add colours to the charges
