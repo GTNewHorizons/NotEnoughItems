@@ -33,7 +33,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker
         if (KeyManager.keyStates.get("world.moboverlay").down)
             mobOverlay = (mobOverlay + 1) % 2;
         if (KeyManager.keyStates.get("world.chunkoverlay").down)
-            chunkOverlay = (chunkOverlay + 1) % 3;
+            chunkOverlay = (chunkOverlay + 1) % (NEIModContainer.isGregTechLoaded() ? 4 : 3);
     }
 
     public static void render(float frame) {
@@ -172,40 +172,87 @@ public class WorldOverlayRenderer implements IKeyStateTracker
                     GL11.glVertex3d(x1, y2, z1);
                 }
 
-                if (chunkOverlay == 2 && cx == 0 && cz == 0) {
-                    dy = 32;
-                    y1 = Math.floor(entity.posY - dy / 2);
-                    y2 = y1 + dy;
-                    if (y1 < 0) {
-                        y1 = 0;
-                        y2 = dy;
-                    }
+                if (cx == 0 && cz == 0) {
+                    if (chunkOverlay == 2) {
+                        dy = 32;
+                        y1 = Math.floor(entity.posY - dy / 2);
+                        y2 = y1 + dy;
+                        if (y1 < 0) {
+                            y1 = 0;
+                            y2 = dy;
+                        }
 
-                    if (y1 > entity.worldObj.getHeight()) {
-                        y2 = entity.worldObj.getHeight();
-                        y1 = y2 - dy;
-                    }
+                        if (y1 > entity.worldObj.getHeight()) {
+                            y2 = entity.worldObj.getHeight();
+                            y1 = y2 - dy;
+                        }
 
-                    GL11.glColor4d(0, 0.9, 0, 0.4);
-                    for (double y = (int) y1; y <= y2; y++) {
-                        GL11.glVertex3d(x2, y, z1);
-                        GL11.glVertex3d(x2, y, z2);
-                        GL11.glVertex3d(x1, y, z1);
-                        GL11.glVertex3d(x1, y, z2);
-                        GL11.glVertex3d(x1, y, z2);
-                        GL11.glVertex3d(x2, y, z2);
-                        GL11.glVertex3d(x1, y, z1);
-                        GL11.glVertex3d(x2, y, z1);
-                    }
-                    for (double h = 1; h <= 15; h++) {
-                        GL11.glVertex3d(x1 + h, y1, z1);
-                        GL11.glVertex3d(x1 + h, y2, z1);
-                        GL11.glVertex3d(x1 + h, y1, z2);
-                        GL11.glVertex3d(x1 + h, y2, z2);
-                        GL11.glVertex3d(x1, y1, z1 + h);
-                        GL11.glVertex3d(x1, y2, z1 + h);
-                        GL11.glVertex3d(x2, y1, z1 + h);
-                        GL11.glVertex3d(x2, y2, z1 + h);
+                        GL11.glColor4d(0, 0.9, 0, 0.4);
+                        for (double y = (int) y1; y <= y2; y++) {
+                            GL11.glVertex3d(x2, y, z1);
+                            GL11.glVertex3d(x2, y, z2);
+                            GL11.glVertex3d(x1, y, z1);
+                            GL11.glVertex3d(x1, y, z2);
+                            GL11.glVertex3d(x1, y, z2);
+                            GL11.glVertex3d(x2, y, z2);
+                            GL11.glVertex3d(x1, y, z1);
+                            GL11.glVertex3d(x2, y, z1);
+                        }
+                        for (double h = 1; h <= 15; h++) {
+                            GL11.glVertex3d(x1 + h, y1, z1);
+                            GL11.glVertex3d(x1 + h, y2, z1);
+                            GL11.glVertex3d(x1 + h, y1, z2);
+                            GL11.glVertex3d(x1 + h, y2, z2);
+                            GL11.glVertex3d(x1, y1, z1 + h);
+                            GL11.glVertex3d(x1, y2, z1 + h);
+                            GL11.glVertex3d(x2, y1, z1 + h);
+                            GL11.glVertex3d(x2, y2, z1 + h);
+                        }
+                    } else if (chunkOverlay == 3) {
+                        int gx1 = ((entity.chunkCoordX < 0 ? entity.chunkCoordX - 2 : entity.chunkCoordX) / 3 * 3) << 4;
+                        int gz1 = ((entity.chunkCoordZ < 0 ? entity.chunkCoordZ - 2 : entity.chunkCoordZ) / 3 * 3) << 4;
+                        int gx2 = gx1 + 48;
+                        int gz2 = gz1 + 48;
+
+                        GL11.glColor4d(0, 0.9, 0, 0.4);
+                        for (double y = (int) y1; y <= y2; y++) {
+                            GL11.glVertex3d(gx2, y, gz1);
+                            GL11.glVertex3d(gx2, y, gz2);
+                            GL11.glVertex3d(gx1, y, gz1);
+                            GL11.glVertex3d(gx1, y, gz2);
+                            GL11.glVertex3d(gx1, y, gz2);
+                            GL11.glVertex3d(gx2, y, gz2);
+                            GL11.glVertex3d(gx1, y, gz1);
+                            GL11.glVertex3d(gx2, y, gz1);
+                        }
+                        for (double h = 4; h <= 44; h += 4) {
+                            if (h % 16 == 0) {
+                                continue;
+                            }
+                            GL11.glVertex3d(gx1 + h, y1, gz1);
+                            GL11.glVertex3d(gx1 + h, y2, gz1);
+                            GL11.glVertex3d(gx1 + h, y1, gz2);
+                            GL11.glVertex3d(gx1 + h, y2, gz2);
+                            GL11.glVertex3d(gx1, y1, gz1 + h);
+                            GL11.glVertex3d(gx1, y2, gz1 + h);
+                            GL11.glVertex3d(gx2, y1, gz1 + h);
+                            GL11.glVertex3d(gx2, y2, gz1 + h);
+                        }
+
+                        GL11.glColor4d(0, 0, 0.9, 0.4);
+                        gx1 += 23;
+                        gz1 += 23;
+                        gx2 = gx1 + 1;
+                        gz2 = gz1 + 1;
+
+                        GL11.glVertex3d(gx1, y1, gz1);
+                        GL11.glVertex3d(gx1, y2, gz1);
+                        GL11.glVertex3d(gx2, y1, gz1);
+                        GL11.glVertex3d(gx2, y2, gz1);
+                        GL11.glVertex3d(gx1, y1, gz2);
+                        GL11.glVertex3d(gx1, y2, gz2);
+                        GL11.glVertex3d(gx2, y1, gz2);
+                        GL11.glVertex3d(gx2, y2, gz2);
                     }
                 }
             }

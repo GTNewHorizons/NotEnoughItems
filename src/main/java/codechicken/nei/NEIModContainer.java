@@ -13,6 +13,7 @@ import cpw.mods.fml.client.FMLFileResourcePack;
 import cpw.mods.fml.client.FMLFolderResourcePack;
 import cpw.mods.fml.common.DummyModContainer;
 import cpw.mods.fml.common.LoadController;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModMetadata;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLInterModComms;
@@ -33,6 +34,8 @@ public class NEIModContainer extends DummyModContainer
 {
     public static LinkedList<IConfigureNEI> plugins = new LinkedList<>();
 
+    private static boolean gregTechLoaded;
+
     public NEIModContainer() {
         super(getModMetadata());
         loadMetadata();
@@ -44,6 +47,10 @@ public class NEIModContainer extends DummyModContainer
         modMetadata.modId = "GRADLETOKEN_MODID";
         modMetadata.version = "GRADLETOKEN_VERSION";
         return modMetadata;
+    }
+
+    public static boolean isGregTechLoaded() {
+        return gregTechLoaded;
     }
 
     @Override
@@ -92,6 +99,7 @@ public class NEIModContainer extends DummyModContainer
 
     @Subscribe
     public void preInit(FMLPreInitializationEvent event) {
+        gregTechLoaded = Loader.isModLoaded("gregtech");
         if (CommonUtils.isClient())
             ClientHandler.preInit();
     }
