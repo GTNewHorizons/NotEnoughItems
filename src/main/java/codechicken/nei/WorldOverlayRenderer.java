@@ -33,7 +33,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker
         if (KeyManager.keyStates.get("world.moboverlay").down)
             mobOverlay = (mobOverlay + 1) % 2;
         if (KeyManager.keyStates.get("world.chunkoverlay").down)
-            chunkOverlay = (chunkOverlay + 1) % (NEIModContainer.isGregTechLoaded() ? 4 : 3);
+            chunkOverlay = (chunkOverlay + 1) % (NEIModContainer.isGT5Loaded() ? 4 : 3);
     }
 
     public static void render(float frame) {

@@ -34,7 +34,7 @@ public class NEIModContainer extends DummyModContainer
 {
     public static LinkedList<IConfigureNEI> plugins = new LinkedList<>();
 
-    private static boolean gregTechLoaded;
+    private static boolean gregTech5Loaded;
 
     public NEIModContainer() {
         super(getModMetadata());
@@ -49,8 +49,8 @@ public class NEIModContainer extends DummyModContainer
         return modMetadata;
     }
 
-    public static boolean isGregTechLoaded() {
-        return gregTechLoaded;
+    public static boolean isGT5Loaded() {
+        return gregTech5Loaded;
     }
 
     @Override
@@ -99,7 +99,7 @@ public class NEIModContainer extends DummyModContainer
 
     @Subscribe
     public void preInit(FMLPreInitializationEvent event) {
-        gregTechLoaded = Loader.isModLoaded("gregtech");
+        gregTech5Loaded = Loader.isModLoaded("gregtech") && !Loader.isModLoaded("gregapi_post");
         if (CommonUtils.isClient())
             ClientHandler.preInit();
     }
