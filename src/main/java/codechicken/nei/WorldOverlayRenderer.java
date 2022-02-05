@@ -15,10 +15,13 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 import org.lwjgl.opengl.GL11;
 
-public class WorldOverlayRenderer implements IKeyStateTracker
-{
-    public static int mobOverlay = 0;
+public class WorldOverlayRenderer implements IKeyStateTracker {
+
     public static int chunkOverlay = 0;
+
+    public static int mobOverlay = 0;
+    private static byte[] mobSpawnCache;
+    private static long mobOverlayUpdateTime;
 
     public static void reset() {
         mobOverlay = 0;
@@ -46,9 +49,56 @@ public class WorldOverlayRenderer implements IKeyStateTracker
         GL11.glPopMatrix();
     }
 
+    private static void buildMobSpawnOverlay(Entity entity) {
+        if (mobSpawnCache == null) {
+            mobSpawnCache = new byte[33 * 33 * 33]; // 35kB
+        }
+
+        World world = entity.worldObj;
+        int x1 = (int) entity.posX;
+        int z1 = (int) entity.posZ;
+        int y1 = (int) MathHelper.clip(entity.posY, 16, world.getHeight() - 16);
+
+        for (int i = 0; i <= 32; i++) {
+            int x = x1 - 16 + i;
+            for (int j = 0; j <= 32; j++) {
+                int z = z1 - 16 + j;
+                int bufIndex = (i * 33 + j) * 33;
+
+                Chunk chunk = world.getChunkFromBlockCoords(x, z);
+                BiomeGenBase biome = world.getBiomeGenForCoords(x, z);
+                if (biome.getSpawnableList(EnumCreatureType.monster).isEmpty() || biome.getSpawningChance() <= 0) {
+                    mobSpawnCache[bufIndex] = -1;
+                    continue;
+                }
+
+                int maxHeight = chunk.worldObj.getHeightValue(x, z);
+
+                for (int k = 0; k <= 32; k++) {
+                    int y = y1 - 16 + k;
+                    if (y > maxHeight) {
+                        mobSpawnCache[bufIndex + k] = -1;
+                        break;
+                    }
+                    mobSpawnCache[bufIndex + k] = getSpawnMode(chunk, x, y, z);
+                }
+            }
+        }
+    }
+
     private static void renderMobSpawnOverlay(Entity entity) {
-        if (mobOverlay == 0)
+        if (mobOverlay == 0) {
+            if (mobSpawnCache != null) {
+                mobSpawnCache = null;
+            }
             return;
+        }
+
+        long worldTime = entity.worldObj.getTotalWorldTime();
+        if (mobSpawnCache == null || mobOverlayUpdateTime != worldTime) {
+            mobOverlayUpdateTime = worldTime;
+            buildMobSpawnOverlay(entity);
+        }
 
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_BLEND);
@@ -65,32 +115,37 @@ public class WorldOverlayRenderer implements IKeyStateTracker
         int z1 = (int) entity.posZ;
         int y1 = (int) MathHelper.clip(entity.posY, 16, world.getHeight() - 16);
 
-        for (int x = x1 - 16; x <= x1 + 16; x++)
-            for (int z = z1 - 16; z <= z1 + 16; z++) {
-                Chunk chunk = world.getChunkFromBlockCoords(x, z);
-                BiomeGenBase biome = world.getBiomeGenForCoords(x, z);
-                if (biome.getSpawnableList(EnumCreatureType.monster).isEmpty() || biome.getSpawningChance() <= 0)
-                    continue;
+        for (int i = 0; i <= 32; i++) {
+            int x = x1 - 16 + i;
+            for (int j = 0; j <= 32; j++) {
+                int z = z1 - 16 + j;
+                int cacheIndex = (i * 33 + j) * 33;
 
-                for (int y = y1 - 16; y < y1 + 16; y++) {
-                    int spawnMode = getSpawnMode(chunk, x, y, z);
-                    if (spawnMode == 0)
+                for (int k = 0; k <= 32; k++) {
+                    int y = y1 - 16 + k;
+                    int spawnMode = mobSpawnCache[cacheIndex + k];
+                    if (spawnMode == 0) {
                         continue;
+                    } else if (spawnMode == -1) {
+                        break;
+                    }
 
                     if (spawnMode != curSpawnMode) {
-                        if (spawnMode == 1)
+                        if (spawnMode == 1) {
                             GL11.glColor4f(1, 1, 0, 1);
-                        else
+                        } else {
                             GL11.glColor4f(1, 0, 0, 1);
+                        }
                         curSpawnMode = spawnMode;
                     }
 
-                    GL11.glVertex3d(x, y + 0.004, z);
-                    GL11.glVertex3d(x + 1, y + 0.004, z + 1);
-                    GL11.glVertex3d(x + 1, y + 0.004, z);
-                    GL11.glVertex3d(x, y + 0.004, z + 1);
+                    GL11.glVertex3d(x, y + 0.02, z);
+                    GL11.glVertex3d(x + 1, y + 0.02, z + 1);
+                    GL11.glVertex3d(x + 1, y + 0.02, z);
+                    GL11.glVertex3d(x, y + 0.02, z + 1);
                 }
             }
+        }
 
         GL11.glEnd();
         GL11.glEnable(GL11.GL_LIGHTING);
@@ -100,10 +155,12 @@ public class WorldOverlayRenderer implements IKeyStateTracker
 
     private static final Entity dummyEntity = new EntityPig(null);
     private static final AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(0, 0, 0, 0, 0, 0);
-    private static int getSpawnMode(Chunk chunk, int x, int y, int z) {
+
+    private static byte getSpawnMode(Chunk chunk, int x, int y, int z) {
         if (!SpawnerAnimals.canCreatureTypeSpawnAtLocation(EnumCreatureType.monster, chunk.worldObj, x, y, z) ||
-                chunk.getSavedLightValue(EnumSkyBlock.Block, x & 15, y, z & 15) >= 8)
+                chunk.getSavedLightValue(EnumSkyBlock.Block, x & 15, y, z & 15) >= 8) {
             return 0;
+        }
 
         aabb.minX = x + 0.2;
         aabb.maxX = x + 0.8;
@@ -111,14 +168,11 @@ public class WorldOverlayRenderer implements IKeyStateTracker
         aabb.maxY = y + 1.8;
         aabb.minZ = z + 0.2;
         aabb.maxZ = z + 0.8;
-        if (!chunk.worldObj.checkNoEntityCollision(aabb) ||
-                !chunk.worldObj.getCollidingBoundingBoxes(dummyEntity, aabb).isEmpty() ||
-                chunk.worldObj.isAnyLiquid(aabb))
+        if (!chunk.worldObj.getCollidingBoundingBoxes(dummyEntity, aabb).isEmpty() || chunk.worldObj.isAnyLiquid(aabb)) {
             return 0;
+        }
 
-        if (chunk.getSavedLightValue(EnumSkyBlock.Sky, x & 15, y, z & 15) >= 8)
-            return 1;
-        return 2;
+        return (byte) (chunk.getSavedLightValue(EnumSkyBlock.Sky, x & 15, y, z & 15) >= 8 ? 1 : 2);
     }
 
     private static void renderChunkBounds(Entity entity) {
