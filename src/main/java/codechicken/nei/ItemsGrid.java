@@ -14,7 +14,7 @@ import static codechicken.lib.gui.GuiDraw.drawRect;
 
 public class ItemsGrid
 {
-    protected static final int SLOT_SIZE = 18;
+    public static final int SLOT_SIZE = 18;
 
     protected int width;
     protected int height;

@@ -86,6 +86,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public static ItemPanel itemPanel;
     public static BookmarkPanel bookmarkPanel;
     public static SubsetWidget dropDown;
+    public static PresetsWidget presetsPanel;
     public static TextField searchField;
 
     public static ButtonCycled options;
@@ -177,7 +178,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public boolean objectUnderMouse(GuiContainer gui, int mousex, int mousey) {
         if (!isHidden() && isEnabled())
-            for (Widget widget : controlWidgets)
+            for (Widget widget : drawWidgets)
                 if (widget.contains(mousex, mousey))
                     return true;
 
@@ -238,7 +239,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public ItemStack getStackUnderMouse(GuiContainer gui, int mousex, int mousey) {
         if (!isHidden() && isEnabled()) {
-            for (Widget widget : controlWidgets) {
+            for (Widget widget : drawWidgets) {
                 ItemStack stack = widget.getStackMouseOver(mousex, mousey);
                 if (stack != null)
                     return stack;
@@ -275,7 +276,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
         if (!isHidden() && isEnabled() && GuiContainerManager.shouldShowTooltip(gui)) {
-            for (Widget widget : controlWidgets)
+            for (Widget widget : drawWidgets)
                 currenttip = widget.handleTooltip(mousex, mousey, currenttip);
         }
         return currenttip;
@@ -339,6 +340,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         bookmarkPanel.init();
 
         dropDown = new SubsetWidget();
+        presetsPanel = new PresetsWidget();
         searchField = new SearchField("search");
 
         options = new ButtonCycled(3)
@@ -671,7 +673,13 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         addWidget(options);
         addWidget(bookmarksButton);
         if (visiblity.showItemPanel) {
-            addWidget(itemPanel);
+
+            if (PresetsWidget.inEditMode()) {
+                drawWidgets.add(itemPanel);
+            } else {
+                addWidget(itemPanel);
+            }
+
             itemPanel.setVisible();
 
             addWidget(more);
@@ -682,6 +690,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (visiblity.showBookmarkPanel) {
             addWidget(bookmarkPanel);
             bookmarkPanel.setVisible();
+
+            addWidget(presetsPanel);
         }
 
         if (visiblity.showSearchSection) {
@@ -738,7 +748,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (!isEnabled())
             return;
 
-        for (Widget widget : controlWidgets)
+        for (Widget widget : drawWidgets)
             widget.update();
     }
 
@@ -747,7 +757,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (isHidden() || !isEnabled())
             return false;
 
-        for (Widget widget : controlWidgets)
+        for (Widget widget : drawWidgets)
             if (widget.onMouseWheel(scrolled, mousex, mousey))
                 return true;
 

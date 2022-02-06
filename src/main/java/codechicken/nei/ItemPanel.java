@@ -1,5 +1,6 @@
 package codechicken.nei;
 
+import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.guihook.GuiContainerManager;
@@ -14,6 +15,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
+import static codechicken.lib.gui.GuiDraw.drawRect;
 import static codechicken.nei.LayoutManager.searchField;
 
 import java.util.ArrayList;
@@ -81,6 +83,18 @@ public class ItemPanel extends Widget
 
             super.refresh(gui);
         }
+
+        @Override
+        protected void drawItem(Rectangle4i rect, int idx, ItemPanelSlot focus)
+        {
+
+            if (PresetsWidget.inEditMode() && !PresetsWidget.isHidden(getItem(idx))) {
+                drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);
+            }
+
+            super.drawItem(rect, idx, PresetsWidget.inEditMode()? null: focus);
+        }
+
 
     }
 
@@ -236,6 +250,7 @@ public class ItemPanel extends Widget
 
             if (mouseOverSlot == null || mouseOverSlot.slotIndex != mouseDownSlot || heldTime > 500) {
                 draggedStack = getDraggedStackWithQuantity(mouseDownSlot);
+                mouseDownSlot = -1;
             }
 
         }
@@ -482,7 +497,6 @@ public class ItemPanel extends Widget
                 else if (button == 1)
                     GuiUsageRecipe.openRecipeGui("item", item);
 
-                draggedStack = null;
                 mouseDownSlot = -1;
                 return;
             }

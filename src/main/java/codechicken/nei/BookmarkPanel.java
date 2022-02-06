@@ -21,7 +21,6 @@ import static codechicken.lib.gui.GuiDraw.drawRect;
 import java.awt.Point;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.FileInputStream;
@@ -450,6 +449,10 @@ public class BookmarkPanel extends ItemPanel
     public void saveBookmarks()
     {
 
+        if (bookmarkFile == null) {
+            return;
+        }
+
         ArrayList<String> strings = new ArrayList<>();
 
         for (int grpIdx = 0; grpIdx < namespaces.size() - 1; grpIdx++) {
@@ -487,12 +490,10 @@ public class BookmarkPanel extends ItemPanel
 
         }
 
-        if (bookmarkFile != null) {
-            try(FileWriter writer = new FileWriter(bookmarkFile)) {
-                IOUtils.writeLines(strings, "\n", writer);
-            } catch (IOException e) {
-                NEIClientConfig.logger.error("Filed to save bookmarks list to file {}", bookmarkFile, e);
-            }
+        try (FileOutputStream output = new FileOutputStream(bookmarkFile)) {
+            IOUtils.writeLines(strings, "\n", output, "UTF-8");
+        } catch (IOException e) {
+            NEIClientConfig.logger.error("Filed to save bookmarks list to file {}", bookmarkFile, e);
         }
 
     }
@@ -748,6 +749,7 @@ public class BookmarkPanel extends ItemPanel
     public void mouseUp(int mousex, int mousey, int button)
     {
         if (sortedStackIndex != -1) {
+            draggedStack = null;
             sortedNamespaceIndex = -1;
             sortedStackIndex = -1;
             mouseDownSlot = -1;
