@@ -15,10 +15,13 @@ import codechicken.nei.SubsetWidget.SubsetTag;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.config.Option;
 import codechicken.nei.config.OptionKeyBind;
+import codechicken.nei.recipe.CatalystInfo;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
 import codechicken.nei.recipe.ICraftingHandler;
+import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.IUsageHandler;
+import codechicken.nei.recipe.RecipeCatalysts;
 import codechicken.nei.recipe.RecipeInfo;
 import codechicken.nei.recipe.StackInfo;
 import net.minecraft.block.Block;
@@ -30,6 +33,7 @@ import org.lwjgl.input.Keyboard;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * This is the main class that handles item property configuration.
@@ -289,6 +293,74 @@ public class API
     public static void registerStackStringifyHandler(IStackStringifyHandler handler)
     {
         StackInfo.stackStringifyHandlers.add(handler);
+    }
+
+    /**
+     * Adds an association between an ingredient and what it can craft. (i.e. Furnace ItemStack -> Smelting and Fuel Recipes)
+     * Allows players to see what ingredient they need to craft in order to make recipes from a recipe category.
+     * @param stack the ingredient that can craft recipes (like a furnace or crafting table)
+     * @param handler the recipe category handled by the ingredient
+     * @param priority higher priority comes first, default to 0
+     */
+    public static void addRecipeCatalyst(ItemStack stack, IRecipeHandler handler, int priority) {
+        String handlerID = RecipeCatalysts.getRecipeID(handler);
+        addRecipeCatalyst(stack, handlerID, priority);
+    }
+
+    /**
+     * See {@link API#addRecipeCatalyst(ItemStack, IRecipeHandler, int)}
+     */
+    public static void addRecipeCatalyst(ItemStack stack, IRecipeHandler handler) {
+        addRecipeCatalyst(stack, handler, 0);
+    }
+
+    /**
+     * Adds an association between an ingredient and what it can craft. (i.e. Furnace ItemStack -> Smelting and Fuel Recipes)
+     * Allows players to see what ingredient they need to craft in order to make recipes from a recipe category.
+     * @param stack the ingredient that can craft recipes (like a furnace or crafting table)
+     * @param handlerID recipe category identifier (see also {@link RecipeCatalysts#getRecipeID(IRecipeHandler)})
+     * @param priority higher priority comes first, default to 0
+     */
+    public static void addRecipeCatalyst(ItemStack stack, String handlerID, int priority) {
+        RecipeCatalysts.addRecipeCatalyst(handlerID, new CatalystInfo(stack, priority));
+    }
+
+    /**
+     * See {@link API#addRecipeCatalyst(ItemStack, String, int)}
+     */
+    public static void addRecipeCatalyst(ItemStack stack, String handlerID) {
+        addRecipeCatalyst(stack, handlerID, 0);
+    }
+
+    public static void removeRecipeCatalyst(ItemStack stack, IRecipeHandler handler) {
+        String handlerID = RecipeCatalysts.getRecipeID(handler);
+        removeRecipeCatalyst(stack, handlerID);
+    }
+
+    public static void removeRecipeCatalyst(ItemStack stack, String handlerID) {
+        RecipeCatalysts.removeRecipeCatalyst(handlerID, stack);
+    }
+
+    @Deprecated
+    public static void addRecipeCatalyst(List<ItemStack> stacks, IRecipeHandler handler) {
+        for (ItemStack stack : stacks) {
+            addRecipeCatalyst(stack, handler);
+        }
+    }
+
+    @Deprecated
+    public static void addRecipeCatalyst(List<ItemStack> stacks, String handlerID) {
+        for (ItemStack stack : stacks) {
+            addRecipeCatalyst(stack, handlerID);
+        }
+    }
+
+    @Deprecated
+    public static void addRecipeCatalyst(ItemStack stack, Class<? extends IRecipeHandler> handler) {
+    }
+
+    @Deprecated
+    public static void addRecipeCatalyst(List<ItemStack> stacks, Class<? extends IRecipeHandler> handler) {
     }
 
 }

@@ -442,6 +442,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
      *
      * @return The overlay identifier of this recipe type.
      */
+    @Override
     public String getOverlayIdentifier() {
         return null;
     }
@@ -548,6 +549,36 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         TemplateRecipeHandler handler = newInstance();
         handler.loadUsageRecipes(inputId, ingredients);
         return handler;
+    }
+
+    /**
+     * First look up {@link RecipeCatalysts} whether target ingredient is registered for it.
+     * If so, load all recipes for this handler.
+     * Fallback to {@link TemplateRecipeHandler#getUsageHandler}.
+     */
+    public IUsageHandler getUsageAndCatalystHandler(String inputId, Object... ingredients) {
+        TemplateRecipeHandler handler = newInstance();
+        if (inputId.equals("item")) {
+            ItemStack candidate = (ItemStack) ingredients[0];
+            if (RecipeCatalysts.containsCatalyst(handler, candidate)) {
+                for (RecipeTransferRect rect : transferRects) {
+                    if (specifyTransferRect() == null || Objects.equals(rect.outputId, specifyTransferRect())) {
+                        handler.loadCraftingRecipes(rect.outputId, rect.results);
+                        return handler;
+                    }
+                }
+                NEIClientConfig.logger.info("failed to load catalyst handler, implement `loadTransferRects` for your handler " + handler.getClass().getName());
+            }
+        }
+        return this.getUsageHandler(inputId, ingredients);
+    }
+
+    /**
+     * Override this if you have multiple {@link RecipeTransferRect}s.
+     * Used for {@link TemplateRecipeHandler#getUsageAndCatalystHandler}.
+     */
+    public String specifyTransferRect() {
+        return null;
     }
 
     public int numRecipes() {

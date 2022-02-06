@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Pattern;
 
 import static codechicken.lib.gui.GuiDraw.drawMultilineTip;
@@ -35,11 +36,11 @@ public class GuiContainerManager
     public GuiContainer window;
 
     public static RenderItem drawItems = new RenderItem();
-    public static LinkedList<IContainerTooltipHandler> tooltipHandlers = new LinkedList<>();
-    public static LinkedList<IContainerInputHandler> inputHandlers = new LinkedList<>();
-    public static LinkedList<IContainerDrawHandler> drawHandlers = new LinkedList<>();
-    public static LinkedList<IContainerObjectHandler> objectHandlers = new LinkedList<>();
-    public static LinkedList<IContainerSlotClickHandler> slotClickHandlers = new LinkedList<>();
+    public static final LinkedList<IContainerTooltipHandler> tooltipHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerInputHandler> inputHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerDrawHandler> drawHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerObjectHandler> objectHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
+    public static final LinkedList<IContainerSlotClickHandler> slotClickHandlers = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
 
     static {
         addSlotClickHandler(new DefaultSlotClickHandler());
@@ -181,15 +182,28 @@ public class GuiContainerManager
         drawItem(i, j, itemstack, getFontRenderer(itemstack));
     }
 
+    public static void drawItem(int i, int j, ItemStack itemstack, boolean smallAmount) {
+        drawItem(i, j, itemstack, getFontRenderer(itemstack), smallAmount);
+    }
+
+    public static void drawItem(int i, int j, ItemStack itemstack, FontRenderer fontRenderer) {
+        drawItem(i, j, itemstack, fontRenderer, false);
+    }
+
     private static int modelviewDepth = -1;
     private static final HashSet<String> stackTraces = new HashSet<>();
 
-    public static void drawItem(int i, int j, ItemStack itemstack, FontRenderer fontRenderer) {
+    public static void drawItem(int i, int j, ItemStack itemstack, FontRenderer fontRenderer, boolean smallAmount) {
         enable3DRender();
         float zLevel = drawItems.zLevel += 100F;
         try {
             drawItems.renderItemAndEffectIntoGUI(fontRenderer, renderEngine, itemstack, i, j);
-            drawItems.renderItemOverlayIntoGUI(fontRenderer, renderEngine, itemstack, i, j);
+
+            if (!smallAmount) {
+                drawItems.renderItemOverlayIntoGUI(fontRenderer, renderEngine, itemstack, i, j);
+            } else if (itemstack.stackSize > 1) {
+                drawBigStackSize(i, j, itemstack.stackSize);
+            }
 
             if (!checkMatrixStack())
                 throw new IllegalStateException("Modelview matrix stack too deep");
@@ -215,6 +229,27 @@ public class GuiContainerManager
 
         enable2DRender();
         drawItems.zLevel = zLevel - 100;
+    }
+
+    //copy from appeng.client.render.AppEngRenderItem
+    protected static void drawBigStackSize(int offsetX, int offsetY, int amount)
+    {
+        final float scaleFactor = fontRenderer.getUnicodeFlag() ? 0.85f : 0.5f;
+        final float inverseScaleFactor = 1.0f / scaleFactor;
+        final String stackSize = String.valueOf( amount );
+
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        GL11.glPushMatrix();
+        GL11.glScaled(scaleFactor, scaleFactor, scaleFactor);
+
+        final int X = (int) ( ( (float) offsetX + 16.0f - fontRenderer.getStringWidth( stackSize ) * scaleFactor ) * inverseScaleFactor );
+        final int Y = (int) ( ( (float) offsetY + 16.0f - 7.0f * scaleFactor ) * inverseScaleFactor );
+        fontRenderer.drawStringWithShadow(stackSize, X, Y, 16777215);
+
+        GL11.glPopMatrix();
+        GL11.glEnable(GL11.GL_LIGHTING);
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
     }
 
     public static void enableMatrixStackLogging() {

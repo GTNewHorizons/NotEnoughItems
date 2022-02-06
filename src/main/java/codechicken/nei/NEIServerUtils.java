@@ -5,6 +5,8 @@ import codechicken.core.ServerUtils;
 import codechicken.lib.inventory.InventoryRange;
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.packet.PacketCustom;
+import cpw.mods.fml.common.FMLLog;
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
@@ -14,6 +16,9 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.JsonToNBT;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
@@ -24,6 +29,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.WorldSettings.GameType;
 import net.minecraftforge.oredict.OreDictionary;
+import org.apache.logging.log4j.Level;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -387,6 +393,50 @@ public class NEIServerUtils
         }
     }
 
+    public static ItemStack getModdedItem(String itemId, String nbtString) {
+        int meta = -1;
+        ItemStack itemStack;
+
+        if (!itemId.contains(":")) {
+            NEIClientConfig.logger.info(String.format("Item ID %s is missing colon", itemId));
+            return null;
+        }
+        final String[] split = itemId.split(":");
+        // ModID:ItemID
+        String itemLookupId = split[0] + ":" + split[1];
+
+        if (split.length >= 3) {
+            int mIdx = -1;
+            if (split[2].matches("\\d+")) {
+                mIdx = 2;
+            } else {
+                itemLookupId += ":" + split[2];
+                if (split.length >= 4) mIdx = 3;
+            }
+            if (mIdx != -1) meta = Integer.parseInt(split[mIdx]);
+        }
+
+        if (meta != -1) {
+            itemStack = GameRegistry.makeItemStack(itemLookupId, meta, 1, nbtString == null ? "" : nbtString);
+        } else {
+            itemStack = GameRegistry.findItemStack(split[0], split[1], 1);
+            if (nbtString != null && !nbtString.isEmpty()) {
+                try {
+                    final NBTBase nbttag = JsonToNBT.func_150315_a(nbtString);
+                    if (!(nbttag instanceof NBTTagCompound)) {
+                        NEIClientConfig.logger.info("Unexpected NBT string - multiple values {}", nbtString);
+                        return null;
+                    }
+                    itemStack.setTagCompound((NBTTagCompound) nbttag);
+                } catch (NBTException e) {
+                    FMLLog.getLogger().log(Level.WARN, "Encountered an exception parsing ItemStack NBT string {}", nbtString, e);
+                    return null;
+                }
+            }
+        }
+        return itemStack;
+    }
+
     public static NBTTagCompound readNBT(File file) throws IOException {
         if(!file.exists()) return null;
         FileInputStream in = new FileInputStream(file);
@@ -407,5 +457,9 @@ public class NEIServerUtils
         FileOutputStream out = new FileOutputStream(file);
         CompressedStreamTools.writeCompressed(tag, out);
         out.close();
+    }
+
+    public static int divideCeil(int numerator, int denominator) {
+        return (int) Math.ceil((float) numerator / denominator);
     }
 }

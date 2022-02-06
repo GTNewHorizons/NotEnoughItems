@@ -27,8 +27,8 @@ import codechicken.nei.config.OptionUtilities;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.RecipeCatalysts;
 import codechicken.nei.recipe.RecipeInfo;
-import codechicken.nei.recipe.TemplateRecipeHandler;
 import codechicken.obfuscator.ObfuscationRun;
 import com.google.common.base.Objects;
 import net.minecraft.client.Minecraft;
@@ -53,6 +53,7 @@ import java.util.regex.Pattern;
 public class NEIClientConfig {
     private static boolean configLoaded;
     private static boolean enabledOverride;
+    private static String worldPath;
 
     public static Logger logger = LogManager.getLogger("NotEnoughItems");
     public static File configDir = new File(CommonUtils.getMinecraftDir(), "config/NEI/");
@@ -60,11 +61,14 @@ public class NEIClientConfig {
             new File("saves/NEI/client.dat"),
             new ConfigFile(new File(configDir, "client.cfg")));
     public static ConfigSet world;
-    public static final File bookmarkFile = new File(configDir, "bookmarks.ini");
     public static final File handlerFile = new File(configDir, "handlers.csv");
+    public static final File catalystFile = new File(configDir, "catalysts.csv");
     public static final File serialHandlersFile = new File(configDir, "serialhandlers.cfg");
     public static final File heightHackHandlersFile = new File(configDir, "heighthackhandlers.cfg");
     public static final File handlerOrderingFile = new File(configDir, "handlerordering.csv");
+
+    @Deprecated
+    public static File bookmarkFile;
 
     // Set of handlers that need to be run in serial
     public static HashSet<String> serialHandlers = new HashSet<>();
@@ -81,11 +85,9 @@ public class NEIClientConfig {
     // Function that extracts the handler ID from a handler, with special logic for
     // TemplateRecipeHandler: prefer using the overlay ID if it exists.
     public static final Function<IRecipeHandler, String> HANDLER_ID_FUNCTION =
-            handler -> handler instanceof TemplateRecipeHandler
-                    ? Objects.firstNonNull(
-                            ((TemplateRecipeHandler) handler).getOverlayIdentifier(),
-                            handler.getHandlerId())
-                    : handler.getHandlerId();
+            handler -> Objects.firstNonNull(
+                            handler.getOverlayIdentifier(),
+                            handler.getHandlerId());
 
     // Comparator that compares handlers using the handlerOrdering map.
     public static final Comparator<IRecipeHandler> HANDLER_COMPARATOR =
@@ -165,6 +167,8 @@ public class NEIClientConfig {
                 return isMouseScrollTransferEnabled();
             }
         });
+        
+        tag.getTag("itemLoadingTimeout").getIntValue(500);
 
         tag.getTag("command.creative").setDefaultValue("/gamemode {0} {1}");
         API.addOption(new OptionTextField("command.creative"));
@@ -177,6 +181,15 @@ public class NEIClientConfig {
         tag.getTag("command.heal").setDefaultValue("");
         API.addOption(new OptionTextField("command.heal"));
 
+        tag.getTag("inventory.worldSpecificBookmarks").setComment("Global or world specific bookmarks").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.worldSpecificBookmarks", true) {
+            @Override
+            public boolean onClick(int button) {
+                super.onClick(button);
+                initBookmarkFile(worldPath);
+                return true;
+            }
+        });
         tag.getTag("inventory.bookmarksEnabled").setComment("Enable/disable bookmarks").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.bookmarksEnabled", true));
         tag.getTag("inventory.saveCurrentRecipeInBookmarksEnabled").setComment("Save Current Recipe in Bookmarks").getBooleanValue(true);
@@ -188,6 +201,8 @@ public class NEIClientConfig {
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
         tag.getTag("inventory.jei_style_item_presence_overlay").setComment("Enable/disable JEI Style item presence overlay on ?-hover").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.jei_style_item_presence_overlay", true));
+        tag.getTag("inventory.jei_style_recipe_catalyst").setComment("Enable/disable JEI Style Recipe Catalysts").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.jei_style_recipe_catalyst", true));
 
 
         tag.getTag("inventory.creative_tab_style").setComment("Creative or JEI style tabs").getBooleanValue(false);
@@ -202,6 +217,17 @@ public class NEIClientConfig {
                 return true;
             }
         });
+
+        tag.getTag("tools.catalyst_load_from_config").setComment("ADVANCED: Load catalysts from config").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("tools.catalyst_load_from_config", true) {
+            @Override
+            public boolean onClick(int button) {
+                super.onClick(button);
+                RecipeCatalysts.loadCatalystInfo();
+                return true;
+            }
+        });
+
         setDefaultKeyBindings();
     }
 
@@ -262,17 +288,22 @@ public class NEIClientConfig {
         return OptionList.getOptionList("nei.options");
     }
 
-    public static void loadWorld(String saveName) {
+    public static void loadWorld(String worldPath) {
+        NEIClientConfig.worldPath = worldPath;
+
         setInternalEnabled(true);
         logger.debug("Loading "+(Minecraft.getMinecraft().isSingleplayer() ? "Local" : "Remote")+" World");
         bootNEI(ClientUtils.getWorld());
 
-        File saveDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + saveName);
-        boolean newWorld = !saveDir.exists();
-        if (newWorld)
-            saveDir.mkdirs();
+        final File specificDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
+        final boolean newWorld = !specificDir.exists();
 
-        world = new ConfigSet(new File(saveDir, "NEI.dat"), new ConfigFile(new File(saveDir, "NEI.cfg")));
+        if (newWorld) {
+            specificDir.mkdirs();
+        }
+
+        initBookmarkFile(worldPath);
+        world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
         onWorldLoad(newWorld);
     }
 
@@ -317,6 +348,7 @@ public class NEIClientConfig {
         RecipeInfo.load();
         LayoutManager.load();
         NEIController.load();
+        RecipeCatalysts.loadCatalystInfo();
 
         configLoaded = true;
 
@@ -342,6 +374,16 @@ public class NEIClientConfig {
             }
         }.start();
         ItemSorter.loadConfig();
+    }
+
+    private static void initBookmarkFile(String worldPath)
+    {
+        
+        if (!global.config.getTag("inventory.worldSpecificBookmarks").getBooleanValue()) {
+            worldPath = "global";
+        }
+
+        ItemPanels.bookmarkPanel.setBookmarkFile(worldPath);
     }
 
     public static boolean isWorldSpecific(String setting) {
@@ -376,6 +418,9 @@ public class NEIClientConfig {
     public static boolean isJEIStyleItemPresenceOverlayVisible() {
         return getBooleanSetting("inventory.jei_style_item_presence_overlay");
     }
+    public static boolean areJEIStyleRecipeCatalystsVisible() {
+        return getBooleanSetting("inventory.jei_style_recipe_catalyst");
+    }
     public static boolean useCreativeTabStyle() {
         return getBooleanSetting("inventory.creative_tab_style");
     }
@@ -384,6 +429,9 @@ public class NEIClientConfig {
     }
     public static boolean loadHandlersFromJar() {
         return !getBooleanSetting("tools.handler_load_from_config");
+    }
+    public static boolean loadCatalystsFromJar() {
+        return !getBooleanSetting("tools.catalyst_load_from_config");
     }
 
     public static void setEnabled(boolean flag) {
@@ -418,6 +466,10 @@ public class NEIClientConfig {
     public static boolean showIDs() {
         int i = getIntSetting("inventory.itemIDs");
         return i == 2 || (i == 1 && isEnabled() && !isHidden());
+    }
+    
+    public static int getItemLoadingTimeout() {
+        return getIntSetting("itemLoadingTimeout");
     }
 
     public static void toggleBooleanSetting(String setting) {

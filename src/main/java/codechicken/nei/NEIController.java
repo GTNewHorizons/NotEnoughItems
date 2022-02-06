@@ -137,6 +137,7 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
         }
 
         if (NEIClientUtils.controlKey()
+                && modifier != 4//Drop key pressed: net.minecraft.client.gui.inventory.GuiContainer.keyTyped
                 && slot != null && slot.getStack() != null
                 && slot.isItemValid(slot.getStack())) {
             NEIClientUtils.cheatItem(slot.getStack(), button, 1);

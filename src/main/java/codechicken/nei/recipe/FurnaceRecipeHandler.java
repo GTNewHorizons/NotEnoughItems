@@ -116,6 +116,11 @@ public class FurnaceRecipeHandler extends TemplateRecipeHandler
     }
 
     @Override
+    public String specifyTransferRect() {
+        return "smelting";
+    }
+
+    @Override
     public String getGuiTexture() {
         return "textures/gui/container/furnace.png";
     }

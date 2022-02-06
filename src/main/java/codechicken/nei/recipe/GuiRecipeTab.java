@@ -64,9 +64,9 @@ public abstract class GuiRecipeTab extends Widget {
         this.handlerName = handler.getHandlerId();
         this.guiRecipe = guiRecipe;
         this.selected = false;
-        
+
         if(handler instanceof TemplateRecipeHandler) {
-            handlerID = (((TemplateRecipeHandler)handler).getOverlayIdentifier());
+            handlerID = handler.getOverlayIdentifier();
         } else {
             handlerID = null;
         }
@@ -130,7 +130,7 @@ public abstract class GuiRecipeTab extends Widget {
     }
 
     public void addTooltips(List<String> tooltip) {
-        tooltip.add(handler.getRecipeName().trim());
+        tooltip.add(handler.getRecipeTabName().trim());
         
         String handlerMod = getHandlerMod(handlerName, handlerID);
         tooltip.add(EnumChatFormatting.BLUE + handlerMod);
@@ -155,6 +155,24 @@ public abstract class GuiRecipeTab extends Widget {
     
     public void setSelected(IRecipeHandler current) {
         selected = handler == current;
+    }
+
+    public static HandlerInfo getHandlerInfo(IRecipeHandler handler)
+    {
+        final String handlerID;
+
+        if (handler instanceof TemplateRecipeHandler) {
+            handlerID = handler.getOverlayIdentifier();
+        } else {
+            handlerID = null;
+        }
+
+        HandlerInfo info = getHandlerInfo(handler.getHandlerId(), handlerID);
+        
+        if (info == null)
+            return GuiRecipeTab.DEFAULT_HANDLER_INFO;
+        
+        return info;
     }
 
     public static HandlerInfo getHandlerInfo(String name, String name2) {
@@ -189,7 +207,7 @@ public abstract class GuiRecipeTab extends Widget {
         } else {
             File handlerFile = NEIClientConfig.handlerFile;
             if(!handlerFile.exists()) {
-                NEIClientConfig.logger.info("Config file doesn't exit, creating");
+                NEIClientConfig.logger.info("Config file doesn't exist, creating");
                 try {
                     assert handlerUrl != null;
                     ReadableByteChannel readableByteChannel = Channels.newChannel(handlerUrl.openStream());
@@ -254,9 +272,6 @@ public abstract class GuiRecipeTab extends Widget {
                 handlerMap.put(handler, info);
                 NEIClientConfig.logger.info("Loaded " + handler);
             }
-        } catch (IOException e) {
-            NEIClientConfig.logger.info("Error parsing CSV");
-            e.printStackTrace();
         } catch (Exception e) {
             NEIClientConfig.logger.info("Error parsing CSV");
             e.printStackTrace();

@@ -76,6 +76,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
     
     private final Rectangle area = new Rectangle();
     private final GuiRecipeTabs recipeTabs;
+    private final GuiRecipeCatalyst guiRecipeCatalyst;
     private IRecipeHandler handler;
     private HandlerInfo handlerInfo;
     
@@ -84,6 +85,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
     protected GuiRecipe(GuiScreen prevgui) {
         super(new ContainerRecipe());
         recipeTabs = new GuiRecipeTabs(this);
+        guiRecipeCatalyst = new GuiRecipeCatalyst(this);
         slotcontainer = (ContainerRecipe) inventorySlots;
 
         this.prevGui = prevgui;
@@ -208,7 +210,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         else if (recipetype >= currenthandlers.size()) recipetype = 0;
 
         handler = currenthandlers.get(recipetype);
-        handlerInfo = getHandlerInfo(handler);
+        handlerInfo = GuiRecipeTab.getHandlerInfo(handler);
         page = Math.min(Math.max(0, position), handler.numRecipes() - 1)  / getRecipesPerPage();
         recipeTabs.calcPageNumber();
         checkYShift();
@@ -230,7 +232,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
 
                 for (int j = 0; j < currenthandlers.size(); j++) {
                     IRecipeHandler localHandler = currenthandlers.get(j);
-                    HandlerInfo localHandlerInfo = getHandlerInfo(localHandler);
+                    HandlerInfo localHandlerInfo = GuiRecipeTab.getHandlerInfo(localHandler);
         
                     if (localHandlerInfo.getHandlerName().equals(recipeId.handlerName)) {
                         recipeId.recipetype = j;
@@ -258,29 +260,27 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         setRecipePage(recipeId.recipetype, recipeId.position);    
     }
 
-    public BookmarkRecipeId getFocusedRecipeId()
+    public List<PositionedStack> getFocusedRecipeIngredients()
     {
-        String handlerName = handlerInfo.getHandlerName();
-        Point mousePos = GuiDraw.getMousePosition();
-        int recipesPerPage = getRecipesPerPage();
+        final int recipesPerPage = getRecipesPerPage();
 
-        for (int i = page * recipesPerPage; i < handler.numRecipes() && i < (page + 1) * recipesPerPage; i++) {
-            if (recipeInFocus(i)) {
-                return new BookmarkRecipeId(handlerName, handler.getIngredientStacks(i), recipetype, i);
+        for (int idx = page * recipesPerPage; idx < handler.numRecipes() && idx < (page + 1) * recipesPerPage; idx++) {
+            if (recipeInFocus(idx)) {
+                return handler.getIngredientStacks(idx);
             }
         }
-        
+
         return null;
     }
 
-    protected Boolean recipeInFocus(int idx)
+    protected boolean recipeInFocus(int idx)
     {
-        PositionedStack result = handler.getResultStack(idx);
+        final PositionedStack result = handler.getResultStack(idx);
         if (result != null && isMouseOver(result, idx)) {
             return true;
         }
 
-        List<PositionedStack> stacks = handler.getOtherStacks(idx);
+        final List<PositionedStack> stacks = handler.getOtherStacks(idx);
         for (PositionedStack stack : stacks) {
             if (isMouseOver(stack, idx)) {
                 return true;
@@ -288,6 +288,11 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         }
 
         return false;
+    }
+
+    public String getHandlerName()
+    {
+        return handlerInfo.getHandlerName();
     }
 
     public IRecipeHandler getHandler() {
@@ -436,21 +441,6 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         setRecipePage(--recipetype);
     }
 
-    public HandlerInfo getHandlerInfo(IRecipeHandler handler) {
-        final String handlerID;
-        if(handler instanceof TemplateRecipeHandler) {
-            handlerID = (((TemplateRecipeHandler)handler).getOverlayIdentifier());
-        } else {
-            handlerID = null;
-        }
-        HandlerInfo info = GuiRecipeTab.getHandlerInfo(handler.getHandlerId(), handlerID);
-        
-        if (info == null)
-            return GuiRecipeTab.DEFAULT_HANDLER_INFO;
-        
-        return info;
-    }
-
     private void overlayRecipe(int recipe) {
         final IRecipeOverlayRenderer renderer = handler.getOverlayRenderer(firstGui, recipe);
         final IOverlayHandler overlayHandler = handler.getOverlayHandler(firstGui, recipe);
@@ -466,6 +456,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
     }
     
     public void refreshPage() {
+        RecipeCatalysts.updatePosition(ySize - BG_TOP_HEIGHT - (GuiRecipeCatalyst.fullBorder * 2));
         refreshSlots();
         final int recipesPerPage = getRecipesPerPage();
         final boolean multiplepages = handler.numRecipes() > recipesPerPage;
@@ -515,6 +506,13 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
             PositionedStack result = handler.getResultStack(i);
             if (result != null)
                 slotcontainer.addSlot(result, p.x, p.y);
+
+            List<PositionedStack> catalysts = RecipeCatalysts.getRecipeCatalysts(handler);
+            for (PositionedStack catalyst : catalysts) {
+                int xOffset = -GuiRecipeCatalyst.ingredientSize + 1;
+                int yOffset = BG_TOP_Y + GuiRecipeCatalyst.fullBorder;
+                slotcontainer.addSlot(catalyst, xOffset, yOffset);
+            }
         }
     }
 
@@ -599,6 +597,9 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
             RenderHelper.enableGUIStandardItemLighting();
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
             recipeTabs.draw(mouseX, mouseY);
+            if (NEIClientConfig.areJEIStyleRecipeCatalystsVisible()) {
+                guiRecipeCatalyst.draw();
+            }
             RenderHelper.disableStandardItemLighting();
         }
 
@@ -704,9 +705,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
     @Override
     public boolean hideItemPanelSlot(GuiContainer gui, int x, int y, int w, int h) {
         // Because some of the handlers *cough avaritia* are oversized
-        Rectangle rect = new Rectangle(area);
-
-        return rect.contains(x, y, w, h);
+        return area.intersects(x, y, w, h);
     }
 
 }

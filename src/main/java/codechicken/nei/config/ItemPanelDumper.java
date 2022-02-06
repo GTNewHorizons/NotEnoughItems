@@ -36,7 +36,7 @@ public class ItemPanelDumper extends DataDumper
     @Override
     public Iterable<String[]> dump(int mode) {
         LinkedList<String[]> list = new LinkedList<>();
-        for (ItemStack stack : ItemPanels.itemPanel.realItems)
+        for (ItemStack stack : ItemPanels.itemPanel.getItems())
             list.add(new String[]{
                     Item.itemRegistry.getNameForObject(stack.getItem()),
                     Integer.toString(Item.getIdFromItem(stack.getItem())),
@@ -123,7 +123,7 @@ public class ItemPanelDumper extends DataDumper
 
     public void dumpNBT(File file) throws IOException {
         NBTTagList list = new NBTTagList();
-        for (ItemStack stack : ItemPanels.itemPanel.realItems)
+        for (ItemStack stack : ItemPanels.itemPanel.getItems())
             list.appendTag(stack.writeToNBT(new NBTTagCompound()));
 
         NBTTagCompound tag = new NBTTagCompound();
@@ -134,7 +134,7 @@ public class ItemPanelDumper extends DataDumper
 
     public void dumpJson(File file) throws IOException {
         PrintWriter p = new PrintWriter(file);
-        for (ItemStack stack : ItemPanels.itemPanel.realItems) {
+        for (ItemStack stack : ItemPanels.itemPanel.getItems()) {
             NBTTagCompound tag = stack.writeToNBT(new NBTTagCompound());
             tag.removeTag("Count");
             p.println(tag);

@@ -3,11 +3,11 @@ package codechicken.nei.api;
 import codechicken.nei.NEIChestGuiHandler;
 import codechicken.nei.NEICreativeGuiHandler;
 import codechicken.nei.NEIDummySlotHandler;
+import codechicken.nei.recipe.GuiRecipeCatalyst;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -24,6 +24,7 @@ public class GuiInfo {
         API.registerNEIGuiHandler(new NEICreativeGuiHandler());
         API.registerNEIGuiHandler(new NEIChestGuiHandler());
         API.registerNEIGuiHandler(new NEIDummySlotHandler());
+        API.registerNEIGuiHandler(new GuiRecipeCatalyst(null));
         customSlotGuis.add(GuiContainerCreative.class);
     }
 

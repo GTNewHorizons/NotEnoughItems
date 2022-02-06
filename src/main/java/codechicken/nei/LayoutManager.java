@@ -4,7 +4,6 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.KeyManager.IKeyStateTracker;
 import codechicken.nei.api.API;
 import codechicken.nei.api.GuiInfo;
-import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.api.IRecipeOverlayRenderer;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.api.LayoutStyle;
@@ -16,7 +15,7 @@ import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerObjectHandler;
 import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.recipe.GuiRecipeTab;
-import cpw.mods.fml.common.Loader;
+import codechicken.nei.recipe.RecipeCatalysts;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -63,7 +62,6 @@ import static codechicken.nei.NEIClientUtils.getNextGamemode;
 import static codechicken.nei.NEIClientUtils.healPlayer;
 import static codechicken.nei.NEIClientUtils.isValidGamemode;
 import static codechicken.nei.NEIClientUtils.setHourForward;
-import static codechicken.nei.NEIClientUtils.setItemQuantity;
 import static codechicken.nei.NEIClientUtils.shiftKey;
 import static codechicken.nei.NEIClientUtils.toggleMagnetMode;
 import static codechicken.nei.NEIClientUtils.toggleRaining;
@@ -360,6 +358,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                     } else {
                         if (Keyboard.getEventKeyState() && (Keyboard.getEventKey() == Keyboard.KEY_LSHIFT || Keyboard.getEventKey() == Keyboard.KEY_RSHIFT)) {
                             GuiRecipeTab.loadHandlerInfo();
+                            RecipeCatalysts.loadCatalystInfo();
                         }
                         getOptionList().openGui(getGuiContainer(), false);
                     }

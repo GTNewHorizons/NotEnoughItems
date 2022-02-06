@@ -1,6 +1,7 @@
 package codechicken.nei.recipe;
 
 import codechicken.nei.NEIClientConfig;
+import codechicken.nei.NEIServerUtils;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import cpw.mods.fml.common.FMLLog;
@@ -53,48 +54,10 @@ public class HandlerInfo {
     public boolean setItem(String itemId, String nbtString) {
         if(hasImageOrItem())
             return false;
-        
-        int meta = -1;
-        if (!itemId.contains(":")) {
-            NEIClientConfig.logger.info("Item ID missing colon for handler " + handlerName + " - " + modName);
-            return false;
-        }
-        final String[] split = itemId.split(":");
-        // ModID:ItemID
-        String itemLookupId = split[0] + ":" + split[1];
 
-        if(split.length >= 3) {
-            int mIdx = -1;
-            if (split[2].matches("\\d+")) {
-                mIdx = 2;
-            } else {
-                itemLookupId += ":" + split[2];
-                if (split.length >= 4) mIdx = 3;
-            }
-            if (mIdx != -1) meta = Integer.parseInt(split[mIdx]);
-        }
-
-        if (meta != -1) {
-            itemStack = GameRegistry.makeItemStack(itemLookupId, meta, 1, nbtString == null ? "" : nbtString);
-        } else {
-            itemStack = GameRegistry.findItemStack(split[0], split[1], 1);
-            if (nbtString != null && !nbtString.equals("")) {
-                try {
-                    final NBTBase nbttag = JsonToNBT.func_150315_a(nbtString);
-                    if (!(nbttag instanceof NBTTagCompound)) {
-                        NEIClientConfig.logger.info("Unexpected NBT string - multiple values {}", nbtString);
-                        return false;
-                    }
-
-                    itemStack.setTagCompound((NBTTagCompound) nbttag);
-                } catch (NBTException e) {
-                    FMLLog.getLogger().log(Level.WARN, "Encountered an exception parsing ItemStack NBT string {}", nbtString, e);
-                    return false;
-                }
-            }
-        }
+        itemStack = NEIServerUtils.getModdedItem(itemId, nbtString);
         if (itemStack == null)
-            NEIClientConfig.logger.info("Couldn't find " + modName + " - " + itemLookupId);
+            NEIClientConfig.logger.info("Couldn't find " + modName + " - " + itemId);
         else {
             this.itemId = itemId;
             this.nbtString = nbtString;

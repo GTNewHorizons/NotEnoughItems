@@ -5,7 +5,6 @@ import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.util.LangProxy;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.IInfiniteItemHandler;
-import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.api.ItemInfo;
 import com.google.common.collect.Iterables;
 import net.minecraft.client.Minecraft;
@@ -136,10 +135,7 @@ public class NEIClientUtils extends NEIServerUtils
             if (mode == 1 && stack.stackSize < stack.getMaxStackSize()) {
                 giveStack(stack, stack.getMaxStackSize() - stack.stackSize);
             } else {
-                int amount = getItemQuantity();
-                if (amount == 0)
-                    amount = stack.getMaxStackSize();
-                giveStack(stack, amount);
+                giveStack(stack);
             }
         }
     }
@@ -161,7 +157,10 @@ public class NEIClientUtils extends NEIServerUtils
                 final List<Iterable<Integer>> handlerSlots;
                 try {
                     GuiInfo.readLock.lock();
-                    handlerSlots = GuiInfo.guiHandlers.stream().map(handler -> handler.getItemSpawnSlots(gui, typestack)).collect(Collectors.toCollection(LinkedList::new));
+                    handlerSlots = GuiInfo.guiHandlers.stream()
+                        .map(handler -> handler.getItemSpawnSlots(gui, typestack))
+                        .filter(x -> x != null)
+                        .collect(Collectors.toCollection(LinkedList::new));
                 } finally {
                     GuiInfo.readLock.unlock();
                 }

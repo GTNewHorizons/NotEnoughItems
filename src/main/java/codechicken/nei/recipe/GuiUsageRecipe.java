@@ -25,12 +25,12 @@ public class GuiUsageRecipe extends GuiRecipe
 
         profiler.start("recipe.concurrent.usage");
         try {
-            handlers = serialUsageHandlers.stream().map(h -> h.getUsageHandler(inputId, ingredients))
+            handlers = serialUsageHandlers.stream().map(h -> getUsageOrCatalystHandler(h, inputId, ingredients))
                 .filter(h -> h.numRecipes() > 0)
                 .collect(Collectors.toCollection(ArrayList::new));
-            
+
             handlers.addAll(ItemList.forkJoinPool.submit(() -> usagehandlers.parallelStream()
-                .map(h -> h.getUsageHandler(inputId, ingredients))
+                .map(h -> getUsageOrCatalystHandler(h, inputId, ingredients))
                 .filter(h -> h.numRecipes() > 0)
                 .collect(Collectors.toCollection(ArrayList::new))).get());
         } catch (InterruptedException | ExecutionException e) {
@@ -67,6 +67,15 @@ public class GuiUsageRecipe extends GuiRecipe
 
     public ArrayList<? extends IRecipeHandler> getCurrentRecipeHandlers() {
         return currenthandlers;
+    }
+
+    private static IUsageHandler getUsageOrCatalystHandler(IUsageHandler handler, String inputId, Object... ingredients) {
+        boolean skipCatalyst = NEIClientUtils.controlKey();
+        if (NEIClientConfig.areJEIStyleRecipeCatalystsVisible() && !skipCatalyst) {
+            return handler.getUsageAndCatalystHandler(inputId, ingredients);
+        } else {
+            return handler.getUsageHandler(inputId, ingredients);
+        }
     }
 
     public ArrayList<IUsageHandler> currenthandlers;
