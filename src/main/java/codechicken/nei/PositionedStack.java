@@ -98,6 +98,9 @@ public class PositionedStack
         return false;
     }
 
+    /**
+     * NBT-friendly version of {@link #contains(ItemStack)}
+     */
     public boolean containsWithNBT(ItemStack ingredient) {
         for(ItemStack item : items)
             if(NEIServerUtils.areStacksSameTypeCraftingWithNBT(item, ingredient))

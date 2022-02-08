@@ -220,6 +220,17 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
 
         /**
+         * NBT-friendly version of {@link #contains(Collection, ItemStack)}
+         */
+        public boolean containsWithNBT(Collection<PositionedStack> ingredients, ItemStack ingredient) {
+            for (PositionedStack stack : ingredients)
+                if (stack.containsWithNBT(ingredient))
+                    return true;
+
+            return false;
+        }
+
+        /**
          * @param ingred
          * @return true if any of the permutations of any of the ingredients contain this stack
          */
