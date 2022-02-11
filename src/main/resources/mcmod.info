@@ -4,7 +4,7 @@
         "name": "${modName}",
         "version": "${modVersion}",
         "mcversion": "${minecraftVersion}",
-        "description": "Recipe Viewer, Inventory Manager, Item Spawner, Cheats and more; GTNH Version includes many ehancements.",
+        "description": "Recipe Viewer, Inventory Manager, Item Spawner, Cheats and more; GTNH Version includes many enhancements.",
         "url": "https://github.com/GTNewHorizons/NotEnoughItems",
         "credits": "Alexandria - original idea",
         "license": "LGPL-3.0",

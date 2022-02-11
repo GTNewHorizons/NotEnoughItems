@@ -25,10 +25,7 @@ import cpw.mods.fml.common.versioning.VersionRange;
 import net.minecraft.util.EnumChatFormatting;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class NEIModContainer extends DummyModContainer
 {
@@ -46,6 +43,9 @@ public class NEIModContainer extends DummyModContainer
         modMetadata.name = "GRADLETOKEN_MODNAME";
         modMetadata.modId = "GRADLETOKEN_MODID";
         modMetadata.version = "GRADLETOKEN_VERSION";
+        modMetadata.authorList = Arrays.asList( "ChickenBones", "mitchej123" );
+        modMetadata.url = "https://github.com/GTNewHorizons/NotEnoughItems";
+        modMetadata.description = "Recipe Viewer, Inventory Manager, Item Spawner, Cheats and more; GTNH Version includes many enhancements.";
         return modMetadata;
     }
 
