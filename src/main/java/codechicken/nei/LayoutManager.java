@@ -316,6 +316,12 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (gui.height - gui.ySize <= 40)
             visiblity.showSearchSection = false;
 
+        if (visiblity.showBookmarkPanel || gui.guiTop <= 20)
+            visiblity.showSubsetDropdown = false;
+
+        if (!visiblity.showBookmarkPanel || gui.guiTop <= 20)
+            visiblity.showPresetsDropdown = false;
+
         if (gui.guiLeft - 4 < 76)
             visiblity.showWidgets = false;
         try {
@@ -690,7 +696,9 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (visiblity.showBookmarkPanel) {
             addWidget(bookmarkPanel);
             bookmarkPanel.setVisible();
+        }
 
+        if (visiblity.showPresetsDropdown) {
             addWidget(presetsPanel);
         }
 
@@ -717,7 +725,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 addWidget(delete);
         }
 
-        if (!visiblity.showBookmarkPanel) {
+        if (visiblity.showSubsetDropdown) {
             // Bookmarks or Subset/dropdown
             addWidget(dropDown);
         }

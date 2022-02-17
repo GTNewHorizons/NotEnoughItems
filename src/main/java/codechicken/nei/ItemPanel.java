@@ -12,6 +12,7 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
@@ -472,9 +473,9 @@ public class ItemPanel extends Widget
             final FluidStack fluidStack = StackInfo.getFluid(draggedStack);
 
             if (fluidStack != null) {
-                searchField.setText(SPECIAL_REGEX_CHARS.matcher(fluidStack.getLocalizedName()).replaceAll("\\\\$0"));
+                searchField.setText(SPECIAL_REGEX_CHARS.matcher(EnumChatFormatting.getTextWithoutFormattingCodes(fluidStack.getLocalizedName())).replaceAll("\\\\$0"));
             } else {
-                searchField.setText(SPECIAL_REGEX_CHARS.matcher(draggedStack.getDisplayName()).replaceAll("\\\\$0"));
+                searchField.setText(SPECIAL_REGEX_CHARS.matcher(EnumChatFormatting.getTextWithoutFormattingCodes(draggedStack.getDisplayName())).replaceAll("\\\\$0"));
             }
 
             return true;
