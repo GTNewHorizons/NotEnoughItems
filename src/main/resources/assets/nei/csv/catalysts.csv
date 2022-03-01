@@ -383,6 +383,11 @@ nc.crafting.nei.RecyclerRecipeHandler,NuclearCraft:recyclerIdle,,NuclearCraft,TR
 nc.crafting.nei.NuclearWorkspaceRecipeHandler,NuclearCraft:nuclearWorkspace,,NuclearCraft,TRUE,,,,,,
 ganymedes01.etfuturum.NEI_EtFuturum_Config$NEI_Recipes_Smoker,etfuturum:smoker,,etfuturum,TRUE,,,,,,not working well
 ganymedes01.etfuturum.NEI_EtFuturum_Config$NEI_Recipes_BlastFurnace,etfuturum:blast_furnace,,etfuturum,TRUE,,,,,,not working well
+connor135246.campfirebackport.client.compat.nei.NEICampfireRecipeHandler,campfirebackport:campfire,,campfirebackport,TRUE,,,,,,
+connor135246.campfirebackport.client.compat.nei.NEICampfireRecipeHandler,campfirebackport:soul_campfire,,campfirebackport,TRUE,,,,,,
+connor135246.campfirebackport.client.compat.nei.NEICampfireStateChangerHandler,campfirebackport:campfire,,campfirebackport,TRUE,,,,,,
+connor135246.campfirebackport.client.compat.nei.NEICampfireStateChangerHandler,campfirebackport:soul_campfire,,campfirebackport,TRUE,,,,,,
+smelting,Natura:NetherFurnace,,Natura,TRUE,,,,,,
 crafting,gregtech:gt.metaitem.01:32744,,gregtech,TRUE,,,,,,"GT5 start: for readability, keep all GTNH-related catalysts below"
 gt.recipe.primitiveblastfurnace,gregtech:gt.blockmachines:140,,gregtech,TRUE,,,,,,
 gt.recipe.primitiveblastfurnace,gregtech:gt.blockmachines:108,,gregtech,TRUE,,,,,,
