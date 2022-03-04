@@ -8,6 +8,7 @@ import codechicken.nei.api.ItemInfo;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerSlotClickHandler;
+import codechicken.nei.recipe.GuiRecipe;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -238,7 +239,9 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
                 fastTransferManager.transferItem(manager.window, mouseover.slotNumber);
             else
                 fastTransferManager.retrieveItem(manager.window, mouseover.slotNumber);
-            return true;
+            // slot in GuiRecipe does not contain an actual stack
+            // and scroll should also be handled by GuiRecipe
+            return !(gui instanceof GuiRecipe);
         }
         return false;
     }
