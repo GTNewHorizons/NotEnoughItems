@@ -77,11 +77,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     /**
      * Sorted bottom first
      */
-    private static final TreeSet<Widget> drawWidgets = new TreeSet<>(new WidgetZOrder(false));
+    private static TreeSet<Widget> drawWidgets = new TreeSet<>(new WidgetZOrder(false));
     /**
      * Sorted top first
      */
-    private static final TreeSet<Widget> controlWidgets = new TreeSet<>(new WidgetZOrder(true));
+    private static TreeSet<Widget> controlWidgets = new TreeSet<>(new WidgetZOrder(true));
 
     public static ItemPanel itemPanel;
     public static BookmarkPanel bookmarkPanel;
@@ -669,8 +669,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     }
 
     public static void updateWidgetVisiblities(GuiContainer gui, VisiblityData visiblity) {
-        drawWidgets.clear();
-        controlWidgets.clear();
+        drawWidgets = new TreeSet<>(new WidgetZOrder(false));
+        controlWidgets = new TreeSet<>(new WidgetZOrder(true));
 
         if (!visiblity.showNEI)
             return;
