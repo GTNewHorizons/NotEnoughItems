@@ -174,14 +174,14 @@ nei.recipe.fuel.processed=Обработано: %s
 nei.recipe.fuel.produced=Произведено: %s
 nei.recipe.firework=Фейерверки
 nei.recipe.firework.tooltip0=Красители добавляют цвета на звёздочку
-nei.recipe.firework.tooltip1=Recolouring adds fade colours to the charge
-nei.recipe.firework.tooltip2=Multiple charges can be spawned from one rocket
+nei.recipe.firework.tooltip1=Перекрашивание добавляет исчезающие цвета к заряду
+nei.recipe.firework.tooltip2=Одна ракета может выпустить несколько зарядов
 nei.recipe.brewing=Зельеварение
 nei.recipe.profiler.crafting=Профилирование создания
 nei.recipe.profiler.usage=Использование профилирования
 
 nei.itemsort.minecraft=Minecraft
-nei.itemsort.minecraft.tip=Сортирует предметы сначало из оригинального Minecraft
+nei.itemsort.minecraft.tip=Сортирует предметы сначала из оригинального Minecraft
 nei.itemsort.mod=По модификации
 nei.itemsort.mod.tip=Группирует предметы в один мод, на основе имени мода
 nei.itemsort.id=ID предмета
