@@ -4,12 +4,14 @@ import codechicken.core.launch.CodeChickenCorePlugin;
 import codechicken.lib.asm.ASMInit;
 import cpw.mods.fml.relauncher.IFMLCallHook;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
+import cpw.mods.fml.relauncher.IFMLLoadingPlugin.MCVersion;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
 
 import java.io.File;
 import java.util.Map;
 
 @TransformerExclusions(value = {"codechicken.nei.asm"})
+@MCVersion( "1.7.10" )
 public class NEICorePlugin implements IFMLLoadingPlugin, IFMLCallHook
 {
     public static File location;

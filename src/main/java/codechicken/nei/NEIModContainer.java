@@ -13,6 +13,7 @@ import cpw.mods.fml.client.FMLFileResourcePack;
 import cpw.mods.fml.client.FMLFolderResourcePack;
 import cpw.mods.fml.common.DummyModContainer;
 import cpw.mods.fml.common.LoadController;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModMetadata;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLInterModComms;
@@ -24,14 +25,13 @@ import cpw.mods.fml.common.versioning.VersionRange;
 import net.minecraft.util.EnumChatFormatting;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class NEIModContainer extends DummyModContainer
 {
     public static LinkedList<IConfigureNEI> plugins = new LinkedList<>();
+
+    private static boolean gregTech5Loaded;
 
     public NEIModContainer() {
         super(getModMetadata());
@@ -43,7 +43,14 @@ public class NEIModContainer extends DummyModContainer
         modMetadata.name = "GRADLETOKEN_MODNAME";
         modMetadata.modId = "GRADLETOKEN_MODID";
         modMetadata.version = "GRADLETOKEN_VERSION";
+        modMetadata.authorList = Arrays.asList( "ChickenBones", "mitchej123" );
+        modMetadata.url = "https://github.com/GTNewHorizons/NotEnoughItems";
+        modMetadata.description = "Recipe Viewer, Inventory Manager, Item Spawner, Cheats and more; GTNH Version includes many enhancements.";
         return modMetadata;
+    }
+
+    public static boolean isGT5Loaded() {
+        return gregTech5Loaded;
     }
 
     @Override
@@ -92,6 +99,7 @@ public class NEIModContainer extends DummyModContainer
 
     @Subscribe
     public void preInit(FMLPreInitializationEvent event) {
+        gregTech5Loaded = Loader.isModLoaded("gregtech") && !Loader.isModLoaded("gregapi_post");
         if (CommonUtils.isClient())
             ClientHandler.preInit();
     }
@@ -107,7 +115,6 @@ public class NEIModContainer extends DummyModContainer
     public void postInit(FMLPostInitializationEvent event) {
         if (CommonUtils.isClient()) {
             GuiRecipeTab.loadHandlerInfo();
-            RecipeCatalysts.loadCatalystInfo();
             ClientHandler.postInit();
         }
     }

@@ -6,6 +6,8 @@ import codechicken.lib.packet.PacketCustom;
 import codechicken.nei.api.API;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.GuiRecipeTab;
+import codechicken.nei.recipe.StackInfo;
+
 import com.google.common.collect.Lists;
 import cpw.mods.fml.client.CustomModLoadingErrorDisplayException;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -160,6 +162,7 @@ public class ClientHandler
         loadSerialHandlers();
         loadHeightHackHandlers();
         ItemInfo.preInit();
+        StackInfo.loadGuidFilters();
     }
     
     public static void loadSerialHandlers() {

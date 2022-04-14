@@ -12,6 +12,14 @@ public class VisiblityData
      */
     public boolean showBookmarkPanel = true;
     /**
+     * Subset dropdown
+     */
+    public boolean showSubsetDropdown = true;
+    /**
+     * Presets dropdown
+     */
+    public boolean showPresetsDropdown = true;
+    /**
      * Item and search section
      */
     public boolean showItemSection = true;
@@ -40,6 +48,6 @@ public class VisiblityData
         if(!showWidgets)
             showItemSection = showUtilityButtons = false;
         if(!showItemSection)
-            showBookmarkPanel = showSearchSection = showItemPanel = false;
+            showBookmarkPanel = showSubsetDropdown = showPresetsDropdown = showSearchSection = showItemPanel = false;
     }
 }

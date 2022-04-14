@@ -5,6 +5,7 @@ import codechicken.core.ServerUtils;
 import codechicken.lib.inventory.InventoryRange;
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.packet.PacketCustom;
+import codechicken.nei.util.NBTHelper;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.command.ICommandSender;
@@ -150,6 +151,19 @@ public class NEIServerUtils
     }
 
     /**
+     * NBT-friendly version of {@link #areStacksSameType(ItemStack, ItemStack)}
+     * @param stack1 The {@link ItemStack} being compared.
+     * @param stack2 The {@link ItemStack} to compare to.
+     * @return whether the two items are the same in terms of itemID, damage and NBT.
+     */
+    public static boolean areStacksSameTypeWithNBT(ItemStack stack1, ItemStack stack2) {
+        return stack1 != null && stack2 != null &&
+                stack1.getItem() == stack2.getItem() &&
+                (!stack2.getHasSubtypes() || stack2.getItemDamage() == stack1.getItemDamage()) &&
+                NBTHelper.matchTag(stack1.getTagCompound(), stack2.getTagCompound());
+    }
+
+    /**
      * {@link ItemStack}s with damage -1 are wildcards allowing all damages. Eg all colours of wool are allowed to create Beds.
      *
      * @param stack1 The {@link ItemStack} being compared.
@@ -160,6 +174,24 @@ public class NEIServerUtils
         return stack1 != null && stack2 != null &&
                 stack1.getItem() == stack2.getItem() &&
                 (stack1.getItemDamage() == stack2.getItemDamage() || stack1.getItemDamage() == OreDictionary.WILDCARD_VALUE || stack2.getItemDamage() == OreDictionary.WILDCARD_VALUE || stack1.getItem().isDamageable());
+    }
+
+    /**
+     * NBT-friendly version of {@link #areStacksSameTypeCrafting(ItemStack, ItemStack)}
+     * @param stack1 The {@link ItemStack} being compared.
+     * @param stack2 The {@link ItemStack} to compare to.
+     * @return whether the two items are the same from the perspective of a crafting inventory.
+     */
+    public static boolean areStacksSameTypeCraftingWithNBT(ItemStack stack1, ItemStack stack2) {
+        return stack1 != null && stack2 != null &&
+                stack1.getItem() == stack2.getItem() &&
+                (
+                    stack1.getItemDamage() == stack2.getItemDamage() ||
+                    stack1.getItemDamage() == OreDictionary.WILDCARD_VALUE ||
+                    stack2.getItemDamage() == OreDictionary.WILDCARD_VALUE ||
+                    stack1.getItem().isDamageable()
+                ) &&
+                NBTHelper.matchTag(stack1.getTagCompound(), stack2.getTagCompound());
     }
 
     /**

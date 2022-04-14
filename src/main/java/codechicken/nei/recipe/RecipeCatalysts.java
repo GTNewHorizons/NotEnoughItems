@@ -29,6 +29,8 @@ import java.util.Map;
 public class RecipeCatalysts {
     private static final Map<String, CatalystInfoList> catalystsAdderFromAPI = new HashMap<>();
     private static final Map<String, List<ItemStack>> catalystsRemoverFromAPI = new HashMap<>();
+    public static final Map<String, CatalystInfoList> catalystsAdderFromIMC = new HashMap<>();
+    public static final Map<String, List<ItemStack>> catalystsRemoverFromIMC = new HashMap<>();
     private static final Map<String, CatalystInfoList> recipeCatalystMap = new HashMap<>();
     private static Map<String, List<PositionedStack>> positionedRecipeCatalystMap = new HashMap<>();
     private static final List<String> forceClassNameList = new ArrayList<>();
@@ -161,6 +163,7 @@ public class RecipeCatalysts {
                 // todo
                 final String minVersion = record.get("minVersion");
                 final String maxVersion = record.get("maxVersion");
+                //
                 final boolean forceClassName = Boolean.parseBoolean(record.get("forceClassName"));
 
                 if (requiresMod && !Loader.isModLoaded(modId)) continue;
@@ -209,7 +212,22 @@ public class RecipeCatalysts {
             }
         }
 
+        for (Map.Entry<String, CatalystInfoList> entry : catalystsAdderFromIMC.entrySet()) {
+            String handlerID = entry.getKey();
+            for (CatalystInfo catalyst : entry.getValue()) {
+                addOrPut(recipeCatalystMap, handlerID, catalyst);
+            }
+        }
+
         for (Map.Entry<String, List<ItemStack>> entry : catalystsRemoverFromAPI.entrySet()) {
+            String handlerID = entry.getKey();
+            if (recipeCatalystMap.containsKey(handlerID)) {
+                CatalystInfoList catalysts = recipeCatalystMap.get(handlerID);
+                entry.getValue().forEach(catalysts::remove);
+            }
+        }
+
+        for (Map.Entry<String, List<ItemStack>> entry : catalystsRemoverFromIMC.entrySet()) {
             String handlerID = entry.getKey();
             if (recipeCatalystMap.containsKey(handlerID)) {
                 CatalystInfoList catalysts = recipeCatalystMap.get(handlerID);
@@ -234,7 +252,7 @@ public class RecipeCatalysts {
                 handler.getHandlerId());
     }
 
-    private static void addOrPut(Map<String, CatalystInfoList> map, String handlerID, CatalystInfo catalyst) {
+    public static void addOrPut(Map<String, CatalystInfoList> map, String handlerID, CatalystInfo catalyst) {
         if (map.containsKey(handlerID)) {
             map.get(handlerID).add(catalyst);
         } else {

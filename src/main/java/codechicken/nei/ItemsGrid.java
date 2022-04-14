@@ -14,7 +14,7 @@ import static codechicken.lib.gui.GuiDraw.drawRect;
 
 public class ItemsGrid
 {
-    protected static final int SLOT_SIZE = 18;
+    public static final int SLOT_SIZE = 18;
 
     protected int width;
     protected int height;
@@ -91,18 +91,14 @@ public class ItemsGrid
     public void setGridSize(int mleft, int mtop, int w, int h)
     {
 
-        //I don't like this big condition
-        if (marginLeft != mleft || marginTop != mtop || width != w || height != h) {
+        marginLeft = mleft;
+        marginTop = mtop;
 
-            marginLeft = mleft;
-            marginTop = mtop;
+        width = Math.max(0, w);
+        height = Math.max(0, h);
 
-            width = Math.max(0, w);
-            height = Math.max(0, h);
-
-            columns = width / SLOT_SIZE;
-            rows = height / SLOT_SIZE;
-        }
+        columns = width / SLOT_SIZE;
+        rows = height / SLOT_SIZE;
 
     }
 

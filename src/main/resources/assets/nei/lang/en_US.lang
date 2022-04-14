@@ -111,6 +111,9 @@ nei.options.inventory=Inventory
 nei.options.inventory.worldSpecificBookmarks=World Specific Bookmarks
 nei.options.inventory.worldSpecificBookmarks.true=Yes
 nei.options.inventory.worldSpecificBookmarks.false=No
+nei.options.inventory.worldSpecificPresets=World Specific Presets
+nei.options.inventory.worldSpecificPresets.true=Yes
+nei.options.inventory.worldSpecificPresets.false=No
 nei.options.inventory.bookmarksEnabled=Bookmarks Panel Visibility
 nei.options.inventory.bookmarksEnabled.true=Visible
 nei.options.inventory.bookmarksEnabled.false=Hidden
@@ -231,8 +234,12 @@ nei.recipe.shaped=Shaped Crafting
 nei.recipe.shapeless=Shapeless Crafting
 nei.recipe.furnace=Smelting
 nei.recipe.fuel=Fuel
+nei.recipe.fuel.smeltCount=Smelts %s items
+# Deprecated
 nei.recipe.fuel.required=%s required
+# Deprecated
 nei.recipe.fuel.processed=%s processed
+# Deprecated
 nei.recipe.fuel.produced=%s produced
 nei.recipe.firework=Fireworks
 nei.recipe.firework.tooltip0=Dyes add colours to the charges
@@ -278,3 +285,12 @@ nei.subsets.Items.Weapons=Weapons
 nei.subsets.Items.Weapons.Ranged=Ranged
 nei.subsets.Items.Weapons.Swords=Swords
 nei.subsets.Mod=Mod
+
+nei.presets.blacklist.label=B
+nei.presets.blacklist.tooltip=Blacklist
+nei.presets.whitelist.label=W
+nei.presets.whitelist.tooltip=Whitelist
+nei.presets.textfield.tooltip.1=Enter - save
+nei.presets.textfield.tooltip.2=Escape - cancel
+nei.presets.label.tooltip=Double click to edit
+nei.presets.label.selected=%s Presets

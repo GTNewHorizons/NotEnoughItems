@@ -2,11 +2,9 @@
 
 A continuation of NotEnoughItems for 1.7.10 by the developers of Gregtech: New Horizons modpack, with features either inspired and/or backported from JustEnoughItems
 
- 
+We've tested this against all of the mods included in GTNH, as well as a limited set of other mods (like Reika's mods). Every effort has been made to maintain backwards compatibility, however the focus is on the mods contained in the GTNH modpack.
 
-We've tested this against all of the mods included in GTNH, as well as a limited set of other mods (like Reika's mods).  Every effort has been made to maintain backwards compatibility, however the focus is on the mods contained in the GTNH modpack.
-
- 
+If you have issues with NEI outside of the GTNH modpack you may report them in the [GTNH NEI GitHub](https://github.com/GTNewHorizons/NotEnoughItems).
 
 ## New Features:
 
@@ -26,6 +24,15 @@ We've tested this against all of the mods included in GTNH, as well as a limited
 
 ## Other items of note:
 
-* Licensed under LGPL - Use this however you want, but please give back any modifications
 * Remove TMI style
 * Removed inventory Load/Save state
+
+## License
+
+GTNH Modifications Copyright (c) 2019-2022 mitchej123 and the GTNH Team
+
+Licensed under LGPL-3.0 or later - use this however you want, but please give back any modifications
+
+Parts inspired/borrowed/backported from [JEI](https://github.com/mezz/JustEnoughItems/tree/1.12) under the MIT License.
+
+Originial code Copyright (c) 2014-2015 mezz and was licensed under the MIT License.

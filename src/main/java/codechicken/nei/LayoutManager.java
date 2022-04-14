@@ -77,15 +77,16 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     /**
      * Sorted bottom first
      */
-    private static TreeSet<Widget> drawWidgets;
+    private static TreeSet<Widget> drawWidgets = new TreeSet<>(new WidgetZOrder(false));
     /**
      * Sorted top first
      */
-    private static TreeSet<Widget> controlWidgets;
+    private static TreeSet<Widget> controlWidgets = new TreeSet<>(new WidgetZOrder(true));
 
     public static ItemPanel itemPanel;
     public static BookmarkPanel bookmarkPanel;
     public static SubsetWidget dropDown;
+    public static PresetsWidget presetsPanel;
     public static TextField searchField;
 
     public static ButtonCycled options;
@@ -177,7 +178,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public boolean objectUnderMouse(GuiContainer gui, int mousex, int mousey) {
         if (!isHidden() && isEnabled())
-            for (Widget widget : controlWidgets)
+            for (Widget widget : drawWidgets)
                 if (widget.contains(mousex, mousey))
                     return true;
 
@@ -238,7 +239,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public ItemStack getStackUnderMouse(GuiContainer gui, int mousex, int mousey) {
         if (!isHidden() && isEnabled()) {
-            for (Widget widget : controlWidgets) {
+            for (Widget widget : drawWidgets) {
                 ItemStack stack = widget.getStackMouseOver(mousex, mousey);
                 if (stack != null)
                     return stack;
@@ -275,7 +276,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
         if (!isHidden() && isEnabled() && GuiContainerManager.shouldShowTooltip(gui)) {
-            for (Widget widget : controlWidgets)
+            for (Widget widget : drawWidgets)
                 currenttip = widget.handleTooltip(mousex, mousey, currenttip);
         }
         return currenttip;
@@ -315,6 +316,12 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (gui.height - gui.ySize <= 40)
             visiblity.showSearchSection = false;
 
+        if (visiblity.showBookmarkPanel || gui.guiTop <= 20)
+            visiblity.showSubsetDropdown = false;
+
+        if (!visiblity.showBookmarkPanel || gui.guiTop <= 20)
+            visiblity.showPresetsDropdown = false;
+
         if (gui.guiLeft - 4 < 76)
             visiblity.showWidgets = false;
         try {
@@ -339,6 +346,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         bookmarkPanel.init();
 
         dropDown = new SubsetWidget();
+        presetsPanel = new PresetsWidget();
         searchField = new SearchField("search");
 
         options = new ButtonCycled(3)
@@ -671,7 +679,13 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         addWidget(options);
         addWidget(bookmarksButton);
         if (visiblity.showItemPanel) {
-            addWidget(itemPanel);
+
+            if (PresetsWidget.inEditMode()) {
+                drawWidgets.add(itemPanel);
+            } else {
+                addWidget(itemPanel);
+            }
+
             itemPanel.setVisible();
 
             addWidget(more);
@@ -682,6 +696,10 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (visiblity.showBookmarkPanel) {
             addWidget(bookmarkPanel);
             bookmarkPanel.setVisible();
+        }
+
+        if (visiblity.showPresetsDropdown) {
+            addWidget(presetsPanel);
         }
 
         if (visiblity.showSearchSection) {
@@ -707,7 +725,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 addWidget(delete);
         }
 
-        if (!visiblity.showBookmarkPanel) {
+        if (visiblity.showSubsetDropdown) {
             // Bookmarks or Subset/dropdown
             addWidget(dropDown);
         }
@@ -738,7 +756,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (!isEnabled())
             return;
 
-        for (Widget widget : controlWidgets)
+        for (Widget widget : drawWidgets)
             widget.update();
     }
 
@@ -747,7 +765,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (isHidden() || !isEnabled())
             return false;
 
-        for (Widget widget : controlWidgets)
+        for (Widget widget : drawWidgets)
             if (widget.onMouseWheel(scrolled, mousex, mousey))
                 return true;
 

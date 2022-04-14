@@ -49,14 +49,14 @@ public class CatalystInfoList extends ForwardingList<CatalystInfo> {
     }
 
     public boolean contains(ItemStack stack) {
-        return catalystInfoList.stream().anyMatch(c -> NEIServerUtils.areStacksSameType(c.getStack(), stack));
+        return catalystInfoList.stream().anyMatch(c -> NEIServerUtils.areStacksSameTypeCraftingWithNBT(c.getStack(), stack));
     }
 
     public boolean remove(ItemStack stack) {
         Iterator<CatalystInfo> iter = catalystInfoList.iterator();
         while (iter.hasNext()) {
             ItemStack next = iter.next().getStack();
-            if (NEIServerUtils.areStacksSameType(next, stack)) {
+            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(next, stack)) {
                 iter.remove();
                 return true;
             }

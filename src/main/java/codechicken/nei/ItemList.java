@@ -252,6 +252,7 @@ public class ItemList
 
             try {
                 filtered = ItemList.forkJoinPool.submit(() -> items.parallelStream()
+                    .filter(PresetsWidget::matches)
                     .filter(filter::matches)
                     .collect(Collectors.toCollection(ArrayList::new))).get();
             } catch (InterruptedException | ExecutionException e) {

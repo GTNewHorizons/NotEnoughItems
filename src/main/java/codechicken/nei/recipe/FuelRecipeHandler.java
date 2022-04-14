@@ -2,9 +2,11 @@ package codechicken.nei.recipe;
 
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -87,26 +89,13 @@ public class FuelRecipeHandler extends FurnaceRecipeHandler
     }
 
     @Override
-    public List<String> handleItemTooltip(GuiRecipe gui, ItemStack stack, List<String> currenttip, int recipe) {
+    public void drawExtras(int recipe) {
+        super.drawExtras(recipe);
         CachedFuelRecipe crecipe = (CachedFuelRecipe) arecipes.get(recipe);
         FuelPair fuel = crecipe.fuel;
-        float burnTime = fuel.burnTime / 200F;
-
-        if (gui.isMouseOver(fuel.stack, recipe) && burnTime < 1) {
-            burnTime = 1F / burnTime;
-            String s_time = Float.toString(burnTime);
-            if (burnTime == Math.round(burnTime))
-                s_time = Integer.toString((int) burnTime);
-
-            currenttip.add(translate("recipe.fuel.required", s_time));
-        } else if ((gui.isMouseOver(crecipe.getResult(), recipe) || gui.isMouseOver(crecipe.getIngredient(), recipe)) && burnTime > 1) {
-            String s_time = Float.toString(burnTime);
-            if (burnTime == Math.round(burnTime))
-                s_time = Integer.toString((int) burnTime);
-
-            currenttip.add(translate("recipe.fuel." + (gui.isMouseOver(crecipe.getResult(), recipe) ? "produced" : "processed"), s_time));
-        }
-
-        return currenttip;
+        NumberFormat numberInstance = NumberFormat.getNumberInstance();
+        numberInstance.setMaximumFractionDigits(2);
+        String smeltCount = numberInstance.format(fuel.burnTime / 200f);
+        Minecraft.getMinecraft().fontRenderer.drawString(translate("recipe.fuel.smeltCount", smeltCount), 73, 51, 0xFF000000);
     }
 }

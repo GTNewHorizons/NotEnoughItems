@@ -190,6 +190,17 @@ public class NEIClientConfig {
                 return true;
             }
         });
+
+        tag.getTag("inventory.worldSpecificPresets").setComment("Global or world specific presets").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.worldSpecificPresets", true) {
+            @Override
+            public boolean onClick(int button) {
+                super.onClick(button);
+                initPresetsFile(worldPath);
+                return true;
+            }
+        });
+
         tag.getTag("inventory.bookmarksEnabled").setComment("Enable/disable bookmarks").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.bookmarksEnabled", true));
         tag.getTag("inventory.saveCurrentRecipeInBookmarksEnabled").setComment("Save Current Recipe in Bookmarks").getBooleanValue(true);
@@ -303,6 +314,7 @@ public class NEIClientConfig {
         }
 
         initBookmarkFile(worldPath);
+        initPresetsFile(worldPath);
         world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
         onWorldLoad(newWorld);
     }
@@ -384,6 +396,16 @@ public class NEIClientConfig {
         }
 
         ItemPanels.bookmarkPanel.setBookmarkFile(worldPath);
+    }
+
+    private static void initPresetsFile(String worldPath)
+    {
+        
+        if (!global.config.getTag("inventory.worldSpecificPresets").getBooleanValue()) {
+            worldPath = "global";
+        }
+
+        PresetsWidget.loadPresets(worldPath);
     }
 
     public static boolean isWorldSpecific(String setting) {
