@@ -65,6 +65,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
     public int recipetype;
     public ContainerRecipe slotcontainer;
     public GuiContainer firstGui;
+    public GuiScreen firstGuiGeneral;
     public GuiScreen prevGui;
     public GuiButton nextpage;
     public GuiButton prevpage;
@@ -89,12 +90,15 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         slotcontainer = (ContainerRecipe) inventorySlots;
 
         this.prevGui = prevgui;
+        this.firstGuiGeneral = prevgui;
         if(prevgui instanceof GuiContainer)
             this.firstGui = (GuiContainer)prevgui;
 
-        if (prevgui instanceof IGuiContainerOverlay)
+        if (prevgui instanceof IGuiContainerOverlay) {
             this.firstGui = ((IGuiContainerOverlay) prevgui).getFirstScreen();
-        
+            this.firstGuiGeneral = ((IGuiContainerOverlay) prevgui).getFirstScreenGeneral();
+        }
+
     }
 
     /**
@@ -311,7 +315,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
     public void keyTyped(char c, int i) {
         if (i == Keyboard.KEY_ESCAPE) //esc
         {
-            mc.displayGuiScreen(firstGui);
+            mc.displayGuiScreen(firstGuiGeneral);
             return;
         }
         if (GuiContainerManager.getManager(this).lastKeyTyped(i, c))
@@ -324,7 +328,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         }
 
         if (i == mc.gameSettings.keyBindInventory.getKeyCode())
-            mc.displayGuiScreen(firstGui);
+            mc.displayGuiScreen(firstGuiGeneral);
         else if (i == NEIClientConfig.getKeyBinding("gui.back"))
             mc.displayGuiScreen(prevGui);
         else if (i == NEIClientConfig.getKeyBinding("gui.prev_machine"))
@@ -642,6 +646,11 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
     @Override
     public GuiContainer getFirstScreen() {
         return firstGui;
+    }
+
+    @Override
+    public GuiScreen getFirstScreenGeneral() {
+        return firstGuiGeneral;
     }
 
     public boolean isMouseOver(PositionedStack stack, int recipe) {
