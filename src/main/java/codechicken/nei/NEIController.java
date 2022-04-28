@@ -229,6 +229,11 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
         if (!NEIClientConfig.isEnabled() || GuiInfo.hasCustomSlots(gui) || !NEIClientConfig.isMouseScrollTransferEnabled())
             return false;
 
+        // slot in GuiRecipe does not contain actual stack
+        // and scroll should be handled by GuiRecipe, not here
+        if (gui instanceof GuiRecipe)
+            return false;
+
         Point mousePos = getMousePosition();
         Slot mouseover = manager.window.getSlotAtPosition(mousePos.x, mousePos.y);
         if (mouseover != null && mouseover.getHasStack()) {
@@ -239,9 +244,7 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
                 fastTransferManager.transferItem(manager.window, mouseover.slotNumber);
             else
                 fastTransferManager.retrieveItem(manager.window, mouseover.slotNumber);
-            // slot in GuiRecipe does not contain an actual stack
-            // and scroll should also be handled by GuiRecipe
-            return !(gui instanceof GuiRecipe);
+            return true;
         }
         return false;
     }
