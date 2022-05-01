@@ -37,7 +37,6 @@ import static codechicken.lib.gui.GuiDraw.drawRect;
 import static codechicken.lib.gui.GuiDraw.drawTexturedModalRect;
 import static codechicken.nei.NEIClientConfig.canPerformAction;
 import static codechicken.nei.NEIClientConfig.disabledActions;
-import static codechicken.nei.NEIClientConfig.getItemQuantity;
 import static codechicken.nei.NEIClientConfig.getKeyBinding;
 import static codechicken.nei.NEIClientConfig.getOptionList;
 import static codechicken.nei.NEIClientConfig.getSearchExpression;
@@ -49,7 +48,6 @@ import static codechicken.nei.NEIClientConfig.isHidden;
 import static codechicken.nei.NEIClientConfig.showIDs;
 import static codechicken.nei.NEIClientConfig.toggleBooleanSetting;
 import static codechicken.nei.NEIClientConfig.world;
-import static codechicken.nei.NEIClientUtils.controlKey;
 import static codechicken.nei.NEIClientUtils.cycleGamemode;
 import static codechicken.nei.NEIClientUtils.decreaseSlotStack;
 import static codechicken.nei.NEIClientUtils.deleteEverything;
@@ -92,8 +90,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public static ButtonCycled options;
     public static ButtonCycled bookmarksButton;
 
+    @Deprecated
     public static Button more;
+    @Deprecated
     public static Button less;
+    @Deprecated
     public static ItemQuantityField quantity;
 
     public static Button delete;
@@ -142,9 +143,12 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         }
     }
 
+    @Deprecated
     public static int getSideWidth(GuiContainer gui) {
         return gui.width - 3;
     }
+
+    @Deprecated
     public static int getLeftSize(GuiContainer gui) {
         return getSideWidth(gui);
     }
@@ -307,6 +311,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     public static void layout(GuiContainer gui) {
         VisiblityData visiblity = new VisiblityData();
+
         if (isHidden())
             visiblity.showNEI = false;
 
@@ -324,6 +329,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
         if (gui.guiLeft - 4 < 76)
             visiblity.showWidgets = false;
+
         try {
             GuiInfo.readLock.lock();
             GuiInfo.guiHandlers.forEach(handler -> handler.modifyVisiblity(gui, visiblity));
@@ -419,43 +425,10 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 return translate("bookmark.toggle");
             }
         };
-        more = new Button("+")
-        {
-            @Override
-            public boolean onButtonPress(boolean rightclick) {
-                if (rightclick)
-                    return false;
 
-                int modifier = controlKey() ? 64 : shiftKey() ? 10 : 1;
-
-                int quantity = getItemQuantity() + modifier;
-                if (quantity < 0)
-                    quantity = 0;
-
-                LayoutManager.quantity.setText(Integer.toString(quantity));
-                return true;
-            }
-        };
-        less = new Button("-")
-        {
-            @Override
-            public boolean onButtonPress(boolean rightclick) {
-                if (rightclick)
-                    return false;
-
-                int modifier = controlKey() ? -64 : shiftKey() ? -10 : -1;
-
-                int quantity = getItemQuantity() + modifier;
-                if (quantity < 0)
-                    quantity = 0;
-
-                LayoutManager.quantity.setText(Integer.toString(quantity));
-                return true;
-            }
-        };
-        quantity = new ItemQuantityField("quantity");
-
-
+        more = ItemPanels.itemPanel.more;
+        less = ItemPanels.itemPanel.less;
+        quantity = ItemPanels.itemPanel.quantity;
         delete = new Button()
         {
             @Override
@@ -687,10 +660,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             }
 
             itemPanel.setVisible();
-
-            addWidget(more);
-            addWidget(less);
-            addWidget(quantity);
         }
 
         if (visiblity.showBookmarkPanel) {

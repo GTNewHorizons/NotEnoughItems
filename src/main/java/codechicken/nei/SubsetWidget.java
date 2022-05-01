@@ -217,6 +217,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
             for(SubsetTag tag : sorted)
                 tag.cacheState();
         }
+
         public void addFiltersWithItem(List<ItemFilter> filters, String itemSearch) {
             if(itemSearch == null) {
                 addFilters(filters);
@@ -229,6 +230,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
                 
             }
         }
+        
         public void addFilters(List<ItemFilter> filters) {
             if(filter != null)
                 filters.add(filter);

@@ -10,15 +10,13 @@ import static codechicken.nei.LayoutManager.bookmarkPanel;
 import static codechicken.nei.LayoutManager.bookmarksButton;
 import static codechicken.nei.LayoutManager.delete;
 import static codechicken.nei.LayoutManager.dropDown;
+import static codechicken.nei.LayoutManager.presetsPanel;
 import static codechicken.nei.LayoutManager.gamemode;
 import static codechicken.nei.LayoutManager.heal;
 import static codechicken.nei.LayoutManager.itemPanel;
 import static codechicken.nei.LayoutManager.itemPresenceOverlays;
-import static codechicken.nei.LayoutManager.less;
 import static codechicken.nei.LayoutManager.magnet;
-import static codechicken.nei.LayoutManager.more;
 import static codechicken.nei.LayoutManager.options;
-import static codechicken.nei.LayoutManager.quantity;
 import static codechicken.nei.LayoutManager.rain;
 import static codechicken.nei.LayoutManager.searchField;
 import static codechicken.nei.LayoutManager.timeButtons;
@@ -118,16 +116,6 @@ public class LayoutStyleMinecraft extends LayoutStyle
         itemPanel.resize(gui);
         bookmarkPanel.resize(gui);
 
-        more.w = more.h = less.w = less.h = 16;
-        less.x = itemPanel.pagePrev.x;
-        more.x = gui.width - less.w - 2;
-        more.y = less.y = gui.height - more.h - 2;
-
-        quantity.x = less.x + less.w + 2;
-        quantity.y = less.y;
-        quantity.w = more.x - quantity.x - 2;
-        quantity.h = less.h;
-
         options.x = isEnabled() ? 0 : 6;
         options.y = isEnabled() ? gui.height - 22 : gui.height - 28;
         options.w = 22;
@@ -138,15 +126,20 @@ public class LayoutStyleMinecraft extends LayoutStyle
         bookmarksButton.w = 22;
         bookmarksButton.h = 22;
 
-        searchField.y = gui.height - searchField.h - 2;
+        dropDown.h = 18;
+        dropDown.w = 150;
+        dropDown.y = 0;
+        dropDown.x = (gui.width - gui.xSize) / 2 + gui.xSize - dropDown.w;
 
-        dropDown.x = Math.min(numButtons, buttonCount) * 20 + 3;
-        dropDown.h = 20;
-        dropDown.w = itemPanel.x - dropDown.x - 3;
+        presetsPanel.h = 16;
+        presetsPanel.w = 150;
+        presetsPanel.y = 2;
+        presetsPanel.x = (gui.width - gui.xSize) / 2 + gui.xSize - presetsPanel.w;
         
         searchField.h = 20;
         searchField.w = 150;
         searchField.x = (gui.width - searchField.w) / 2;
+        searchField.y = gui.height - searchField.h - 2;
 
         if (!visiblity.showItemSection) {
             searchField.setFocus(false);
@@ -155,8 +148,8 @@ public class LayoutStyleMinecraft extends LayoutStyle
     }
 
     public void layoutButton(Button button) {
-        button.x = 2 + (buttonCount % numButtons) * 20;
-        button.y = (buttonCount / numButtons) * 18;
+        button.x = 2 + (buttonCount % numButtons) * 19;
+        button.y = 2 + (buttonCount / numButtons) * 18;
 
         button.h = 17;
         button.w = button.contentWidth() + 6;

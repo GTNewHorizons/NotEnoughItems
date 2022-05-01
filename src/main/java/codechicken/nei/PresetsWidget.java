@@ -4,11 +4,7 @@ import codechicken.core.CommonUtils;
 import codechicken.core.gui.GuiScrollSlot;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
-import codechicken.nei.ItemList.AllMultiItemFilter;
-import codechicken.nei.ItemList.EverythingItemFilter;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
-import codechicken.nei.api.API;
-import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.StackInfo;
@@ -36,7 +32,7 @@ import org.apache.commons.io.IOUtils;
 import org.lwjgl.input.Keyboard;
 import static codechicken.nei.NEIClientUtils.translate;
 
-public class PresetsWidget extends Widget// implements ItemFilterProvider
+public class PresetsWidget extends Widget
 {
 
     public static class PresetTag implements ItemFilter
@@ -511,7 +507,7 @@ public class PresetsWidget extends Widget// implements ItemFilterProvider
         @Override
         public List<String> handleTooltip(int mx, int my, List<String> tooltip)
         {
-            if (contains(mx, my)) {
+            if (contains(mx, my) && listbox.getSelected().size() <= 1) {
                 tooltip.add(translate("presets.label.tooltip"));
             }
             
@@ -631,17 +627,16 @@ public class PresetsWidget extends Widget// implements ItemFilterProvider
     public static boolean isHidden(final ItemStack item)
     {
 
-        if (edit != null || listbox.getSelected().isEmpty()) {
+        if (edit != null) {
 
-            if (edit != null) {
-
-                if (mouseSelection != null && mouseSelection.items.contains(item)) {
-                    return mouseSelection.append != edit.whitelist;
-                }
-
-                return !edit.matches(item);
+            if (mouseSelection != null && mouseSelection.items.contains(item)) {
+                return mouseSelection.append != edit.whitelist;
             }
 
+            return !edit.matches(item);
+        }
+
+        if (!listbox.getSelected().isEmpty()) {
             final List<PresetTag> selected = listbox.getSelected();
 
             for (int idx = 0; idx < selected.size(); idx++) {
@@ -736,33 +731,21 @@ public class PresetsWidget extends Widget// implements ItemFilterProvider
         ItemList.updateFilter.restart();
     }
 
-    // public PresetsWidget()
-    // {
-    //     API.addItemFilter(this);
-    // }
-
     @Override
     public void draw(int mx, int my)
     {
-        final int panelHeight = 16;
-        final int panelWidth = 153;
 
-        w = panelWidth;
-        h = panelHeight;
-        y = 2;
-        x = ItemPanels.itemPanel.x - 4 - w;
-        
         if (edit != null) {
 
             selectedState.x = x;
             selectedState.y = y;
-            selectedState.w = selectedState.h = panelHeight;
+            selectedState.w = selectedState.h = h;
             selectedState.draw(mx, my);
 
             selectedDisplayName.y = y;
             selectedDisplayName.h = h;
             selectedDisplayName.x = selectedState.x + selectedState.w + 1;
-            selectedDisplayName.w = w - panelHeight * 2 - 5;
+            selectedDisplayName.w = w - h * 2 - 5;
             selectedDisplayName.draw(mx, my);
 
         } else {
@@ -772,7 +755,7 @@ public class PresetsWidget extends Widget// implements ItemFilterProvider
             selectedValue.text = size> 1? translate("presets.label.selected", size): (size == 1? selected.get(0).displayName: "");
             selectedValue.y = y;
             selectedValue.h = h;
-            selectedValue.w = w - panelHeight - 4;
+            selectedValue.w = w - h - 4;
             selectedValue.x = x;
 
             selectedValue.draw(mx, my);   
@@ -780,7 +763,7 @@ public class PresetsWidget extends Widget// implements ItemFilterProvider
     
 
         dropdown.y = y;
-        dropdown.w = dropdown.h = panelHeight;
+        dropdown.w = dropdown.h = h;
         dropdown.x = x + w - dropdown.w;
         dropdown.state = edit != null || listbox.getNumSlots() == 0? 2: 0;
         dropdown.draw(mx, my);
@@ -1018,6 +1001,11 @@ public class PresetsWidget extends Widget// implements ItemFilterProvider
 
     public static boolean matches(ItemStack stack)
     {
+
+        if (edit != null) {
+            return true;
+        }
+
         final List<PresetTag> selected = listbox.getSelected();
 
         for (int idx = 0; idx < selected.size(); idx++) {

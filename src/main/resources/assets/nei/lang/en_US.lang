@@ -192,6 +192,8 @@ nei.options.world.highlight_tips.hide=Hidden
 nei.options.world.highlight_tips.show=Shown
 nei.options.world.highlight_tips.sample=Sample
 
+nei.options.world.panels=Panels Settings
+
 nei.options.tools=Tools
 nei.options.tools.handler_load_from_config=Load handlers from Config
 nei.options.tools.handler_load_from_config.true=Config

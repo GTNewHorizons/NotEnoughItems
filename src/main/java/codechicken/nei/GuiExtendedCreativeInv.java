@@ -5,9 +5,11 @@ import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.api.TaggedInventoryArea;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import org.lwjgl.opengl.GL11;
 
+import java.awt.Rectangle;
 import java.util.Collections;
 import java.util.List;
 
@@ -50,7 +52,21 @@ public class GuiExtendedCreativeInv extends GuiContainer implements INEIGuiHandl
     }
 
     @Override
-    public boolean hideItemPanelSlot(GuiContainer gui, int x, int y, int w, int h) {
-        return false;
+    public boolean hideItemPanelSlot(GuiContainer gui, int x, int y, int w, int h)
+    {
+        return (new Rectangle(guiLeft - 15, guiTop + 18, 18, 18 * 4 + 4)).intersects(x, y, w, h);
     }
+
+    @Override
+    protected void handleMouseClick(Slot p_146984_1_, int p_146984_2_, int p_146984_3_, int p_146984_4_)
+    {
+
+        //Hack for armor slots, because they are outside the container
+        if (p_146984_1_ != null && p_146984_4_ == 4 && p_146984_1_.xDisplayPosition < 0) {
+            p_146984_4_ = 0;
+        }
+
+        super.handleMouseClick(p_146984_1_, p_146984_2_, p_146984_3_, p_146984_4_);
+    }
+
 }

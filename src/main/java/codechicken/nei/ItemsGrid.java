@@ -22,6 +22,8 @@ public class ItemsGrid
     protected int marginLeft;
     protected int marginTop;
 
+    protected int paddingLeft;
+
     protected ArrayList<ItemStack> realItems = new ArrayList<>();
 
     protected int page;
@@ -100,6 +102,7 @@ public class ItemsGrid
         columns = width / SLOT_SIZE;
         rows = height / SLOT_SIZE;
 
+        paddingLeft = (width % SLOT_SIZE) / 2;
     }
 
     public void shiftPage(int shift)
@@ -150,7 +153,7 @@ public class ItemsGrid
 
             for (int r = 0; r < rows; r++) {
                 final int idx = columns * r + c;
-                if (!slotValid(gui, r, c) && idx >= 0 && idx < invalidSlotMap.length && !invalidSlotMap[idx]) {
+                if (GuiInfo.hideItemPanelSlot(gui, getSlotRect(r, c)) && idx >= 0 && idx < invalidSlotMap.length && !invalidSlotMap[idx]) {
                     invalidSlotMap[idx] = true;
                     validColumn = false;
                     perPage--;
@@ -162,22 +165,6 @@ public class ItemsGrid
 
     }
 
-    private boolean slotValid(GuiContainer gui, int row, int column)
-    {
-        Rectangle4i rect = getSlotRect(row, column);
-        
-        try {
-            GuiInfo.readLock.lock();
-            if (GuiInfo.guiHandlers.stream().anyMatch(handler -> handler.hideItemPanelSlot(gui, rect.x, rect.y, rect.w, rect.h))) {
-                return false;
-            }
-        } finally {
-            GuiInfo.readLock.unlock();
-        }
-
-        return true;
-    }
-
     public Rectangle4i getSlotRect(int i)
     {
         return getSlotRect(i / columns, i % columns);
@@ -185,7 +172,7 @@ public class ItemsGrid
 
     public Rectangle4i getSlotRect(int row, int column)
     {
-        return new Rectangle4i(marginLeft + (width % SLOT_SIZE) / 2 + column * SLOT_SIZE, marginTop + row * SLOT_SIZE, SLOT_SIZE, SLOT_SIZE);
+        return new Rectangle4i(marginLeft + paddingLeft + column * SLOT_SIZE, marginTop + row * SLOT_SIZE, SLOT_SIZE, SLOT_SIZE);
     }
 
     public boolean isInvalidSlot(int idx)
@@ -233,7 +220,7 @@ public class ItemsGrid
         }
 
         final int overRow = (int) ((mousey - marginTop) / SLOT_SIZE);
-        final int overColumn = (int) ((mousex - marginLeft - (width % SLOT_SIZE) / 2) / SLOT_SIZE);
+        final int overColumn = (int) ((mousex - marginLeft - paddingLeft) / SLOT_SIZE);
         final int slt = columns * overRow + overColumn;
         int idx = page * perPage + slt;
 
@@ -253,12 +240,12 @@ public class ItemsGrid
     public boolean contains(int px, int py)
     {
 
-        if (!(new Rectangle4i(marginLeft, marginTop, width, height)).contains(px, py)) {
+        if (!(new Rectangle4i(marginLeft + paddingLeft, marginTop, columns * SLOT_SIZE, height)).contains(px, py)) {
             return false;
         }
 
         final int r = (int) ((py - marginTop) / SLOT_SIZE);
-        final int c = (int) ((px - marginLeft - (width % SLOT_SIZE) / 2) / SLOT_SIZE);
+        final int c = (int) ((px - marginLeft - paddingLeft) / SLOT_SIZE);
         final int slt = columns * r + c;
 
         return r >= rows || c >= columns || !invalidSlotMap[slt];
