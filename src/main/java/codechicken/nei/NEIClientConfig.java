@@ -222,6 +222,8 @@ public class NEIClientConfig {
         API.addOption(new OptionToggleButton("inventory.saveCurrentRecipeInBookmarksEnabled", true));
         tag.getTag("inventory.useNBTInBookmarks").setComment("Use NBT in Bookmarks").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.useNBTInBookmarks", true));
+        tag.getTag("inventory.showRecipeMarker").setComment("Show Recipe Marker").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.showRecipeMarker", true));
 
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
@@ -448,6 +450,9 @@ public class NEIClientConfig {
     }
     public static boolean useNBTInBookmarks() {
         return getBooleanSetting("inventory.useNBTInBookmarks");
+    }
+    public static boolean showRecipeMarker() {
+        return getBooleanSetting("inventory.showRecipeMarker");
     }
     public static boolean areJEIStyleTabsVisible() {
         return getBooleanSetting("inventory.jei_style_tabs");

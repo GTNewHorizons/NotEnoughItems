@@ -11,10 +11,13 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import org.apache.commons.io.IOUtils;
+import org.lwjgl.opengl.GL11;
 
 import static codechicken.lib.gui.GuiDraw.getMousePosition;
 import static codechicken.lib.gui.GuiDraw.drawRect;
@@ -170,21 +173,42 @@ public class BookmarkPanel extends PanelWidget
 
                 if (focus != null) {
 
-                    if (focus.slotIndex == idx) {
-                        drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
-                    } else if (
+                    if (
                             LayoutManager.bookmarkPanel.sortedStackIndex == -1 && //disabled when sorting
                             NEIClientUtils.shiftKey() &&  //show only with shift key
                             getRecipeId(focus.slotIndex) != null && getRecipeId(idx) != null && getRecipeId(focus.slotIndex).equals(getRecipeId(idx))//is some recipeId
                     ) {
                         drawRect(rect.x, rect.y, rect.w, rect.h, meta.ingredient? 0x88b3b300: 0x88009933);//highlight recipe
+                    } else if (focus.slotIndex == idx) {
+                        drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
                     }
-    
+
                 }
 
                 GuiContainerManager.drawItem(rect.x + 1, rect.y + 1, stack, true, meta.factor < 0? "": String.valueOf(stack.stackSize));
+
+                if (meta.recipeId != null && !meta.ingredient && NEIClientConfig.showRecipeMarker()) {
+                    drawRecipeMarker(rect.x, rect.y, GuiContainerManager.getFontRenderer(stack));
+                }
+
             }
 
+        }
+
+        protected void drawRecipeMarker(int offsetX, int offsetY, FontRenderer fontRenderer )
+        {
+            final float scaleFactor = fontRenderer.getUnicodeFlag() ? 0.85f : 0.5f;
+            final float inverseScaleFactor = 1.0f / scaleFactor;
+    
+            GuiContainerManager.enable2DRender();
+            GL11.glScaled(scaleFactor, scaleFactor, scaleFactor);
+    
+            final int X = (int) ( ( (float) offsetX + 1.0f) * inverseScaleFactor );
+            final int Y = (int) ( ( (float) offsetY + 1.0f) * inverseScaleFactor );
+            fontRenderer.drawStringWithShadow("R", X, Y, 0xA0A0A0);
+            
+            GL11.glScaled(inverseScaleFactor, inverseScaleFactor, inverseScaleFactor);
+            GuiContainerManager.enable3DRender();
         }
 
     }
