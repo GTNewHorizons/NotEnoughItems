@@ -5,7 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
 import codechicken.nei.util.NBTJson;
-import codechicken.nei.NEIClientConfig;
 import codechicken.nei.PositionedStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.item.ItemStack;
@@ -57,6 +56,11 @@ public class BookmarkRecipeId
 
     }
 
+    public BookmarkRecipeId()
+    {
+
+    }
+
     public boolean equalsIngredients(List<PositionedStack> stacks)
     {
 
@@ -70,7 +74,7 @@ public class BookmarkRecipeId
             final NBTTagCompound tagCompoundA = StackInfo.itemStackToNBT(getItemStackWithMinimumDamage(pStack.items));
             final NBTTagCompound tagCompoundB = ingredients.get(idx);
 
-            if (tagCompoundB == null || !tagCompoundA.equals(tagCompoundB)) {
+            if (tagCompoundB == null || !tagCompoundB.equals(tagCompoundA)) {
                 return false;
             }
 
@@ -164,6 +168,15 @@ public class BookmarkRecipeId
         }
 
         return false;    
+    }
+
+    public BookmarkRecipeId copy()
+    {
+        BookmarkRecipeId recipeId = new BookmarkRecipeId();
+        recipeId.handlerName = handlerName;
+        recipeId.ingredients = ingredients;
+
+        return recipeId;
     }
 
 }

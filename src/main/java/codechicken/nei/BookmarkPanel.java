@@ -58,13 +58,15 @@ public class BookmarkPanel extends PanelWidget
         public int factor;
         public BookmarkRecipeId recipeId;
         public boolean ingredient = false;
+        public boolean fluidDisplay = false;
 
 
-        public BookmarkStackMeta(BookmarkRecipeId recipeId, int count, boolean ingredient)
+        public BookmarkStackMeta(BookmarkRecipeId recipeId, int count, boolean ingredient, boolean fluidDisplay)
         {
             this.recipeId = recipeId;
             this.factor = count;
             this.ingredient = ingredient;
+            this.fluidDisplay = fluidDisplay;
         }
 
     }
@@ -122,7 +124,7 @@ public class BookmarkPanel extends PanelWidget
             for (int slotIndex = metadata.size() - 1; slotIndex >= 0; slotIndex--) {
                 recipeIdB = getRecipeId(slotIndex);
 
-                if (recipeIdB != null && recipeIdA.equals(recipeIdB)) {
+                if (recipeIdB != null && recipeIdB.equals(recipeIdA)) {
                     removeItem(slotIndex);
                 }
 
@@ -185,7 +187,7 @@ public class BookmarkPanel extends PanelWidget
 
                 }
 
-                GuiContainerManager.drawItem(rect.x + 1, rect.y + 1, stack, true, meta.factor < 0? "": String.valueOf(stack.stackSize));
+                GuiContainerManager.drawItem(rect.x + 1, rect.y + 1, stack, true, meta.factor < 0 || meta.fluidDisplay? "": String.valueOf(stack.stackSize));
 
                 if (meta.recipeId != null && !meta.ingredient && NEIClientConfig.showRecipeMarker()) {
                     drawRecipeMarker(rect.x, rect.y, GuiContainerManager.getFontRenderer(stack));
@@ -296,7 +298,7 @@ public class BookmarkPanel extends PanelWidget
             final ItemStack normalizedA = StackInfo.loadFromNBT(nbTagA);
             BookmarkRecipeId recipeId = null;
             
-            if (NEIClientConfig.saveCurrentRecipeInBookmarksEnabled() && handlerName != "" && ingredients != null && ingredients.size() > 0) {
+            if (NEIClientConfig.saveCurrentRecipeInBookmarksEnabled() && handlerName != "" && ingredients != null && !ingredients.isEmpty()) {
                 recipeId = new BookmarkRecipeId(handlerName, ingredients);
             }
 
@@ -306,7 +308,7 @@ public class BookmarkPanel extends PanelWidget
                 BGrid.removeRecipe(idx, addFullRecipe);
             } else {
 
-                if (addFullRecipe && handlerName != "" && ingredients != null) {
+                if (addFullRecipe && handlerName != "" && ingredients != null && !ingredients.isEmpty()) {
                     final Map<NBTTagCompound, Integer> unique = new HashMap<>();
                     final ArrayList<NBTTagCompound> sorted = new ArrayList<>();
 
@@ -326,12 +328,12 @@ public class BookmarkPanel extends PanelWidget
 
                     for (NBTTagCompound nbTag : sorted) { 
                         nbTag.setInteger("Count", nbTag.getInteger("Count") * unique.get(nbTag));
-                        BGrid.addItem(StackInfo.loadFromNBT(nbTag), new BookmarkStackMeta(recipeId, (saveStackSize ? 1: -1) * nbTag.getInteger("Count"), true));
+                        BGrid.addItem(StackInfo.loadFromNBT(nbTag), new BookmarkStackMeta(recipeId, (saveStackSize ? 1: -1) * nbTag.getInteger("Count"), true, nbTag.hasKey("gtFluidName")));
                     }
 
                 }
 
-                BGrid.addItem(normalizedA, new BookmarkStackMeta(recipeId, (saveStackSize ? 1: -1) * nbTagA.getInteger("Count"), false));
+                BGrid.addItem(normalizedA, new BookmarkStackMeta(recipeId, (saveStackSize ? 1: -1) * nbTagA.getInteger("Count"), false, nbTagA.hasKey("gtFluidName")));
             }
             
 
@@ -590,7 +592,8 @@ public class BookmarkPanel extends PanelWidget
                     namespaces.get(activeNamespaceIndex).addItem(itemStack, new BookmarkStackMeta(
                         recipeId,
                         jsonObject.has("factor")? jsonObject.get("factor").getAsInt(): 0,
-                        jsonObject.has("ingredient")? jsonObject.get("ingredient").getAsBoolean(): false
+                        jsonObject.has("ingredient")? jsonObject.get("ingredient").getAsBoolean(): false,
+                        itemStackNBT.hasKey("gtFluidName")
                     ));
                 } else {
                     NEIClientConfig.logger.warn("Failed to load bookmarked ItemStack from json string, the item no longer exists:\n{}", itemStr);
@@ -714,7 +717,7 @@ public class BookmarkPanel extends PanelWidget
         final BookmarkStackMeta meta = ((BookmarkGrid) grid).getMetadata(mouseDownSlot);
         int amount = stack.stackSize;
 
-        if (meta.factor < 0) {
+        if (meta.factor < 0 && !meta.fluidDisplay) {
             amount = NEIClientConfig.getItemQuantity();
 
             if (amount == 0) {

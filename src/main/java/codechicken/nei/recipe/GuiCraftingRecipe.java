@@ -4,12 +4,14 @@ import codechicken.core.TaskProfiler;
 import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.PositionedStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
 import codechicken.nei.ItemPanels;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -47,18 +49,42 @@ public class GuiCraftingRecipe extends GuiRecipe
 
         handlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
 
-        mc.displayGuiScreen(new GuiCraftingRecipe(prevscreen, handlers));
+        BookmarkRecipeId recipeId = null;
+
+        if (outputId.equals("item")) {
+            recipeId = getRecipeId(prevscreen, (ItemStack)results[0]);
+        }
+
+        GuiCraftingRecipe gui = new GuiCraftingRecipe(prevscreen, handlers, recipeId);
         
-        if (NEIClientConfig.saveCurrentRecipeInBookmarksEnabled() && !NEIClientUtils.shiftKey() && outputId.equals("item") && mc.currentScreen instanceof GuiRecipe) {
-            GuiCraftingRecipe.openTargetRecipe((GuiRecipe)mc.currentScreen, (ItemStack)results[0]);
+        mc.displayGuiScreen(gui);
+
+        if (NEIClientConfig.saveCurrentRecipeInBookmarksEnabled() && !NEIClientUtils.shiftKey()) {
+            gui.openTargetRecipe(gui.recipeId);
         }
 
         return true;
     }
 
-    protected static void openTargetRecipe(GuiRecipe currentScreen, ItemStack stackover)
+    protected static BookmarkRecipeId getRecipeId(GuiScreen gui, ItemStack stackover)
     {
-        currentScreen.openTargetRecipe(ItemPanels.bookmarkPanel.getBookmarkRecipeId(stackover));
+
+        if (gui instanceof GuiRecipe) {
+            final List<PositionedStack> ingredients = ((GuiRecipe) gui).getFocusedRecipeIngredients();
+            final String handlerName = ((GuiRecipe) gui).getHandlerName();
+
+            if (ingredients != null && !ingredients.isEmpty()) {
+                return new BookmarkRecipeId(handlerName, ingredients);
+            }
+        }
+
+        return ItemPanels.bookmarkPanel.getBookmarkRecipeId(stackover);
+    }
+
+    private GuiCraftingRecipe(GuiScreen prevgui, ArrayList<ICraftingHandler> handlers, BookmarkRecipeId recipeId)
+    {
+        this(prevgui, handlers);
+        this.recipeId = recipeId;
     }
 
     private GuiCraftingRecipe(GuiScreen prevgui, ArrayList<ICraftingHandler> handlers) {

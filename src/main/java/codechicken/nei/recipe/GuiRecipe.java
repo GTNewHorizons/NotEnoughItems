@@ -63,6 +63,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
 
     public int page;
     public int recipetype;
+    public BookmarkRecipeId recipeId;
     public ContainerRecipe slotcontainer;
     public GuiContainer firstGui;
     public GuiScreen firstGuiGeneral;
