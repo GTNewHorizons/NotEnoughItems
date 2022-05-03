@@ -66,6 +66,7 @@ nei.chat.rain.on=Rain turned on
 nei.chat.rain.off=Rain turned off
 nei.chat.time=Day %d. %d:00
 nei.chat.give.noitem=No such item.
+nei.chat.recipe.error=There was error during loading recipe. Please check log for details.
 
 nei.options=NEI Options
 nei.options.back=Back

@@ -6,6 +6,10 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -35,6 +39,12 @@ public class GuiUsageRecipe extends GuiRecipe
                 .collect(Collectors.toCollection(ArrayList::new))).get());
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
+            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+            if (player != null) {
+                IChatComponent chat = new ChatComponentTranslation("nei.chat.recipe.error");
+                chat.getChatStyle().setColor(EnumChatFormatting.RED);
+                player.addChatComponentMessage(chat);
+            }
             return false;
         } finally {
             profiler.end();
