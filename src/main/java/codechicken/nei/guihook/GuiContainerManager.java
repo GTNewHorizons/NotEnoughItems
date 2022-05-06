@@ -245,6 +245,7 @@ public class GuiContainerManager
             drawItems.renderItemIntoGUI(fontRenderer, renderEngine, new ItemStack(Blocks.fire), i, j);
         }
 
+        GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         enable2DRender();
         drawItems.zLevel = zLevel - 100;
     }
