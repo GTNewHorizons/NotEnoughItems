@@ -272,7 +272,7 @@ public class BookmarkPanel extends PanelWidget
     @Override
     public String getLabelText()
     {
-        return "(" + getPage() + "/" + Math.max(1, getNumPages()) + ") [" + grid.size() + "]";
+        return String.format("(%d/%d) [%d]", getPage(), Math.max(1, getNumPages()), grid.size());
     }
 
 

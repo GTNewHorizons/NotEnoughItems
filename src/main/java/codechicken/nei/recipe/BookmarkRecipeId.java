@@ -24,15 +24,24 @@ public class BookmarkRecipeId
     public List<NBTTagCompound> ingredients = new ArrayList<>();
 
     
-    public BookmarkRecipeId(String handlerName, List<PositionedStack> stacks)
+    public BookmarkRecipeId(String handlerName, List<?> stacks)
     {
         this.handlerName = handlerName;
 
-        for (PositionedStack pos : stacks) {
-            final NBTTagCompound nbt = StackInfo.itemStackToNBT(getItemStackWithMinimumDamage(pos.items));
-            if (nbt != null) {
-                ingredients.add(nbt);
+        for (Object pos : stacks) {
+
+            if (pos instanceof PositionedStack) {
+                pos = getItemStackWithMinimumDamage(((PositionedStack) pos).items);
             }
+
+            if (pos instanceof ItemStack) {
+                pos = StackInfo.itemStackToNBT((ItemStack) pos);
+            }
+
+            if (pos instanceof NBTTagCompound) {
+                ingredients.add((NBTTagCompound) pos);
+            }
+
         }
 
     }
@@ -172,11 +181,7 @@ public class BookmarkRecipeId
 
     public BookmarkRecipeId copy()
     {
-        BookmarkRecipeId recipeId = new BookmarkRecipeId();
-        recipeId.handlerName = handlerName;
-        recipeId.ingredients = ingredients;
-
-        return recipeId;
+        return new BookmarkRecipeId(handlerName, ingredients);
     }
 
 }

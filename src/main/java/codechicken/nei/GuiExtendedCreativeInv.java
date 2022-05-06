@@ -1,6 +1,7 @@
 package codechicken.nei;
 
 import codechicken.lib.render.CCRenderState;
+import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.api.TaggedInventoryArea;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -9,7 +10,6 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.Rectangle;
 import java.util.Collections;
 import java.util.List;
 
@@ -54,7 +54,7 @@ public class GuiExtendedCreativeInv extends GuiContainer implements INEIGuiHandl
     @Override
     public boolean hideItemPanelSlot(GuiContainer gui, int x, int y, int w, int h)
     {
-        return (new Rectangle(guiLeft - 15, guiTop + 18, 18, 18 * 4 + 4)).intersects(x, y, w, h);
+        return (new Rectangle4i(guiLeft - 15, guiTop + 18, 18, 18 * 4 + 4)).intersects(new Rectangle4i(x, y, w, h));
     }
 
     @Override

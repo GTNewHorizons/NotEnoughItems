@@ -51,7 +51,7 @@ public class GuiCraftingRecipe extends GuiRecipe
 
         BookmarkRecipeId recipeId = null;
 
-        if (outputId.equals("item")) {
+        if ("item".equals(outputId)) {
             recipeId = getRecipeId(prevscreen, (ItemStack)results[0]);
         }
 

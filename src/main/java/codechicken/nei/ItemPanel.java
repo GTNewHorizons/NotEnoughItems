@@ -145,7 +145,7 @@ public class ItemPanel extends PanelWidget
     
     public String getLabelText()
     {
-        return "(" + getPage() + "/" + Math.max(1, getNumPages()) + ")";
+        return String.format("(%d/%d)", getPage(), Math.max(1, getNumPages()));
     }
 
     protected String getPositioningSettingName()
