@@ -299,6 +299,7 @@ public class NEIClientConfig {
         API.addKeyBind("gui.hide", Keyboard.KEY_O);
         API.addKeyBind("gui.search", Keyboard.KEY_F);
         API.addKeyBind("gui.bookmark", Keyboard.KEY_A);
+        API.addKeyBind("gui.overlay", Keyboard.KEY_S);
         API.addKeyBind("gui.hide_bookmarks", Keyboard.KEY_B);
         API.addKeyBind("world.chunkoverlay", Keyboard.KEY_F9);
         API.addKeyBind("world.moboverlay", Keyboard.KEY_F7);

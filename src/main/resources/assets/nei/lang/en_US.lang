@@ -95,6 +95,7 @@ nei.options.keys.gui.prev_machine=Prev Machine
 nei.options.keys.gui.search=Focus Search Bar
 nei.options.keys.gui.bookmark=Add Bookmark
 nei.options.keys.gui.hide_bookmarks=Toggle Bookmark Panel Visibility
+nei.options.keys.gui.overlay=Overlay Recipe
 nei.options.keys.world=World
 nei.options.keys.world.chunkoverlay=Chunk Boundary Overlay
 nei.options.keys.world.moboverlay=Mob Spawn Overlay
