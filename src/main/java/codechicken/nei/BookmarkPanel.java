@@ -346,12 +346,8 @@ public class BookmarkPanel extends PanelWidget
     public BookmarkRecipeId getBookmarkRecipeId(ItemStack stackA)
     {
 
-        final Point mousePos =  getMousePosition();
-        final ItemPanelSlot slot = getSlotMouseOver(mousePos.x, mousePos.y);
-
-        if (slot != null && StackInfo.equalItemAndNBT(slot.item, stackA, true)) {
-            return ((BookmarkGrid) grid).getRecipeId(slot.slotIndex);
-        }
+        BookmarkRecipeId mouseOverRecipeId = getBookmarkMouseOverRecipeId(stackA);
+        if (mouseOverRecipeId != null) return mouseOverRecipeId;
 
         BookmarkRecipeId recipeId = ((BookmarkGrid) grid).findRecipeId(stackA);
 
@@ -365,6 +361,25 @@ public class BookmarkPanel extends PanelWidget
         }
 
         return recipeId;
+    }
+
+    public BookmarkRecipeId getBookmarkMouseOverRecipeId(ItemStack stackA)
+    {
+        final Point mousePos = getMousePosition();
+        final ItemPanelSlot slot = getSlotMouseOver(mousePos.x, mousePos.y);
+
+        if (slot != null) {
+            if (stackA == null || StackInfo.equalItemAndNBT(slot.item, stackA, true)) {
+                return ((BookmarkGrid) grid).getRecipeId(slot.slotIndex);
+            }
+        }
+
+        return null;
+    }
+
+    public BookmarkRecipeId getBookmarkMouseOverRecipeId()
+    {
+        return getBookmarkMouseOverRecipeId(null);
     }
 
     protected String getNamespaceLabelText(boolean shortFormat)

@@ -2,6 +2,7 @@ package codechicken.nei.recipe;
 
 import codechicken.core.TaskProfiler;
 import codechicken.nei.ItemList;
+import codechicken.nei.ItemPanels;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
@@ -9,12 +10,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import codechicken.nei.ItemPanels;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -22,11 +21,45 @@ import java.util.stream.Collectors;
 
 public class GuiCraftingRecipe extends GuiRecipe {
     public static boolean openRecipeGui(String outputId, Object... results) {
+        return openRecipeGui(outputId, false, results);
+    }
+
+
+    public static boolean openRecipeGui(String outputId, Boolean overlay, Object... results) {
         Minecraft mc = NEIClientUtils.mc();
         GuiScreen prevscreen = mc.currentScreen;// instanceof GuiContainer ? (GuiContainer) mc.currentScreen : null;
 
-        ArrayList<ICraftingHandler> handlers = getHandlers(outputId, null, results);
-        if (handlers == null || handlers.isEmpty()) return false;
+        ArrayList<ICraftingHandler> handlers;
+        TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
+        profiler.start("recipe.concurrent.crafting");
+
+        // Pre-find the fuels so we're not fighting over it
+        FuelRecipeHandler.findFuelsOnceParallel();
+
+        try {
+            handlers = serialCraftingHandlers.stream().map(h -> h.getRecipeHandler(outputId, results))
+                    .filter(h -> h.numRecipes() > 0)
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            handlers.addAll(ItemList.forkJoinPool.submit(() -> craftinghandlers.parallelStream()
+                    .map(h -> h.getRecipeHandler(outputId, results))
+                    .filter(h -> h.numRecipes() > 0)
+                    .collect(Collectors.toCollection(ArrayList::new))).get());
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+            if (player != null) {
+                IChatComponent chat = new ChatComponentTranslation("nei.chat.recipe.error");
+                chat.getChatStyle().setColor(EnumChatFormatting.RED);
+                player.addChatComponentMessage(chat);
+            }
+            return false;
+        } finally {
+            profiler.end();
+        }
+
+        if (handlers.isEmpty())
+            return false;
 
         handlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
 
@@ -40,46 +73,20 @@ public class GuiCraftingRecipe extends GuiRecipe {
 
         mc.displayGuiScreen(gui);
 
-        if (NEIClientConfig.saveCurrentRecipeInBookmarksEnabled() && !NEIClientUtils.shiftKey()) {
-            gui.openTargetRecipe(gui.recipeId);
+        if (NEIClientConfig.saveCurrentRecipeInBookmarksEnabled())
+            if (!NEIClientUtils.shiftKey() || overlay) {
+                gui.openTargetRecipe(gui.recipeId);
+            }
+
+        if (overlay) {
+            if (!NEIClientConfig.saveCurrentRecipeInBookmarksEnabled() || gui.recipeId == null) {
+                mc.displayGuiScreen(prevscreen);
+                return false;
+            }
+            gui.overlayRecipe(gui.recipeId.position);
         }
 
         return true;
-    }
-
-    public static ArrayList<ICraftingHandler> getHandlers(String outputId, @Nullable String handlerId, Object... results) {
-        ArrayList<ICraftingHandler> handlers;
-        TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
-        profiler.start("recipe.concurrent.crafting");
-
-        // Pre-find the fuels so we're not fighting over it
-        FuelRecipeHandler.findFuelsOnceParallel();
-
-        try {
-            handlers = serialCraftingHandlers.stream()
-                    .filter(h -> handlerId == null || h.getHandlerId().equals(handlerId))
-                    .map(h -> h.getRecipeHandler(outputId, results))
-                    .filter(h -> h.numRecipes() > 0)
-                    .collect(Collectors.toCollection(ArrayList::new));
-
-            handlers.addAll(ItemList.forkJoinPool.submit(() -> craftinghandlers.parallelStream()
-                    .filter(h -> handlerId == null || h.getHandlerId().equals(handlerId))
-                    .map(h -> h.getRecipeHandler(outputId, results))
-                    .filter(h -> h.numRecipes() > 0)
-                    .collect(Collectors.toCollection(ArrayList::new))).get());
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-            if (player != null) {
-                IChatComponent chat = new ChatComponentTranslation("nei.chat.recipe.error");
-                chat.getChatStyle().setColor(EnumChatFormatting.RED);
-                player.addChatComponentMessage(chat);
-            }
-            return null;
-        } finally {
-            profiler.end();
-        }
-        return handlers;
     }
 
     protected static BookmarkRecipeId getRecipeId(GuiScreen gui, ItemStack stackover) {

@@ -6,15 +6,12 @@ import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
-import codechicken.nei.api.IOverlayHandler;
-import codechicken.nei.api.IRecipeOverlayRenderer;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class RecipeItemInputHandler implements IContainerInputHandler {
@@ -47,32 +44,11 @@ public class RecipeItemInputHandler implements IContainerInputHandler {
                 LayoutManager.overlayRenderer = null;
                 return true;
             }
-            final Point mousePosition = GuiDraw.getMousePosition();
-            if (ItemPanels.bookmarkPanel.getStackMouseOver(mousePosition.x, mousePosition.y) == null) return false;
-            final BookmarkRecipeId recipeId = ItemPanels.bookmarkPanel.getBookmarkRecipeId(stackover);
-            if (recipeId == null || recipeId.handlerName == null || recipeId.ingredients == null || recipeId.ingredients.isEmpty())
+            if (!NEIClientConfig.saveCurrentRecipeInBookmarksEnabled()) return false;
+            final BookmarkRecipeId mouseOverRecipeId = ItemPanels.bookmarkPanel.getBookmarkMouseOverRecipeId();
+            if (mouseOverRecipeId == null || mouseOverRecipeId.ingredients == null || mouseOverRecipeId.ingredients.isEmpty())
                 return false;
-            final ArrayList<ICraftingHandler> handlers = GuiCraftingRecipe.getHandlers("item", recipeId.handlerName, stackover.copy());
-            if (handlers == null || handlers.isEmpty()) return false;
-            final ICraftingHandler handler = handlers.get(0);
-            if (recipeId.position == -1) {
-                for (int i = 0; i < handler.numRecipes(); i++) {
-                    if (recipeId.equalsIngredients(handler.getIngredientStacks(i))) {
-                        recipeId.position = i;
-                        break;
-                    }
-                }
-            }
-            if (recipeId.position == -1) return false;
-            final IRecipeOverlayRenderer renderer = handler.getOverlayRenderer(gui, recipeId.position);
-            final IOverlayHandler overlayHandler = handler.getOverlayHandler(gui, recipeId.position);
-            final boolean shift = NEIClientUtils.shiftKey();
-            if (renderer == null || shift) {
-                overlayHandler.overlayRecipe(gui, handler, recipeId.position, shift);
-            } else {
-                LayoutManager.overlayRenderer = renderer;
-            }
-            return true;
+            return GuiCraftingRecipe.openRecipeGui("item", true, stackover.copy());
         }
 
         return false;

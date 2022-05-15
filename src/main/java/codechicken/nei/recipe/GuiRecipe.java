@@ -446,7 +446,7 @@ public abstract class GuiRecipe extends GuiContainer implements IGuiContainerOve
         setRecipePage(--recipetype);
     }
 
-    private void overlayRecipe(int recipe) {
+    protected void overlayRecipe(int recipe) {
         final IRecipeOverlayRenderer renderer = handler.getOverlayRenderer(firstGui, recipe);
         final IOverlayHandler overlayHandler = handler.getOverlayHandler(firstGui, recipe);
         final boolean shift = NEIClientUtils.shiftKey();
