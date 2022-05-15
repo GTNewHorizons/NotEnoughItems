@@ -43,6 +43,10 @@ public class RecipeItemInputHandler implements IContainerInputHandler {
         }
 
         if (keyCode == NEIClientConfig.getKeyBinding("gui.overlay")) {
+            if (NEIClientUtils.controlKey()) {
+                LayoutManager.overlayRenderer = null;
+                return true;
+            }
             final Point mousePosition = GuiDraw.getMousePosition();
             if (ItemPanels.bookmarkPanel.getStackMouseOver(mousePosition.x, mousePosition.y) == null) return false;
             final BookmarkRecipeId recipeId = ItemPanels.bookmarkPanel.getBookmarkRecipeId(stackover);
@@ -66,8 +70,9 @@ public class RecipeItemInputHandler implements IContainerInputHandler {
             if (renderer == null || shift) {
                 overlayHandler.overlayRecipe(gui, handler, recipeId.position, shift);
             } else {
-                LayoutManager.overlayRenderer = LayoutManager.overlayRenderer == null ? renderer : null;
+                LayoutManager.overlayRenderer = renderer;
             }
+            return true;
         }
 
         return false;
