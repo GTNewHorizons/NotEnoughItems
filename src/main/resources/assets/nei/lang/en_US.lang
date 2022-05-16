@@ -179,6 +179,9 @@ nei.options.inventory.disableMouseScrollTransfer.false=False
 nei.options.inventory.invertMouseScrollTransfer=Invert Mouse Wheel Transfer Direction
 nei.options.inventory.invertMouseScrollTransfer.true=True
 nei.options.inventory.invertMouseScrollTransfer.false=False
+nei.options.inventory.cacheItemRendering=Cache Item Rendering
+nei.options.inventory.cacheItemRendering.true=True
+nei.options.inventory.cacheItemRendering.false=False
 
 nei.options.command=Commands
 nei.options.command.creative=Gamemode

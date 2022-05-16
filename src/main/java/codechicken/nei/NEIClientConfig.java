@@ -34,6 +34,7 @@ import codechicken.obfuscator.ObfuscationRun;
 import com.google.common.base.Objects;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -182,6 +183,9 @@ public class NEIClientConfig {
                 return isMouseScrollTransferEnabled();
             }
         });
+
+        tag.getTag("inventory.cacheItemRendering").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.cacheItemRendering", true));
         
         tag.getTag("itemLoadingTimeout").getIntValue(500);
 
@@ -548,6 +552,10 @@ public class NEIClientConfig {
 
     public static boolean shouldInvertMouseScrollTransfer() {
         return !getBooleanSetting("inventory.invertMouseScrollTransfer");
+    }
+
+    public static boolean shouldCacheItemRendering() {
+        return getBooleanSetting("inventory.cacheItemRendering") && OpenGlHelper.framebufferSupported;
     }
 
     public static boolean getMagnetMode() {

@@ -67,6 +67,7 @@ public class ItemPanel extends PanelWidget
             if (newItems != null) {
                 realItems = newItems;
                 newItems = null;
+                refreshBuffer = true;
             }
 
             super.refresh(gui);
