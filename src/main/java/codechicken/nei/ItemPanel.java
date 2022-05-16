@@ -14,6 +14,7 @@ public class ItemPanel extends PanelWidget
     /**
      *  Backwards compat :-/
      */
+    @SuppressWarnings("unused")
     @Deprecated
     private int itemsPerPage = 0;
 
@@ -22,6 +23,11 @@ public class ItemPanel extends PanelWidget
 
     @Deprecated
     public ArrayList<ItemStack> realItems = new ArrayList<>();
+    
+    public ItemStack getStackMouseOver(int mousex, int mousey) {
+        // *looks angrily at AppleCore*
+        return super.getStackMouseOver(mousex, mousey);
+    };
 
     public Button more;
     public Button less;
