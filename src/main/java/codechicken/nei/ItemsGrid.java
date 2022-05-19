@@ -220,7 +220,6 @@ public class ItemsGrid
         ItemPanelSlot slot = getSlotMouseOver(mousex, mousey);
 
         boolean shouldCache = NEIClientConfig.shouldCacheItemRendering() && !PresetsWidget.inEditMode();
-
         if(shouldCache) {
             Minecraft minecraft = Minecraft.getMinecraft();
             if (framebuffer == null) {
@@ -235,8 +234,8 @@ public class ItemsGrid
                 framebuffer.bindFramebuffer(false);
                 /* Set up some rendering state needed for items to work correctly */
                 GL11.glDisable(GL11.GL_BLEND);
-                GL11.glDepthMask(false);
-                OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                GL11.glDepthMask(true);
+                OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
                 GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             } else {
                 drawFocusOutline(mousex, mousey);
