@@ -203,8 +203,12 @@ public class ItemsGrid
             if(invalidSlotMap[pageIdx])
                 return;
             Rectangle4i rect = getSlotRect(pageIdx);
-            drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
+            drawFocusOutline(slot, pageIdx, rect);
         }
+    }
+
+    protected void drawFocusOutline(ItemPanelSlot slot, int idx, Rectangle4i rect) {
+        drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
     }
 
     public void draw(int mousex, int mousey)
