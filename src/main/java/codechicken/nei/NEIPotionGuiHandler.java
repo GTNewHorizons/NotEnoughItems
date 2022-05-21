@@ -2,16 +2,13 @@ package codechicken.nei;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.INEIGuiAdapter;
-import com.google.common.collect.Ordering;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
-import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * Inspired by InventoryEffectRendererGuiHandler.java in JEI
