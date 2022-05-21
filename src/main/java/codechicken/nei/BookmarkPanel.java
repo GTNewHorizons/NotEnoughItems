@@ -168,7 +168,14 @@ public class BookmarkPanel extends PanelWidget
         }
 
         @Override
-        protected void drawFocusOutline(ItemPanelSlot focus, int idx, Rectangle4i rect) {
+        protected boolean slotNeedsOutline(ItemPanelSlot focused, int idx) {
+            return super.slotNeedsOutline(focused, idx)
+                    || (getRecipeId(focused.slotIndex) != null && getRecipeId(idx) != null && getRecipeId(focused.slotIndex).equals(getRecipeId(idx)))
+                    || (LayoutManager.bookmarkPanel.sortedNamespaceIndex == LayoutManager.bookmarkPanel.activeNamespaceIndex && LayoutManager.bookmarkPanel.sortedStackIndex == idx);
+        }
+
+        @Override
+        protected void drawSlotOutline(ItemPanelSlot focus, int idx, Rectangle4i rect) {
             if(LayoutManager.bookmarkPanel.sortedNamespaceIndex == LayoutManager.bookmarkPanel.activeNamespaceIndex && LayoutManager.bookmarkPanel.sortedStackIndex == idx) {
                 drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
                 return;

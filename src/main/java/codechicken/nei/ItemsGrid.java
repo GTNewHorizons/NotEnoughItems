@@ -199,24 +199,27 @@ public class ItemsGrid
         return invalidSlotMap[idx];
     }
 
-    private void drawFocusOutline(int mousex, int mousey)
+    protected boolean slotNeedsOutline(ItemPanelSlot focused, int slotIdx) {
+        return focused.slotIndex == slotIdx;
+    }
+
+    private void drawSlotOutlines(int mousex, int mousey)
     {
-        ItemPanelSlot slot = getSlotMouseOver(mousex, mousey);
-        if(slot == null)
+        ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
+        if(focused == null)
             return;
         int idx = page * perPage;
         for (int i = 0; i < rows * columns && idx < size(); i++) {
             if(!invalidSlotMap[i]) {
-                if(slot.slotIndex == idx) {
-                    drawFocusOutline(slot, idx, getSlotRect(i));
-                    break;
+                if(slotNeedsOutline(focused, idx)) {
+                    drawSlotOutline(focused, idx, getSlotRect(i));
                 }
                 idx++;
             }
         }
     }
 
-    protected void drawFocusOutline(ItemPanelSlot slot, int idx, Rectangle4i rect) {
+    protected void drawSlotOutline(ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
         drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
     }
 
@@ -255,7 +258,7 @@ public class ItemsGrid
                 framebuffer.framebufferColor[1] = 0.0F;
                 framebuffer.framebufferColor[2] = 0.0F;
             }
-            drawFocusOutline(mousex, mousey);
+            drawSlotOutlines(mousex, mousey);
             if (refreshBuffer) {
                 framebuffer.createBindFramebuffer(minecraft.displayWidth, minecraft.displayHeight);
                 framebuffer.framebufferClear();
@@ -270,7 +273,7 @@ public class ItemsGrid
                 return;
             }
         } else {
-            drawFocusOutline(mousex, mousey);
+            drawSlotOutlines(mousex, mousey);
         }
 
         GuiContainerManager.enableMatrixStackLogging();
