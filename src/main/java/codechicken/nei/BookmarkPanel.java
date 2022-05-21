@@ -767,6 +767,7 @@ public class BookmarkPanel extends PanelWidget
                 if (stack != null && (mouseOverSlot == null || mouseOverSlot.slotIndex != mouseDownSlot || heldTime > 250)) {
                     sortedNamespaceIndex = activeNamespaceIndex;
                     sortedStackIndex = mouseDownSlot;
+                    grid.refreshBuffer = true;
                 }
 
             } else {
@@ -847,6 +848,7 @@ public class BookmarkPanel extends PanelWidget
             sortedNamespaceIndex = -1;
             sortedStackIndex = -1;
             mouseDownSlot = -1;
+            grid.refreshBuffer = true; /* make sure grid redraws the new item */
             saveBookmarks();
         } else {
             super.mouseUp(mousex, mousey, button);
