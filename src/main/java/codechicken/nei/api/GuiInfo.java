@@ -4,6 +4,7 @@ import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.NEIChestGuiHandler;
 import codechicken.nei.NEICreativeGuiHandler;
 import codechicken.nei.NEIDummySlotHandler;
+import codechicken.nei.NEIPotionGuiHandler;
 import codechicken.nei.recipe.GuiRecipeCatalyst;
 import codechicken.nei.recipe.SearchInputDropHandler;
 import codechicken.nei.recipe.FillFluidContainerHandler;
@@ -33,6 +34,7 @@ public class GuiInfo {
         API.registerNEIGuiHandler(new SearchInputDropHandler());
         API.registerNEIGuiHandler(new FillFluidContainerHandler());
         API.registerNEIGuiHandler(new CheatItemHandler());
+        API.registerNEIGuiHandler(new NEIPotionGuiHandler());
         customSlotGuis.add(GuiContainerCreative.class);
     }
 
