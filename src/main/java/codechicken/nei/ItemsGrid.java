@@ -256,7 +256,6 @@ public class ItemsGrid
                 framebuffer.framebufferColor[2] = 0.0F;
             }
             drawFocusOutline(mousex, mousey);
-            blitExistingBuffer();
             if (refreshBuffer) {
                 framebuffer.createBindFramebuffer(minecraft.displayWidth, minecraft.displayHeight);
                 framebuffer.framebufferClear();
@@ -267,6 +266,7 @@ public class ItemsGrid
                 OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
                 GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             } else {
+                blitExistingBuffer();
                 return;
             }
         } else {
@@ -288,6 +288,7 @@ public class ItemsGrid
         if (refreshBuffer && shouldCache) {
             refreshBuffer = false;
             Minecraft.getMinecraft().getFramebuffer().bindFramebuffer(false);
+            blitExistingBuffer();
         }
     }
 
