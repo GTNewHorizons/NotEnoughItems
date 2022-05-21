@@ -198,12 +198,17 @@ public class ItemsGrid
     private void drawFocusOutline(int mousex, int mousey)
     {
         ItemPanelSlot slot = getSlotMouseOver(mousex, mousey);
-        if (slot != null) {
-            int pageIdx = slot.slotIndex % perPage;
-            if(invalidSlotMap[pageIdx])
-                return;
-            Rectangle4i rect = getSlotRect(pageIdx);
-            drawFocusOutline(slot, pageIdx, rect);
+        if(slot == null)
+            return;
+        int idx = page * perPage;
+        for (int i = 0; i < rows * columns && idx < size(); i++) {
+            if(!invalidSlotMap[i]) {
+                if(slot.slotIndex == idx) {
+                    drawFocusOutline(slot, idx, getSlotRect(i));
+                    break;
+                }
+                idx++;
+            }
         }
     }
 
