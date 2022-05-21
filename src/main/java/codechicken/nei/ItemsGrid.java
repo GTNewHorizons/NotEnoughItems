@@ -216,6 +216,24 @@ public class ItemsGrid
         drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
     }
 
+    private void blitExistingBuffer() {
+        Minecraft minecraft = Minecraft.getMinecraft();
+        GL11.glEnable(GL11.GL_BLEND);
+        OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        framebuffer.bindFramebufferTexture();
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        ScaledResolution res = new ScaledResolution(minecraft, minecraft.displayWidth, minecraft.displayHeight);
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        tessellator.addVertexWithUV(0, res.getScaledHeight_double(), 0.0, 0, 0);
+        tessellator.addVertexWithUV(res.getScaledWidth_double(), res.getScaledHeight_double(), 0.0, 1, 0);
+        tessellator.addVertexWithUV(res.getScaledWidth_double(), 0, 0.0, 1, 1);
+        tessellator.addVertexWithUV(0, 0, 0, 0, 1);
+        tessellator.draw();
+        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+    }
+
     public void draw(int mousex, int mousey)
     {
         if (getPerPage() == 0) {
@@ -233,6 +251,8 @@ public class ItemsGrid
                 framebuffer.framebufferColor[1] = 0.0F;
                 framebuffer.framebufferColor[2] = 0.0F;
             }
+            drawFocusOutline(mousex, mousey);
+            blitExistingBuffer();
             if (refreshBuffer) {
                 framebuffer.createBindFramebuffer(minecraft.displayWidth, minecraft.displayHeight);
                 framebuffer.framebufferClear();
@@ -243,21 +263,6 @@ public class ItemsGrid
                 OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
                 GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             } else {
-                drawFocusOutline(mousex, mousey);
-                GL11.glEnable(GL11.GL_BLEND);
-                OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-                framebuffer.bindFramebufferTexture();
-                GL11.glEnable(GL11.GL_TEXTURE_2D);
-                ScaledResolution res = new ScaledResolution(minecraft, minecraft.displayWidth, minecraft.displayHeight);
-                Tessellator tessellator = Tessellator.instance;
-                tessellator.startDrawingQuads();
-                tessellator.addVertexWithUV(0, res.getScaledHeight_double(), 0.0, 0, 0);
-                tessellator.addVertexWithUV(res.getScaledWidth_double(), res.getScaledHeight_double(), 0.0, 1, 0);
-                tessellator.addVertexWithUV(res.getScaledWidth_double(), 0, 0.0, 1, 1);
-                tessellator.addVertexWithUV(0, 0, 0, 0, 1);
-                tessellator.draw();
-                OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
                 return;
             }
         } else {
