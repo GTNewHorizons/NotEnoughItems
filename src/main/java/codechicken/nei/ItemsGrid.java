@@ -16,6 +16,7 @@ import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static codechicken.lib.gui.GuiDraw.drawRect;
 
@@ -151,12 +152,15 @@ public class ItemsGrid
 
     private void updateGuiOverlapSlots(GuiContainer gui)
     {
+        boolean[] oldSlotMap = invalidSlotMap;
         invalidSlotMap = new boolean[rows * columns];
         perPage = columns * rows;
 
         checkGuiOverlap(gui, 0, columns - 2, 1);
         checkGuiOverlap(gui, columns - 1, 1, -1);
-
+        if(NEIClientConfig.shouldCacheItemRendering() && !Arrays.equals(oldSlotMap, invalidSlotMap)) {
+            refreshBuffer = true;
+        }
     }
 
     private void checkGuiOverlap(GuiContainer gui, int start, int end, int dir)
