@@ -179,13 +179,6 @@ public class BookmarkPanel extends PanelWidget
         }
 
         @Override
-        protected boolean slotNeedsOutline(@Nullable ItemPanelSlot focused, int idx) {
-            return super.slotNeedsOutline(focused, idx)
-                    || isPartOfFocusedRecipe(focused, idx)
-                    || (LayoutManager.bookmarkPanel.sortedNamespaceIndex == LayoutManager.bookmarkPanel.activeNamespaceIndex && LayoutManager.bookmarkPanel.sortedStackIndex == idx);
-        }
-
-        @Override
         protected void drawSlotOutline(@Nullable ItemPanelSlot focus, int idx, Rectangle4i rect) {
             if(LayoutManager.bookmarkPanel.sortedNamespaceIndex == LayoutManager.bookmarkPanel.activeNamespaceIndex && LayoutManager.bookmarkPanel.sortedStackIndex == idx) {
                 drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
@@ -193,7 +186,7 @@ public class BookmarkPanel extends PanelWidget
                 BookmarkStackMeta meta = getMetadata(idx);
                 if (isPartOfFocusedRecipe(focus, idx)) {
                     drawRect(rect.x, rect.y, rect.w, rect.h, meta.ingredient? 0x88b3b300: 0x88009933);//highlight recipe
-                } else {
+                } else if(focus.slotIndex == idx) {
                     drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
                 }
             }

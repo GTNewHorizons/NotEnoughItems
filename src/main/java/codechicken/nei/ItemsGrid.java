@@ -199,26 +199,21 @@ public class ItemsGrid
         return invalidSlotMap[idx];
     }
 
-    protected boolean slotNeedsOutline(@Nullable ItemPanelSlot focused, int slotIdx) {
-        return focused != null && focused.slotIndex == slotIdx;
-    }
-
     private void drawSlotOutlines(int mousex, int mousey)
     {
         ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
         int idx = page * perPage;
         for (int i = 0; i < rows * columns && idx < size(); i++) {
             if(!invalidSlotMap[i]) {
-                if(slotNeedsOutline(focused, idx)) {
-                    drawSlotOutline(focused, idx, getSlotRect(i));
-                }
+                drawSlotOutline(focused, idx, getSlotRect(i));
                 idx++;
             }
         }
     }
 
     protected void drawSlotOutline(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
-        drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
+        if(focused != null && focused.slotIndex == slotIdx)
+            drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
     }
 
     private void blitExistingBuffer() {
