@@ -199,15 +199,13 @@ public class ItemsGrid
         return invalidSlotMap[idx];
     }
 
-    protected boolean slotNeedsOutline(ItemPanelSlot focused, int slotIdx) {
-        return focused.slotIndex == slotIdx;
+    protected boolean slotNeedsOutline(@Nullable ItemPanelSlot focused, int slotIdx) {
+        return focused != null && focused.slotIndex == slotIdx;
     }
 
     private void drawSlotOutlines(int mousex, int mousey)
     {
         ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
-        if(focused == null)
-            return;
         int idx = page * perPage;
         for (int i = 0; i < rows * columns && idx < size(); i++) {
             if(!invalidSlotMap[i]) {
@@ -219,7 +217,7 @@ public class ItemsGrid
         }
     }
 
-    protected void drawSlotOutline(ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
+    protected void drawSlotOutline(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
         drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
     }
 
