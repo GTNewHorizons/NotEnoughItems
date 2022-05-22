@@ -193,7 +193,7 @@ public class BookmarkPanel extends PanelWidget
         }
 
         @Override
-        protected void drawItem(Rectangle4i rect, int idx, ItemPanelSlot focus)
+        protected void drawItem(Rectangle4i rect, int idx)
         {
             if (LayoutManager.bookmarkPanel.sortedNamespaceIndex != LayoutManager.bookmarkPanel.activeNamespaceIndex || LayoutManager.bookmarkPanel.sortedStackIndex != idx) {
                 final ItemStack stack = getItem(idx);

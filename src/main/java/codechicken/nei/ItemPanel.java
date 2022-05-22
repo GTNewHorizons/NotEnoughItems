@@ -4,6 +4,8 @@ import codechicken.lib.vec.Rectangle4i;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
+import javax.annotation.Nullable;
+
 import static codechicken.lib.gui.GuiDraw.drawRect;
 
 import java.util.ArrayList;
@@ -74,17 +76,14 @@ public class ItemPanel extends PanelWidget
         }
 
         @Override
-        protected void drawItem(Rectangle4i rect, int idx, ItemPanelSlot focus)
-        {
-
-            if (PresetsWidget.inEditMode() && !PresetsWidget.isHidden(getItem(idx))) {
-                drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);
+        protected void drawSlotOutline(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
+            if (PresetsWidget.inEditMode()) {
+                if(!PresetsWidget.isHidden(getItem(slotIdx)))
+                    drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);
+            } else {
+                super.drawSlotOutline(focused, slotIdx, rect);
             }
-
-            super.drawItem(rect, idx, PresetsWidget.inEditMode()? null: focus);
         }
-
-
     }
 
     public ItemPanel()

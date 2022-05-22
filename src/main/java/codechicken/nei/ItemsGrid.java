@@ -240,8 +240,6 @@ public class ItemsGrid
             return;
         }
 
-        ItemPanelSlot slot = getSlotMouseOver(mousex, mousey);
-
         boolean shouldCache = NEIClientConfig.shouldCacheItemRendering() && !PresetsWidget.inEditMode();
         if(shouldCache) {
             Minecraft minecraft = Minecraft.getMinecraft();
@@ -274,7 +272,7 @@ public class ItemsGrid
         int idx = page * perPage;
         for (int i = 0; i < rows * columns && idx < size(); i++) {
             if (!invalidSlotMap[i]) {
-                drawItem(getSlotRect(i), idx, slot);
+                drawItem(getSlotRect(i), idx);
                 idx ++;
             }
         }
@@ -288,7 +286,7 @@ public class ItemsGrid
         }
     }
 
-    protected void drawItem(Rectangle4i rect, int idx, ItemPanelSlot focus)
+    protected void drawItem(Rectangle4i rect, int idx)
     {
         GuiContainerManager.drawItem(rect.x + 1, rect.y + 1, getItem(idx));
     }
