@@ -32,6 +32,7 @@ import java.io.OutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -547,7 +548,7 @@ public class BookmarkPanel extends PanelWidget
         }
 
         try (FileOutputStream output = new FileOutputStream(bookmarkFile)) {
-            IOUtils.writeLines(strings, "\n", output, "UTF-8");
+            IOUtils.writeLines(strings, "\n", output, StandardCharsets.UTF_8);
         } catch (IOException e) {
             NEIClientConfig.logger.error("Filed to save bookmarks list to file {}", bookmarkFile, e);
         }
@@ -568,9 +569,9 @@ public class BookmarkPanel extends PanelWidget
         }
 
         List<String> itemStrings;
-        try (FileReader reader = new FileReader(bookmarkFile)) {
+        try (FileInputStream reader = new FileInputStream(bookmarkFile)) {
             NEIClientConfig.logger.info("Loading bookmarks from file {}", bookmarkFile);
-            itemStrings = IOUtils.readLines(reader);
+            itemStrings = IOUtils.readLines(reader, StandardCharsets.UTF_8);
         } catch (IOException e) {
             NEIClientConfig.logger.error("Failed to load bookmarks from file {}", bookmarkFile, e);
             return;
