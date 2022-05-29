@@ -58,6 +58,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This is an internal class for storing information about items, to be accessed by the API
@@ -111,7 +112,7 @@ public class ItemInfo
     }
 
     //lookup optimisation
-    public static final HashMap<ItemStackKey, String> itemSearchNames = new HashMap<>();
+    public static final ConcurrentHashMap<ItemStackKey, String> itemSearchNames = new ConcurrentHashMap<>();
 
     public static boolean isHidden(ItemStack stack) {
         return hiddenItems.contains(stack);
@@ -162,19 +163,13 @@ public class ItemInfo
 
     private static void populateSearchMap() {
         /* Create a snapshot of the current keys in the cache */
-        HashSet<ItemStackKey> oldItems;
-        synchronized (itemSearchNames) {
-             oldItems = new HashSet<>(itemSearchNames.keySet());
-        }
+        HashSet<ItemStackKey> oldItems = new HashSet<>(itemSearchNames.keySet());
         for(ItemStack stack : ItemList.items) {
             /* Populate each entry and remove it from the snapshot */
             getSearchName(stack);
             oldItems.remove(new ItemStackKey(stack));
         }
-        synchronized (itemSearchNames) {
-            /* Remove any remaining items that weren't in use */
-            itemSearchNames.keySet().removeAll(oldItems);
-        }
+        itemSearchNames.keySet().removeAll(oldItems);
     }
 
     private static void addHiddenItemFilter() {
@@ -562,10 +557,8 @@ public class ItemInfo
     }
 
     public static String getSearchName(ItemStack stack) {
-        synchronized (itemSearchNames) {
-            return itemSearchNames.computeIfAbsent(new ItemStackKey(stack), key ->
-                    EnumChatFormatting.getTextWithoutFormattingCodes(GuiContainerManager.concatenatedDisplayName(key.stack, true).toLowerCase())
-            );
-        }
+        return itemSearchNames.computeIfAbsent(new ItemStackKey(stack), key ->
+                EnumChatFormatting.getTextWithoutFormattingCodes(GuiContainerManager.concatenatedDisplayName(key.stack, true).toLowerCase())
+        );
     }
 }
