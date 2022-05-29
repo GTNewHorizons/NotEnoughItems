@@ -162,14 +162,19 @@ public class ItemInfo
 
     private static void populateSearchMap() {
         /* Create a snapshot of the current keys in the cache */
-        HashSet<ItemStackKey> oldItems = new HashSet<>(itemSearchNames.keySet());
+        HashSet<ItemStackKey> oldItems;
+        synchronized (itemSearchNames) {
+             oldItems = new HashSet<>(itemSearchNames.keySet());
+        }
         for(ItemStack stack : ItemList.items) {
             /* Populate each entry and remove it from the snapshot */
             getSearchName(stack);
             oldItems.remove(new ItemStackKey(stack));
         }
-        /* Remove any remaining items that weren't in use */
-        itemSearchNames.keySet().removeAll(oldItems);
+        synchronized (itemSearchNames) {
+            /* Remove any remaining items that weren't in use */
+            itemSearchNames.keySet().removeAll(oldItems);
+        }
     }
 
     private static void addHiddenItemFilter() {
@@ -557,8 +562,10 @@ public class ItemInfo
     }
 
     public static String getSearchName(ItemStack stack) {
-        return itemSearchNames.computeIfAbsent(new ItemStackKey(stack), key ->
-                EnumChatFormatting.getTextWithoutFormattingCodes(GuiContainerManager.concatenatedDisplayName(key.stack, true).toLowerCase())
-        );
+        synchronized (itemSearchNames) {
+            return itemSearchNames.computeIfAbsent(new ItemStackKey(stack), key ->
+                    EnumChatFormatting.getTextWithoutFormattingCodes(GuiContainerManager.concatenatedDisplayName(key.stack, true).toLowerCase())
+            );
+        }
     }
 }
