@@ -82,8 +82,36 @@ public class ItemInfo
 
     public static final HashMap<Item, String> itemOwners = new HashMap<>();
 
+    private static class ItemStackKey {
+        public final ItemStack stack;
+        public ItemStackKey(ItemStack stack) {
+            this.stack = stack;
+        }
+
+        @Override
+        public int hashCode() {
+            if(this.stack == null)
+                return 1;
+            int hashCode = 1;
+            hashCode = 31 * hashCode + stack.stackSize;
+            hashCode = 31 * hashCode + Item.getIdFromItem(stack.getItem());
+            hashCode = 31 * hashCode + stack.getItemDamage();
+            hashCode = 31 * hashCode + (!stack.hasTagCompound() ? 0 : stack.getTagCompound().hashCode());
+            return hashCode;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if(o == this)
+                return true;
+            if(!(o instanceof ItemStackKey))
+                return false;
+            return ItemStack.areItemStacksEqual(this.stack, ((ItemStackKey)o).stack);
+        }
+    }
+
     //lookup optimisation
-    public static final HashMap<ItemStack, String> itemSearchNames = new HashMap<>();
+    public static final HashMap<ItemStackKey, String> itemSearchNames = new HashMap<>();
 
     public static boolean isHidden(ItemStack stack) {
         return hiddenItems.contains(stack);
@@ -129,7 +157,19 @@ public class ItemInfo
     }
 
     private static void addSearchOptimisation() {
-        ItemList.loadCallbacks.add(itemSearchNames::clear);
+        ItemList.loadCallbacks.add(ItemInfo::populateSearchMap);
+    }
+
+    private static void populateSearchMap() {
+        /* Create a snapshot of the current keys in the cache */
+        HashSet<ItemStackKey> oldItems = new HashSet<>(itemSearchNames.keySet());
+        for(ItemStack stack : ItemList.items) {
+            /* Populate each entry and remove it from the snapshot */
+            getSearchName(stack);
+            oldItems.remove(new ItemStackKey(stack));
+        }
+        /* Remove any remaining items that weren't in use */
+        itemSearchNames.keySet().removeAll(oldItems);
     }
 
     private static void addHiddenItemFilter() {
@@ -517,11 +557,8 @@ public class ItemInfo
     }
 
     public static String getSearchName(ItemStack stack) {
-        String s = itemSearchNames.get(stack);
-        if(s == null) {
-            s = EnumChatFormatting.getTextWithoutFormattingCodes(GuiContainerManager.concatenatedDisplayName(stack, true).toLowerCase());
-            itemSearchNames.put(stack, s);
-        }
-        return s;
+        return itemSearchNames.computeIfAbsent(new ItemStackKey(stack), key ->
+                EnumChatFormatting.getTextWithoutFormattingCodes(GuiContainerManager.concatenatedDisplayName(key.stack, true).toLowerCase())
+        );
     }
 }
