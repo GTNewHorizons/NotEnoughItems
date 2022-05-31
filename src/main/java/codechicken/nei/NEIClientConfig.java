@@ -240,6 +240,9 @@ public class NEIClientConfig {
         tag.getTag("inventory.creative_tab_style").setComment("Creative or JEI style tabs").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.creative_tab_style", true));
 
+        tag.getTag("inventory.ignore_potion_overlap").setComment("Ignore overlap with potion effect HUD").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.ignore_potion_overlap", true));
+
         tag.getTag("tools.handler_load_from_config").setComment("ADVANCED: Load handlers from config").getBooleanValue(false);
         API.addOption(new OptionToggleButton("tools.handler_load_from_config", true) {
             @Override
@@ -470,6 +473,9 @@ public class NEIClientConfig {
     }
     public static boolean useCreativeTabStyle() {
         return getBooleanSetting("inventory.creative_tab_style");
+    }
+    public static boolean ignorePotionOverlap() {
+        return getBooleanSetting("inventory.ignore_potion_overlap");
     }
     public static boolean isEnabled() {
         return enabledOverride && getBooleanSetting("inventory.widgetsenabled");

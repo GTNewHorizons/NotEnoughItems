@@ -16,6 +16,10 @@ import java.util.Collection;
 public class NEIPotionGuiHandler extends INEIGuiAdapter {
     @Override
     public boolean hideItemPanelSlot(GuiContainer guiContainer, int slotX, int slotY, int slotW, int slotH) {
+        if (NEIClientConfig.ignorePotionOverlap()) {
+            return false;
+        }
+
         if(guiContainer instanceof InventoryEffectRenderer) {
             int x = guiContainer.guiLeft - 124;
             int y = guiContainer.guiTop;
