@@ -5,7 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
 import codechicken.nei.util.NBTJson;
-import codechicken.nei.NEIClientConfig;
 import codechicken.nei.PositionedStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.item.ItemStack;
@@ -25,15 +24,24 @@ public class BookmarkRecipeId
     public List<NBTTagCompound> ingredients = new ArrayList<>();
 
     
-    public BookmarkRecipeId(String handlerName, List<PositionedStack> stacks)
+    public BookmarkRecipeId(String handlerName, List<?> stacks)
     {
         this.handlerName = handlerName;
 
-        for (PositionedStack pos : stacks) {
-            final NBTTagCompound nbt = StackInfo.itemStackToNBT(getItemStackWithMinimumDamage(pos.items));
-            if (nbt != null) {
-                ingredients.add(nbt);
+        for (Object pos : stacks) {
+
+            if (pos instanceof PositionedStack) {
+                pos = getItemStackWithMinimumDamage(((PositionedStack) pos).items);
             }
+
+            if (pos instanceof ItemStack) {
+                pos = StackInfo.itemStackToNBT((ItemStack) pos);
+            }
+
+            if (pos instanceof NBTTagCompound) {
+                ingredients.add((NBTTagCompound) pos);
+            }
+
         }
 
     }
@@ -57,6 +65,11 @@ public class BookmarkRecipeId
 
     }
 
+    public BookmarkRecipeId()
+    {
+
+    }
+
     public boolean equalsIngredients(List<PositionedStack> stacks)
     {
 
@@ -70,7 +83,7 @@ public class BookmarkRecipeId
             final NBTTagCompound tagCompoundA = StackInfo.itemStackToNBT(getItemStackWithMinimumDamage(pStack.items));
             final NBTTagCompound tagCompoundB = ingredients.get(idx);
 
-            if (tagCompoundB == null || !tagCompoundA.equals(tagCompoundB)) {
+            if (tagCompoundB == null || !tagCompoundB.equals(tagCompoundA)) {
                 return false;
             }
 
@@ -164,6 +177,11 @@ public class BookmarkRecipeId
         }
 
         return false;    
+    }
+
+    public BookmarkRecipeId copy()
+    {
+        return new BookmarkRecipeId(handlerName, ingredients);
     }
 
 }

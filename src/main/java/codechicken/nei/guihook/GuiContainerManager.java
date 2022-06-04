@@ -14,6 +14,7 @@ import net.minecraft.util.EnumChatFormatting;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import java.awt.Point;
 import java.io.PrintWriter;
@@ -179,30 +180,47 @@ public class GuiContainerManager
     }
 
     public static void drawItem(int i, int j, ItemStack itemstack) {
-        drawItem(i, j, itemstack, getFontRenderer(itemstack));
+        drawItem(i, j, itemstack, false);
     }
 
     public static void drawItem(int i, int j, ItemStack itemstack, boolean smallAmount) {
-        drawItem(i, j, itemstack, getFontRenderer(itemstack), smallAmount);
+        drawItem(i, j, itemstack, smallAmount, null);
+    }
+
+    public static void drawItem(int i, int j, ItemStack itemstack, boolean smallAmount, String stackSize) {
+        drawItem(i, j, itemstack, getFontRenderer(itemstack), smallAmount, stackSize);
     }
 
     public static void drawItem(int i, int j, ItemStack itemstack, FontRenderer fontRenderer) {
-        drawItem(i, j, itemstack, fontRenderer, false);
+        drawItem(i, j, itemstack, fontRenderer, false, null);
     }
 
     private static int modelviewDepth = -1;
     private static final HashSet<String> stackTraces = new HashSet<>();
 
-    public static void drawItem(int i, int j, ItemStack itemstack, FontRenderer fontRenderer, boolean smallAmount) {
+    public static void drawItem(int i, int j, ItemStack itemstack, FontRenderer fontRenderer, boolean smallAmount, String stackSize) {
         enable3DRender();
+        //for lighting correction
+        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+
         float zLevel = drawItems.zLevel += 100F;
         try {
             drawItems.renderItemAndEffectIntoGUI(fontRenderer, renderEngine, itemstack, i, j);
 
-            if (!smallAmount) {
-                drawItems.renderItemOverlayIntoGUI(fontRenderer, renderEngine, itemstack, i, j);
-            } else if (itemstack.stackSize > 1) {
-                drawBigStackSize(i, j, itemstack.stackSize);
+            if (stackSize == null) {
+                stackSize = itemstack.stackSize > 1? String.valueOf(itemstack.stackSize): "";
+            }
+
+            if (smallAmount) {
+
+                if (!stackSize.isEmpty()) {
+                    drawBigStackSize(i, j, stackSize);
+                }
+
+                // stackSize = "". it needed for correct draw item with alpha and blend
+                drawItems.renderItemOverlayIntoGUI(fontRenderer, renderEngine, itemstack, i, j, "");
+            } else {
+                drawItems.renderItemOverlayIntoGUI(fontRenderer, renderEngine, itemstack, i, j, stackSize);
             }
 
             if (!checkMatrixStack())
@@ -227,29 +245,27 @@ public class GuiContainerManager
             drawItems.renderItemIntoGUI(fontRenderer, renderEngine, new ItemStack(Blocks.fire), i, j);
         }
 
+        GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         enable2DRender();
         drawItems.zLevel = zLevel - 100;
     }
 
     //copy from appeng.client.render.AppEngRenderItem
-    protected static void drawBigStackSize(int offsetX, int offsetY, int amount)
+    protected static void drawBigStackSize(int offsetX, int offsetY, String stackSize)
     {
         final float scaleFactor = fontRenderer.getUnicodeFlag() ? 0.85f : 0.5f;
         final float inverseScaleFactor = 1.0f / scaleFactor;
-        final String stackSize = String.valueOf( amount );
 
-        GL11.glDisable(GL11.GL_LIGHTING);
-        GL11.glDisable(GL11.GL_DEPTH_TEST);
-        GL11.glPushMatrix();
+        enable2DRender();
         GL11.glScaled(scaleFactor, scaleFactor, scaleFactor);
 
         final int X = (int) ( ( (float) offsetX + 16.0f - fontRenderer.getStringWidth( stackSize ) * scaleFactor ) * inverseScaleFactor );
         final int Y = (int) ( ( (float) offsetY + 16.0f - 7.0f * scaleFactor ) * inverseScaleFactor );
         fontRenderer.drawStringWithShadow(stackSize, X, Y, 16777215);
+        
+        GL11.glScaled(inverseScaleFactor, inverseScaleFactor, inverseScaleFactor);
+        enable3DRender();
 
-        GL11.glPopMatrix();
-        GL11.glEnable(GL11.GL_LIGHTING);
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
     }
 
     public static void enableMatrixStackLogging() {

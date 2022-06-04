@@ -16,6 +16,7 @@ import codechicken.nei.config.ConfigSet;
 import codechicken.nei.config.GuiHighlightTips;
 import codechicken.nei.config.GuiNEIOptionList;
 import codechicken.nei.config.GuiOptionList;
+import codechicken.nei.config.GuiPanelSettings;
 import codechicken.nei.config.OptionCycled;
 import codechicken.nei.config.OptionGamemodes;
 import codechicken.nei.config.OptionList;
@@ -33,6 +34,7 @@ import codechicken.obfuscator.ObfuscationRun;
 import com.google.common.base.Objects;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -154,6 +156,20 @@ public class NEIClientConfig {
         tag.getTag("world.highlight_tips.y").getIntValue(100);
         API.addOption(new OptionOpenGui("world.highlight_tips", GuiHighlightTips.class));
 
+
+        tag.getTag("world.panels.bookmarks.left").getIntValue(0);
+        tag.getTag("world.panels.bookmarks.right").getIntValue(0);
+        tag.getTag("world.panels.bookmarks.top").getIntValue(0);
+        tag.getTag("world.panels.bookmarks.bottom").getIntValue(0);
+
+        tag.getTag("world.panels.items.left").getIntValue(0);
+        tag.getTag("world.panels.items.right").getIntValue(0);
+        tag.getTag("world.panels.items.top").getIntValue(0);
+        tag.getTag("world.panels.items.bottom").getIntValue(0);
+
+        API.addOption(new OptionOpenGui("world.panels", GuiPanelSettings.class));
+
+
         tag.getTag("inventory.profileRecipes").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.profileRecipes", true));
 
@@ -167,6 +183,9 @@ public class NEIClientConfig {
                 return isMouseScrollTransferEnabled();
             }
         });
+
+        tag.getTag("inventory.cacheItemRendering").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.cacheItemRendering", true));
         
         tag.getTag("itemLoadingTimeout").getIntValue(500);
 
@@ -207,6 +226,8 @@ public class NEIClientConfig {
         API.addOption(new OptionToggleButton("inventory.saveCurrentRecipeInBookmarksEnabled", true));
         tag.getTag("inventory.useNBTInBookmarks").setComment("Use NBT in Bookmarks").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.useNBTInBookmarks", true));
+        tag.getTag("inventory.showRecipeMarker").setComment("Show Recipe Marker").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.showRecipeMarker", true));
 
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
@@ -218,6 +239,9 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.creative_tab_style").setComment("Creative or JEI style tabs").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.creative_tab_style", true));
+
+        tag.getTag("inventory.ignore_potion_overlap").setComment("Ignore overlap with potion effect HUD").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.ignore_potion_overlap", true));
 
         tag.getTag("tools.handler_load_from_config").setComment("ADVANCED: Load handlers from config").getBooleanValue(false);
         API.addOption(new OptionToggleButton("tools.handler_load_from_config", true) {
@@ -282,6 +306,7 @@ public class NEIClientConfig {
         API.addKeyBind("gui.hide", Keyboard.KEY_O);
         API.addKeyBind("gui.search", Keyboard.KEY_F);
         API.addKeyBind("gui.bookmark", Keyboard.KEY_A);
+        API.addKeyBind("gui.overlay", Keyboard.KEY_S);
         API.addKeyBind("gui.hide_bookmarks", Keyboard.KEY_B);
         API.addKeyBind("world.chunkoverlay", Keyboard.KEY_F9);
         API.addKeyBind("world.moboverlay", Keyboard.KEY_F7);
@@ -325,7 +350,7 @@ public class NEIClientConfig {
         setWorldDefaults();
         creativeInv = new ItemStack[54];
         LayoutManager.searchField.setText(getSearchExpression());
-        LayoutManager.quantity.setText(Integer.toString(getItemQuantity()));
+        ItemPanels.itemPanel.quantity.setText(Integer.toString(getItemQuantity()));
         SubsetWidget.loadHidden();
 
         if (newWorld && Minecraft.getMinecraft().isSingleplayer())
@@ -434,6 +459,9 @@ public class NEIClientConfig {
     public static boolean useNBTInBookmarks() {
         return getBooleanSetting("inventory.useNBTInBookmarks");
     }
+    public static boolean showRecipeMarker() {
+        return getBooleanSetting("inventory.showRecipeMarker");
+    }
     public static boolean areJEIStyleTabsVisible() {
         return getBooleanSetting("inventory.jei_style_tabs");
     }
@@ -445,6 +473,9 @@ public class NEIClientConfig {
     }
     public static boolean useCreativeTabStyle() {
         return getBooleanSetting("inventory.creative_tab_style");
+    }
+    public static boolean ignorePotionOverlap() {
+        return getBooleanSetting("inventory.ignore_potion_overlap");
     }
     public static boolean isEnabled() {
         return enabledOverride && getBooleanSetting("inventory.widgetsenabled");
@@ -527,6 +558,10 @@ public class NEIClientConfig {
 
     public static boolean shouldInvertMouseScrollTransfer() {
         return !getBooleanSetting("inventory.invertMouseScrollTransfer");
+    }
+
+    public static boolean shouldCacheItemRendering() {
+        return getBooleanSetting("inventory.cacheItemRendering") && OpenGlHelper.framebufferSupported;
     }
 
     public static boolean getMagnetMode() {
