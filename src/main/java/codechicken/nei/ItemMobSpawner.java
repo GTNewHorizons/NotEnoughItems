@@ -1,6 +1,5 @@
 package codechicken.nei;
 
-import com.google.common.collect.MapMaker;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -34,9 +33,7 @@ public class ItemMobSpawner extends ItemBlock
         hasSubtypes = true;
         MinecraftForgeClient.registerItemRenderer(this, new SpawnerRenderer());
 
-        entityHashMap = new MapMaker()
-                .weakValues()
-                .makeMap();
+        entityHashMap = new HashMap<>();
         IDtoNameMap = new HashMap<>();
     }
 
@@ -97,6 +94,10 @@ public class ItemMobSpawner extends ItemBlock
             entityHashMap.put(ID, e);
         }
         return e;
+    }
+
+    public static void clearEntityReferences(World newWorld) {
+        entityHashMap.values().removeIf(e -> e.worldObj != newWorld);
     }
 
     private void setDefaultTag(ItemStack itemstack) {
