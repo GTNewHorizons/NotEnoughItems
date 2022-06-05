@@ -299,6 +299,10 @@ public class ClientHandler
                 lastworld = null;
             else if (gui instanceof GuiSelectWorld)
                 NEIClientConfig.reloadSaves();
+            else if(gui == null) {
+                /* prevent WorldClient reference being held in the Gui */
+                NEIController.manager = null;
+            }
         }
         lastGui = gui;
     }
