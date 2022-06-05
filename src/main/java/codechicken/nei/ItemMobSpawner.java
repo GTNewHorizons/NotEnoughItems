@@ -96,6 +96,10 @@ public class ItemMobSpawner extends ItemBlock
         return e;
     }
 
+    public static void clearEntityReferences(World newWorld) {
+        entityHashMap.values().removeIf(e -> e.worldObj != newWorld);
+    }
+
     private void setDefaultTag(ItemStack itemstack) {
         if (!IDtoNameMap.containsKey(itemstack.getItemDamage()))
             itemstack.setItemDamage(idPig);
