@@ -8,6 +8,7 @@ nei.key.ctrl.mac=CMD
 
 nei.bookmark.toggle=Bookmarks
 nei.bookmark.toggle.tip=Toggle visibility of the Bookmark Panel
+nei.bookmark.viewmode.toggle.tip=Toggle Bookmark View Mode
 
 nei.enchant=Enchant
 nei.enchant.level=Level

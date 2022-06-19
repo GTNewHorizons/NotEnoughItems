@@ -358,12 +358,14 @@ public abstract class PanelWidget extends Widget
         return grid.getSlotMouseOver(mousex, mousey);
     }
 
-    public int getPage() {
-        return grid.page + 1;
+    public int getPage()
+    {
+        return grid.getPage();
     }
 
-    public int getNumPages() {
-        return grid.numPages;
+    public int getNumPages()
+    {
+        return grid.getNumPages();
     }
 
     @Override

@@ -21,12 +21,12 @@ import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 
+import static codechicken.nei.NEIClientUtils.translate;
 import static codechicken.lib.gui.GuiDraw.getMousePosition;
 import static codechicken.lib.gui.GuiDraw.drawRect;
 
 import java.awt.Point;
 import java.io.File;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.FileInputStream;
@@ -52,7 +52,7 @@ public class BookmarkPanel extends PanelWidget
     public Label namespaceLabel;
 
 
-    protected ArrayList<BookmarkGrid> namespaces = new ArrayList<>();
+    protected List<BookmarkGrid> namespaces = new ArrayList<>();
     protected int activeNamespaceIndex = 0;
 
 
@@ -76,7 +76,146 @@ public class BookmarkPanel extends PanelWidget
 
     protected static class BookmarkGrid extends ItemsGrid
     {
+        public final static int VIEW_MODE_BOOKMARKS = 0;
+        public final static int VIEW_MODE_TODO_LIST = 1;
+
+        protected List<List<Integer>> gridMask;
         protected List<BookmarkStackMeta> metadata = new ArrayList<>();
+
+        protected int viewMode = VIEW_MODE_BOOKMARKS;
+        protected boolean[] todoSpaces;
+        protected int todoItemsCount = 0;
+
+        public void setViewMode(int mode)
+        {
+            if (viewMode == mode) {
+                return;
+            }
+
+            viewMode = mode;
+
+            if (mode == VIEW_MODE_BOOKMARKS) {
+                sortingIngredients(false);
+                todoItemsCount = 0;
+                gridMask = null;
+            }
+
+            onGridChanged();
+        }
+
+        public int getViewMode()
+        {
+            return viewMode;
+        }
+
+        @Override
+        public int getNumPages()
+        {
+            if (gridMask != null) {
+                return gridMask.size();
+            }
+
+            return super.getNumPages();
+        }
+
+        @Override
+        protected List<Integer> getMask()
+        {
+            if (gridMask != null) {
+                return gridMask.size() > page? gridMask.get(page): new ArrayList<>();
+            }
+
+            return super.getMask();
+        }
+
+        private void sortingIngredients(final boolean forward)
+        {
+            BookmarkStackMeta meta;
+            int dir = forward? 1: -1;
+
+            for (int i = 0; i < realItems.size(); i++) {
+                meta = metadata.get(i);
+
+                if (meta.recipeId != null && !meta.ingredient) {
+                    int shift = 0;
+
+                    for (int j = i + 1; j < realItems.size(); j++) {
+                        if (meta.recipeId.equals(metadata.get(j).recipeId)) {
+                            if (i + shift + dir != j) {
+                                realItems.add(i + shift + Math.max(dir, 0), realItems.remove(j));
+                                metadata.add(i + shift + Math.max(dir, 0), metadata.remove(j));
+                            }
+                            shift++;
+                        }
+                    }
+
+                    for (int j = i + shift - 1; j >= 0; j--) {
+                        if (meta.recipeId.equals(metadata.get(j).recipeId)) {
+                            if (i + shift + dir != j) {
+                                realItems.add(i + shift + Math.min(dir, 0), realItems.remove(j));
+                                metadata.add(i + shift + Math.min(dir, 0), metadata.remove(j));
+                            }
+                            shift--;
+                        }
+                    }
+
+                    i += Math.max(0, shift);
+                }
+
+            }
+
+        }
+
+        private void generateToDoSpaces()
+        {
+            todoItemsCount = 0;
+            gridMask = new ArrayList<>();
+
+            if (rows * columns == 0) {
+                return;
+            }
+
+            BookmarkStackMeta meta;
+            int size = size();
+            int idx = 0;
+
+            while (idx < size) {
+                ArrayList<Integer> pmask = new ArrayList<>();
+
+                for (int i = 0, perPage = rows * columns; i < perPage && idx < size; i++) {
+                    if (isInvalidSlot(i)) {
+                        pmask.add(null);
+                    } else {
+                        meta = getMetadata(idx);
+    
+                        if (idx > 0 && ((i % columns) == 0) == (meta.recipeId != null && meta.ingredient && meta.recipeId.equals(getRecipeId(idx - 1)))) {
+                            pmask.add(null);
+                        } else {
+                            pmask.add(idx++);
+
+                            if ((i % columns) == 0) {
+                                todoItemsCount++;
+                            }
+                        }
+
+                    }
+                }
+
+                gridMask.add(pmask);
+            }
+
+        }
+
+        protected void onGridChanged()
+        {
+            super.onGridChanged();
+
+            if (getViewMode() == VIEW_MODE_TODO_LIST) {
+                sortingIngredients(true);
+                generateToDoSpaces();
+            }
+
+        }
 
         public int indexOf(ItemStack stackA, BookmarkRecipeId recipeId)
         {
@@ -91,6 +230,19 @@ public class BookmarkPanel extends PanelWidget
     
             return -1;
         }
+            
+        protected int getSlotIndex(int idx)
+        {
+            List<Integer> mask = getMask();
+
+            for (int i = 0; i < mask.size(); i++) {
+                if (mask.get(i) != null && mask.get(i) == idx) {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
 
         public BookmarkStackMeta getMetadata(int idx)
         {
@@ -101,20 +253,20 @@ public class BookmarkPanel extends PanelWidget
         {
             realItems.add(stackA);
             metadata.add(meta);
-            refreshBuffer = true;
+            onGridChanged();
         }
 
         public void replaceItem(int idx, ItemStack stack)
         {
             realItems.set(idx, stack);
-            refreshBuffer = true;
+            onGridChanged();
         }
 
         public void removeRecipe(int idx, boolean removeFullRecipe)
         {
             final BookmarkStackMeta meta = getMetadata(idx);
 
-            if (removeFullRecipe && meta.recipeId != null) {
+            if (meta.recipeId != null && (removeFullRecipe || !meta.ingredient)) {
                 removeRecipe(meta.recipeId);
             } else {
                 removeItem(idx);
@@ -141,7 +293,7 @@ public class BookmarkPanel extends PanelWidget
         {
             realItems.remove(idx);
             metadata.remove(idx);
-            refreshBuffer = true;
+            onGridChanged();
             return true;
         }
 
@@ -167,23 +319,26 @@ public class BookmarkPanel extends PanelWidget
         {
             realItems.add(dst, realItems.remove(src));
             metadata.add(dst, metadata.remove(src));
-            refreshBuffer = true;
+            onGridChanged();
         }
 
-        private boolean isPartOfFocusedRecipe(ItemPanelSlot focused, int myIdx) {
-            return (NEIClientUtils.shiftKey()
-                && LayoutManager.bookmarkPanel.sortedStackIndex == -1
+        private boolean isPartOfFocusedRecipe(ItemPanelSlot focused, int myIdx)
+        {
+            return NEIClientUtils.shiftKey()
                 && focused != null
+                && LayoutManager.bookmarkPanel.sortedStackIndex == -1
                 && getRecipeId(focused.slotIndex) != null
                 && getRecipeId(myIdx) != null
-                && getRecipeId(focused.slotIndex).equals(getRecipeId(myIdx)));
+                && getRecipeId(focused.slotIndex).equals(getRecipeId(myIdx));
         }
 
         @Override
-        protected void drawSlotOutline(@Nullable ItemPanelSlot focus, int idx, Rectangle4i rect) {
-            if(LayoutManager.bookmarkPanel.sortedNamespaceIndex == LayoutManager.bookmarkPanel.activeNamespaceIndex && LayoutManager.bookmarkPanel.sortedStackIndex == idx) {
+        protected void drawSlotOutline(@Nullable ItemPanelSlot focus, int idx, Rectangle4i rect)
+        {
+
+            if (LayoutManager.bookmarkPanel.sortedNamespaceIndex == LayoutManager.bookmarkPanel.activeNamespaceIndex && LayoutManager.bookmarkPanel.sortedStackIndex == idx) {
                 drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
-            } else if(focus != null) {
+            } else if (focus != null) {
                 BookmarkStackMeta meta = getMetadata(idx);
                 if (isPartOfFocusedRecipe(focus, idx)) {
                     drawRect(rect.x, rect.y, rect.w, rect.h, meta.ingredient? 0x88b3b300: 0x88009933);//highlight recipe
@@ -283,7 +438,13 @@ public class BookmarkPanel extends PanelWidget
     @Override
     public String getLabelText()
     {
-        return String.format("(%d/%d) [%d]", getPage(), Math.max(1, getNumPages()), grid.size());
+        int size = grid.size();
+
+        if (((BookmarkGrid) grid).getViewMode() == BookmarkGrid.VIEW_MODE_TODO_LIST) {
+            size = ((BookmarkGrid) grid).todoItemsCount;
+        }
+
+        return String.format("(%d/%d) [%d]", getPage(), Math.max(1, getNumPages()), size);
     }
 
 
@@ -325,7 +486,7 @@ public class BookmarkPanel extends PanelWidget
 
                     BGrid.removeRecipe(recipeId);
 
-                    for (PositionedStack stack : ingredients) { 
+                    for (PositionedStack stack : ingredients) {
                         final NBTTagCompound nbTag = StackInfo.itemStackToNBT(stack.item, saveStackSize);
 
                         if (unique.get(nbTag) == null) {
@@ -337,7 +498,7 @@ public class BookmarkPanel extends PanelWidget
 
                     }
 
-                    for (NBTTagCompound nbTag : sorted) { 
+                    for (NBTTagCompound nbTag : sorted) {
                         nbTag.setInteger("Count", nbTag.getInteger("Count") * unique.get(nbTag));
                         BGrid.addItem(StackInfo.loadFromNBT(nbTag), new BookmarkStackMeta(recipeId, (saveStackSize ? 1: -1) * nbTag.getInteger("Count"), true, nbTag.hasKey("gtFluidName")));
                     }
@@ -346,7 +507,6 @@ public class BookmarkPanel extends PanelWidget
 
                 BGrid.addItem(normalizedA, new BookmarkStackMeta(recipeId, (saveStackSize ? 1: -1) * nbTagA.getInteger("Count"), false, nbTagA.hasKey("gtFluidName")));
             }
-            
 
         }
 
@@ -515,9 +675,10 @@ public class BookmarkPanel extends PanelWidget
         for (int grpIdx = 0; grpIdx < namespaces.size() - 1; grpIdx++) {
             final BookmarkGrid grid = namespaces.get(grpIdx);
 
-            if (grpIdx > 0) {
-                strings.add("");//namespace separator; ignore first namespace
-            }
+            JsonObject settings = new JsonObject();
+            settings.add("viewmode", new JsonPrimitive(grid.getViewMode()));
+            settings.add("active", new JsonPrimitive(activeNamespaceIndex == grpIdx));
+            strings.add("; " + NBTJson.toJson(settings));
 
             for (int idx = 0; idx < grid.size(); idx++) {
 
@@ -579,19 +740,34 @@ public class BookmarkPanel extends PanelWidget
 
         namespaces.clear();
         namespaces.add(new BookmarkGrid());
-        activeNamespaceIndex = 0;
+        activeNamespaceIndex = -1;
 
         final JsonParser parser = new JsonParser();
+        int namespaceIndex = 0;
 
         for (String itemStr: itemStrings) {
+
             try {
 
                 if (itemStr.isEmpty()) {
+                    itemStr = "; {}";
+                }
 
-                    if (namespaces.get(activeNamespaceIndex).size() > 0) {
+                if (itemStr.startsWith("; ")) {
+                    JsonObject settings = parser.parse(itemStr.substring(2)).getAsJsonObject();
+
+                    if (namespaces.get(namespaceIndex).size() > 0) {
                         //do not create empty namespaces
                         namespaces.add(new BookmarkGrid());
-                        activeNamespaceIndex++;
+                        namespaceIndex++;
+                    }
+
+                    if (settings.get("viewmode") != null) {
+                        namespaces.get(namespaceIndex).setViewMode(settings.get("viewmode").getAsInt());
+                    }
+
+                    if (settings.get("active") != null && settings.get("active").getAsBoolean()) {
+                        activeNamespaceIndex = namespaceIndex;
                     }
 
                     continue;
@@ -615,7 +791,7 @@ public class BookmarkPanel extends PanelWidget
 
 
                 if (itemStack != null) {
-                    namespaces.get(activeNamespaceIndex).addItem(itemStack, new BookmarkStackMeta(
+                    namespaces.get(namespaceIndex).addItem(itemStack, new BookmarkStackMeta(
                         recipeId,
                         jsonObject.has("factor")? jsonObject.get("factor").getAsInt(): 0,
                         jsonObject.has("ingredient")? jsonObject.get("ingredient").getAsBoolean(): false,
@@ -630,8 +806,8 @@ public class BookmarkPanel extends PanelWidget
             }
         }
 
-        if (namespaces.get(activeNamespaceIndex).size() == 0) {
-            activeNamespaceIndex = Math.max(activeNamespaceIndex - 1, 0);
+        if (activeNamespaceIndex == -1) {
+            activeNamespaceIndex = namespaceIndex;
         }
 
         grid = namespaces.get(activeNamespaceIndex);
@@ -651,7 +827,7 @@ public class BookmarkPanel extends PanelWidget
     {
         final LayoutStyleMinecraft layout = (LayoutStyleMinecraft) LayoutManager.getLayoutStyle();
         final int rows = (int) Math.ceil((double) layout.buttonCount / layout.numButtons);
-        final int diff = rows * 18 + getMarginTop(gui) - y;
+        final int diff = rows * BookmarkGrid.SLOT_SIZE + getMarginTop(gui) - y;
 
         if (diff > 0) {
             y += diff;
@@ -754,7 +930,7 @@ public class BookmarkPanel extends PanelWidget
 
         return NEIServerUtils.copyStack(stack, amount);
     }
-    
+
     @Override
     public void mouseDragged(int mousex, int mousey, int button, long heldTime)
     {
@@ -768,37 +944,58 @@ public class BookmarkPanel extends PanelWidget
                 if (stack != null && (mouseOverSlot == null || mouseOverSlot.slotIndex != mouseDownSlot || heldTime > 250)) {
                     sortedNamespaceIndex = activeNamespaceIndex;
                     sortedStackIndex = mouseDownSlot;
-                    grid.refreshBuffer = true;
+                    grid.onGridChanged();
                 }
 
             } else {
 
-                if (mouseOverSlot == null && sortedNamespaceIndex != activeNamespaceIndex) {
-                    mouseOverSlot = getNextSlot(mousex, mousey);
-                }
-
-                if (mouseOverSlot != null) {
-
-                    if (sortedNamespaceIndex != activeNamespaceIndex) {
-                        BookmarkGrid BGrid = namespaces.get(sortedNamespaceIndex);
-                        BookmarkStackMeta meta = BGrid.getMetadata(sortedStackIndex);
-                        ItemStack stack = BGrid.getItem(sortedStackIndex);
-                        BGrid.removeItem(sortedStackIndex);
-        
-                        ((BookmarkGrid) grid).addItem(stack, meta);
-        
-                        sortedNamespaceIndex = activeNamespaceIndex;
-                        sortedStackIndex = grid.size() - 1;
+                if (sortedNamespaceIndex != activeNamespaceIndex) {
+                    final BookmarkGrid hoverGrid = namespaces.get(activeNamespaceIndex);
+                    final BookmarkGrid sortedGrid = namespaces.get(sortedNamespaceIndex);
+   
+                    if (mouseOverSlot == null) {
+                        mouseOverSlot = getNextSlot(mousex, mousey, hoverGrid.getViewMode() == BookmarkGrid.VIEW_MODE_TODO_LIST);
                     }
     
-                    if (mouseOverSlot.slotIndex != sortedStackIndex) {
-                        ((BookmarkGrid) grid).moveItem(sortedStackIndex, mouseOverSlot.slotIndex);
-                        sortedStackIndex = mouseOverSlot.slotIndex;
+                    if (mouseOverSlot != null) {
+                        final ItemStack stack = sortedGrid.getItem(sortedStackIndex);
+                        final BookmarkStackMeta meta = sortedGrid.getMetadata(sortedStackIndex);
+    
+                        sortedGrid.removeItem(sortedStackIndex);
+                        hoverGrid.addItem(stack, meta);
+
+                        sortedNamespaceIndex = activeNamespaceIndex;
+                        sortedStackIndex = hoverGrid.indexOf(stack, meta.recipeId);
                     }
-                    
+    
+                } else if (mouseOverSlot == null || mouseOverSlot.slotIndex != sortedStackIndex) {
+                    final BookmarkGrid sortedGrid = namespaces.get(sortedNamespaceIndex);
+
+                    if (mouseOverSlot != null && sortedGrid.getViewMode() == BookmarkGrid.VIEW_MODE_BOOKMARKS) {
+                        sortedGrid.moveItem(sortedStackIndex, mouseOverSlot.slotIndex);
+                        sortedStackIndex = mouseOverSlot.slotIndex;
+                    } else if (sortedGrid.getViewMode() == BookmarkGrid.VIEW_MODE_TODO_LIST) {
+                        final ItemStack stack = sortedGrid.getItem(sortedStackIndex);
+                        final BookmarkStackMeta meta = sortedGrid.getMetadata(sortedStackIndex);
+
+                        if ((sortedGrid.getSlotIndex(sortedStackIndex) % sortedGrid.getColumns()) == 0) {
+                            mouseOverSlot = getSlotMouseOver(grid.marginLeft + grid.paddingLeft, mousey);
+
+                            if (mouseOverSlot != null && sortedStackIndex != mouseOverSlot.slotIndex) {
+                                sortedGrid.moveItem(sortedStackIndex, mouseOverSlot.slotIndex);
+                                sortedStackIndex = sortedGrid.indexOf(stack, meta.recipeId);
+                            }
+
+                        } else if (mouseOverSlot != null && meta.recipeId != null && sortedGrid.getMetadata(mouseOverSlot.slotIndex).ingredient && meta.recipeId.equals(sortedGrid.getRecipeId(mouseOverSlot.slotIndex))) {
+                            sortedGrid.moveItem(sortedStackIndex, mouseOverSlot.slotIndex);
+                            sortedStackIndex = sortedGrid.indexOf(stack, meta.recipeId);
+                        }
+
+                    }
+    
                 }
 
-            }
+            } 
 
             return;
         }
@@ -806,22 +1003,21 @@ public class BookmarkPanel extends PanelWidget
         super.mouseDragged(mousex, mousey, button, heldTime);
     }
 
-    private ItemPanelSlot getNextSlot(int mousex, int mousey)
+    private ItemPanelSlot getNextSlot(int mousex, int mousey, boolean line)
     {
-        int idx = grid.getPage() * grid.getPerPage() - grid.getPerPage();
-        int gSize = grid.size();
+        final List<Integer> mask = grid.getMask();
+        final int columns = grid.getColumns();
+        final int perPage = grid.getRows() * columns;
 
-        for (int i = 0; i < grid.getRows() * grid.getColumns() && idx <= gSize; i++) {
+        for (int i = mask.size(); i < perPage; i++) {
+            if (!grid.isInvalidSlot(i) && (!line || (i % columns) == 0)) {
 
-            if (!grid.isInvalidSlot(i)) {
-
-                if (idx == gSize && grid.getSlotRect(i).contains(mousex, mousey)) {
-                    return new ItemPanelSlot(idx, null);
+                if (grid.getSlotRect(i).contains(mousex, mousey)) {
+                    return new ItemPanelSlot(grid.size() - 1, null);
                 }
 
-                idx++;
+                return null;
             }
-
         }
 
         return null;
@@ -840,6 +1036,37 @@ public class BookmarkPanel extends PanelWidget
         super.postDraw(mousex, mousey);
     }
 
+    @Override
+    public boolean handleClickExt(int mousex, int mousey, int button)
+    {
+
+        if (new Rectangle4i(pagePrev.x + pagePrev.w, pagePrev.y, pageNext.x - (pagePrev.x + pagePrev.w), pagePrev.h).contains(mousex, mousey)) {
+            final BookmarkGrid BGrid = (BookmarkGrid)grid;
+
+            if (BGrid.getViewMode() == BookmarkGrid.VIEW_MODE_BOOKMARKS) {
+                BGrid.setViewMode(BookmarkGrid.VIEW_MODE_TODO_LIST);
+            } else {
+                BGrid.setViewMode(BookmarkGrid.VIEW_MODE_BOOKMARKS);
+            }
+
+            saveBookmarks();
+            return true;
+        } else {
+            return super.handleClickExt(mousex, mousey, button);
+        }
+
+    }
+
+    @Override
+    public List<String> handleTooltip(int mx, int my, List<String> tooltip)
+    {
+        
+        if (new Rectangle4i(pagePrev.x + pagePrev.w, pagePrev.y, pageNext.x - (pagePrev.x + pagePrev.w), pagePrev.h).contains(mx, my)) {
+            tooltip.add(translate("bookmark.viewmode.toggle.tip"));
+        }
+
+        return super.handleTooltip(mx, my, tooltip);
+    }
 
     @Override
     public void mouseUp(int mousex, int mousey, int button)
@@ -849,7 +1076,7 @@ public class BookmarkPanel extends PanelWidget
             sortedNamespaceIndex = -1;
             sortedStackIndex = -1;
             mouseDownSlot = -1;
-            grid.refreshBuffer = true; /* make sure grid redraws the new item */
+            grid.onGridChanged(); /* make sure grid redraws the new item */
             saveBookmarks();
         } else {
             super.mouseUp(mousex, mousey, button);
@@ -868,6 +1095,7 @@ public class BookmarkPanel extends PanelWidget
                 nextNamespace();       
             }
             
+            saveBookmarks();
             return true;
         }
 
@@ -900,7 +1128,6 @@ public class BookmarkPanel extends PanelWidget
                 shiftStackSize(slot.slotIndex, shift);
 
                 saveBookmarks();
-
                 return true;
             }
 

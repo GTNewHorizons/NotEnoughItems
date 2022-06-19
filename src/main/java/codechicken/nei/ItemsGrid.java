@@ -17,6 +17,7 @@ import org.lwjgl.opengl.GL11;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static codechicken.lib.gui.GuiDraw.drawRect;
 
@@ -37,13 +38,9 @@ public class ItemsGrid
     protected int page;
     protected int perPage;
 
-    protected int firstIndex;
-    protected int numPages;
-
     protected int rows;
     protected int columns;
 
-    protected boolean[] validSlotMap;
     protected boolean[] invalidSlotMap;
 
     @Nullable
@@ -89,7 +86,11 @@ public class ItemsGrid
 
     public int getNumPages()
     {
-        return numPages;
+        if (perPage > 0) {
+            return (int) Math.ceil((float) realItems.size() / (float) perPage);
+        }
+
+        return 0;
     }
 
     public int getRows()
@@ -104,9 +105,6 @@ public class ItemsGrid
 
     public void setGridSize(int mleft, int mtop, int w, int h)
     {
-        if(width != w || height != h || mleft != marginLeft || mtop != marginTop)
-            refreshBuffer = true;
-
         marginLeft = mleft;
         marginTop = mtop;
 
@@ -122,13 +120,12 @@ public class ItemsGrid
     public void shiftPage(int shift)
     {
         if (perPage == 0) {
-            numPages = 0;
             page = 0;
             return;
         }
 
-        numPages = (int) Math.ceil((float) realItems.size() / (float) perPage);
-
+        final int numPages = getNumPages();
+        final int oldPage = page;
         page += shift;
 
         if (page >= numPages) {
@@ -140,8 +137,15 @@ public class ItemsGrid
         }
 
         page = Math.max(0, Math.min(page, numPages - 1));
-        if(shift != 0)
-            refreshBuffer = true;
+
+        if (page != oldPage) {
+            onGridChanged();
+        }
+    }
+
+    protected void onGridChanged()
+    {
+        refreshBuffer = true;
     }
 
     public void refresh(GuiContainer gui)
@@ -150,17 +154,22 @@ public class ItemsGrid
         shiftPage(0);
     }
 
-    private void updateGuiOverlapSlots(GuiContainer gui)
+    protected void updateGuiOverlapSlots(GuiContainer gui)
     {
-        boolean[] oldSlotMap = invalidSlotMap;
+        final boolean[] oldSlotMap = invalidSlotMap;
+        final int oldRows = rows;
+        final int oldColumns = columns;
+
         invalidSlotMap = new boolean[rows * columns];
         perPage = columns * rows;
 
         checkGuiOverlap(gui, 0, columns - 2, 1);
         checkGuiOverlap(gui, columns - 1, 1, -1);
-        if(NEIClientConfig.shouldCacheItemRendering() && !Arrays.equals(oldSlotMap, invalidSlotMap)) {
-            refreshBuffer = true;
+
+        if (oldRows != rows || oldColumns != columns || !Arrays.equals(oldSlotMap, invalidSlotMap)) {
+            onGridChanged();
         }
+
     }
 
     private void checkGuiOverlap(GuiContainer gui, int start, int end, int dir)
@@ -194,29 +203,45 @@ public class ItemsGrid
         return new Rectangle4i(marginLeft + paddingLeft + column * SLOT_SIZE, marginTop + row * SLOT_SIZE, SLOT_SIZE, SLOT_SIZE);
     }
 
-    public boolean isInvalidSlot(int idx)
+    public boolean isInvalidSlot(int index)
     {
-        return invalidSlotMap[idx];
+        return invalidSlotMap[index];
+    }
+
+    protected List<Integer> getMask()
+    {
+        List<Integer> mask = new ArrayList<>();
+
+        int idx = page * perPage;
+        for (int i = 0; i < rows * columns && idx < size(); i++) {
+            mask.add(isInvalidSlot(i)? null: idx++);
+        }
+
+        return mask;
     }
 
     private void drawSlotOutlines(int mousex, int mousey)
     {
         ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
-        int idx = page * perPage;
-        for (int i = 0; i < rows * columns && idx < size(); i++) {
-            if(!invalidSlotMap[i]) {
-                drawSlotOutline(focused, idx, getSlotRect(i));
-                idx++;
+        final List<Integer> mask = getMask();
+
+        for (int i = 0; i < mask.size(); i++) {
+            if (mask.get(i) != null) {
+                drawSlotOutline(focused, mask.get(i), getSlotRect(i));
             }
+        }
+      
+    }
+
+    protected void drawSlotOutline(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect)
+    {
+        if (focused != null && focused.slotIndex == slotIdx) {
+            drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
         }
     }
 
-    protected void drawSlotOutline(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
-        if(focused != null && focused.slotIndex == slotIdx)
-            drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);//highlight
-    }
-
-    private void blitExistingBuffer() {
+    private void blitExistingBuffer()
+    {
         Minecraft minecraft = Minecraft.getMinecraft();
         GL11.glEnable(GL11.GL_BLEND);
         OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -241,7 +266,7 @@ public class ItemsGrid
         }
 
         boolean shouldCache = NEIClientConfig.shouldCacheItemRendering() && !PresetsWidget.inEditMode();
-        if(shouldCache) {
+        if (shouldCache) {
             Minecraft minecraft = Minecraft.getMinecraft();
             if (framebuffer == null) {
                 framebuffer = new Framebuffer(minecraft.displayWidth, minecraft.displayHeight, true);
@@ -269,11 +294,10 @@ public class ItemsGrid
 
         GuiContainerManager.enableMatrixStackLogging();
 
-        int idx = page * perPage;
-        for (int i = 0; i < rows * columns && idx < size(); i++) {
-            if (!invalidSlotMap[i]) {
-                drawItem(getSlotRect(i), idx);
-                idx ++;
+        final List<Integer> mask = getMask();
+        for (int i = 0; i < mask.size(); i++) {
+            if (mask.get(i) != null) {
+                drawItem(getSlotRect(i), mask.get(i));
             }
         }
 
@@ -300,19 +324,21 @@ public class ItemsGrid
         final int overRow = (int) ((mousey - marginTop) / SLOT_SIZE);
         final int overColumn = (int) ((mousex - marginLeft - paddingLeft) / SLOT_SIZE);
         final int slt = columns * overRow + overColumn;
-        int idx = page * perPage + slt;
 
         if (overRow >= rows || overColumn >= columns) {
             return null;
         }
 
-        for (int i = 0; i < slt; i++) {
-            if (invalidSlotMap[i]) {
-                idx--;
-            }
+        final List<Integer> mask = getMask();
+
+        if (mask.size() > slt && mask.get(slt) != null) {
+            final int idx = mask.get(slt);
+            final ItemStack stack = getItem(idx).copy();
+
+            return new ItemPanelSlot(idx, stack);
         }
 
-        return idx < size()? new ItemPanelSlot(idx, realItems.get(idx)): null;
+        return null;
     }
 
     public boolean contains(int px, int py)
@@ -326,7 +352,7 @@ public class ItemsGrid
         final int c = (int) ((px - marginLeft - paddingLeft) / SLOT_SIZE);
         final int slt = columns * r + c;
 
-        return r >= rows || c >= columns || !invalidSlotMap[slt];
+        return r >= rows || c >= columns || !isInvalidSlot(slt);
     }
 
 }

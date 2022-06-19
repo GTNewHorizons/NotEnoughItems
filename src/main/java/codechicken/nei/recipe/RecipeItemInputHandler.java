@@ -1,6 +1,5 @@
 package codechicken.nei.recipe;
 
-import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
@@ -11,7 +10,6 @@ import codechicken.nei.guihook.IContainerInputHandler;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
-import java.awt.*;
 import java.util.List;
 
 public class RecipeItemInputHandler implements IContainerInputHandler {
