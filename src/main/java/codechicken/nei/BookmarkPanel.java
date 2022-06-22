@@ -74,19 +74,22 @@ public class BookmarkPanel extends PanelWidget
 
     }
 
+    public static enum BookmarkViewMode
+    {
+        DEFAULT, TODO_LIST
+    }
+
     protected static class BookmarkGrid extends ItemsGrid
     {
-        public final static int VIEW_MODE_BOOKMARKS = 0;
-        public final static int VIEW_MODE_TODO_LIST = 1;
 
         protected List<List<Integer>> gridMask;
         protected List<BookmarkStackMeta> metadata = new ArrayList<>();
 
-        protected int viewMode = VIEW_MODE_BOOKMARKS;
+        protected BookmarkViewMode viewMode = BookmarkViewMode.DEFAULT;
         protected boolean[] todoSpaces;
         protected int todoItemsCount = 0;
 
-        public void setViewMode(int mode)
+        public void setViewMode(BookmarkViewMode mode)
         {
             if (viewMode == mode) {
                 return;
@@ -94,8 +97,8 @@ public class BookmarkPanel extends PanelWidget
 
             viewMode = mode;
 
-            if (mode == VIEW_MODE_BOOKMARKS) {
-                sortingIngredients(false);
+            if (mode == BookmarkViewMode.DEFAULT) {
+                sortIngredients(false);
                 todoItemsCount = 0;
                 gridMask = null;
             }
@@ -103,7 +106,7 @@ public class BookmarkPanel extends PanelWidget
             onGridChanged();
         }
 
-        public int getViewMode()
+        public BookmarkViewMode getViewMode()
         {
             return viewMode;
         }
@@ -128,7 +131,7 @@ public class BookmarkPanel extends PanelWidget
             return super.getMask();
         }
 
-        private void sortingIngredients(final boolean forward)
+        private void sortIngredients(final boolean forward)
         {
             BookmarkStackMeta meta;
             int dir = forward? 1: -1;
@@ -210,8 +213,8 @@ public class BookmarkPanel extends PanelWidget
         {
             super.onGridChanged();
 
-            if (getViewMode() == VIEW_MODE_TODO_LIST) {
-                sortingIngredients(true);
+            if (getViewMode() == BookmarkViewMode.TODO_LIST) {
+                sortIngredients(true);
                 generateToDoSpaces();
             }
 
@@ -228,19 +231,6 @@ public class BookmarkPanel extends PanelWidget
                 }
             }
     
-            return -1;
-        }
-            
-        protected int getSlotIndex(int idx)
-        {
-            List<Integer> mask = getMask();
-
-            for (int i = 0; i < mask.size(); i++) {
-                if (mask.get(i) != null && mask.get(i) == idx) {
-                    return i;
-                }
-            }
-
             return -1;
         }
 
@@ -440,7 +430,7 @@ public class BookmarkPanel extends PanelWidget
     {
         int size = grid.size();
 
-        if (((BookmarkGrid) grid).getViewMode() == BookmarkGrid.VIEW_MODE_TODO_LIST) {
+        if (((BookmarkGrid) grid).getViewMode() == BookmarkViewMode.TODO_LIST) {
             size = ((BookmarkGrid) grid).todoItemsCount;
         }
 
@@ -676,7 +666,7 @@ public class BookmarkPanel extends PanelWidget
             final BookmarkGrid grid = namespaces.get(grpIdx);
 
             JsonObject settings = new JsonObject();
-            settings.add("viewmode", new JsonPrimitive(grid.getViewMode()));
+            settings.add("viewmode", new JsonPrimitive(grid.getViewMode().toString()));
             settings.add("active", new JsonPrimitive(activeNamespaceIndex == grpIdx));
             strings.add("; " + NBTJson.toJson(settings));
 
@@ -763,7 +753,7 @@ public class BookmarkPanel extends PanelWidget
                     }
 
                     if (settings.get("viewmode") != null) {
-                        namespaces.get(namespaceIndex).setViewMode(settings.get("viewmode").getAsInt());
+                        namespaces.get(namespaceIndex).setViewMode(BookmarkViewMode.valueOf(settings.get("viewmode").getAsString()));
                     }
 
                     if (settings.get("active") != null && settings.get("active").getAsBoolean()) {
@@ -954,7 +944,7 @@ public class BookmarkPanel extends PanelWidget
                     final BookmarkGrid sortedGrid = namespaces.get(sortedNamespaceIndex);
    
                     if (mouseOverSlot == null) {
-                        mouseOverSlot = getNextSlot(mousex, mousey, hoverGrid.getViewMode() == BookmarkGrid.VIEW_MODE_TODO_LIST);
+                        mouseOverSlot = getNextSlot(mousex, mousey, hoverGrid.getViewMode() == BookmarkViewMode.TODO_LIST);
                     }
     
                     if (mouseOverSlot != null) {
@@ -971,14 +961,15 @@ public class BookmarkPanel extends PanelWidget
                 } else if (mouseOverSlot == null || mouseOverSlot.slotIndex != sortedStackIndex) {
                     final BookmarkGrid sortedGrid = namespaces.get(sortedNamespaceIndex);
 
-                    if (mouseOverSlot != null && sortedGrid.getViewMode() == BookmarkGrid.VIEW_MODE_BOOKMARKS) {
+                    if (mouseOverSlot != null && sortedGrid.getViewMode() == BookmarkViewMode.DEFAULT) {
                         sortedGrid.moveItem(sortedStackIndex, mouseOverSlot.slotIndex);
                         sortedStackIndex = mouseOverSlot.slotIndex;
-                    } else if (sortedGrid.getViewMode() == BookmarkGrid.VIEW_MODE_TODO_LIST) {
+                    } else if (sortedGrid.getViewMode() == BookmarkViewMode.TODO_LIST) {
                         final ItemStack stack = sortedGrid.getItem(sortedStackIndex);
                         final BookmarkStackMeta meta = sortedGrid.getMetadata(sortedStackIndex);
+                        final boolean isIngredient = sortedStackIndex > 0 && meta.recipeId != null && meta.ingredient && meta.recipeId.equals(sortedGrid.getRecipeId(sortedStackIndex - 1));
 
-                        if ((sortedGrid.getSlotIndex(sortedStackIndex) % sortedGrid.getColumns()) == 0) {
+                        if (!isIngredient) {
                             mouseOverSlot = getSlotMouseOver(grid.marginLeft + grid.paddingLeft, mousey);
 
                             if (mouseOverSlot != null && sortedStackIndex != mouseOverSlot.slotIndex) {
@@ -1043,10 +1034,10 @@ public class BookmarkPanel extends PanelWidget
         if (new Rectangle4i(pagePrev.x + pagePrev.w, pagePrev.y, pageNext.x - (pagePrev.x + pagePrev.w), pagePrev.h).contains(mousex, mousey)) {
             final BookmarkGrid BGrid = (BookmarkGrid)grid;
 
-            if (BGrid.getViewMode() == BookmarkGrid.VIEW_MODE_BOOKMARKS) {
-                BGrid.setViewMode(BookmarkGrid.VIEW_MODE_TODO_LIST);
+            if (BGrid.getViewMode() == BookmarkViewMode.DEFAULT) {
+                BGrid.setViewMode(BookmarkViewMode.TODO_LIST);
             } else {
-                BGrid.setViewMode(BookmarkGrid.VIEW_MODE_BOOKMARKS);
+                BGrid.setViewMode(BookmarkViewMode.DEFAULT);
             }
 
             saveBookmarks();
