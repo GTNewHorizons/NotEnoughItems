@@ -55,11 +55,7 @@ public class GuiUsageRecipe extends GuiRecipe {
 
         handlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
 
-        BookmarkRecipeId recipeId = null;
-
-        if (prevscreen instanceof GuiRecipe && ((GuiRecipe) prevscreen).recipeId != null) {
-            recipeId = (((GuiRecipe) prevscreen).recipeId).copy();
-        }
+        BookmarkRecipeId recipeId = getCurrentRecipe();
 
         GuiUsageRecipe gui = new GuiUsageRecipe(prevscreen, handlers, recipeId);
 

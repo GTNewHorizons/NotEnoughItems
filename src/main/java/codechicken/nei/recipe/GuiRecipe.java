@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -712,5 +713,15 @@ public abstract class GuiRecipe extends GuiContainer
     public boolean hideItemPanelSlot(GuiContainer gui, int x, int y, int w, int h) {
         // Because some of the handlers *cough avaritia* are oversized
         return area.intersects(x, y, w, h);
+    }
+
+    static BookmarkRecipeId getCurrentRecipe() {
+        Minecraft mc = NEIClientUtils.mc();
+        if (mc.currentScreen instanceof GuiRecipe) {
+            GuiRecipe gui = (GuiRecipe) mc.currentScreen;
+            return  new BookmarkRecipeId(gui.handlerInfo.getHandlerName(),
+                    gui.getHandler().getIngredientStacks(gui.page * gui.getRecipesPerPage()));
+        }
+        return null;
     }
 }
