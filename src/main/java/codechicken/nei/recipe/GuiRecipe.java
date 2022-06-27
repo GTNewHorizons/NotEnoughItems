@@ -1,9 +1,7 @@
 package codechicken.nei.recipe;
 
-import codechicken.core.TaskProfiler;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.GuiNEIButton;
-import codechicken.nei.ItemList;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -27,8 +25,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -38,12 +34,8 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
@@ -732,60 +724,5 @@ public abstract class GuiRecipe extends GuiContainer
                     gui.getHandler().getIngredientStacks(gui.page * gui.getRecipesPerPage()));
         }
         return null;
-    }
-
-    static class RecipeHandlerQuery<T extends IRecipeHandler> {
-        private final Function<T, T> recipeHandlerFunction;
-        private final List<T> recipeHandlers;
-        private final List<T> serialRecipeHandlers;
-
-        RecipeHandlerQuery(Function<T, T> recipeHandlerFunction, List<T> recipeHandlers, List<T> serialRecipeHandlers) {
-            this.recipeHandlerFunction = recipeHandlerFunction;
-            this.recipeHandlers = recipeHandlers;
-            this.serialRecipeHandlers = serialRecipeHandlers;
-        }
-
-        ArrayList<T> run(String profilerSection) {
-            TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
-            profiler.start(profilerSection);
-            try {
-                return getRecipeHandlersParallel();
-            } catch (InterruptedException | ExecutionException e) {
-                displayRecipeLookupError(e);
-                return new ArrayList<>(0);
-            } finally {
-                profiler.end();
-            }
-        }
-
-        private ArrayList<T> getRecipeHandlersParallel() throws InterruptedException, ExecutionException {
-            // Pre-find the fuels so we're not fighting over it
-            FuelRecipeHandler.findFuelsOnceParallel();
-
-            ArrayList<T> handlers = serialRecipeHandlers.stream()
-                    .map(recipeHandlerFunction)
-                    .filter(h -> h.numRecipes() > 0)
-                    .collect(Collectors.toCollection(ArrayList::new));
-
-            handlers.addAll(ItemList.forkJoinPool
-                    .submit(() -> recipeHandlers.parallelStream()
-                            .map(recipeHandlerFunction)
-                            .filter(h -> h.numRecipes() > 0)
-                            .collect(Collectors.toCollection(ArrayList::new)))
-                    .get());
-
-            handlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
-            return handlers;
-        }
-
-        private static void displayRecipeLookupError(Exception e) {
-            e.printStackTrace();
-            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-            if (player != null) {
-                IChatComponent chat = new ChatComponentTranslation("nei.chat.recipe.error");
-                chat.getChatStyle().setColor(EnumChatFormatting.RED);
-                player.addChatComponentMessage(chat);
-            }
-        }
     }
 }
