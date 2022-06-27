@@ -25,7 +25,7 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
         this.serialRecipeHandlers = serialRecipeHandlers;
     }
 
-    ArrayList<T> run(String profilerSection) {
+    ArrayList<T> runWithProfiling(String profilerSection) {
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
         profiler.start(profilerSection);
         try {
@@ -41,21 +41,26 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
     private ArrayList<T> getRecipeHandlersParallel() throws InterruptedException, ExecutionException {
         // Pre-find the fuels so we're not fighting over it
         FuelRecipeHandler.findFuelsOnceParallel();
+        ArrayList<T> handlers = getSerialHandlersWithRecipes();
+        handlers.addAll(getHandlersWithRecipes());
+        handlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
+        return handlers;
+    }
 
-        ArrayList<T> handlers = serialRecipeHandlers.stream()
+    private ArrayList<T> getSerialHandlersWithRecipes() {
+        return serialRecipeHandlers.stream()
                 .map(recipeHandlerFunction)
                 .filter(h -> h.numRecipes() > 0)
                 .collect(Collectors.toCollection(ArrayList::new));
+    }
 
-        handlers.addAll(ItemList.forkJoinPool
+    private ArrayList<T> getHandlersWithRecipes() throws InterruptedException, ExecutionException {
+        return ItemList.forkJoinPool
                 .submit(() -> recipeHandlers.parallelStream()
                         .map(recipeHandlerFunction)
                         .filter(h -> h.numRecipes() > 0)
                         .collect(Collectors.toCollection(ArrayList::new)))
-                .get());
-
-        handlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
-        return handlers;
+                .get();
     }
 
     private static void displayRecipeLookupError(Exception e) {

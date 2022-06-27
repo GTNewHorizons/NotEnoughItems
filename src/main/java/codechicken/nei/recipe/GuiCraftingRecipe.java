@@ -18,7 +18,7 @@ public class GuiCraftingRecipe extends GuiRecipe {
     public static boolean openRecipeGui(String outputId, Boolean overlay, Object... results) {
         RecipeHandlerQuery<ICraftingHandler> recipeQuery = new RecipeHandlerQuery<>(
                 h -> h.getRecipeHandler(outputId, results), craftinghandlers, serialCraftingHandlers);
-        ArrayList<ICraftingHandler> handlers = recipeQuery.run("recipe.concurrent.crafting");
+        ArrayList<ICraftingHandler> handlers = recipeQuery.runWithProfiling("recipe.concurrent.crafting");
         if (handlers.isEmpty()) return false;
 
         Minecraft mc = NEIClientUtils.mc();

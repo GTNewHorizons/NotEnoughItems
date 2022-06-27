@@ -8,7 +8,7 @@ public class GuiUsageRecipe extends GuiRecipe {
     public static boolean openRecipeGui(String inputId, Object... ingredients) {
         RecipeHandlerQuery<IUsageHandler> recipeQuery = new RecipeHandlerQuery<>(
                 h -> getUsageOrCatalystHandler(h, inputId, ingredients), usagehandlers, serialUsageHandlers);
-        ArrayList<IUsageHandler> handlers = recipeQuery.run("recipe.concurrent.usage");
+        ArrayList<IUsageHandler> handlers = recipeQuery.runWithProfiling("recipe.concurrent.usage");
         if (handlers.isEmpty()) return false;
 
         BookmarkRecipeId recipeId = getCurrentRecipe();
