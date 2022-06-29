@@ -36,11 +36,6 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
             this(recipe.recipeWidth, recipe.recipeHeight, recipe.recipeItems, recipe.getRecipeOutput());
         }
 
-        /**
-         * @param width
-         * @param height
-         * @param items  an ItemStack[] or ItemStack[][]
-         */
         public void setIngredients(int width, int height, Object[] items) {
             for (int x = 0; x < width; x++) {
                 for (int y = 0; y < height; y++) {

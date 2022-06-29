@@ -81,7 +81,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer
     private GuiButton nexttype;
     private GuiButton prevtype;
 
-    private int OVERLAY_BUTTON_ID_START = 4;
+    private final int OVERLAY_BUTTON_ID_START = 4;
     private GuiButton[] overlayButtons;
 
     private final Rectangle area = new Rectangle();

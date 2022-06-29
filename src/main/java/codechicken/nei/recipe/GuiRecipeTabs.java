@@ -13,7 +13,6 @@ public class GuiRecipeTabs {
     private final List<Button> buttons = new ArrayList<>();
 
     private final Rectangle area = new Rectangle();
-    private boolean creative_tab_style;
 
     private int pageCount = 1;
     private int pageNumber = 0;
@@ -27,8 +26,7 @@ public class GuiRecipeTabs {
     }
 
     public void initLayout() {
-        creative_tab_style = NEIClientConfig.useCreativeTabStyle();
-        if (creative_tab_style) {
+        if (NEIClientConfig.useCreativeTabStyle()) {
             tabWidth = GuiRecipeTabCreative.TAB_WIDTH;
             tabHeight = GuiRecipeTabCreative.TAB_HEIGHT;
         } else {

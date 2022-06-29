@@ -172,8 +172,10 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
         /**
          * This will perform default cycling of ingredients, mulitItem capable
-         *
-         * @return
+         * @param cycle Current cycle step
+         * @param ingredients List of ItemStacks to cycle
+         * @return The provided list of ingredients, with their permutations cycled to a different permutation, if one
+         *         is available
          */
         public List<PositionedStack> getCycledIngredients(int cycle, List<PositionedStack> ingredients) {
             for (int itemIndex = 0; itemIndex < ingredients.size(); itemIndex++)
@@ -187,11 +189,6 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
             stack.setPermutationToRender(Math.abs(rand.nextInt()) % stack.items.length);
         }
 
-        /**
-         * Set all variable ingredients to this permutation.
-         *
-         * @param ingredient
-         */
         public void setIngredientPermutation(Collection<PositionedStack> ingredients, ItemStack ingredient) {
             for (PositionedStack stack : ingredients) {
                 for (int i = 0; i < stack.items.length; i++) {
@@ -211,8 +208,9 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
 
         /**
-         * @param ingredient
-         * @return true if any of the permutations of any of the ingredients contain this stack
+         * @param ingredients Collection of ItemStacks
+         * @param ingredient ItemStack we're looking for
+         * @return true if any of the permutations of the ingredients contain this ItemStack
          */
         public boolean contains(Collection<PositionedStack> ingredients, ItemStack ingredient) {
             for (PositionedStack stack : ingredients) if (stack.contains(ingredient)) return true;
@@ -230,11 +228,12 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
 
         /**
-         * @param ingred
-         * @return true if any of the permutations of any of the ingredients contain this stack
+         * @param ingredients Collection of ItemStacks
+         * @param ingredient Item we're looking for
+         * @return true if any of the permutations of the ingredients contain this Item
          */
-        public boolean contains(Collection<PositionedStack> ingredients, Item ingred) {
-            for (PositionedStack stack : ingredients) if (stack.contains(ingred)) return true;
+        public boolean contains(Collection<PositionedStack> ingredients, Item ingredient) {
+            for (PositionedStack stack : ingredients) if (stack.contains(ingredient)) return true;
             return false;
         }
     }
@@ -266,7 +265,8 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     public static class RecipeTransferRectHandler implements IContainerInputHandler, IContainerTooltipHandler {
-        private static HashMap<Class<? extends GuiContainer>, HashSet<RecipeTransferRect>> guiMap = new HashMap<>();
+        private static final HashMap<Class<? extends GuiContainer>, HashSet<RecipeTransferRect>> guiMap =
+                new HashMap<>();
 
         public static void registerRectsToGuis(
                 List<Class<? extends GuiContainer>> classes, List<RecipeTransferRect> rects) {
