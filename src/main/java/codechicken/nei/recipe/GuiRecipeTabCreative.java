@@ -11,7 +11,7 @@ public class GuiRecipeTabCreative extends GuiRecipeTab {
     private static final DrawableResource unselectedTabImage =
             new DrawableBuilder("minecraft:textures/gui/container/creative_inventory/tabs.png", 28, 0, 28, 30).build();
 
-    public GuiRecipeTabCreative(GuiRecipe guiRecipe, IRecipeHandler handler, int x, int y) {
+    public GuiRecipeTabCreative(GuiRecipe<?> guiRecipe, IRecipeHandler handler, int x, int y) {
         super(guiRecipe, handler, x, y);
     }
 

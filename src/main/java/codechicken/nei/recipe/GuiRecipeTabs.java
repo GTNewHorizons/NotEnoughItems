@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuiRecipeTabs {
-    private final GuiRecipe guiRecipe;
+    private final GuiRecipe<?> guiRecipe;
     private final List<GuiRecipeTab> tabs = new ArrayList<>();
     private final List<Button> buttons = new ArrayList<>();
 
@@ -22,7 +22,7 @@ public class GuiRecipeTabs {
     private int tabWidth;
     private int tabHeight;
 
-    public GuiRecipeTabs(GuiRecipe guiRecipe) {
+    public GuiRecipeTabs(GuiRecipe<?> guiRecipe) {
         this.guiRecipe = guiRecipe;
     }
 

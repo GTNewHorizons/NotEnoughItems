@@ -11,7 +11,7 @@ public class GuiRecipeTabJEI extends GuiRecipeTab {
     private static final DrawableResource unselectedTabImage =
             new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 24, 16, 24, 24).build();
 
-    public GuiRecipeTabJEI(GuiRecipe guiRecipe, IRecipeHandler handler, int x, int y) {
+    public GuiRecipeTabJEI(GuiRecipe<?> guiRecipe, IRecipeHandler handler, int x, int y) {
         super(guiRecipe, handler, x, y);
     }
 

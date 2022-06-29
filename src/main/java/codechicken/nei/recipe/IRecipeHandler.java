@@ -117,7 +117,7 @@ public interface IRecipeHandler {
      * @param recipe The recipe index being handled
      * @return The modified tooltip. DO NOT return null
      */
-    List<String> handleTooltip(GuiRecipe gui, List<String> currenttip, int recipe);
+    List<String> handleTooltip(GuiRecipe<?> gui, List<String> currenttip, int recipe);
     /**
      *
      * @param gui An instance of the currentscreen
@@ -126,7 +126,7 @@ public interface IRecipeHandler {
      * @param recipe The recipe index being handled
      * @return The modified tooltip. DO NOT return null
      */
-    List<String> handleItemTooltip(GuiRecipe gui, ItemStack stack, List<String> currenttip, int recipe);
+    List<String> handleItemTooltip(GuiRecipe<?> gui, ItemStack stack, List<String> currenttip, int recipe);
 
     /**
      *
@@ -135,7 +135,7 @@ public interface IRecipeHandler {
      * @param keyCode The KeyCode as defined in {@link Keyboard}
      * @return true to terminate further processing of this event.
      */
-    boolean keyTyped(GuiRecipe gui, char keyChar, int keyCode, int recipe);
+    boolean keyTyped(GuiRecipe<?> gui, char keyChar, int keyCode, int recipe);
 
     /**
      *
@@ -143,7 +143,7 @@ public interface IRecipeHandler {
      * @param button The button index being pressed, {0 = Left Click, 1 = Right Click, 2 = Middle Click}
      * @return true to terminate further processing of this event.
      */
-    boolean mouseClicked(GuiRecipe gui, int button, int recipe);
+    boolean mouseClicked(GuiRecipe<?> gui, int button, int recipe);
 
     /**
      * For legacy compatibility reasons, this method has a do-nothing default implementation.
@@ -152,7 +152,7 @@ public interface IRecipeHandler {
      * @param scroll The scroll direction, {> 0 = Up, < 0 = Down}
      * @return true to terminate further processing of this event.
      */
-    default boolean mouseScrolled(GuiRecipe gui, int scroll, int recipe) {
+    default boolean mouseScrolled(GuiRecipe<?> gui, int scroll, int recipe) {
         return false;
     }
 }

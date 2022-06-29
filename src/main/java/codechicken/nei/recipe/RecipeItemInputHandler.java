@@ -29,8 +29,8 @@ public class RecipeItemInputHandler implements IContainerInputHandler {
             String handlerName = "";
 
             if (gui instanceof GuiRecipe && NEIClientConfig.saveCurrentRecipeInBookmarksEnabled()) {
-                ingredients = ((GuiRecipe) gui).getFocusedRecipeIngredients();
-                handlerName = ((GuiRecipe) gui).getHandlerName();
+                ingredients = ((GuiRecipe<?>) gui).getFocusedRecipeIngredients();
+                handlerName = ((GuiRecipe<?>) gui).getHandlerName();
             }
 
             ItemPanels.bookmarkPanel.addOrRemoveItem(stackover.copy(), handlerName, ingredients);

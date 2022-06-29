@@ -9,7 +9,7 @@ import net.minecraft.util.ResourceLocation;
 import org.lwjgl.util.Rectangle;
 
 public class GuiRecipeCatalyst extends INEIGuiAdapter {
-    private GuiRecipe guiRecipe;
+    private GuiRecipe<?> guiRecipe;
     public static final int ingredientSize = 16;
     public static final int ingredientBorder = 1;
     public static final int tabBorder = 5;
@@ -18,7 +18,7 @@ public class GuiRecipeCatalyst extends INEIGuiAdapter {
     private static final Rectangle catalystRect = new Rectangle();
     private static final Rectangle targetRect = new Rectangle();
 
-    public GuiRecipeCatalyst(GuiRecipe guiRecipe) {
+    public GuiRecipeCatalyst(GuiRecipe<?> guiRecipe) {
         this.guiRecipe = guiRecipe;
     }
 
@@ -49,7 +49,7 @@ public class GuiRecipeCatalyst extends INEIGuiAdapter {
     @Override
     public boolean hideItemPanelSlot(GuiContainer gui, int x, int y, int w, int h) {
         if (!(gui instanceof GuiRecipe)) return false;
-        guiRecipe = (GuiRecipe) gui;
+        guiRecipe = (GuiRecipe<?>) gui;
         int catalystsSize =
                 RecipeCatalysts.getRecipeCatalysts(guiRecipe.getHandler()).size();
         if (catalystsSize == 0) return false;

@@ -10,7 +10,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
 
-public class GuiCraftingRecipe extends GuiRecipe {
+public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
+    public static ArrayList<ICraftingHandler> craftinghandlers = new ArrayList<>();
+    public static ArrayList<ICraftingHandler> serialCraftingHandlers = new ArrayList<>();
+
     public static boolean openRecipeGui(String outputId, Object... results) {
         return openRecipeGui(outputId, false, results);
     }
@@ -50,8 +53,8 @@ public class GuiCraftingRecipe extends GuiRecipe {
     protected static BookmarkRecipeId getRecipeId(GuiScreen gui, ItemStack stackover) {
 
         if (gui instanceof GuiRecipe) {
-            final List<PositionedStack> ingredients = ((GuiRecipe) gui).getFocusedRecipeIngredients();
-            final String handlerName = ((GuiRecipe) gui).getHandlerName();
+            final List<PositionedStack> ingredients = ((GuiRecipe<?>) gui).getFocusedRecipeIngredients();
+            final String handlerName = ((GuiRecipe<?>) gui).getHandlerName();
 
             if (ingredients != null && !ingredients.isEmpty()) {
                 return new BookmarkRecipeId(handlerName, ingredients);
@@ -77,12 +80,8 @@ public class GuiCraftingRecipe extends GuiRecipe {
         else craftinghandlers.add(handler);
     }
 
-    public ArrayList<? extends IRecipeHandler> getCurrentRecipeHandlers() {
+    @Override
+    public ArrayList<ICraftingHandler> getCurrentRecipeHandlers() {
         return currenthandlers;
     }
-
-    public ArrayList<ICraftingHandler> currenthandlers;
-
-    public static ArrayList<ICraftingHandler> craftinghandlers = new ArrayList<>();
-    public static ArrayList<ICraftingHandler> serialCraftingHandlers = new ArrayList<>();
 }

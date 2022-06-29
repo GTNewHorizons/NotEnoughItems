@@ -35,7 +35,7 @@ public abstract class GuiRecipeTab extends Widget {
     public static HashMap<String, HandlerInfo> handlerAdderFromIMC = new HashMap<>();
     public static Set<String> handlerRemoverFromIMC = new HashSet<>();
 
-    private final GuiRecipe guiRecipe;
+    private final GuiRecipe<?> guiRecipe;
     private final IRecipeHandler handler;
     private final String handlerName;
     private final String handlerID;
@@ -54,7 +54,7 @@ public abstract class GuiRecipeTab extends Widget {
 
     protected abstract int getForegroundIconY();
 
-    public GuiRecipeTab(GuiRecipe guiRecipe, IRecipeHandler handler, int x, int y) {
+    public GuiRecipeTab(GuiRecipe<?> guiRecipe, IRecipeHandler handler, int x, int y) {
         super();
         this.x = x;
         this.y = y;

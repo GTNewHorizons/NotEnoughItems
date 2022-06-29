@@ -630,7 +630,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     @Override
-    public List<String> handleTooltip(GuiRecipe gui, List<String> currenttip, int recipe) {
+    public List<String> handleTooltip(GuiRecipe<?> gui, List<String> currenttip, int recipe) {
         if (GuiContainerManager.shouldShowTooltip(gui) && currenttip.size() == 0) {
             Point offset = gui.getRecipePosition(recipe);
             currenttip = transferRectTooltip(gui, transferRects, offset.x, offset.y, currenttip);
@@ -639,12 +639,12 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     @Override
-    public List<String> handleItemTooltip(GuiRecipe gui, ItemStack stack, List<String> currenttip, int recipe) {
+    public List<String> handleItemTooltip(GuiRecipe<?> gui, ItemStack stack, List<String> currenttip, int recipe) {
         return currenttip;
     }
 
     @Override
-    public boolean keyTyped(GuiRecipe gui, char keyChar, int keyCode, int recipe) {
+    public boolean keyTyped(GuiRecipe<?> gui, char keyChar, int keyCode, int recipe) {
         if (keyCode == NEIClientConfig.getKeyBinding("gui.recipe")) return transferRect(gui, recipe, false);
         else if (keyCode == NEIClientConfig.getKeyBinding("gui.usage")) return transferRect(gui, recipe, true);
 
@@ -652,7 +652,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     @Override
-    public boolean mouseClicked(GuiRecipe gui, int button, int recipe) {
+    public boolean mouseClicked(GuiRecipe<?> gui, int button, int recipe) {
         if (button == 0) return transferRect(gui, recipe, false);
         else if (button == 1) return transferRect(gui, recipe, true);
 
@@ -660,11 +660,11 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     @Override
-    public boolean mouseScrolled(GuiRecipe gui, int scroll, int recipe) {
+    public boolean mouseScrolled(GuiRecipe<?> gui, int scroll, int recipe) {
         return false;
     }
 
-    private boolean transferRect(GuiRecipe gui, int recipe, boolean usage) {
+    private boolean transferRect(GuiRecipe<?> gui, int recipe, boolean usage) {
         Point offset = gui.getRecipePosition(recipe);
         return transferRect(gui, transferRects, offset.x, offset.y, usage);
     }

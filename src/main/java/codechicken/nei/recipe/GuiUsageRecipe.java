@@ -4,7 +4,10 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import java.util.ArrayList;
 
-public class GuiUsageRecipe extends GuiRecipe {
+public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
+    public static ArrayList<IUsageHandler> usagehandlers = new ArrayList<>();
+    public static ArrayList<IUsageHandler> serialUsageHandlers = new ArrayList<>();
+
     public static boolean openRecipeGui(String inputId, Object... ingredients) {
         RecipeHandlerQuery<IUsageHandler> recipeQuery = new RecipeHandlerQuery<>(
                 h -> getUsageOrCatalystHandler(h, inputId, ingredients), usagehandlers, serialUsageHandlers);
@@ -38,10 +41,6 @@ public class GuiUsageRecipe extends GuiRecipe {
         else usagehandlers.add(handler);
     }
 
-    public ArrayList<? extends IRecipeHandler> getCurrentRecipeHandlers() {
-        return currenthandlers;
-    }
-
     private static IUsageHandler getUsageOrCatalystHandler(
             IUsageHandler handler, String inputId, Object... ingredients) {
         boolean skipCatalyst = NEIClientUtils.controlKey();
@@ -52,8 +51,8 @@ public class GuiUsageRecipe extends GuiRecipe {
         }
     }
 
-    public ArrayList<IUsageHandler> currenthandlers;
-
-    public static ArrayList<IUsageHandler> usagehandlers = new ArrayList<>();
-    public static ArrayList<IUsageHandler> serialUsageHandlers = new ArrayList<>();
+    @Override
+    public ArrayList<IUsageHandler> getCurrentRecipeHandlers() {
+        return currenthandlers;
+    }
 }
