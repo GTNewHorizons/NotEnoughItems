@@ -28,6 +28,7 @@ public class GuiCraftingRecipe extends GuiRecipe {
 
         GuiCraftingRecipe gui = new GuiCraftingRecipe(handlers, recipeId);
 
+        GuiScreen prevScreen = mc.currentScreen;
         mc.displayGuiScreen(gui);
 
         if (NEIClientConfig.saveCurrentRecipeInBookmarksEnabled() || recipeId != null)
@@ -37,7 +38,7 @@ public class GuiCraftingRecipe extends GuiRecipe {
 
         if (overlay) {
             if (!NEIClientConfig.saveCurrentRecipeInBookmarksEnabled() || gui.recipeId == null) {
-                mc.displayGuiScreen(mc.currentScreen);
+                mc.displayGuiScreen(prevScreen);
                 return false;
             }
             gui.overlayRecipe(gui.recipeId.position);
