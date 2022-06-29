@@ -24,12 +24,13 @@ public class GuiCraftingRecipe extends GuiRecipe {
         Minecraft mc = NEIClientUtils.mc();
 
         BookmarkRecipeId recipeId =
-                "item".equals(outputId) ? getRecipeId(mc.currentScreen, (ItemStack) results[0]) : null;
+                "item".equals(outputId) ? getRecipeId(mc.currentScreen, (ItemStack) results[0]) : getCurrentRecipe();
+
         GuiCraftingRecipe gui = new GuiCraftingRecipe(handlers, recipeId);
 
         mc.displayGuiScreen(gui);
 
-        if (NEIClientConfig.saveCurrentRecipeInBookmarksEnabled())
+        if (NEIClientConfig.saveCurrentRecipeInBookmarksEnabled() || recipeId != null)
             if (!NEIClientUtils.shiftKey() || overlay) {
                 gui.openTargetRecipe(gui.recipeId);
             }
