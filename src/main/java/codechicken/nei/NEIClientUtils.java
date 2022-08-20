@@ -15,6 +15,8 @@ import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.IInfiniteItemHandler;
 import codechicken.nei.api.ItemInfo;
 import com.google.common.collect.Iterables;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -29,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
@@ -39,6 +42,8 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.input.Keyboard;
@@ -444,5 +449,31 @@ public class NEIClientUtils extends NEIServerUtils {
     public static void playClickSound() {
         mc().getSoundHandler()
                 .playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
+    }
+
+    public static void reportErrorBuffered(Throwable e, Set<String> buffer, String cause) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        String stackTrace = cause + sw;
+        if (buffer.contains(stackTrace)) return;
+
+        System.err.println("Error while rendering: " + cause);
+        e.printStackTrace();
+        buffer.add(stackTrace);
+
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        if (player != null) {
+            IChatComponent chat = new ChatComponentTranslation("nei.chat.render.error");
+            chat.getChatStyle().setColor(EnumChatFormatting.RED);
+            player.addChatComponentMessage(chat);
+        }
+    }
+
+    public static void reportErrorBuffered(Throwable e, Set<String> buffer, ItemStack cause) {
+        if (cause != null) {
+            reportErrorBuffered(e, buffer, cause.toString());
+        } else {
+            reportErrorBuffered(e, buffer, "null");
+        }
     }
 }

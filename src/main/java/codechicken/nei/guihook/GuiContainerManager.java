@@ -9,8 +9,6 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.recipe.StackInfo;
 import java.awt.Point;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -270,14 +268,7 @@ public class GuiContainerManager {
             if (!checkMatrixStack()) throw new IllegalStateException("Modelview matrix stack too deep");
             if (Tessellator.instance.isDrawing) throw new IllegalStateException("Still drawing");
         } catch (Exception e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            String stackTrace = itemstack + sw.toString();
-            if (!stackTraces.contains(stackTrace)) {
-                System.err.println("Error while rendering: " + itemstack);
-                e.printStackTrace();
-                stackTraces.add(stackTrace);
-            }
+            NEIClientUtils.reportErrorBuffered(e, stackTraces, itemstack);
 
             restoreMatrixStack();
             if (Tessellator.instance.isDrawing) Tessellator.instance.draw();
@@ -579,17 +570,28 @@ public class GuiContainerManager {
     public void drawSlotItem(Slot slot, ItemStack stack, int x, int y, String quantity) {
         // for lighting correction
         boolean glRescale = GL11.glGetBoolean(GL12.GL_RESCALE_NORMAL);
+        float zLevel = drawItems.zLevel += 100F;
 
-        if (window instanceof IGuiSlotDraw) {
-            ((IGuiSlotDraw) window).drawSlotItem(slot, stack, x, y, quantity);
-        } else {
+        try {
+            if (window instanceof IGuiSlotDraw) {
+                ((IGuiSlotDraw) window).drawSlotItem(slot, stack, x, y, quantity);
+            } else {
 
-            if (quantity == null) {
-                quantity = stack != null && stack.stackSize > 1 ? String.valueOf(stack.stackSize) : "";
+                if (quantity == null) {
+                    quantity = stack != null && stack.stackSize > 1 ? String.valueOf(stack.stackSize) : "";
+                }
+
+                drawItems.renderItemAndEffectIntoGUI(fontRenderer, renderEngine, stack, x, y);
+                drawItems.renderItemOverlayIntoGUI(fontRenderer, renderEngine, stack, x, y, quantity);
             }
+        } catch (Exception e) {
+            NEIClientUtils.reportErrorBuffered(e, stackTraces, stack);
 
-            drawItems.renderItemAndEffectIntoGUI(fontRenderer, renderEngine, stack, x, y);
-            drawItems.renderItemOverlayIntoGUI(fontRenderer, renderEngine, stack, x, y, quantity);
+            restoreMatrixStack();
+            if (Tessellator.instance.isDrawing) Tessellator.instance.draw();
+
+            drawItems.zLevel = zLevel;
+            drawItems.renderItemIntoGUI(fontRenderer, renderEngine, new ItemStack(Blocks.fire), x, y);
         }
 
         if (glRescale) {
@@ -597,6 +599,7 @@ public class GuiContainerManager {
         } else {
             GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         }
+        drawItems.zLevel = zLevel - 100;
     }
 
     /**
