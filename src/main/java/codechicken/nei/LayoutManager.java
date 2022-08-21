@@ -729,10 +729,12 @@ public class LayoutManager
                         ? !getSearchExpression().equals("")
                         : !((SearchField) searchField).getFilter().matches(item))) {
             GL11.glDisable(GL11.GL_LIGHTING);
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
             GL11.glTranslatef(0, 0, 150);
             drawRect(slot.xDisplayPosition, slot.yDisplayPosition, 16, 16, 0x80000000);
             GL11.glTranslatef(0, 0, -150);
             GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glEnable(GL11.GL_DEPTH_TEST);
         }
     }
 
