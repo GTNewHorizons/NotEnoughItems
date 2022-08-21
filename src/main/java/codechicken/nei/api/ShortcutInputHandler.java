@@ -13,7 +13,7 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 import org.lwjgl.input.Mouse;
 
-public class ShortcutInputHandler {
+public abstract class ShortcutInputHandler {
 
     public static boolean handleKeyEvent(ItemStack stackover) {
 
