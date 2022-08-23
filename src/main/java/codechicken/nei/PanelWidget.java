@@ -250,7 +250,7 @@ public abstract class PanelWidget extends Widget {
 
         if (NEIClientUtils.getHeldItem() != null) {
             final ItemStack draggedStack = NEIClientUtils.getHeldItem().copy();
-            handleGUIContainerClick(draggedStack, mouseX, mouseY, button);
+            return handleGUIContainerClick(draggedStack, mouseX, mouseY, button);
         }
 
         return false;
@@ -289,9 +289,6 @@ public abstract class PanelWidget extends Widget {
             GuiInfo.readLock.lock();
             for (INEIGuiHandler handler : GuiInfo.guiHandlers) {
                 if (handler.handleDragNDrop(gui, mouseX, mouseY, draggedStack, button)) {
-
-                    NEIClientConfig.logger.info(handler);
-
                     handled = true;
                     break;
                 }
