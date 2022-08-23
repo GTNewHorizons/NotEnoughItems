@@ -250,7 +250,7 @@ public abstract class PanelWidget extends Widget {
 
         if (NEIClientUtils.getHeldItem() != null) {
             final ItemStack draggedStack = NEIClientUtils.getHeldItem().copy();
-            return handleGUIContainerClick(draggedStack, mouseX, mouseY, button);
+            handleGUIContainerClick(draggedStack, mouseX, mouseY, button);
         }
 
         return false;
