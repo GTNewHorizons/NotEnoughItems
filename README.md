@@ -27,6 +27,13 @@ If you have issues with NEI outside of the GTNH modpack you may report them in t
 * Remove TMI style
 * Removed inventory Load/Save state
 
+## Development
+Before launching, you need to add 
+```
+-Dfml.coreMods.load=codechicken.nei.asm.NEICorePlugin
+``` 
+as a command line argument to the VM.
+
 ## License
 
 GTNH Modifications Copyright (c) 2019-2022 mitchej123 and the GTNH Team
