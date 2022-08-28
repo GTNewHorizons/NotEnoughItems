@@ -163,6 +163,7 @@ public class GuiPanelSettings extends GuiScreenWidget {
             final int rows = (h - (PANEL_SIZE + 2) * 2) / ItemsGrid.SLOT_SIZE;
             final int paddingLeft = (w % ItemsGrid.SLOT_SIZE) / 2;
             final ArrayList<ItemStack> items = ItemPanels.itemPanel.getItems();
+            if (items.isEmpty()) return;
 
             for (int r = 0; r < rows; r++) {
                 for (int c = 0; c < columns; c++) {
