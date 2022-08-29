@@ -12,7 +12,7 @@ nei.bookmark.viewmode.toggle.tip=Toggle Bookmark View Mode
 nei.bookmark.guide=Press A to add bookmark
 
 nei.itempanel.quantity.default=One stack
-nei.itempanel.loading=Loading ItemPanel...
+nei.itempanel.loading=Loading ItemList...
 
 nei.enchant=Enchant
 nei.enchant.level=Level
