@@ -345,11 +345,6 @@ public class BookmarkPanel extends PanelWidget {
             GL11.glScaled(inverseScaleFactor, inverseScaleFactor, inverseScaleFactor);
             GuiContainerManager.enable3DRender();
         }
-
-        @Override
-        public String getMessageOnEmpty() {
-            return NEIClientUtils.translate("bookmark.guide");
-        }
     }
 
     public BookmarkPanel() {
