@@ -180,6 +180,8 @@ public class ItemList {
             // System.out.println("Executing NEI Item Loading");
             ThreadOperationTimer timer = getTimer(NEIClientConfig.getItemLoadingTimeout());
 
+            ItemPanels.itemPanel.setLoading(true);
+
             LinkedList<ItemStack> items = new LinkedList<>();
             LinkedList<ItemStack> permutations = new LinkedList<>();
             ListMultimap<Item, ItemStack> itemMap = ArrayListMultimap.create();
@@ -218,6 +220,8 @@ public class ItemList {
             for (ItemsLoadedCallback callback : loadCallbacks) callback.itemsLoaded();
 
             updateFilter.restart();
+
+            ItemPanels.itemPanel.setLoading(false);
         }
     };
 

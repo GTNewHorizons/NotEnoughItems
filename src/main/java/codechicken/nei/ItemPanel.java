@@ -32,6 +32,8 @@ public class ItemPanel extends PanelWidget {
     public Button less;
     public ItemQuantityField quantity;
 
+    private Label loadingLabel;
+
     public static class ItemPanelSlot {
         public ItemStack item;
         public int slotIndex;
@@ -122,6 +124,8 @@ public class ItemPanel extends PanelWidget {
         };
 
         quantity = new ItemQuantityField("quantity");
+
+        loadingLabel = new Label(NEIClientUtils.translate("itempanel.loading"), true);
     }
 
     @Deprecated
@@ -168,6 +172,9 @@ public class ItemPanel extends PanelWidget {
         quantity.x = x + BUTTON_SIZE + 2;
         quantity.w = more.x - quantity.x - 2;
 
+        loadingLabel.x = x + (w / 2);
+        loadingLabel.y = y + (h / 2);
+
         return BUTTON_SIZE + 2;
     }
 
@@ -180,6 +187,8 @@ public class ItemPanel extends PanelWidget {
             LayoutManager.addWidget(less);
             LayoutManager.addWidget(quantity);
         }
+
+        LayoutManager.addWidget(loadingLabel);
     }
 
     protected ItemStack getDraggedStackWithQuantity(int mouseDownSlot) {
@@ -196,5 +205,9 @@ public class ItemPanel extends PanelWidget {
         }
 
         return null;
+    }
+
+    public void setLoading(boolean loading) {
+        loadingLabel.setVisible(loading);
     }
 }
