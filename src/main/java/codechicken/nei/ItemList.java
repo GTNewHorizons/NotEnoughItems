@@ -37,6 +37,11 @@ public class ItemList {
 
     private static final HashSet<Item> erroredItems = new HashSet<>();
     private static final HashSet<String> stackTraces = new HashSet<>();
+    /**
+     * Unlike {@link LayoutManager#itemsLoaded}, this indicates whether item loading is
+     * actually finished or not.
+     */
+    public static boolean loadFinished;
 
     public static class EverythingItemFilter implements ItemFilter {
         @Override
@@ -179,8 +184,7 @@ public class ItemList {
         public void execute() {
             // System.out.println("Executing NEI Item Loading");
             ThreadOperationTimer timer = getTimer(NEIClientConfig.getItemLoadingTimeout());
-
-            ItemPanels.itemPanel.setLoading(true);
+            loadFinished = false;
 
             LinkedList<ItemStack> items = new LinkedList<>();
             LinkedList<ItemStack> permutations = new LinkedList<>();
@@ -221,7 +225,7 @@ public class ItemList {
 
             updateFilter.restart();
 
-            ItemPanels.itemPanel.setLoading(false);
+            loadFinished = true;
         }
     };
 

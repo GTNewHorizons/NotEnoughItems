@@ -112,6 +112,12 @@ public class LayoutManager
 
     public static HashMap<Integer, LayoutStyle> layoutStyles = new HashMap<>();
 
+    /**
+     * This is set to true immediately after item loading thread is started,
+     * to prevent duplicated loading thread from being executed.
+     * If you want to know if item list is actually finished loading,
+     * Use {@link ItemList#loadFinished} instead.
+     */
     public static boolean itemsLoaded = false;
 
     /**

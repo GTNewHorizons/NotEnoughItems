@@ -2,6 +2,7 @@ package codechicken.nei;
 
 import static codechicken.lib.gui.GuiDraw.drawRect;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.api.GuiInfo;
@@ -303,10 +304,19 @@ public class ItemsGrid {
             drawSlotOutlines(mousex, mousey);
             drawItems();
         }
+
+        drawMessage();
     }
 
     protected void drawItem(Rectangle4i rect, int idx) {
         GuiContainerManager.drawItem(rect.x + 1, rect.y + 1, getItem(idx));
+    }
+
+    protected void drawMessage() {
+        if (getItems().isEmpty() && getMessageOnEmpty() != null) {
+            GuiDraw.drawStringC(
+                    getMessageOnEmpty(), marginLeft + paddingLeft + width / 2, marginTop + height / 2, 0xFFFFFFFF);
+        }
     }
 
     public ItemPanelSlot getSlotMouseOver(int mousex, int mousey) {
@@ -344,5 +354,9 @@ public class ItemsGrid {
         final int slt = columns * r + c;
 
         return r >= rows || c >= columns || !isInvalidSlot(slt);
+    }
+
+    public String getMessageOnEmpty() {
+        return null;
     }
 }
