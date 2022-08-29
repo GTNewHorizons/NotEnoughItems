@@ -9,6 +9,7 @@ nei.key.ctrl.mac=CMD
 nei.bookmark.toggle=Bookmarks
 nei.bookmark.toggle.tip=Toggle visibility of the Bookmark Panel
 nei.bookmark.viewmode.toggle.tip=Toggle Bookmark View Mode
+nei.bookmark.guide=Press A to add bookmark
 
 nei.itempanel.quantity.default=One stack
 nei.itempanel.loading=Loading ItemPanel...
