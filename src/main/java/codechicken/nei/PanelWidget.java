@@ -160,6 +160,7 @@ public abstract class PanelWidget extends Widget {
             LayoutManager.addWidget(pagePrev);
             LayoutManager.addWidget(pageNext);
             LayoutManager.addWidget(pageLabel);
+            grid.setVisible();
         }
     }
 

@@ -2,7 +2,6 @@ package codechicken.nei;
 
 import static codechicken.lib.gui.GuiDraw.drawRect;
 
-import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.api.GuiInfo;
@@ -41,6 +40,8 @@ public class ItemsGrid {
     protected int columns;
 
     protected boolean[] invalidSlotMap;
+
+    protected Label messageLabel = new Label(getMessageOnEmpty(), true);
 
     @Nullable
     private Framebuffer framebuffer = null;
@@ -105,6 +106,9 @@ public class ItemsGrid {
         rows = height / SLOT_SIZE;
 
         paddingLeft = (width % SLOT_SIZE) / 2;
+
+        messageLabel.x = marginLeft + width / 2;
+        messageLabel.y = marginTop + height / 2;
     }
 
     public void shiftPage(int shift) {
@@ -304,19 +308,16 @@ public class ItemsGrid {
             drawSlotOutlines(mousex, mousey);
             drawItems();
         }
+    }
 
-        drawMessage();
+    public void setVisible() {
+        if (getItems().isEmpty() && getMessageOnEmpty() != null) {
+            LayoutManager.addWidget(messageLabel);
+        }
     }
 
     protected void drawItem(Rectangle4i rect, int idx) {
         GuiContainerManager.drawItem(rect.x + 1, rect.y + 1, getItem(idx));
-    }
-
-    protected void drawMessage() {
-        if (getItems().isEmpty() && getMessageOnEmpty() != null) {
-            GuiDraw.drawStringC(
-                    getMessageOnEmpty(), marginLeft + paddingLeft + width / 2, marginTop + height / 2, 0xFFFFFFFF);
-        }
     }
 
     public ItemPanelSlot getSlotMouseOver(int mousex, int mousey) {
