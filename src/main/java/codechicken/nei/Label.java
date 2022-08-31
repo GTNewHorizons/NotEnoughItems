@@ -7,7 +7,6 @@ public class Label extends Widget {
     final boolean centered;
     final int colour;
     public String text;
-    boolean visible = true;
 
     public Label(String s, boolean center, int color) {
         text = s;
@@ -21,12 +20,7 @@ public class Label extends Widget {
 
     @Override
     public void draw(int mousex, int mousey) {
-        if (!visible) return;
         if (centered) drawStringC(text, x, y, colour);
         else drawString(text, x, y, colour);
-    }
-
-    public void setVisible(boolean visible) {
-        this.visible = visible;
     }
 }
