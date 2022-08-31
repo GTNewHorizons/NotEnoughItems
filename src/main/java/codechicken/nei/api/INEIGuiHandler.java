@@ -8,6 +8,7 @@ import net.minecraft.item.ItemStack;
 /**
  * If this is implemented on a gui, it will be automatically registered
  */
+@SuppressWarnings("unused")
 public interface INEIGuiHandler {
     public VisiblityData modifyVisiblity(GuiContainer gui, VisiblityData currentVisibility);
 
@@ -23,8 +24,9 @@ public interface INEIGuiHandler {
     public List<TaggedInventoryArea> getInventoryAreas(GuiContainer gui);
 
     /**
-     * Handles clicks while an itemstack has been dragged from the item panel. Use this to set configurable slots and the like.
-     * Changes made to the stackSize of the dragged stack will be kept
+     * Handles clicks while player has ItemStack on cursor. Use this to set configurable slots and the like.
+     * Changes made to the stackSize of the dragged stack will be kept.
+     * See also {@link #handleDragNDrop(GuiContainer, int, int, ItemStack, int, ClickContext)}
      * @param gui The current gui instance
      * @param mousex The x position of the mouse
      * @param mousey The y position of the mouse
@@ -32,7 +34,25 @@ public interface INEIGuiHandler {
      * @param button The button presed
      * @return True if the drag n drop was handled. False to resume processing through other routes. The held stack will be deleted if draggedStack.stackSize == 0
      */
-    public boolean handleDragNDrop(GuiContainer gui, int mousex, int mousey, ItemStack draggedStack, int button);
+    default boolean handleDragNDrop(GuiContainer gui, int mousex, int mousey, ItemStack draggedStack, int button) {
+        return false;
+    }
+
+    /**
+     * Handles clicks while player has ItemStack on cursor. Use this to set configurable slots and the like.
+     * Changes made to the stackSize of the dragged stack will be kept.
+     * @param gui The current gui instance
+     * @param mousex The x position of the mouse
+     * @param mousey The y position of the mouse
+     * @param draggedStack The stack being dragged from the item panel
+     * @param button The button pressed
+     * @param clickContext The context this method is invoked
+     * @return True if the drag n drop was handled. False to resume processing through other routes. The held stack will be deleted if draggedStack.stackSize == 0
+     */
+    default boolean handleDragNDrop(
+            GuiContainer gui, int mousex, int mousey, ItemStack draggedStack, int button, ClickContext clickContext) {
+        return handleDragNDrop(gui, mousex, mousey, draggedStack, button);
+    }
 
     /**
      * Used to prevent the item panel from drawing on top of other gui elements.

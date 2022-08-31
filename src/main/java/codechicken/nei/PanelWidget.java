@@ -2,6 +2,7 @@ package codechicken.nei;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
+import codechicken.nei.api.ClickContext;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.guihook.GuiContainerManager;
@@ -242,27 +243,29 @@ public abstract class PanelWidget extends Widget {
     @Override
     public boolean handleClickExt(int mouseX, int mouseY, int button) {
         if (ItemPanels.itemPanel.draggedStack != null) {
-            return ItemPanels.itemPanel.handleDraggedClick(mouseX, mouseY, button);
+            return ItemPanels.itemPanel.handleDraggedClick(
+                    mouseX, mouseY, button, ClickContext.GHOST_DRAGGED_ITEM_PANEL);
         }
 
         if (ItemPanels.bookmarkPanel.draggedStack != null) {
-            return ItemPanels.bookmarkPanel.handleDraggedClick(mouseX, mouseY, button);
+            return ItemPanels.bookmarkPanel.handleDraggedClick(
+                    mouseX, mouseY, button, ClickContext.GHOST_DRAGGED_BOOKMARK_PANEL);
         }
 
         if (NEIClientUtils.getHeldItem() != null) {
             final ItemStack draggedStack = NEIClientUtils.getHeldItem().copy();
-            return handleGUIContainerClick(draggedStack, mouseX, mouseY, button);
+            return handleGUIContainerClick(draggedStack, mouseX, mouseY, button, ClickContext.REAL_ITEM);
         }
 
         return false;
     }
 
-    protected boolean handleDraggedClick(int mouseX, int mouseY, int button) {
+    protected boolean handleDraggedClick(int mouseX, int mouseY, int button, ClickContext clickContext) {
         if (draggedStack == null) {
             return false;
         }
 
-        if (handleGUIContainerClick(draggedStack, mouseX, mouseY, button)) {
+        if (handleGUIContainerClick(draggedStack, mouseX, mouseY, button, clickContext)) {
 
             if (draggedStack.stackSize == 0) {
                 draggedStack = null;
@@ -282,14 +285,15 @@ public abstract class PanelWidget extends Widget {
         return true;
     }
 
-    protected boolean handleGUIContainerClick(final ItemStack draggedStack, int mouseX, int mouseY, int button) {
+    protected boolean handleGUIContainerClick(
+            final ItemStack draggedStack, int mouseX, int mouseY, int button, ClickContext clickContext) {
         final GuiContainer gui = NEIClientUtils.getGuiContainer();
         boolean handled = false;
 
         try {
             GuiInfo.readLock.lock();
             for (INEIGuiHandler handler : GuiInfo.guiHandlers) {
-                if (handler.handleDragNDrop(gui, mouseX, mouseY, draggedStack, button)) {
+                if (handler.handleDragNDrop(gui, mouseX, mouseY, draggedStack, button, clickContext)) {
                     handled = true;
                     break;
                 }
