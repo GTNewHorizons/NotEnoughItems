@@ -88,7 +88,13 @@ public class NEIClientConfig {
             handler -> Objects.firstNonNull(handler.getOverlayIdentifier(), handler.getHandlerId());
 
     public static int getHandlerOrder(IRecipeHandler handler) {
-        return handlerOrdering.getOrDefault(HANDLER_ID_FUNCTION.apply(handler), 0);
+        if (handlerOrdering.get(handler.getOverlayIdentifier()) != null) {
+            return handlerOrdering.get(handler.getOverlayIdentifier());
+        }
+        if (handlerOrdering.get(handler.getHandlerId()) != null) {
+            return handlerOrdering.get(handler.getHandlerId());
+        }
+        return 0;
     }
 
     // Comparator that compares handlers using the handlerOrdering map.
