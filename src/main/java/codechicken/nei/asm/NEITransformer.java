@@ -238,7 +238,7 @@ public class NEITransformer implements IClassTransformer {
             @Override
             public void transform(MethodNode mv) {
                 ASMHelper.logger.debug("NEI: Injecting mouseUp call");
-                //Recache asmblocks to avoid null error in dev env
+                // Recache asmblocks to avoid null error in dev env
                 Map<String, ASMBlock> asmblocks = ASMReader.loadResource("/assets/nei/asm/blocks.asm");
                 ASMBlock gotoBlock = asmblocks.get("n_mouseUpGoto");
                 ASMBlock needleBlock = asmblocks.get("n_mouseUp");
