@@ -1,5 +1,7 @@
 package codechicken.nei;
 
+import static codechicken.nei.NEIClientConfig.world;
+
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.EverythingItemFilter;
@@ -8,16 +10,11 @@ import codechicken.nei.api.API;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.util.TextHistory;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.EnumChatFormatting;
-import org.lwjgl.input.Keyboard;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
-import static codechicken.nei.NEIClientConfig.world;
+import net.minecraft.util.EnumChatFormatting;
 
 public class SearchField extends TextField implements ItemFilterProvider {
     /**
@@ -181,9 +178,9 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
     private boolean handleNavigateHistory(TextHistory.Direction direction) {
         if (focused()) {
-            return history.get(direction,text())
+            return history.get(direction, text())
                     .map(newText -> {
-                        setText(newText);   
+                        setText(newText);
                         return true;
                     })
                     .orElse(false);

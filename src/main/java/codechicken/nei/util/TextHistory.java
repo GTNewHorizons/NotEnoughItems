@@ -11,7 +11,8 @@ public class TextHistory {
     private static final int MAX_HISTORY = 100;
 
     public enum Direction {
-        NEXT, PREVIOUS
+        NEXT,
+        PREVIOUS
     }
 
     private final List<String> history = new LinkedList<>();
@@ -29,10 +30,9 @@ public class TextHistory {
     }
 
     public Optional<String> get(Direction direction, String currentText) {
-        if(direction == direction.NEXT){
+        if (direction == direction.NEXT) {
             return getNext(currentText);
-        }
-        else{
+        } else {
             return getPrevious(currentText);
         }
     }
