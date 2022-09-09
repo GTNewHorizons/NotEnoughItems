@@ -1,7 +1,5 @@
 package codechicken.nei;
 
-import static codechicken.nei.NEIClientConfig.world;
-
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.EverythingItemFilter;
@@ -9,11 +7,17 @@ import codechicken.nei.ItemList.PatternItemFilter;
 import codechicken.nei.api.API;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
+import codechicken.nei.util.TextHistory;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.EnumChatFormatting;
+import org.lwjgl.input.Keyboard;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import net.minecraft.util.EnumChatFormatting;
+
+import static codechicken.nei.NEIClientConfig.world;
 
 public class SearchField extends TextField implements ItemFilterProvider {
     /**
@@ -45,6 +49,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
     }
 
     public static List<ISearchProvider> searchProviders = new LinkedList<>();
+    private static final TextHistory history = new TextHistory();
     private boolean isVisible = true;
 
     long lastclicktime;
@@ -116,6 +121,13 @@ public class SearchField extends TextField implements ItemFilterProvider {
         if (isVisible() && NEIClientConfig.isKeyHashDown("gui.search")) {
             setFocus(true);
         }
+        if (NEIClientConfig.isKeyHashDown("gui.getprevioussearch") && focused()) {
+            handleNavigateHistory(TextHistory.Direction.PREVIOUS);
+        }
+
+        if (NEIClientConfig.isKeyHashDown("gui.getnextsearch") && focused()) {
+            handleNavigateHistory(TextHistory.Direction.NEXT);
+        }
     }
 
     @Override
@@ -155,5 +167,27 @@ public class SearchField extends TextField implements ItemFilterProvider {
         if (!primary.isEmpty()) return new AnyMultiItemFilter(primary);
         if (!secondary.isEmpty()) return new AnyMultiItemFilter(secondary);
         return new EverythingItemFilter();
+    }
+
+    @Override
+    public void setFocus(boolean focus) {
+        final boolean previousFocus = field.isFocused();
+
+        if (previousFocus != focus) {
+            history.add(text());
+        }
+        super.setFocus(focus);
+    }
+
+    private boolean handleNavigateHistory(TextHistory.Direction direction) {
+        if (focused()) {
+            return history.get(direction,text())
+                    .map(newText -> {
+                        setText(newText);   
+                        return true;
+                    })
+                    .orElse(false);
+        }
+        return false;
     }
 }
