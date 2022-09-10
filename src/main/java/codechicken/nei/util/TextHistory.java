@@ -1,6 +1,6 @@
 package codechicken.nei.util;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,7 +15,7 @@ public class TextHistory {
         PREVIOUS
     }
 
-    private final List<String> history = new LinkedList<>();
+    private final List<String> history = new ArrayList<>();
 
     public boolean add(String currentText) {
         if (currentText.length() > 0) {
