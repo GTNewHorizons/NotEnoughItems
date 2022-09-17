@@ -367,6 +367,10 @@ public class NEIClientUtils extends NEIServerUtils {
 
     public static String cropText(FontRenderer fontRenderer, String text, int containerWidth) {
 
+        if (text == null || fontRenderer == null) {
+            return "";
+        }
+
         int textWidth = fontRenderer.getStringWidth(text);
 
         if (textWidth > containerWidth) {
