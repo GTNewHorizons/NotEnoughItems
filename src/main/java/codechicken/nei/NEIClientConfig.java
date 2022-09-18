@@ -237,6 +237,10 @@ public class NEIClientConfig {
                 .setComment("Use NBT in Bookmarks")
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.useNBTInBookmarks", true));
+        tag.getTag("inventory.bookmarksAnimationEnabled")
+                .setComment("REI Style Animation in Bookmarks")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.bookmarksAnimationEnabled", true));
         tag.getTag("inventory.showRecipeMarker")
                 .setComment("Show Recipe Marker")
                 .getBooleanValue(false);
@@ -500,6 +504,10 @@ public class NEIClientConfig {
 
     public static boolean useNBTInBookmarks() {
         return getBooleanSetting("inventory.useNBTInBookmarks");
+    }
+
+    public static boolean areBookmarksAnimated() {
+        return getBooleanSetting("inventory.bookmarksAnimationEnabled");
     }
 
     public static boolean showRecipeMarker() {

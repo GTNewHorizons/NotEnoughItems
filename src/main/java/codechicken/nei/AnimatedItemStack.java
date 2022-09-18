@@ -30,14 +30,17 @@ public class AnimatedItemStack {
     }
 
     public void drawItem(int x, int y, boolean smallAmount, String stackSize, boolean blockMoveAnimOnce) {
-        if (doPopAnim && currentScale < 1) {
-            drawPoppingItem(x, y, smallAmount, stackSize);
-            return;
+        if (NEIClientConfig.areBookmarksAnimated()) {
+            if (doPopAnim && currentScale < 1) {
+                drawPoppingItem(x, y, smallAmount, stackSize);
+                return;
+            }
+            if (doMoveAnim && (lastPosX != x || lastPosY != y) && !blockMoveAnimOnce) {
+                drawMovingItem(x, y, smallAmount, stackSize);
+                return;
+            }
         }
-        if (doMoveAnim && (lastPosX != x || lastPosY != y) && !blockMoveAnimOnce) {
-            drawMovingItem(x, y, smallAmount, stackSize);
-            return;
-        }
+        currentScale = 1;
         lastPosX = x;
         lastPosY = y;
         GuiContainerManager.drawItem(x, y, itemStack, smallAmount, stackSize);
