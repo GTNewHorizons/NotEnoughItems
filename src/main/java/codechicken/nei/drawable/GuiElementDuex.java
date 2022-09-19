@@ -3,6 +3,7 @@ package codechicken.nei.drawable;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.GuiScreen;
+import org.lwjgl.opengl.GL11;
 
 /*
 * Taken from Mantle 1.12-1.3.3.49 under the MIT License
@@ -70,6 +71,7 @@ public class GuiElementDuex {
      */
     public int draw(int xPos, int yPos) {
         // drawModalRectWithCustomSizedTexture
+        GL11.glColor4f(1, 1, 1, 1);
         GuiScreen.func_146110_a(xPos, yPos, x, y, w, h, texW, texH);
         return w;
     }
