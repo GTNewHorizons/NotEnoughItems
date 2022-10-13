@@ -57,8 +57,7 @@ public class ItemPanel extends PanelWidget {
         public void refresh(GuiContainer gui) {
 
             if (newItems != null) {
-                realItems.clear();
-                addRealItems(newItems, false, false);
+                realItems = newItems;
                 newItems = null;
                 onGridChanged();
             }
