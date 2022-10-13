@@ -8,6 +8,7 @@ advsolar.client.nei.MTRecipeHandler,AdvancedSolarPanel:BlockMolecularTransformer
 crafting,appliedenergistics2:item.ItemMultiPart:360,,appliedenergistics2,TRUE,,,,,,
 appeng.integration.modules.NEIHelpers.NEIGrinderRecipeHandler,appliedenergistics2:tile.BlockGrinder,,appliedenergistics2,TRUE,dreamcraft,,,,,
 appeng.integration.modules.NEIHelpers.NEIInscriberRecipeHandler,appliedenergistics2:tile.BlockInscriber,,appliedenergistics2,TRUE,,,,,,
+appeng.integration.modules.NEIHelpers.NEIInscriberRecipeHandler,ae2stuff:Inscriber,,ae2stuff,TRUE,,,,,,
 fox.spiteful.avaritia.compat.nei.CompressionHandler,Avaritia:Neutronium_Compressor,,Avaritia,TRUE,,,,,,
 extreme,Avaritia:Dire_Crafting,,Avaritia,TRUE,,,,,,
 extreme,avaritiaddons:ExtremeAutoCrafter,,avaritiaddons,TRUE,,,,,,
