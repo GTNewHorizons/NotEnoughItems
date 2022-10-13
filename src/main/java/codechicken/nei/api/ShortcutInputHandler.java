@@ -108,6 +108,7 @@ public abstract class ShortcutInputHandler {
             if (gui instanceof GuiRecipe) {
                 ingredients = ((GuiRecipe<?>) gui).getFocusedRecipeIngredients();
                 handlerName = ((GuiRecipe<?>) gui).getHandlerName();
+                stack.stackSize = ((GuiRecipe<?>) gui).prepareFocusedRecipeResultStackSize(stack);
             }
 
             ItemPanels.bookmarkPanel.addOrRemoveItem(stack, handlerName, ingredients, saveIngredients, saveStackSize);

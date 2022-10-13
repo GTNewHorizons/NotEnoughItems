@@ -273,6 +273,32 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer
         return null;
     }
 
+    public int prepareFocusedRecipeResultStackSize(ItemStack stackover) {
+        final int recipesPerPage = getRecipesPerPage();
+
+        for (int idx = page * recipesPerPage; idx < handler.numRecipes() && idx < (page + 1) * recipesPerPage; idx++) {
+            if (recipeInFocus(idx)) {
+                final PositionedStack result = handler.getResultStack(idx);
+                int stackSize = 0;
+
+                if (result != null && StackInfo.equalItemAndNBT(result.item, stackover, true)) {
+                    stackSize += result.item.stackSize;
+                }
+
+                final List<PositionedStack> stacks = handler.getOtherStacks(idx);
+                for (PositionedStack pStack : stacks) {
+                    if (StackInfo.equalItemAndNBT(pStack.item, stackover, true)) {
+                        stackSize += pStack.item.stackSize;
+                    }
+                }
+
+                return stackSize;
+            }
+        }
+
+        return stackover.stackSize;
+    }
+
     protected boolean recipeInFocus(int idx) {
         final PositionedStack result = handler.getResultStack(idx);
         if (result != null && isMouseOver(result, idx)) {
