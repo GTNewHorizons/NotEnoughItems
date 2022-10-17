@@ -274,6 +274,11 @@ public class NEIClientConfig {
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.ignore_potion_overlap", true));
 
+        tag.getTag("inventory.optimize_gui_overlap_computation")
+                .setComment("Optimize computation for GUI overlap")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.optimize_gui_overlap_computation", true));
+
         tag.getTag("tools.handler_load_from_config")
                 .setComment("ADVANCED: Load handlers from config")
                 .getBooleanValue(false);
@@ -538,6 +543,10 @@ public class NEIClientConfig {
 
     public static boolean ignorePotionOverlap() {
         return getBooleanSetting("inventory.ignore_potion_overlap");
+    }
+
+    public static boolean optimizeGuiOverlapComputation() {
+        return getBooleanSetting("inventory.optimize_gui_overlap_computation");
     }
 
     public static boolean isEnabled() {

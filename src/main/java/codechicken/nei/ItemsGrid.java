@@ -153,8 +153,12 @@ public class ItemsGrid {
         invalidSlotMap = new boolean[rows * columns];
         perPage = columns * rows;
 
-        checkGuiOverlap(gui, 0, columns - 2, 1);
-        checkGuiOverlap(gui, columns - 1, 1, -1);
+        if (NEIClientConfig.optimizeGuiOverlapComputation()) {
+            checkGuiOverlap(gui, 0, columns - 2, 1);
+            checkGuiOverlap(gui, columns - 1, 1, -1);
+        } else {
+            checkGuiOverlap(gui, 0, columns, 1);
+        }
 
         if (oldRows != rows || oldColumns != columns || !Arrays.equals(oldSlotMap, invalidSlotMap)) {
             onGridChanged();
@@ -164,7 +168,7 @@ public class ItemsGrid {
     private void checkGuiOverlap(GuiContainer gui, int start, int end, int dir) {
         boolean validColumn = false;
 
-        for (int c = start; c != end && !validColumn; c += dir) {
+        for (int c = start; c != end && (!NEIClientConfig.optimizeGuiOverlapComputation() || !validColumn); c += dir) {
             validColumn = true;
 
             for (int r = 0; r < rows; r++) {
