@@ -605,7 +605,11 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     public PositionedStack getResultStack(int recipe) {
-        return arecipes.get(recipe).getResult();
+        try {
+            return arecipes.get(recipe).getResult();
+        } catch(ArrayIndexOutOfBoundsException ignored) {
+            return null;
+        }
     }
 
     public List<PositionedStack> getOtherStacks(int recipe) {
