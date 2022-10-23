@@ -24,6 +24,7 @@ import codechicken.nei.recipe.IUsageHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
 import codechicken.nei.recipe.RecipeInfo;
 import codechicken.nei.recipe.StackInfo;
+import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -130,16 +131,20 @@ public class API {
      * Damage values of OreDictionary.WILDCARD_VALUE and ItemStackMap.WILDCARD_TAG tags function as wildcards for their respective variables
      */
     public static void hideItem(ItemStack item) {
-        ItemInfo.hiddenItems.add(item);
-        LayoutManager.markItemsDirty();
+        if (!ItemInfo.hiddenItems.contains(item)) {
+            ItemInfo.hiddenItems.add(item);
+            LayoutManager.markItemsDirty();
+        }
     }
 
     /**
      * Add or replace the name normally shown on the item tooltip
      */
     public static void setOverrideName(ItemStack item, String name) {
-        ItemInfo.nameOverrides.put(item, name);
-        LayoutManager.markItemsDirty();
+        if (!name.equals(ItemInfo.nameOverrides.get(item))) {
+            ItemInfo.nameOverrides.put(item, name);
+            LayoutManager.markItemsDirty();
+        }
     }
 
     /**
@@ -147,8 +152,10 @@ public class API {
      * @param item an item with data
      */
     public static void addItemListEntry(ItemStack item) {
-        ItemInfo.itemOverrides.put(item.getItem(), item);
-        LayoutManager.markItemsDirty();
+        if (!ItemInfo.itemOverrides.containsEntry(item.getItem(), item)) {
+            ItemInfo.itemOverrides.put(item.getItem(), item);
+            LayoutManager.markItemsDirty();
+        }
     }
 
     /**
@@ -156,8 +163,10 @@ public class API {
      */
     public static void setItemListEntries(Item item, Iterable<ItemStack> items) {
         if (items == null) items = Collections.emptyList();
-        ItemInfo.itemOverrides.replaceValues(item, items);
-        LayoutManager.markItemsDirty();
+        if (!Sets.newHashSet(items).equals(Sets.newHashSet(ItemInfo.itemOverrides.get(item)))) {
+            ItemInfo.itemOverrides.replaceValues(item, items);
+            LayoutManager.markItemsDirty();
+        }
     }
 
     /**
@@ -294,8 +303,10 @@ public class API {
      * @param variant The stack to appear in the item panel
      */
     public static void addItemVariant(Item item, ItemStack variant) {
-        ItemInfo.itemVariants.put(item, variant);
-        LayoutManager.markItemsDirty();
+        if (!ItemInfo.itemVariants.containsEntry(item, variant)) {
+            ItemInfo.itemVariants.put(item, variant);
+            LayoutManager.markItemsDirty();
+        }
     }
 
     public static void registerStackStringifyHandler(IStackStringifyHandler handler) {
