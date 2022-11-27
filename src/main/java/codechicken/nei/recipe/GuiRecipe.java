@@ -3,6 +3,7 @@ package codechicken.nei.recipe;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.GuiNEIButton;
 import codechicken.nei.LayoutManager;
+import codechicken.nei.NEICPH;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
@@ -336,6 +337,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer
         if (i == Keyboard.KEY_ESCAPE) // esc
         {
             mc.displayGuiScreen(firstGuiGeneral);
+            NEICPH.sendRequestContainer();
             return;
         }
         if (GuiContainerManager.getManager(this).lastKeyTyped(i, c)) return;
@@ -346,6 +348,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer
 
         if (i == mc.gameSettings.keyBindInventory.getKeyCode()) {
             mc.displayGuiScreen(firstGuiGeneral);
+            NEICPH.sendRequestContainer();
         } else if (NEIClientConfig.isKeyHashDown("gui.back")) {
             mc.displayGuiScreen(prevGui);
         } else if (NEIClientConfig.isKeyHashDown("gui.prev_machine")) {

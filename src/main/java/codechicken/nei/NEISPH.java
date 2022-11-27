@@ -64,6 +64,9 @@ public class NEISPH implements IServerPacketHandler {
             case 15:
                 handleMobSpawnerID(sender.worldObj, packet.readCoord(), packet.readString());
                 break;
+            case 16:
+                handleRequestContainer(sender, packet.readInt());
+                break;
             case 21:
                 openEnchantmentGui(sender);
                 break;
@@ -97,6 +100,11 @@ public class NEISPH implements IServerPacketHandler {
             tile.markDirty();
             world.markBlockForUpdate(coord.x, coord.y, coord.z);
         }
+    }
+
+    private void handleRequestContainer(EntityPlayerMP sender, int containerSize) {
+        if (sender.openContainer.getInventory().size() != containerSize) return;
+        sender.sendContainerToPlayer(sender.openContainer);
     }
 
     private void handlePropertyChange(EntityPlayerMP sender, PacketCustom packet) {

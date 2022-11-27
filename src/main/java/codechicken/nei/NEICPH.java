@@ -141,6 +141,13 @@ public class NEICPH implements IClientPacketHandler {
         packet.sendToServer();
     }
 
+    public static void sendRequestContainer() {
+        PacketCustom packet = new PacketCustom(channel, 16);
+        packet.writeInt(
+                Minecraft.getMinecraft().thePlayer.openContainer.getInventory().size());
+        packet.sendToServer();
+    }
+
     public static void sendSetSlot(int slot, ItemStack stack, boolean container) {
         PacketCustom packet = new PacketCustom(channel, 5);
         packet.writeBoolean(container);
