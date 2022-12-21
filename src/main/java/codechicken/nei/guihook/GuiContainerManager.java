@@ -152,7 +152,7 @@ public class GuiContainerManager {
         return namelist;
     }
 
-    protected static String itemCountDetails(ItemStack stack) {
+    public static String itemCountDetails(ItemStack stack) {
         final FluidStack fluid = StackInfo.getFluid(stack);
         int maxStackSize = stack.getMaxStackSize();
         int stackSize = stack.stackSize;
@@ -336,7 +336,7 @@ public class GuiContainerManager {
     }
 
     private int clickHandled = 0;
-    private final List<IContainerTooltipHandler> instanceTooltipHandlers;
+    public final List<IContainerTooltipHandler> instanceTooltipHandlers;
 
     public GuiContainerManager(GuiContainer screen) {
         window = screen;
@@ -479,14 +479,7 @@ public class GuiContainerManager {
             font = getFontRenderer(stack);
             if (stack != null) {
                 tooltip = itemDisplayNameMultiline(stack, window, true);
-
-                if (stack.stackSize != Integer.MAX_VALUE && NEIClientUtils.shiftKey()) {
-                    final String itemCount = itemCountDetails(stack);
-
-                    if (itemCount != null) {
-                        tooltip.add(String.format(EnumChatFormatting.GRAY + itemCount + EnumChatFormatting.RESET));
-                    }
-                }
+                applyItemCountDetails(tooltip, stack);
             }
 
             synchronized (instanceTooltipHandlers) {
@@ -504,6 +497,16 @@ public class GuiContainerManager {
         for (IContainerObjectHandler handler : objectHandlers) if (!handler.shouldShowTooltip(window)) return false;
 
         return window.mc.thePlayer.inventory.getItemStack() == null;
+    }
+
+    public static void applyItemCountDetails(List<String> tooltip, ItemStack stack) {
+        if (stack.stackSize != Integer.MAX_VALUE && NEIClientUtils.shiftKey()) {
+            final String itemCount = itemCountDetails(stack);
+
+            if (itemCount != null) {
+                tooltip.add(String.format(EnumChatFormatting.GRAY + itemCount + EnumChatFormatting.RESET));
+            }
+        }
     }
 
     public void renderSlotUnderlay(Slot slot) {
