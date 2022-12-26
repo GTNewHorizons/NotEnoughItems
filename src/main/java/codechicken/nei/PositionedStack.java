@@ -43,7 +43,11 @@ public class PositionedStack {
             if (item.getItemDamage() == Short.MAX_VALUE) {
                 List<ItemStack> permutations = ItemList.itemMap.get(item.getItem());
                 if (!permutations.isEmpty()) {
-                    for (ItemStack stack : permutations) stacks.add(stack.copy());
+                    for (ItemStack stack : permutations) {
+                        ItemStack toAdd = stack.copy();
+                        toAdd.stackSize = item.stackSize;
+                        stacks.add(toAdd);
+                    }
                 } else {
                     ItemStack base = new ItemStack(item.getItem(), item.stackSize);
                     base.stackTagCompound = item.stackTagCompound;
