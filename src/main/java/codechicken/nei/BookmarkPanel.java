@@ -11,6 +11,7 @@ import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.BookmarkRecipeId;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.NBTJson;
+import codechicken.nei.util.ReadableNumberConverter;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -23,11 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 import javax.annotation.Nullable;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -69,7 +66,7 @@ public class BookmarkPanel extends PanelWidget {
         TODO_LIST
     }
 
-    protected static class BookmarkGrid extends ItemsGrid {
+    public static class BookmarkGrid extends ItemsGrid {
 
         protected static final float SCALE_SPEED = 0.1f;
 
@@ -331,16 +328,15 @@ public class BookmarkPanel extends PanelWidget {
                     || LayoutManager.bookmarkPanel.sortedStackIndex != idx) {
                 final ItemStack stack = getItem(idx);
                 final BookmarkStackMeta meta = getMetadata(idx);
-                final String stackSize = meta.factor < 0 || meta.fluidDisplay ? "" : String.valueOf(stack.stackSize);
-
+                final String stackSize = meta.factor < 0 || meta.fluidDisplay
+                        ? ""
+                        : ReadableNumberConverter.INSTANCE.toWideReadableForm(stack.stackSize);
                 if (animation.containsKey(stack) && animation.get(stack) < 1) {
                     final float currentScale = animation.get(stack) + SCALE_SPEED;
                     animation.put(stack, currentScale);
                     drawPoppingItem(rect, stack, stackSize, currentScale);
                 } else {
-
                     GuiContainerManager.drawItem(rect.x + 1, rect.y + 1, stack, true, stackSize);
-
                     if (meta.recipeId != null && !meta.ingredient && NEIClientConfig.showRecipeMarker()) {
                         drawRecipeMarker(rect.x, rect.y, GuiContainerManager.getFontRenderer(stack));
                     }
@@ -433,6 +429,23 @@ public class BookmarkPanel extends PanelWidget {
         return String.format("(%d/%d) [%d]", getPage(), Math.max(1, getNumPages()), size);
     }
 
+    public void addItem(ItemStack itemStack) {
+        addItem(itemStack, true);
+    }
+
+    public void addItem(ItemStack itemStack, boolean saveStackSize) {
+        final BookmarkGrid BGrid = (BookmarkGrid) grid;
+        int idx = BGrid.indexOf(itemStack, true);
+        if (idx != -1) {
+            BGrid.removeItem(idx);
+        }
+        addOrRemoveItem(itemStack, null, null, false, saveStackSize);
+    }
+
+    public int getNameSpaceSize() {
+        return namespaces.size();
+    }
+
     public void addOrRemoveItem(ItemStack stackA) {
         addOrRemoveItem(stackA, null, null, false, false);
     }
@@ -518,7 +531,7 @@ public class BookmarkPanel extends PanelWidget {
         BookmarkRecipeId recipeId = ((BookmarkGrid) grid).findRecipeId(stackA);
 
         if (recipeId == null) {
-            for (int idx = 0; idx < namespaces.size() && recipeId == null; idx++) {
+            for (int idx = 0; idx < getNameSpaceSize() && recipeId == null; idx++) {
                 if (idx == activeNamespaceIndex) continue;
                 recipeId = namespaces.get(idx).findRecipeId(stackA);
             }
@@ -535,18 +548,18 @@ public class BookmarkPanel extends PanelWidget {
 
     protected int fixCountOfNamespaces() {
 
-        if (namespaces.get(namespaces.size() - 1).size() > 0) {
+        if (namespaces.get(getNameSpaceSize() - 1).size() > 0) {
             namespaces.add(new BookmarkGrid());
-        } else if (activeNamespaceIndex == namespaces.size() - 2 && grid.size() == 0) {
-            namespaces.remove(namespaces.size() - 1);
+        } else if (activeNamespaceIndex == getNameSpaceSize() - 2 && grid.size() == 0) {
+            namespaces.remove(getNameSpaceSize() - 1);
         }
 
-        return namespaces.size();
+        return getNameSpaceSize();
     }
 
     protected boolean removeEmptyNamespaces() {
 
-        if (activeNamespaceIndex != namespaces.size() - 1 && grid.size() == 0) {
+        if (activeNamespaceIndex != getNameSpaceSize() - 1 && grid.size() == 0) {
             namespaces.remove(activeNamespaceIndex);
             grid = namespaces.get(activeNamespaceIndex);
             return true;
@@ -564,7 +577,7 @@ public class BookmarkPanel extends PanelWidget {
         removeEmptyNamespaces();
 
         if (activeNamespaceIndex == 0) {
-            activeNamespaceIndex = namespaces.size() - 1;
+            activeNamespaceIndex = getNameSpaceSize() - 1;
         } else {
             activeNamespaceIndex--;
         }
@@ -638,7 +651,7 @@ public class BookmarkPanel extends PanelWidget {
 
         ArrayList<String> strings = new ArrayList<>();
 
-        for (int grpIdx = 0; grpIdx < namespaces.size() - 1; grpIdx++) {
+        for (int grpIdx = 0; grpIdx < getNameSpaceSize() - 1; grpIdx++) {
             final BookmarkGrid grid = namespaces.get(grpIdx);
 
             JsonObject settings = new JsonObject();
@@ -1121,8 +1134,10 @@ public class BookmarkPanel extends PanelWidget {
             meta.factor = factor;
         } else {
             meta.factor = nbTag.getInteger("Count") == factor && shift < 0 ? -1 * factor : factor;
-            nbTag.setInteger("Count", Math.max(nbTag.getInteger("Count") + factor * shift, factor));
-            BGrid.replaceItem(slotIndex, StackInfo.loadFromNBT(nbTag));
+            if ((long) nbTag.getInteger("Count") + ((long) factor * shift) <= Integer.MAX_VALUE) {
+                nbTag.setInteger("Count", Math.max(nbTag.getInteger("Count") + factor * shift, factor));
+                BGrid.replaceItem(slotIndex, StackInfo.loadFromNBT(nbTag));
+            }
         }
     }
 }

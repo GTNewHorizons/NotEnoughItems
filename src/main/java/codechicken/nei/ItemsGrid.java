@@ -71,6 +71,11 @@ public class ItemsGrid {
         return -1;
     }
 
+    public void setPage(int page) {
+        this.page = Math.max(0, Math.min(page, getNumPages() - 1));
+        onGridChanged();
+    }
+
     public int getPage() {
         return page + 1;
     }
