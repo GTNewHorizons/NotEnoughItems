@@ -120,7 +120,7 @@ public class RecipeCatalysts {
         final boolean fromJar = NEIClientConfig.loadCatalystsFromJar();
         NEIClientConfig.logger.info("Loading catalyst info from " + (fromJar ? "JAR" : "Config"));
         recipeCatalystMap.clear();
-        URL handlerUrl = Thread.currentThread().getContextClassLoader().getResource("assets/nei/csv/catalysts.csv");
+        URL handlerUrl = RecipeCatalysts.class.getResource("/assets/nei/csv/catalysts.csv");
 
         URL url;
         if (fromJar) {

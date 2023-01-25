@@ -190,7 +190,7 @@ public abstract class GuiRecipeTab extends Widget {
         final boolean fromJar = NEIClientConfig.loadHandlersFromJar();
         NEIClientConfig.logger.info("Loading handler info from " + (fromJar ? "JAR" : "Config"));
         handlerMap.clear();
-        URL handlerUrl = Thread.currentThread().getContextClassLoader().getResource("assets/nei/csv/handlers.csv");
+        URL handlerUrl = GuiRecipeTab.class.getResource("/assets/nei/csv/handlers.csv");
 
         URL url;
         if (fromJar) {

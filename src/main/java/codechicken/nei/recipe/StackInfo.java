@@ -165,8 +165,7 @@ public class StackInfo {
             }
 
         } else {
-            final URL filterUrl =
-                    Thread.currentThread().getContextClassLoader().getResource("assets/nei/guidfilters.cfg");
+            final URL filterUrl = StackInfo.class.getResource("/assets/nei/guidfilters.cfg");
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(filterUrl.openStream()))) {
                 itemStrings = IOUtils.readLines(reader);
