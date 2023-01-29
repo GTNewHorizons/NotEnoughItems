@@ -1343,3 +1343,8 @@ tonius.neiintegration.mods.minefactoryreloaded.RecipeHandlerSewer,MineFactoryRel
 tonius.neiintegration.mods.minefactoryreloaded.RecipeHandlerGrinder,MineFactoryReloaded:machine.0:13,,MineFactoryReloaded,TRUE,,,,,,
 tonius.neiintegration.mods.minefactoryreloaded.RecipeHandlerBioReactor,MineFactoryReloaded:machine.1:10,,MineFactoryReloaded,TRUE,,,,,,
 tonius.neiintegration.mods.minefactoryreloaded.RecipeHandlerSlaughterhouse,MineFactoryReloaded:machine.1:13,,MineFactoryReloaded,TRUE,,,,,,
+de.ellpeck.actuallyadditions.mod.nei.NEIBookletRecipe,Actually Additions,ActuallyAdditions:itemBooklet,,ActuallyAdditions,TRUE,,,,,,,,,,,
+de.ellpeck.actuallyadditions.mod.nei.NEIHairyBallRecipe,Actually Additions,ActuallyAdditions:itemHairyBall,,ActuallyAdditions,TRUE,,,,,,,,,,,
+de.ellpeck.actuallyadditions.mod.nei.NEICrusherRecipe$Double,Actually Additions,ActuallyAdditions:blockGrinderDouble,,ActuallyAdditions,TRUE,,,,,,,,,,,
+de.ellpeck.actuallyadditions.mod.nei.NEICrusherRecipe,Actually Additions,ActuallyAdditions:blockGrinder,,ActuallyAdditions,TRUE,,,,,,,,,,,
+de.ellpeck.actuallyadditions.mod.nei.NEIFurnaceDoubleRecipe,Actually Additions,ActuallyAdditions:blockFurnaceDouble,,ActuallyAdditions,TRUE,,,,,,,,,,,
