@@ -516,3 +516,8 @@ de.ellpeck.actuallyadditions.mod.nei.NEIHairyBallRecipe,Actually Additions,Actua
 de.ellpeck.actuallyadditions.mod.nei.NEICrusherRecipe$Double,Actually Additions,ActuallyAdditions:blockGrinderDouble,,ActuallyAdditions,TRUE,,,,,,,,,,,
 de.ellpeck.actuallyadditions.mod.nei.NEICrusherRecipe,Actually Additions,ActuallyAdditions:blockGrinder,,ActuallyAdditions,TRUE,,,,,,,,,,,
 de.ellpeck.actuallyadditions.mod.nei.NEIFurnaceDoubleRecipe,Actually Additions,ActuallyAdditions:blockFurnaceDouble,,ActuallyAdditions,TRUE,,,,,,,,,,,
+de.ellpeck.actuallyadditions.mod.nei.NEICoffeeMachineRecipe,Actually Additions,ActuallyAdditions:blockCoffeeMachine,,ActuallyAdditions,TRUE,,,,,,,,,,,
+de.ellpeck.actuallyadditions.mod.nei.NEICompostRecipe,Actually Additions,ActuallyAdditions:blockAtomicReconstructor,,ActuallyAdditions,TRUE,,,,,,,,,,,
+de.ellpeck.actuallyadditions.mod.nei.NEIReconstructorRecipe,Actually Additions,ActuallyAdditions:blockCompost,,ActuallyAdditions,TRUE,,,,,,,,,,,
+de.ellpeck.actuallyadditions.mod.nei.NEITreasureChestRecipe,Actually Additions,ActuallyAdditions:blockTreasureChest,,ActuallyAdditions,TRUE,,,,,,,,,,,
+
