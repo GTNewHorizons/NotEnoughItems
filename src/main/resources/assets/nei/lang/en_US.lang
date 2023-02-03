@@ -56,6 +56,7 @@ nei.inventory.current.gamemode.0=Current gamemode: survival
 nei.inventory.current.gamemode.1=Current gamemode: creative
 nei.inventory.current.gamemode.2=Current gamemode: creative+
 nei.inventory.current.gamemode.3=Current gamemode: adventure
+nei.inventory.tooltip.page=Page: %s / %s [Press %s to see next page]
 
 nei.inventory.gamemode.0=Click: Set gamemode to survival
 nei.inventory.gamemode.1=Click: Set gamemode to creative
@@ -108,6 +109,7 @@ nei.options.keys.gui.overlay_hide=Hide Overlay Recipe
 nei.options.keys.gui.overlay_use=Use Overlay Recipe
 nei.options.keys.gui.getprevioussearch=Previous Search
 nei.options.keys.gui.getnextsearch=Next Search
+nei.options.keys.gui.next_tooltip=Next Tooltip
 nei.options.keys.world=World
 nei.options.keys.world.chunkoverlay=Chunk Boundary Overlay
 nei.options.keys.world.moboverlay=Mob Spawn Overlay

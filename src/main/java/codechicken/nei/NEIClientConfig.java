@@ -345,6 +345,7 @@ public class NEIClientConfig {
         API.addHashBind("gui.hide_bookmarks", Keyboard.KEY_B);
         API.addKeyBind("gui.getprevioussearch", Keyboard.KEY_UP);
         API.addKeyBind("gui.getnextsearch", Keyboard.KEY_DOWN);
+        API.addKeyBind("gui.next_tooltip", Keyboard.KEY_Z);
 
         API.addKeyBind("world.chunkoverlay", Keyboard.KEY_F9);
         API.addKeyBind("world.moboverlay", Keyboard.KEY_F7);

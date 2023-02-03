@@ -5,7 +5,7 @@ import static codechicken.lib.gui.GuiDraw.fontRenderer;
 import static codechicken.lib.gui.GuiDraw.getMousePosition;
 import static codechicken.lib.gui.GuiDraw.renderEngine;
 
-import java.awt.Point;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -32,6 +32,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.recipe.StackInfo;
 
@@ -497,7 +498,49 @@ public class GuiContainerManager {
 
         if (tooltip.size() > 0) tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE); // add space after 'title'
 
-        drawMultilineTip(font, mousex + 12, mousey - 12, tooltip);
+        drawPagedTooltip(font, mousex + 12, mousey - 12, tooltip);
+    }
+
+    private static int tooltipPage;
+
+    public static void drawPagedTooltip(FontRenderer font, int x, int y, List<String> list) {
+        if (list.isEmpty()) return;
+        List<List<String>> tooltips = splitTooltipByPage(list);
+        tooltipPage = tooltipPage < tooltips.size() ? tooltipPage : 0;
+        if (tooltips.size() > 1) {
+            tooltips.get(tooltipPage).add(
+                    EnumChatFormatting.ITALIC + NEIClientUtils.translate(
+                            "inventory.tooltip.page",
+                            tooltipPage + 1,
+                            tooltips.size(),
+                            Keyboard.getKeyName(NEIClientConfig.getKeyBinding("gui.next_tooltip"))));
+        }
+        drawMultilineTip(font, x, y, tooltips.get(tooltipPage));
+    }
+
+    public static List<List<String>> splitTooltipByPage(List<String> list) {
+        List<List<String>> ret = new ArrayList<>();
+        List<String> tmp = new ArrayList<>();
+        int height = -2;
+        for (int i = 0; i < list.size(); i++) {
+            String text = list.get(i);
+            GuiDraw.ITooltipLineHandler line = GuiDraw.getTipLine(text);
+            int lineHeight = line != null ? line.getSize().height
+                    : text.endsWith(GuiDraw.TOOLTIP_LINESPACE) && i + 1 < list.size() ? 12 : 10;
+            if (height + lineHeight <= GuiDraw.displaySize().height - 8 * 2 - 10) {
+                // top & bottom 8px + last line for showing page
+                height += lineHeight;
+            } else {
+                ret.add(new ArrayList<>(tmp));
+                tmp.clear();
+                height = -2;
+            }
+            tmp.add(text);
+        }
+        if (!tmp.isEmpty()) {
+            ret.add(tmp);
+        }
+        return ret;
     }
 
     public static boolean shouldShowTooltip(GuiContainer window) {
@@ -514,6 +557,10 @@ public class GuiContainerManager {
                 tooltip.add(String.format(EnumChatFormatting.GRAY + itemCount + EnumChatFormatting.RESET));
             }
         }
+    }
+
+    public static void incrementTooltipPage() {
+        tooltipPage++;
     }
 
     public void renderSlotUnderlay(Slot slot) {

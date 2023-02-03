@@ -221,6 +221,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             return true;
         }
 
+        if (NEIClientConfig.isKeyHashDown("gui.next_tooltip")) {
+            GuiContainerManager.incrementTooltipPage();
+            return true;
+        }
+
         if (isEnabled() && !isHidden()) {
             for (Widget widget : controlWidgets) if (inputFocused == null) widget.lastKeyTyped(keyID, keyChar);
         }
