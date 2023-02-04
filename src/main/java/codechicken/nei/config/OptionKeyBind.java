@@ -5,11 +5,9 @@ import static codechicken.lib.gui.GuiDraw.drawStringC;
 
 import java.awt.Rectangle;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.EnumChatFormatting;
-
 import org.lwjgl.input.Keyboard;
 
+import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 
 public class OptionKeyBind extends OptionButton {
@@ -124,31 +122,8 @@ public class OptionKeyBind extends OptionButton {
 
     @Override
     public String getButtonText() {
-        String keyText = "";
-
-        if (useHash) {
-            final int metahash = Math.max(editing ? NEIClientUtils.getMetaHash() : getValue(), 0);
-            final String DELIMITER = EnumChatFormatting.GRAY + " + " + EnumChatFormatting.RESET;
-
-            if ((metahash & NEIClientUtils.CTRL_HASH) == NEIClientUtils.CTRL_HASH) {
-                keyText += NEIClientUtils.translate(Minecraft.isRunningOnMac ? "key.ctrl.mac" : "key.ctrl") + DELIMITER;
-            }
-
-            if ((metahash & NEIClientUtils.SHIFT_HASH) == NEIClientUtils.SHIFT_HASH) {
-                keyText += "SHIFT" + DELIMITER;
-            }
-
-            if ((metahash & NEIClientUtils.ALT_HASH) == NEIClientUtils.ALT_HASH) {
-                keyText += "ALT" + DELIMITER;
-            }
-        }
-
-        if (!editing) {
-            keyText += Keyboard.getKeyName(
-                    getValue() & ~(NEIClientUtils.CTRL_HASH | NEIClientUtils.SHIFT_HASH | NEIClientUtils.ALT_HASH));
-        }
-
-        return keyText;
+        final int metahash = Math.max(editing ? NEIClientUtils.getMetaHash() : getValue(), 0);
+        return NEIClientConfig.getKeyName(metahash, useHash, editing);
     }
 
     @Override

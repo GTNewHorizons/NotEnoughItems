@@ -513,7 +513,7 @@ public class GuiContainerManager {
                             "inventory.tooltip.page",
                             tooltipPage + 1,
                             tooltips.size(),
-                            Keyboard.getKeyName(NEIClientConfig.getKeyBinding("gui.next_tooltip"))));
+                            NEIClientConfig.getKeyName(NEIClientConfig.getKeyBinding("gui.next_tooltip"), true)));
         }
         drawMultilineTip(font, x, y, tooltips.get(tooltipPage));
     }

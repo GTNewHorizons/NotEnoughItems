@@ -345,7 +345,7 @@ public class NEIClientConfig {
         API.addHashBind("gui.hide_bookmarks", Keyboard.KEY_B);
         API.addKeyBind("gui.getprevioussearch", Keyboard.KEY_UP);
         API.addKeyBind("gui.getnextsearch", Keyboard.KEY_DOWN);
-        API.addKeyBind("gui.next_tooltip", Keyboard.KEY_Z);
+        API.addHashBind("gui.next_tooltip", Keyboard.KEY_Z);
 
         API.addKeyBind("world.chunkoverlay", Keyboard.KEY_F9);
         API.addKeyBind("world.moboverlay", Keyboard.KEY_F7);
@@ -419,6 +419,36 @@ public class NEIClientConfig {
     public static boolean isKeyHashDown(String string) {
         final int hash = getKeyBinding(string);
         return hash != Keyboard.CHAR_NONE && hash == NEIClientUtils.getKeyHash();
+    }
+
+    public static String getKeyName(int keyBind, boolean useHash) {
+        return getKeyName(keyBind, useHash, false);
+    }
+
+    public static String getKeyName(int keyBind, boolean useHash, boolean showOnlyHash) {
+        String keyText = "";
+
+        if (useHash) {
+            final String DELIMITER = " + ";
+            if ((keyBind & NEIClientUtils.CTRL_HASH) != 0) {
+                keyText += NEIClientUtils.translate(Minecraft.isRunningOnMac ? "key.ctrl.mac" : "key.ctrl") + DELIMITER;
+            }
+            if ((keyBind & NEIClientUtils.SHIFT_HASH) != 0) {
+                keyText += "SHIFT" + DELIMITER;
+            }
+            if ((keyBind & NEIClientUtils.ALT_HASH) != 0) {
+                keyText += "ALT" + DELIMITER;
+            }
+        }
+
+        if (!showOnlyHash) {
+            keyText += Keyboard.getKeyName(unHashKey(keyBind));
+        }
+        return keyText;
+    }
+
+    public static int unHashKey(int keyBind) {
+        return keyBind & ~(NEIClientUtils.CTRL_HASH | NEIClientUtils.SHIFT_HASH | NEIClientUtils.ALT_HASH);
     }
 
     public static void bootNEI(World world) {
