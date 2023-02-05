@@ -267,6 +267,10 @@ public class NEIClientConfig {
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.optimize_gui_overlap_computation", true));
 
+        tag.getTag("inventory.jei_style_cycled_ingredients").setComment("JEI styled cycled ingredients")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.jei_style_cycled_ingredients", true));
+
         tag.getTag("tools.handler_load_from_config").setComment("ADVANCED: Load handlers from config")
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("tools.handler_load_from_config", true) {
@@ -568,6 +572,10 @@ public class NEIClientConfig {
 
     public static boolean optimizeGuiOverlapComputation() {
         return getBooleanSetting("inventory.optimize_gui_overlap_computation");
+    }
+
+    public static boolean useJEIStyledCycledIngredients() {
+        return getBooleanSetting("inventory.jei_style_cycled_ingredients");
     }
 
     public static boolean isEnabled() {

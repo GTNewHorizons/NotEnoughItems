@@ -182,8 +182,12 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         public List<PositionedStack> getCycledIngredients(int cycle, List<PositionedStack> ingredients) {
 
             if (!NEIClientUtils.shiftKey()) {
-                for (int itemIndex = 0; itemIndex < ingredients.size(); itemIndex++) {
-                    randomRenderPermutation(ingredients.get(itemIndex), cycle + itemIndex);
+                if (NEIClientConfig.useJEIStyledCycledIngredients()) {
+                    jeiStyledRenderPermutation(ingredients, cycle);
+                } else {
+                    for (int itemIndex = 0; itemIndex < ingredients.size(); itemIndex++) {
+                        randomRenderPermutation(ingredients.get(itemIndex), cycle + itemIndex);
+                    }
                 }
             }
 
@@ -193,6 +197,12 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         public void randomRenderPermutation(PositionedStack stack, long cycle) {
             Random rand = new Random(cycle + offset);
             stack.setPermutationToRender(Math.abs(rand.nextInt()) % stack.items.length);
+        }
+
+        public void jeiStyledRenderPermutation(List<PositionedStack> stacks, long cycle) {
+            for (PositionedStack stack : stacks) {
+                stack.setPermutationToRender((int) (cycle % stack.items.length));
+            }
         }
 
         public void setIngredientPermutation(Collection<PositionedStack> ingredients, ItemStack ingredient) {
