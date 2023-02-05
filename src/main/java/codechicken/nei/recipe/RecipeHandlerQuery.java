@@ -21,11 +21,14 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
     private final Function<T, T> recipeHandlerFunction;
     private final List<T> recipeHandlers;
     private final List<T> serialRecipeHandlers;
+    private final String[] errorMessage;
 
-    RecipeHandlerQuery(Function<T, T> recipeHandlerFunction, List<T> recipeHandlers, List<T> serialRecipeHandlers) {
+    RecipeHandlerQuery(Function<T, T> recipeHandlerFunction, List<T> recipeHandlers, List<T> serialRecipeHandlers,
+            String... errorMessage) {
         this.recipeHandlerFunction = recipeHandlerFunction;
         this.recipeHandlers = recipeHandlers;
         this.serialRecipeHandlers = serialRecipeHandlers;
+        this.errorMessage = errorMessage;
     }
 
     ArrayList<T> runWithProfiling(String profilerSection) {
@@ -62,7 +65,10 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
                 .get();
     }
 
-    private static void displayRecipeLookupError(Exception e) {
+    private void displayRecipeLookupError(Exception e) {
+        for (String message : errorMessage) {
+            NEIClientConfig.logger.error(message);
+        }
         e.printStackTrace();
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (player != null) {

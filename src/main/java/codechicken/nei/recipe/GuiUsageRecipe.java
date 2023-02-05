@@ -1,6 +1,7 @@
 package codechicken.nei.recipe;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import net.minecraft.client.Minecraft;
 
@@ -16,7 +17,10 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
         RecipeHandlerQuery<IUsageHandler> recipeQuery = new RecipeHandlerQuery<>(
                 h -> getUsageOrCatalystHandler(h, inputId, ingredients),
                 usagehandlers,
-                serialUsageHandlers);
+                serialUsageHandlers,
+                "Error while looking up usage recipe",
+                "inputId: " + inputId,
+                "ingredients: " + Arrays.toString(ingredients));
         ArrayList<IUsageHandler> handlers = recipeQuery.runWithProfiling("recipe.concurrent.usage");
         if (handlers.isEmpty()) return false;
 

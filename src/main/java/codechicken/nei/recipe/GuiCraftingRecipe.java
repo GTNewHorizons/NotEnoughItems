@@ -4,6 +4,7 @@ import static codechicken.lib.gui.GuiDraw.getMousePosition;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
@@ -38,7 +39,10 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         final RecipeHandlerQuery<ICraftingHandler> recipeQuery = new RecipeHandlerQuery<>(
                 h -> h.getRecipeHandler(outputId, results),
                 craftinghandlers,
-                serialCraftingHandlers);
+                serialCraftingHandlers,
+                "Error while looking up crafting recipe",
+                "outputId: " + outputId,
+                "results: " + Arrays.toString(results));
 
         final ArrayList<ICraftingHandler> handlers = recipeQuery.runWithProfiling("recipe.concurrent.crafting");
 
