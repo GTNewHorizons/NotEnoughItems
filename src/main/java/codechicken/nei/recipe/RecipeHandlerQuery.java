@@ -3,6 +3,7 @@ package codechicken.nei.recipe;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -11,6 +12,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import codechicken.core.TaskProfiler;
 import codechicken.nei.ItemList;
@@ -35,41 +39,72 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
         profiler.start(profilerSection);
         try {
-            return getRecipeHandlersParallel();
+            Pair<Boolean, ArrayList<T>> handlersResult = getRecipeHandlersParallel();
+            if (handlersResult.getLeft()) {
+                displayRecipeLookupError();
+            }
+            return handlersResult.getRight();
         } catch (InterruptedException | ExecutionException e) {
-            displayRecipeLookupError(e);
+            printLog(e);
+            displayRecipeLookupError();
             return new ArrayList<>(0);
         } finally {
             profiler.end();
         }
     }
 
-    private ArrayList<T> getRecipeHandlersParallel() throws InterruptedException, ExecutionException {
+    private Pair<Boolean, ArrayList<T>> getRecipeHandlersParallel() throws InterruptedException, ExecutionException {
         // Pre-find the fuels so we're not fighting over it
         FuelRecipeHandler.findFuelsOnceParallel();
-        ArrayList<T> handlers = getSerialHandlersWithRecipes();
-        handlers.addAll(getHandlersWithRecipes());
-        handlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
-        return handlers;
+
+        Pair<Boolean, ArrayList<T>> serialHandlersResult = getSerialHandlersWithRecipes();
+        boolean err = serialHandlersResult.getLeft();
+        ArrayList<T> ret = serialHandlersResult.getRight();
+
+        Pair<Boolean, ArrayList<T>> handlersResult = getHandlersWithRecipes();
+        err |= handlersResult.getLeft();
+        ret.addAll(handlersResult.getRight());
+
+        ret.sort(NEIClientConfig.HANDLER_COMPARATOR);
+        return new ImmutablePair<>(err, ret);
     }
 
-    private ArrayList<T> getSerialHandlersWithRecipes() {
-        return serialRecipeHandlers.stream().map(recipeHandlerFunction).filter(h -> h.numRecipes() > 0)
-                .collect(Collectors.toCollection(ArrayList::new));
+    private Pair<Boolean, ArrayList<T>> getSerialHandlersWithRecipes() {
+        AtomicBoolean err = new AtomicBoolean(false);
+        ArrayList<T> ret = serialRecipeHandlers.stream().map(handler -> {
+            try {
+                return recipeHandlerFunction.apply(handler);
+            } catch (Throwable t) {
+                printLog(t);
+                err.set(true);
+                return null;
+            }
+        }).filter(h -> h != null && h.numRecipes() > 0).collect(Collectors.toCollection(ArrayList::new));
+        return new ImmutablePair<>(err.get(), ret);
     }
 
-    private ArrayList<T> getHandlersWithRecipes() throws InterruptedException, ExecutionException {
-        return ItemList.forkJoinPool.submit(
-                () -> recipeHandlers.parallelStream().map(recipeHandlerFunction).filter(h -> h.numRecipes() > 0)
-                        .collect(Collectors.toCollection(ArrayList::new)))
-                .get();
+    private Pair<Boolean, ArrayList<T>> getHandlersWithRecipes() throws InterruptedException, ExecutionException {
+        AtomicBoolean err = new AtomicBoolean(false);
+        ArrayList<T> ret = ItemList.forkJoinPool.submit(() -> recipeHandlers.parallelStream().map(handler -> {
+            try {
+                return recipeHandlerFunction.apply(handler);
+            } catch (Throwable t) {
+                printLog(t);
+                err.set(true);
+                return null;
+            }
+        }).filter(h -> h != null && h.numRecipes() > 0).collect(Collectors.toCollection(ArrayList::new))).get();
+        return new ImmutablePair<>(err.get(), ret);
     }
 
-    private void displayRecipeLookupError(Exception e) {
+    private void printLog(Throwable t) {
         for (String message : errorMessage) {
             NEIClientConfig.logger.error(message);
         }
-        e.printStackTrace();
+        t.printStackTrace();
+    }
+
+    private void displayRecipeLookupError() {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (player != null) {
             IChatComponent chat = new ChatComponentTranslation("nei.chat.recipe.error");
