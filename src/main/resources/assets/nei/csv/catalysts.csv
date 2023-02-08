@@ -1360,4 +1360,5 @@ vazkii.botania.client.integration.nei.RecipeHandlerElvenTrade,Botania:alfheimPor
 vazkii.botania.client.integration.nei.RecipeHandlerBrewery,Botania:brewery,,Botania,TRUE,,,,,,
 vazkii.botania.client.integration.nei.RecipeHandlerPureDaisy,Botania:specialFlower,{type:puredaisy},Botania,TRUE,,,,,,
 vazkii.botania.client.integration.nei.RecipeHandlerLexicaBotania,Botania:lexicon,,Botania,TRUE,,,,,,
-neiplugins.forge.OreDictionaryList,ThermalFoundation:lexicon,,NEIPlugins,TRUE,,,,,,
+neiplugins.forge.OreDictionaryList,minecraft:book,,NEIPlugins,TRUE,,,,,,
+neiplugins.forge.FluidRegistryList,minecraft:bucket,,NEIPlugins,TRUE,,,,,,
