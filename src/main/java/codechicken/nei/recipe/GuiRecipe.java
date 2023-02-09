@@ -471,6 +471,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     protected void overlayRecipe(int recipe, final boolean shift) {
+        boolean moveItems = shift || !NEIClientConfig.requireShiftForOverlayRecipe();
         if (handler == null || !handler.hasOverlay(firstGui, firstGui.inventorySlots, recipe)) {
             mc.displayGuiScreen(firstGui);
             return;
@@ -479,8 +480,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         final IOverlayHandler overlayHandler = handler.getOverlayHandler(firstGui, recipe);
 
         mc.displayGuiScreen(firstGui);
-        if (renderer == null || shift) {
-            overlayHandler.overlayRecipe(firstGui, currenthandlers.get(recipetype), recipe, shift);
+        if (renderer == null || moveItems) {
+            overlayHandler.overlayRecipe(firstGui, currenthandlers.get(recipetype), recipe, moveItems);
         } else {
             LayoutManager.overlayRenderer = renderer;
         }

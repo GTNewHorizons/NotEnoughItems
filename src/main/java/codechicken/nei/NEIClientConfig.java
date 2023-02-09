@@ -271,6 +271,10 @@ public class NEIClientConfig {
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.jei_style_cycled_ingredients", true));
 
+        tag.getTag("inventory.shift_overlay_recipe")
+                .setComment("Require holding shift to move items when overlaying recipe").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.shift_overlay_recipe", true));
+
         tag.getTag("tools.handler_load_from_config").setComment("ADVANCED: Load handlers from config")
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("tools.handler_load_from_config", true) {
@@ -576,6 +580,10 @@ public class NEIClientConfig {
 
     public static boolean useJEIStyledCycledIngredients() {
         return getBooleanSetting("inventory.jei_style_cycled_ingredients");
+    }
+
+    public static boolean requireShiftForOverlayRecipe() {
+        return getBooleanSetting("inventory.shift_overlay_recipe");
     }
 
     public static boolean isEnabled() {
