@@ -22,6 +22,7 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
     private final List<T> recipeHandlers;
     private final List<T> serialRecipeHandlers;
     private final String[] errorMessage;
+    private boolean error = false;
 
     RecipeHandlerQuery(Function<T, T> recipeHandlerFunction, List<T> recipeHandlers, List<T> serialRecipeHandlers,
             String... errorMessage) {
@@ -35,9 +36,14 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
         profiler.start(profilerSection);
         try {
-            return getRecipeHandlersParallel();
+            ArrayList<T> handlers = getRecipeHandlersParallel();
+            if (error) {
+                displayRecipeLookupError();
+            }
+            return handlers;
         } catch (InterruptedException | ExecutionException e) {
-            displayRecipeLookupError(e);
+            printLog(e);
+            displayRecipeLookupError();
             return new ArrayList<>(0);
         } finally {
             profiler.end();
@@ -54,22 +60,37 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
     }
 
     private ArrayList<T> getSerialHandlersWithRecipes() {
-        return serialRecipeHandlers.stream().map(recipeHandlerFunction).filter(h -> h.numRecipes() > 0)
-                .collect(Collectors.toCollection(ArrayList::new));
+        return serialRecipeHandlers.stream().map(handler -> {
+            try {
+                return recipeHandlerFunction.apply(handler);
+            } catch (Throwable t) {
+                printLog(t);
+                error = true;
+                return null;
+            }
+        }).filter(h -> h != null && h.numRecipes() > 0).collect(Collectors.toCollection(ArrayList::new));
     }
 
     private ArrayList<T> getHandlersWithRecipes() throws InterruptedException, ExecutionException {
-        return ItemList.forkJoinPool.submit(
-                () -> recipeHandlers.parallelStream().map(recipeHandlerFunction).filter(h -> h.numRecipes() > 0)
-                        .collect(Collectors.toCollection(ArrayList::new)))
-                .get();
+        return ItemList.forkJoinPool.submit(() -> recipeHandlers.parallelStream().map(handler -> {
+            try {
+                return recipeHandlerFunction.apply(handler);
+            } catch (Throwable t) {
+                printLog(t);
+                error = true;
+                return null;
+            }
+        }).filter(h -> h != null && h.numRecipes() > 0).collect(Collectors.toCollection(ArrayList::new))).get();
     }
 
-    private void displayRecipeLookupError(Exception e) {
+    private void printLog(Throwable t) {
         for (String message : errorMessage) {
             NEIClientConfig.logger.error(message);
         }
-        e.printStackTrace();
+        t.printStackTrace();
+    }
+
+    private void displayRecipeLookupError() {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (player != null) {
             IChatComponent chat = new ChatComponentTranslation("nei.chat.recipe.error");

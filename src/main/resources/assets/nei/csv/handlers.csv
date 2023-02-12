@@ -530,3 +530,4 @@ vazkii.botania.client.integration.nei.RecipeHandlerPureDaisy,Botania,Botania:spe
 vazkii.botania.client.integration.nei.RecipeHandlerLexicaBotania,Botania,Botania:lexicon,,Botania,TRUE,,,,,,,,,,,
 neiplugins.forge.OreDictionaryList,NEIPlugins,minecraft:book,,NEIPlugins,TRUE,,,,,,,,,,,
 neiplugins.forge.FluidRegistryList,NEIPlugins,minecraft:bucket,,NEIPlugins,TRUE,,,,,,,,,,,
+de.ellpeck.actuallyadditions.mod.nei.NEITreasureChestRecipe,Actually Additions,ActuallyAdditions:blockTreasureChest,,ActuallyAdditions,TRUE,,,,,,,,,,,
