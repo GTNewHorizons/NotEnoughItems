@@ -70,6 +70,10 @@ public class RecipeInfo {
         return overlayMap.containsKey(new OverlayKey(gui.getClass(), ident));
     }
 
+    public static boolean hasOverlayHandler(Class<? extends GuiContainer> classz, String ident) {
+        return overlayMap.containsKey(new OverlayKey(classz, ident));
+    }
+
     public static IOverlayHandler getOverlayHandler(GuiContainer gui, String ident) {
         return overlayMap.get(new OverlayKey(gui.getClass(), ident));
     }

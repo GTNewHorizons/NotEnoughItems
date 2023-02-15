@@ -108,6 +108,14 @@ public class API {
     }
 
     /**
+     * @param classz The class of your gui
+     * @param ident  The recipe identification string
+     */
+    public static boolean hasGuiOverlayHandler(Class<? extends GuiContainer> classz, String ident) {
+        return RecipeInfo.hasOverlayHandler(classz, ident);
+    }
+
+    /**
      * Set the offset to be added to items to translate them into recipe coords on the actual gui, default is 5, 11.
      * Primarily RecipeTransferRects
      *
