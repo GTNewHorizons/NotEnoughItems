@@ -254,6 +254,9 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
                         y1 = y2 - dy;
                     }
 
+                    y1 -= intOffsetY;
+                    y2 -= intOffsetY;
+
                     GL11.glColor4d(0, 0.9, 0, 0.4);
                     for (double y = (int) y1; y <= y2; y++) {
                         GL11.glVertex3d(x2, y, z1);
@@ -276,8 +279,10 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
                         GL11.glVertex3d(x2, y2, z1 + h);
                     }
                 } else if (chunkOverlay == 3) {
-                    int gx1 = ((entity.chunkCoordX < 0 ? entity.chunkCoordX - 3 : entity.chunkCoordX) / 3 * 3) << 4;
-                    int gz1 = ((entity.chunkCoordZ < 0 ? entity.chunkCoordZ - 3 : entity.chunkCoordZ) / 3 * 3) << 4;
+                    int gx1 = (((entity.chunkCoordX < 0 ? entity.chunkCoordX - 3 : entity.chunkCoordX) / 3 * 3) << 4)
+                            - intOffsetX;
+                    int gz1 = (((entity.chunkCoordZ < 0 ? entity.chunkCoordZ - 3 : entity.chunkCoordZ) / 3 * 3) << 4)
+                            - intOffsetZ;
                     if (entity.chunkCoordX < 0) {
                         gx1 += 16;
                     }
