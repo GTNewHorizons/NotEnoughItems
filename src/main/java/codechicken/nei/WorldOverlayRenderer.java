@@ -115,7 +115,6 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glLineWidth(1.5F);
 
-        GL11.glColor4f(1, 0, 0, 1);
         int curSpawnMode = 2;
 
         World world = entity.worldObj;
@@ -125,6 +124,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
 
         final Tessellator tess = Tessellator.instance;
         tess.startDrawing(GL11.GL_LINES);
+        tess.setColorOpaque(255, 0, 0);
 
         for (int i = 0; i <= 32; i++) {
             int x = x1 - 16 + i;
