@@ -417,7 +417,7 @@ public class NEIClientConfig {
     }
 
     public static int getKeyBinding(String string) {
-        return getSetting("keys." + string).getIntValue();
+        return getSetting("keys." + string).getIntValue(Keyboard.KEY_NONE);
     }
 
     public static void setDefaultKeyBinding(String string, int key) {
