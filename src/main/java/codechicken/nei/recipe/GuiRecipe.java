@@ -481,7 +481,9 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         mc.displayGuiScreen(firstGui);
         if (renderer == null || moveItems) {
-            overlayHandler.overlayRecipe(firstGui, currenthandlers.get(recipetype), recipe, moveItems);
+            if (overlayHandler != null) {
+                overlayHandler.overlayRecipe(firstGui, currenthandlers.get(recipetype), recipe, moveItems);
+            }
         } else {
             LayoutManager.overlayRenderer = renderer;
         }
