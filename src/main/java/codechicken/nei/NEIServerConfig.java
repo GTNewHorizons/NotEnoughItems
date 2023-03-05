@@ -22,6 +22,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -108,7 +109,11 @@ public class NEIServerConfig {
 
     private static void saveWorld(int dim) {
         try {
-            File file = new File(getSaveDir(DimensionManager.getWorld(dim)), "world.dat");
+            final File saveDir = getSaveDir(DimensionManager.getWorld(dim));
+            if (!saveDir.isDirectory()) {
+                FileUtils.forceMkdir(saveDir);
+            }
+            File file = new File(saveDir, "world.dat");
             NEIServerUtils.writeNBT(dimTags.get(dim), file);
         } catch (Exception e) {
             throw new RuntimeException(e);
