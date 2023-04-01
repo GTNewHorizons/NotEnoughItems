@@ -126,12 +126,11 @@ public class LayoutStyleMinecraft extends LayoutStyle {
         presetsPanel.y = 2;
         presetsPanel.x = (gui.width - gui.xSize) / 2 + gui.xSize - presetsPanel.w;
 
+        searchField.h = 20;
         if (NEIClientConfig.isSearchWidgetCentered()) {
-            searchField.h = 20;
             searchField.w = 150;
             searchField.x = (gui.width - searchField.w) / 2;
         } else {
-            searchField.h = itemPanel.quantity.h;
             searchField.w = (int) (itemPanel.w * (NEIClientConfig.showItemQuantityWidget() ? 0.7 : 1));
             searchField.x = itemPanel.x;
         }
