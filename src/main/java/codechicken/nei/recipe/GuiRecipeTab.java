@@ -293,8 +293,6 @@ public abstract class GuiRecipeTab extends Widget {
                             NEIClientConfig.logger.warn("  -- Did you mean: " + handler);
                         }
                     });
-                } else {
-                    NEIClientConfig.logger.info("HandlerName matched for tab!" + handlerName);
                 }
             });
         }

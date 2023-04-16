@@ -240,8 +240,6 @@ public class RecipeCatalysts {
                             NEIClientConfig.logger.warn("  -- Did you mean: " + handler);
                         }
                     });
-                } else {
-                    NEIClientConfig.logger.info("HandlerName matched for catalyst!" + handlerName);
                 }
             });
         }
