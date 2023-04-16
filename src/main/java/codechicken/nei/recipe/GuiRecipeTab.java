@@ -11,8 +11,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.item.ItemStack;
@@ -286,12 +284,8 @@ public abstract class GuiRecipeTab extends Widget {
 
         if (!handlerAdderFromIMC.isEmpty()) {
             // If we're getting an IMC message, it probably means it should match
-            Set<String> handlerIds = Stream
-                    .concat(
-                            GuiCraftingRecipe.serialCraftingHandlers.stream(),
-                            GuiCraftingRecipe.craftinghandlers.stream())
-                    .map(ICraftingHandler::getHandlerId).collect(Collectors.toSet());
-            handlerAdderFromIMC.keySet().stream().forEach(handlerName -> {
+            Set<String> handlerIds = new HashSet<>(handlerMap.keySet());
+            handlerAdderFromIMC.keySet().forEach(handlerName -> {
                 if (!handlerIds.contains(handlerName)) {
                     NEIClientConfig.logger.warn("Could not find a registered handlerID that matches " + handlerName);
                     handlerIds.forEach(handler -> {
@@ -299,6 +293,8 @@ public abstract class GuiRecipeTab extends Widget {
                             NEIClientConfig.logger.warn("  -- Did you mean: " + handler);
                         }
                     });
+                } else {
+                    NEIClientConfig.logger.info("HandlerName matched for tab!" + handlerName);
                 }
             });
         }

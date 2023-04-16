@@ -13,11 +13,10 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import net.minecraft.item.ItemStack;
 
@@ -232,12 +231,8 @@ public class RecipeCatalysts {
 
         if (!catalystsAdderFromIMC.isEmpty()) {
             // If we're getting an IMC message, it probably means it should match
-            Set<String> handlerIds = Stream
-                    .concat(
-                            GuiCraftingRecipe.serialCraftingHandlers.stream(),
-                            GuiCraftingRecipe.craftinghandlers.stream())
-                    .map(ICraftingHandler::getHandlerId).collect(Collectors.toSet());
-            catalystsAdderFromIMC.keySet().stream().forEach(handlerName -> {
+            Set<String> handlerIds = new HashSet<>(GuiRecipeTab.handlerMap.keySet());
+            catalystsAdderFromIMC.keySet().forEach(handlerName -> {
                 if (!handlerIds.contains(handlerName)) {
                     NEIClientConfig.logger.warn("Could not find a registered handlerID that matches " + handlerName);
                     handlerIds.forEach(handler -> {
@@ -245,6 +240,8 @@ public class RecipeCatalysts {
                             NEIClientConfig.logger.warn("  -- Did you mean: " + handler);
                         }
                     });
+                } else {
+                    NEIClientConfig.logger.info("HandlerName matched for catalyst!" + handlerName);
                 }
             });
         }
