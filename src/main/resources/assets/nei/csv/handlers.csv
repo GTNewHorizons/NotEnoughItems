@@ -572,3 +572,12 @@ Reika.ChromatiCraft.ModInterface.NEI.FabricatorHandler,ChromatiCraft,ChromatiCra
 Reika.ChromatiCraft.ModInterface.NEI.PlantDustHandler,ChromatiCraft,ChromatiCraft:chromaticraft_block_decoflower:0,,ChromatiCraft,TRUE,,,,,3,,,,,,Anything other than 3 high tiling looks wrong
 tonius.neiintegration.mods.bigreactors.RecipeHandlerCyaniteReprocessor,Big Reactors,BigReactors:BRDevice:0,,BigReactors,TRUE,,,,,,,,,,,
 ru.nanolive.draconicplus.common.fusioncrafting.nei.FusionCraftingNEI,Draconic Plus,draconicplus:fusionCraftingCore,,draconicplus,TRUE,,,,,2,,,,,,
+techguns.nei.TechgunsFabricatorNEIRecipeHandler,Techguns,Techguns:machineMultiBlock:4,,Techguns,TRUE,,,,,3,,,,,,
+techguns.nei.TechgunsReactionChamberNEIRecipeHandler,Techguns,Techguns:machineMultiBlock:1,,Techguns,TRUE,,,,,3,,,,,,
+techguns.nei.TechgunsChemLabNEIRecipeHandler,Techguns,Techguns:basicMachine:4,,Techguns,TRUE,,,,,3,,,,,,
+techguns.nei.TechgunsAmmoPressNEIRecipeHandler,Techguns,Techguns:basicMachine:0,,Techguns,TRUE,,,,,3,,,,,,
+techguns.nei.TechgunsMetalPressNEIRecipeHandler,Techguns,Techguns:basicMachine:1,,Techguns,TRUE,,,,,3,,,,,,
+techguns.nei.TechgunsChargingStationNEIRecipeHandler,Techguns,Techguns:basicMachine:9,,Techguns,TRUE,,,,,3,,,,,,
+nc.crafting.nei.ElectrolyserRecipeHandler,NuclearCraft,NuclearCraft:electrolyserIdle,,NuclearCraft,TRUE,,,,,4,,,,,,
+nc.crafting.nei.CrusherRecipeHandler,NuclearCraft,NuclearCraft:NuclearCraft:crusherIdle,,NuclearCraft,TRUE,,,,,4,,,,,,
+nc.crafting.nei.ElectricCrusherRecipeHandler,NuclearCraft,NuclearCraft:electricCrusherIdle,,NuclearCraft,TRUE,,,,,4,,,,,,
