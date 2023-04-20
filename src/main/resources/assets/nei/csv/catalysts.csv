@@ -1412,3 +1412,4 @@ Reika.ChromatiCraft.ModInterface.NEI.GlowFireHandler,ChromatiCraft:chromaticraft
 Reika.ChromatiCraft.ModInterface.NEI.EnchantDecompHandler,ChromatiCraft:chromaticraft_item_placer:69,,ChromatiCraft,TRUE,,,,,,
 Reika.ChromatiCraft.ModInterface.NEI.FabricatorHandler,ChromatiCraft:chromaticraft_item_placer:23,,ChromatiCraft,TRUE,,,,,,
 tonius.neiintegration.mods.bigreactors.RecipeHandlerCyaniteReprocessor,BigReactors:BRDevice:0,,BigReactors,TRUE,,,,,,
+ru.nanolive.draconicplus.common.fusioncrafting.nei.FusionCraftingNEI,draconicplus:fusionCraftingCore,,draconicplus,TRUE,,,,,,
