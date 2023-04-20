@@ -571,3 +571,4 @@ Reika.ChromatiCraft.ModInterface.NEI.EnchantDecompHandler,ChromatiCraft,Chromati
 Reika.ChromatiCraft.ModInterface.NEI.FabricatorHandler,ChromatiCraft,ChromatiCraft:chromaticraft_item_placer:23,,ChromatiCraft,TRUE,,,,,,,,,,,
 Reika.ChromatiCraft.ModInterface.NEI.PlantDustHandler,ChromatiCraft,ChromatiCraft:chromaticraft_block_decoflower:0,,ChromatiCraft,TRUE,,,,,3,,,,,,Anything other than 3 high tiling looks wrong
 tonius.neiintegration.mods.bigreactors.RecipeHandlerCyaniteReprocessor,Big Reactors,BigReactors:BRDevice:0,,BigReactors,TRUE,,,,,,,,,,,
+ru.nanolive.draconicplus.common.fusioncrafting.nei.FusionCraftingNEI,Draconic Plus,draconicplus:fusionCraftingCore,,draconicplus,TRUE,,,,,2,,,,,,
