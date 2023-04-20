@@ -1420,5 +1420,5 @@ techguns.nei.TechgunsAmmoPressNEIRecipeHandler,Techguns:basicMachine:0,,Techguns
 techguns.nei.TechgunsMetalPressNEIRecipeHandler,Techguns:basicMachine:1,,Techguns,TRUE,,,,,,
 techguns.nei.TechgunsChargingStationNEIRecipeHandler,Techguns:basicMachine:9,,Techguns,TRUE,,,,,,
 nc.crafting.nei.ElectrolyserRecipeHandler,NuclearCraft:electrolyserIdle,,NuclearCraft,TRUE,,,,,,
-nc.crafting.nei.CrusherRecipeHandler,NuclearCraft:NuclearCraft:crusherIdle,,NuclearCraft,TRUE,,,,,,
+nc.crafting.nei.CrusherRecipeHandler,NuclearCraft:crusherIdle,,NuclearCraft,TRUE,,,,,,
 nc.crafting.nei.ElectricCrusherRecipeHandler,NuclearCraft:electricCrusherIdle,,NuclearCraft,TRUE,,,,,,
