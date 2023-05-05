@@ -12,7 +12,7 @@ If you have issues with NEI outside of the GTNH modpack you may report them in t
   - Uses a parallel stream to search the item list over multiple cores, resulting in 2-6x faster searches on average
   - Loads the recipe handlers in parallel
 * A textbox for search with most of the features you'd expect - moving forward, backwards, selection, etc
-* Bookmarks!  What are you in the process of crafting? Bookmark it using either 'A' or configure your own key.
+* Bookmarks! Are you in the process of crafting? Bookmark it using either 'A' or configure your own key.
 * Toggle bookmark pane.  Default shortcut key `B`.  Item Subsets menu is only available if bookmarks are not visible.
 * Utility/Cheat buttons line up and wrap based on GUI size
 * ItemList is no longer regenerated from the ItemRegistry on every inventory load
