@@ -276,7 +276,11 @@ public class ClientHandler {
 
             if (!NEIClientConfig.isEnabled()) return;
 
-            KeyManager.tickKeyStates();
+            /*
+             * NEI plugins are loaded in a separate thread. Make sure loading them has finished otherwise a CME might
+             * occur in KeyManager if a plugin calls API.addKeyBind() during initialization.
+             */
+            if (NEIClientConfig.isLoaded()) KeyManager.tickKeyStates();
 
             NEIController.updateUnlimitedItems(mc.thePlayer.inventory);
             if (mc.currentScreen == null) NEIController.processCreativeCycling(mc.thePlayer.inventory);

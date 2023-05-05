@@ -472,8 +472,6 @@ public class NEIClientConfig {
         NEIController.load();
         RecipeCatalysts.loadCatalystInfo();
 
-        configLoaded = true;
-
         new Thread("NEI Plugin Loader") {
 
             @Override
@@ -496,6 +494,7 @@ public class NEIClientConfig {
                 }
 
                 MinecraftForge.EVENT_BUS.post(new NEIConfigsLoadedEvent());
+                configLoaded = true;
             }
         }.start();
         ItemSorter.loadConfig();
@@ -595,6 +594,10 @@ public class NEIClientConfig {
 
     public static boolean isEnabled() {
         return enabledOverride && getBooleanSetting("inventory.widgetsenabled");
+    }
+
+    public static boolean isLoaded() {
+        return configLoaded;
     }
 
     public static boolean loadHandlersFromJar() {
