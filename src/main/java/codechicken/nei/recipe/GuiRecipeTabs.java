@@ -1,8 +1,12 @@
 package codechicken.nei.recipe;
 
+import static codechicken.lib.gui.GuiDraw.getMousePosition;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.lwjgl.input.Keyboard;
 
 import codechicken.nei.Button;
 import codechicken.nei.NEIClientConfig;
@@ -190,6 +194,24 @@ public class GuiRecipeTabs {
                 return tab.onButtonPress(mouseButton == 1);
             }
         }
+        return false;
+    }
+
+    protected boolean mouseScrolled(int i) {
+        Point mPos = getMousePosition();
+
+        // Switch recipe handler tabs if either left shift is held or the tab
+        // bar is enable and the mouse cursor is positioned over said tab bar.
+        if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)
+                || (NEIClientConfig.areJEIStyleTabsVisible() && (mPos.x >= area.x && mPos.x <= (area.x + area.width)
+                        && mPos.y >= area.y
+                        && mPos.y <= (area.y + area.height)))) {
+            if (i < 0) guiRecipe.nextType();
+            else guiRecipe.prevType();
+
+            return true;
+        }
+
         return false;
     }
 }
