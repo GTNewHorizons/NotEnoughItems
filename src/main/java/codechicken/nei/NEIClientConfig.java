@@ -57,7 +57,8 @@ import codechicken.obfuscator.ObfuscationRun;
 
 public class NEIClientConfig {
 
-    private static boolean configLoaded;
+    private static boolean mainNEIConfigLoaded;
+    private static boolean pluginNEIConfigLoaded;
     private static boolean enabledOverride;
     private static String worldPath;
 
@@ -463,8 +464,9 @@ public class NEIClientConfig {
     }
 
     public static void bootNEI(World world) {
-        if (configLoaded) return;
+        if (mainNEIConfigLoaded) return;
 
+        // main NEI config loading
         ItemInfo.load(world);
         GuiInfo.load();
         RecipeInfo.load();
@@ -472,10 +474,13 @@ public class NEIClientConfig {
         NEIController.load();
         RecipeCatalysts.loadCatalystInfo();
 
+        mainNEIConfigLoaded = true;
+
         new Thread("NEI Plugin Loader") {
 
             @Override
             public void run() {
+                logger.debug("Started NEI plugin loading");
                 ClassDiscoverer classDiscoverer = new ClassDiscoverer(
                         test -> test.startsWith("NEI") && test.endsWith("Config.class"),
                         IConfigureNEI.class);
@@ -493,8 +498,14 @@ public class NEIClientConfig {
                     }
                 }
 
+                // Set pluginNEIConfigLoaded here before posting the NEIConfigsLoadedEvent. This used to be the other
+                // way around, but apparently if your modpack includes 800 mods the event poster might not return in
+                // time and cause issues when loading a world for a second time as configLoaded is still false. This may
+                // cause issues in case one of the event handler calls the (non-thread-safe) NEI API. I don't expect any
+                // handler to do this, but who knows what modders have come up with...
+                pluginNEIConfigLoaded = true;
+                logger.debug("NEI plugin loading finished");
                 MinecraftForge.EVENT_BUS.post(new NEIConfigsLoadedEvent());
-                configLoaded = true;
             }
         }.start();
         ItemSorter.loadConfig();
@@ -597,7 +608,7 @@ public class NEIClientConfig {
     }
 
     public static boolean isLoaded() {
-        return configLoaded;
+        return mainNEIConfigLoaded && pluginNEIConfigLoaded;
     }
 
     public static boolean loadHandlersFromJar() {
