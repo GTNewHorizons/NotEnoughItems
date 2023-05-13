@@ -550,8 +550,6 @@ nc.crafting.nei.FusionSteamRecipeHandler,NuclearCraft:fusionReactorSteam,,Nuclea
 nc.crafting.nei.ElectrolyserRecipeHandler,NuclearCraft:electrolyserIdle,,NuclearCraft,TRUE,,,,,,
 nc.crafting.nei.CrusherRecipeHandler,NuclearCraft:crusherIdle,,NuclearCraft,TRUE,,,,,,
 nc.crafting.nei.ElectricCrusherRecipeHandler,NuclearCraft:electricCrusherIdle,,NuclearCraft,TRUE,,,,,,
-ganymedes01.etfuturum.NEI_EtFuturum_Config$NEI_Recipes_Smoker,etfuturum:smoker,,etfuturum,TRUE,,,,,,not working well
-ganymedes01.etfuturum.NEI_EtFuturum_Config$NEI_Recipes_BlastFurnace,etfuturum:blast_furnace,,etfuturum,TRUE,,,,,,not working well
 connor135246.campfirebackport.client.compat.nei.NEICampfireRecipeHandler,campfirebackport:campfire,,campfirebackport,TRUE,,,,,,
 connor135246.campfirebackport.client.compat.nei.NEICampfireRecipeHandler,campfirebackport:soul_campfire,,campfirebackport,TRUE,,,,,,
 connor135246.campfirebackport.client.compat.nei.NEICampfireStateChangerHandler,campfirebackport:campfire,,campfirebackport,TRUE,,,,,,
