@@ -198,14 +198,14 @@ public class GuiRecipeTabs {
     }
 
     protected boolean mouseScrolled(int i) {
-        Point mPos = getMousePosition();
+        Point mousePosition = getMousePosition();
 
         // Switch recipe handler tabs if either left shift is held or the tab
         // bar is enable and the mouse cursor is positioned over said tab bar.
-        if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)
-                || (NEIClientConfig.areJEIStyleTabsVisible() && (mPos.x >= area.x && mPos.x <= (area.x + area.width)
-                        && mPos.y >= area.y
-                        && mPos.y <= (area.y + area.height)))) {
+        if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || (NEIClientConfig.areJEIStyleTabsVisible()
+                && (mousePosition.x >= area.x && mousePosition.x <= (area.x + area.width)
+                        && mousePosition.y >= area.y
+                        && mousePosition.y <= (area.y + area.height)))) {
             if (i < 0) guiRecipe.nextType();
             else guiRecipe.prevType();
 
