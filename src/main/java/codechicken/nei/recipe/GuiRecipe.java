@@ -388,9 +388,9 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         // the value of the height field will be different from in other mouseover methods, which
         // could be confusing...
 
-        if (recipeTabs.mouseScrolled(i)) return;
-
         for (int recipe : getRecipeIndices()) if (handler.mouseScrolled(this, i, recipe)) return;
+
+        if (recipeTabs.mouseScrolled(i)) return;
 
         if (new Rectangle(guiLeft, guiTop, xSize, ySize).contains(GuiDraw.getMousePosition())) {
             if (i > 0) prevPage();
