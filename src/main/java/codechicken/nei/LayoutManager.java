@@ -531,8 +531,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 }
 
                 @Override
-                public String getButtonTip() {
-                    return getTimeTip(NEIActions.timeZones[zone], state);
+                public void addTooltips(List<String> tooltip) {
+                    addTimeTip(NEIActions.timeZones[zone], state, tooltip);
                 }
             };
         }
@@ -565,9 +565,13 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         return translate("inventory." + name + "." + sfx);
     }
 
-    private static String getTimeTip(String name, int state) {
-        String sfx = (state & 0x3) == 2 ? "enable" : "set";
-        return translate("inventory." + name + "." + sfx);
+    private static void addTimeTip(String name, int state, List<String> tooltip) {
+        if ((state & 0x3) == 2) {
+            tooltip.add(translate("inventory." + name + ".enable"));
+        } else {
+            tooltip.add(translate("inventory." + name + ".set"));
+            tooltip.add(EnumChatFormatting.GRAY + translate("inventory." + name + ".disable"));
+        }
     }
 
     private static boolean handleDisabledButtonPress(String ident, boolean rightclick) {
