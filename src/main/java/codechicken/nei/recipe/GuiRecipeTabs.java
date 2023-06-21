@@ -6,8 +6,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lwjgl.input.Keyboard;
-
 import codechicken.nei.Button;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -200,12 +198,8 @@ public class GuiRecipeTabs {
     protected boolean mouseScrolled(int i) {
         Point mousePosition = getMousePosition();
 
-        // Switch recipe handler tabs if either left shift is held or the tab
-        // bar is enable and the mouse cursor is positioned over said tab bar.
-        if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || (NEIClientConfig.areJEIStyleTabsVisible()
-                && (mousePosition.x >= area.x && mousePosition.x <= (area.x + area.width)
-                        && mousePosition.y >= area.y
-                        && mousePosition.y <= (area.y + area.height)))) {
+        // Switch between recipe handlers if the cursor is over the tabbar.
+        if (NEIClientConfig.areJEIStyleTabsVisible() && area.contains(mousePosition)) {
             if (i < 0) guiRecipe.nextType();
             else guiRecipe.prevType();
 

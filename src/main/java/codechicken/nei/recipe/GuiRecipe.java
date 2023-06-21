@@ -388,10 +388,22 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         // the value of the height field will be different from in other mouseover methods, which
         // could be confusing...
 
-        for (int recipe : getRecipeIndices()) if (handler.mouseScrolled(this, i, recipe)) return;
-
+        // First, invoke scroll handling over recipe handler tabbar. Makes sure it is not overwritten by recipe
+        // handler-specific scroll behavior.
         if (recipeTabs.mouseScrolled(i)) return;
 
+        for (int recipe : getRecipeIndices()) if (handler.mouseScrolled(this, i, recipe)) return;
+
+        // If shift is held, try switching to the next recipe handler. Replicates the GuiRecipeTabs.mouseScrolled()
+        // without the checking for the cursor being inside the tabbar.
+        if (NEIClientUtils.shiftKey()) {
+            if (i < 0) nextType();
+            else prevType();
+
+            return;
+        }
+
+        // Finally, if nothing else has handled scrolling, try changing to the next recipe page.
         if (new Rectangle(guiLeft, guiTop, xSize, ySize).contains(GuiDraw.getMousePosition())) {
             if (i > 0) prevPage();
             else nextPage();
