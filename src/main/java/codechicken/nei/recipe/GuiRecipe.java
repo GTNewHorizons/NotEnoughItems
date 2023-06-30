@@ -100,6 +100,12 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
     private int yShift = 0;
 
+    /**
+     * This will only be true iff height hacking has been configured for the current recipe handler AND we are currently
+     * within the scope of an active {@link HeightHack} instance.
+     */
+    private boolean isHeightHackApplied = false;
+
     protected GuiRecipe(GuiScreen prevgui) {
         super(new ContainerRecipe());
         recipeTabs = new GuiRecipeTabs(this);
@@ -118,7 +124,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
     /**
      * Many old mods assumed a fixed NEI window height of {@code 166} pixels. Now that this is no longer the case, their
-     * fluid mouseover handling is broken. This helper class fixes these old mods by hacking the {@link #height}
+     * tooltip and click zone handling is broken. This helper class fixes these old mods by hacking the {@link #height}
      * property's value so that these old mods' calculations return the correct value for the new height.
      *
      * <p>
@@ -128,31 +134,43 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private class HeightHack implements AutoCloseable {
 
         private final int trueHeight;
+        private final int trueGuiTop;
 
         private HeightHack() {
             trueHeight = height;
+            trueGuiTop = guiTop;
 
-            boolean applyHeightHack = NEIClientConfig.heightHackHandlerRegex.stream()
+            isHeightHackApplied = NEIClientConfig.heightHackHandlerRegex.stream()
                     .map(pattern -> pattern.matcher(handler.getHandlerId())).anyMatch(Matcher::matches);
-            if (applyHeightHack) {
-                // The old mods use the calculation ((height - 166) / 2) to compute the y-value of
-                // the top edge of the NEI window.
-                // guiTop is exactly that: the y-value of the top edge of the NEI window.
-                // So we set height to be equal to the inverse of this calculation, applied to
-                // guiTop, so that old mods get the right result back when they use this calculation.
+            if (isHeightHackApplied) {
+                // guiTop is the top edge of the recipe screen on the y-axis. Old recipe handlers expect a single paging
+                // widget at the top and at the bottom of the recipe screen with a height of 16px each, but GTNH NEI
+                // moved the bottom paging widget to the top following JEI's design, increasing the "forbidden" zone at
+                // the top to 32px. To fix these old recipe handlers we move guiTop down 16px so that they can keep
+                // working with the old 16px gap.
+                guiTop += 16;
+
+                // The old NEI recipe screen had a fixed width and height and was always centered on the screen. Legacy
+                // recipe handlers use the calculation ((height - 166) / 2) to compute the y-value of the top edge of
+                // the NEI window. GTNH NEI changes the layout so that the recipe screen length now has a flexible
+                // length and is no longer centered vertically. In order for the top-of-screen calculation to return the
+                // correct result, we have to hack the height field with an inverse of the calculation using the actual
+                // top of the recipe screen stored in guiTop.
                 height = (2 * guiTop) + 166;
 
                 // For reference, in case we ever need to modify width as well:
-                // the legacy calculation used for width is ((width - 176) / 2), which should
-                // evaluate to be equal to guiWidth (the x-value of the left edge of the NEI window).
-                // So if we wanted to override width as well, we'd do this:
+                // the legacy calculation used for width is ((width - 176) / 2), which should evaluate to be equal to
+                // guiWidth (the x-value of the left edge of the NEI recipe screen). So if we wanted to override width
+                // as well, we'd do this:
                 // width = (2 * guiWidth) + 176;
             }
         }
 
         @Override
         public void close() {
+            guiTop = trueGuiTop;
             height = trueHeight;
+            isHeightHackApplied = false;
         }
     }
 
@@ -542,6 +560,12 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         final int recipesPerPage = getRecipesPerPage();
         for (int i = page * recipesPerPage; i < handler.numRecipes() && i < (page + 1) * recipesPerPage; i++) {
             Point p = getRecipePosition(i);
+            // Legacy recipe handlers only expect a single paging widget at the top of the recipe screen, in contrast,
+            // GTNH NEI moves the recipe paging widget from the bottom to the top, which means said legacy handlers will
+            // position item slots 16px too high in the screen.
+            if (isHeightHackApplied) {
+                p.translate(0, 16);
+            }
 
             List<PositionedStack> stacks = handler.getIngredientStacks(i);
             for (PositionedStack stack : stacks) slotcontainer.addSlot(stack, p.x, p.y);
@@ -735,7 +759,12 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     public Point getRecipePosition(int recipe) {
-        return new Point(5, 32 + yShift + ((recipe % getRecipesPerPage()) * handlerInfo.getHeight()));
+        // Legacy recipe handlers using the height hack might use getRecipePosition in combination with guiTop/height to
+        // position certain elements like tooltips. Since guiTop is moved down by 16px during height hacking, we need to
+        // reduce the vertical shift here to 16px instead of 32px.
+        return new Point(
+                5,
+                (isHeightHackApplied ? 16 : 32) + yShift + ((recipe % getRecipesPerPage()) * handlerInfo.getHeight()));
     }
 
     public abstract ArrayList<H> getCurrentRecipeHandlers();
