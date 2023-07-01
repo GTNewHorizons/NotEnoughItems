@@ -468,9 +468,9 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     @Override
     public List<String> handleItemTooltip(GuiContainer gui, ItemStack stack, int mousex, int mousey,
             List<String> currenttip) {
-        // Height hacking is probably not needed as it doesn't look like any mods check mouse
-        // position for this method.
-        for (int i : getRecipeIndices()) currenttip = handler.handleItemTooltip(this, stack, currenttip, i);
+        try (HeightHack heightHack = new HeightHack()) {
+            for (int i : getRecipeIndices()) currenttip = handler.handleItemTooltip(this, stack, currenttip, i);
+        }
 
         return currenttip;
     }
