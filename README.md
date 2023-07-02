@@ -129,7 +129,7 @@ Again, this needs additional metadata work, either provided by mods themselves, 
 
 (values are strings if not specified otherwise)
 
-- **handlerID:** id of the recipe handler for which this catalyst can be used; it's the fully-qualified handler class name in most cases; *required*
+- **handler:** id of the recipe handler for which this catalyst can be used; it's the fully-qualified handler class name in most cases; *required*
 - **itemName:**, and **nbtInfo:** actual catalyst item; *required*
 - **modId:** modid of the mod which includes the catalyst
 - **modRequired:** whether the mod specified in `modId` needs to be present in order for NEI to load the catalyst (boolean value; `TRUE`/`FALSE` in CSV)
@@ -146,7 +146,7 @@ Our version of NEI adds a range of IMC messages for registering handler metadata
 The following messages are available:
 - **registerHandlerInfo:** NBT IMC message; allowed keys are specified in the handler metadata section
 - **removeHandlerInfo:** NBT IMC message; required key: `handler`, ID string of the handler to be removed (usually the fully-qualified name of the handler class)
-- **registerCatalystInfo:** NBT IMC message; allowed keys are specified in the catalyst metadata section
+- **registerCatalystInfo:** NBT IMC message; allowed keys are specified in the catalyst metadata section; previously, this accepted the tag `handlerID`, which has been renamed to `handler` to unify it with the CSV column name, the old name has been deprecated
 - **removeCatalystInfo:** NBT IMC message; required keys: `handlerID` (usually the fully-qualified name of the handler class), `itemName` (optionally specify `nbtInfo` if necessary)
 
 Here is an example of how to send the handler and catalyst metadata via IMC:
