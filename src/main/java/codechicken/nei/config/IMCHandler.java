@@ -132,7 +132,9 @@ public class IMCHandler {
         final NBTTagCompound tag = message.getNBTValue();
         final String handler;
         if (tag.hasKey("handlerID")) {
-            NEIClientConfig.logger.warn("Received 'handlerID' for registerCatalystInfo IMC from %s, this is deprecated, please use 'handler' instead", message.getSender());
+            NEIClientConfig.logger.warn(
+                    "Received 'handlerID' for registerCatalystInfo IMC from %s, this is deprecated, please use 'handler' instead",
+                    message.getSender());
             handler = tag.getString("handlerID");
         } else {
             handler = tag.getString("handler");
@@ -161,8 +163,7 @@ public class IMCHandler {
         }
         final int priority = tag.getInteger("priority");
 
-        RecipeCatalysts
-                .addOrPut(RecipeCatalysts.catalystsAdderFromIMC, handler, new CatalystInfo(itemStack, priority));
+        RecipeCatalysts.addOrPut(RecipeCatalysts.catalystsAdderFromIMC, handler, new CatalystInfo(itemStack, priority));
         NEIClientConfig.logger
                 .info(String.format("Added catalyst `%s` to handler %s", itemStack.getDisplayName(), handler));
     }
@@ -177,7 +178,9 @@ public class IMCHandler {
         final NBTTagCompound tag = message.getNBTValue();
         final String handler;
         if (tag.hasKey("handlerID")) {
-            NEIClientConfig.logger.warn("Received 'handlerID' for removeCatalystInfo IMC from %s, this is deprecated, please use 'handler' instead", message.getSender());
+            NEIClientConfig.logger.warn(
+                    "Received 'handlerID' for removeCatalystInfo IMC from %s, this is deprecated, please use 'handler' instead",
+                    message.getSender());
             handler = tag.getString("handlerID");
         } else {
             handler = tag.getString("handler");
@@ -189,7 +192,8 @@ public class IMCHandler {
         final String itemName = tag.getString("itemName");
         final String nbtInfo = tag.hasKey("nbtInfo") ? tag.getString("nbtInfo") : null;
         if (itemName.isEmpty()) {
-            NEIClientConfig.logger.warn(String.format("Missing 'itemName' in removeCatalystInfo IMC for handler %s!", handler));
+            NEIClientConfig.logger
+                    .warn(String.format("Missing 'itemName' in removeCatalystInfo IMC for handler %s!", handler));
             return;
         }
         final ItemStack itemStack = NEIServerUtils.getModdedItem(itemName, nbtInfo);
@@ -201,8 +205,7 @@ public class IMCHandler {
         if (RecipeCatalysts.catalystsRemoverFromIMC.containsKey(handler)) {
             RecipeCatalysts.catalystsRemoverFromIMC.get(handler).add(itemStack);
         } else {
-            RecipeCatalysts.catalystsRemoverFromIMC
-                    .put(handler, new ArrayList<>(Collections.singletonList(itemStack)));
+            RecipeCatalysts.catalystsRemoverFromIMC.put(handler, new ArrayList<>(Collections.singletonList(itemStack)));
         }
         NEIClientConfig.logger
                 .info(String.format("Removed catalyst `%s` from handler %s", itemStack.getDisplayName(), handler));
