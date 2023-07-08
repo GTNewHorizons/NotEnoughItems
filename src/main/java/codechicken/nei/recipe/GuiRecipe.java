@@ -787,12 +787,14 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     public Point getRecipePosition(int recipe) {
-    // Legacy recipe handlers using the height hack might use getRecipePosition in combination with guiTop/height to
+        // Legacy recipe handlers using the height hack might use getRecipePosition in combination with guiTop/height to
         // position certain elements like tooltips. Since guiTop is moved down by 16px during height hacking, we need to
         // reduce the vertical shift here to 16px instead of 32px.
         return new Point(
                 5,
-                (isHeightHackApplied ? 16 : 32) - (limitToOneRecipe ? 25 : 0) + yShift + ((recipe % getRecipesPerPage()) * handlerInfo.getHeight()));
+                (isHeightHackApplied ? 16 : 32) - (limitToOneRecipe ? 25 : 0)
+                        + yShift
+                        + ((recipe % getRecipesPerPage()) * handlerInfo.getHeight()));
     }
 
     public abstract ArrayList<H> getCurrentRecipeHandlers();
