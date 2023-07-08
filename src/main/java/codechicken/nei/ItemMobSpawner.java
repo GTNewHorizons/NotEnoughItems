@@ -22,8 +22,8 @@ import net.minecraftforge.client.MinecraftForgeClient;
 
 public class ItemMobSpawner extends ItemBlock {
 
-    private static Map<Integer, EntityLiving> entityHashMap;
-    private static Map<Integer, String> IDtoNameMap;
+    private static final Map<Integer, EntityLiving> entityHashMap = new HashMap<>();
+    private static final Map<Integer, String> IDtoNameMap = new HashMap<>();
     public static int idPig;
     private static boolean loaded;
 
@@ -32,9 +32,6 @@ public class ItemMobSpawner extends ItemBlock {
 
         hasSubtypes = true;
         MinecraftForgeClient.registerItemRenderer(this, new SpawnerRenderer());
-
-        entityHashMap = new HashMap<>();
-        IDtoNameMap = new HashMap<>();
     }
 
     /**
