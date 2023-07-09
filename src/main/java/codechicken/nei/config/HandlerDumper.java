@@ -28,8 +28,8 @@ public class HandlerDumper extends DataDumper {
 
     @Override
     public String[] header() {
-        return new String[] { "Handler Recipe Name", "Handler Class", "Overlay Identifier", "Mod DisplayName",
-                "ItemStack" };
+        return new String[] { "Handler Display Name", "Handler Identifier", "Overlay Identifier", "Mod Display Name",
+                "Icon ItemStack" };
     }
 
     @Override

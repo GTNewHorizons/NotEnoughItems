@@ -42,17 +42,17 @@ public class RecipeCatalysts {
     private static final List<String> forceClassNameList = new ArrayList<>();
     private static int heightCache;
 
-    public static void addRecipeCatalyst(String handlerID, CatalystInfo catalystInfo) {
-        if (handlerID == null || handlerID.isEmpty() || catalystInfo.getStack() == null) return;
-        addOrPut(catalystsAdderFromAPI, handlerID, catalystInfo);
+    public static void addRecipeCatalyst(String catalystHandlerID, CatalystInfo catalystInfo) {
+        if (catalystHandlerID == null || catalystHandlerID.isEmpty() || catalystInfo.getStack() == null) return;
+        addOrPut(catalystsAdderFromAPI, catalystHandlerID, catalystInfo);
     }
 
-    public static void removeRecipeCatalyst(String handlerID, ItemStack stack) {
-        if (handlerID == null || handlerID.isEmpty() || stack == null) return;
-        if (catalystsRemoverFromAPI.containsKey(handlerID)) {
-            catalystsRemoverFromAPI.get(handlerID).add(stack);
+    public static void removeRecipeCatalyst(String catalystHandlerID, ItemStack stack) {
+        if (catalystHandlerID == null || catalystHandlerID.isEmpty() || stack == null) return;
+        if (catalystsRemoverFromAPI.containsKey(catalystHandlerID)) {
+            catalystsRemoverFromAPI.get(catalystHandlerID).add(stack);
         } else {
-            catalystsRemoverFromAPI.put(handlerID, new ArrayList<>(Collections.singletonList(stack)));
+            catalystsRemoverFromAPI.put(catalystHandlerID, new ArrayList<>(Collections.singletonList(stack)));
         }
     }
 
@@ -61,23 +61,23 @@ public class RecipeCatalysts {
     }
 
     public static List<PositionedStack> getRecipeCatalysts(IRecipeHandler handler) {
-        return getRecipeCatalysts(getRecipeID(handler));
+        return getRecipeCatalysts(getCatalystHandlerId(handler));
     }
 
-    public static List<PositionedStack> getRecipeCatalysts(String handlerID) {
+    public static List<PositionedStack> getRecipeCatalysts(String catalystHandlerID) {
         if (!NEIClientConfig.areJEIStyleTabsVisible() || !NEIClientConfig.areJEIStyleRecipeCatalystsVisible()) {
             return Collections.emptyList();
         }
-        return positionedRecipeCatalystMap.getOrDefault(handlerID, Collections.emptyList());
+        return positionedRecipeCatalystMap.getOrDefault(catalystHandlerID, Collections.emptyList());
     }
 
     public static boolean containsCatalyst(IRecipeHandler handler, ItemStack candidate) {
-        return containsCatalyst(getRecipeID(handler), candidate);
+        return containsCatalyst(getCatalystHandlerId(handler), candidate);
     }
 
-    public static boolean containsCatalyst(String handlerID, ItemStack candidate) {
-        if (recipeCatalystMap.containsKey(handlerID)) {
-            return recipeCatalystMap.get(handlerID).contains(candidate);
+    public static boolean containsCatalyst(String catalystHandlerID, ItemStack candidate) {
+        if (recipeCatalystMap.containsKey(catalystHandlerID)) {
+            return recipeCatalystMap.get(catalystHandlerID).contains(candidate);
         }
         return false;
     }
@@ -128,7 +128,7 @@ public class RecipeCatalysts {
 
     public static void loadCatalystInfo() {
         final boolean fromJar = NEIClientConfig.loadCatalystsFromJar();
-        NEIClientConfig.logger.info("Loading catalyst info from " + (fromJar ? "JAR" : "Config"));
+        NEIClientConfig.logger.info("Loading catalyst info from {}", (fromJar ? "JAR" : "Config"));
         recipeCatalystMap.clear();
         URL handlerUrl = RecipeCatalysts.class.getResource("/assets/nei/csv/catalysts.csv");
 
@@ -157,15 +157,24 @@ public class RecipeCatalysts {
             try {
                 url = NEIClientConfig.catalystFile.toURI().toURL();
             } catch (MalformedURLException e) {
-                NEIClientConfig.logger.warn("Invalid URL for catalysts csv (via config).");
+                NEIClientConfig.logger.warn("Invalid URL for catalysts.csv (via config).");
                 e.printStackTrace();
                 return;
             }
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
             CSVParser csvParser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(reader);
+            if (csvParser.getHeaderNames().contains("handlerID")) {
+                NEIClientConfig.logger
+                        .warn("Found column 'handlerID' in catalysts.csv. Please rename to 'catalystHandlerID'");
+            }
             for (CSVRecord record : csvParser) {
-                final String handler = record.get("handler");
+                final String catalystHandlerID;
+                if (record.isMapped("handlerID")) {
+                    catalystHandlerID = record.get("handlerID");
+                } else {
+                    catalystHandlerID = record.get("catalystHandlerID");
+                }
                 final String modId = record.get("modId");
                 final boolean requiresMod = Boolean.parseBoolean(record.get("modRequired"));
                 final String excludedModId = record.get("excludedModId");
@@ -191,41 +200,41 @@ public class RecipeCatalysts {
                 String handlerID;
                 try {
                     // gently handling copy&paste from handlers.csv
-                    Class<?> clazz = Class.forName(handler);
+                    Class<?> clazz = Class.forName(catalystHandlerID);
                     Object object = clazz.newInstance();
                     if (object instanceof IRecipeHandler) {
                         if (forceClassName) {
-                            forceClassNameList.add(handler);
+                            forceClassNameList.add(catalystHandlerID);
                         }
-                        handlerID = getRecipeID((IRecipeHandler) object);
+                        handlerID = getCatalystHandlerId((IRecipeHandler) object);
                     } else {
-                        handlerID = handler;
+                        handlerID = catalystHandlerID;
                     }
                 } catch (ClassNotFoundException ignored) {
-                    handlerID = handler;
+                    handlerID = catalystHandlerID;
                 } catch (InstantiationException ignored) {
-                    NEIClientConfig.logger.warn("failed to create instance for " + handler);
-                    handlerID = handler;
+                    NEIClientConfig.logger.warn("failed to create instance for " + catalystHandlerID);
+                    handlerID = catalystHandlerID;
                 }
 
                 addOrPut(recipeCatalystMap, handlerID, catalystInfo);
             }
         } catch (Exception e) {
-            NEIClientConfig.logger.warn("Error parsing CSV");
+            NEIClientConfig.logger.warn("Error parsing catalysts.csv");
             e.printStackTrace();
         }
 
         for (Map.Entry<String, CatalystInfoList> entry : catalystsAdderFromAPI.entrySet()) {
-            String handlerID = entry.getKey();
+            String catalystHandlerID = entry.getKey();
             for (CatalystInfo catalyst : entry.getValue()) {
-                addOrPut(recipeCatalystMap, handlerID, catalyst);
+                addOrPut(recipeCatalystMap, catalystHandlerID, catalyst);
             }
         }
 
         for (Map.Entry<String, CatalystInfoList> entry : catalystsAdderFromIMC.entrySet()) {
-            String handlerID = entry.getKey();
+            String catalystHandlerID = entry.getKey();
             for (CatalystInfo catalyst : entry.getValue()) {
-                addOrPut(recipeCatalystMap, handlerID, catalyst);
+                addOrPut(recipeCatalystMap, catalystHandlerID, catalyst);
             }
         }
 
@@ -234,27 +243,29 @@ public class RecipeCatalysts {
             Set<String> handlerIds = new HashSet<>(GuiRecipeTab.handlerMap.keySet());
             catalystsAdderFromIMC.keySet().forEach(handlerName -> {
                 if (!handlerIds.contains(handlerName)) {
-                    NEIClientConfig.logger.warn("Could not find a registered handlerID that matches " + handlerName);
+                    NEIClientConfig.logger.warn(
+                            "Could not find a registered catalystHandlerID that matches '{}' as received via IMC",
+                            handlerName);
                     handlerIds.forEach(handler -> {
                         if (handler.equalsIgnoreCase(handlerName)) {
-                            NEIClientConfig.logger.warn("  -- Did you mean: " + handler);
+                            NEIClientConfig.logger.warn("  -- Did you mean: {}", handler);
                         }
                     });
                 }
             });
         }
         for (Map.Entry<String, List<ItemStack>> entry : catalystsRemoverFromAPI.entrySet()) {
-            String handlerID = entry.getKey();
-            if (recipeCatalystMap.containsKey(handlerID)) {
-                CatalystInfoList catalysts = recipeCatalystMap.get(handlerID);
+            String catalystHandlerID = entry.getKey();
+            if (recipeCatalystMap.containsKey(catalystHandlerID)) {
+                CatalystInfoList catalysts = recipeCatalystMap.get(catalystHandlerID);
                 entry.getValue().forEach(catalysts::remove);
             }
         }
 
         for (Map.Entry<String, List<ItemStack>> entry : catalystsRemoverFromIMC.entrySet()) {
-            String handlerID = entry.getKey();
-            if (recipeCatalystMap.containsKey(handlerID)) {
-                CatalystInfoList catalysts = recipeCatalystMap.get(handlerID);
+            String catalystHandlerID = entry.getKey();
+            if (recipeCatalystMap.containsKey(catalystHandlerID)) {
+                CatalystInfoList catalysts = recipeCatalystMap.get(catalystHandlerID);
                 entry.getValue().forEach(catalysts::remove);
             }
         }
@@ -263,22 +274,24 @@ public class RecipeCatalysts {
     }
 
     /**
-     * Basically {@link NEIClientConfig#HANDLER_ID_FUNCTION}. Force using {@link IRecipeHandler#getHandlerId()} if
-     * specified in catalysts.csv. In other words, refuse to share handlerID defined in
-     * {@link TemplateRecipeHandler#getOverlayIdentifier()}.
+     * Computes the catalyst handler identifier for matching a catalyst to its corresponding recipes.
+     *
+     * @return defaults to {@link IRecipeHandler#getOverlayIdentifier()}, but falls back to the results of
+     *         {@link IRecipeHandler#getHandlerId()} if the former is null. If forceClassName is enabled in
+     *         catalysts.csv, {@link IRecipeHandler#getHandlerId()} is returned always.
      */
-    public static String getRecipeID(IRecipeHandler handler) {
+    public static String getCatalystHandlerId(IRecipeHandler handler) {
         if (forceClassNameList.stream().anyMatch(s -> s.equals(handler.getHandlerId()))) {
             return handler.getHandlerId();
         }
         return Objects.firstNonNull(handler.getOverlayIdentifier(), handler.getHandlerId());
     }
 
-    public static void addOrPut(Map<String, CatalystInfoList> map, String handlerID, CatalystInfo catalyst) {
-        if (map.containsKey(handlerID)) {
-            map.get(handlerID).add(catalyst);
+    public static void addOrPut(Map<String, CatalystInfoList> map, String catalystHandlerID, CatalystInfo catalyst) {
+        if (map.containsKey(catalystHandlerID)) {
+            map.get(catalystHandlerID).add(catalyst);
         } else {
-            map.put(handlerID, new CatalystInfoList(handlerID, catalyst));
+            map.put(catalystHandlerID, new CatalystInfoList(catalystHandlerID, catalyst));
         }
     }
 

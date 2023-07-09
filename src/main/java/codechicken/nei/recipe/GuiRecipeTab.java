@@ -203,13 +203,13 @@ public abstract class GuiRecipeTab extends Widget {
         if (fromJar) {
             url = handlerUrl;
             if (url == null) {
-                NEIClientConfig.logger.info("Invalid URL for handlers csv.");
+                NEIClientConfig.logger.info("Invalid URL for handlers.csv");
                 return;
             }
         } else {
             File handlerFile = NEIClientConfig.handlerFile;
             if (!handlerFile.exists()) {
-                NEIClientConfig.logger.info("Config file doesn't exist, creating");
+                NEIClientConfig.logger.info("Config file handler.csv doesn't exist, initializing");
                 try {
                     assert handlerUrl != null;
                     ReadableByteChannel readableByteChannel = Channels.newChannel(handlerUrl.openStream());
@@ -224,15 +224,24 @@ public abstract class GuiRecipeTab extends Widget {
             try {
                 url = NEIClientConfig.handlerFile.toURI().toURL();
             } catch (MalformedURLException e) {
-                NEIClientConfig.logger.info("Invalid URL for handlers csv (via config).");
+                NEIClientConfig.logger.info("Invalid URL for handlers.csv (via config)");
                 e.printStackTrace();
                 return;
             }
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
             CSVParser csvParser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(reader);
+            if (csvParser.getHeaderNames().contains("handler")) {
+                NEIClientConfig.logger.warn("Found column 'handler' in catalysts.csv. Please rename to 'handlerID'");
+            }
             for (CSVRecord record : csvParser) {
-                final String handler = record.get("handler");
+                final String handlerID;
+                if (record.isMapped("handler")) {
+                    handlerID = record.get("handler");
+                } else {
+                    handlerID = record.get("handlerID");
+                }
+
                 final String modName = record.get("modName");
                 final String modId = record.get("modId");
                 final boolean requiresMod = Boolean.parseBoolean(record.get("modRequired"));
@@ -241,7 +250,7 @@ public abstract class GuiRecipeTab extends Widget {
                 if (requiresMod && !Loader.isModLoaded(modId)) continue;
                 if (excludedModId != null && Loader.isModLoaded(excludedModId)) continue;
 
-                HandlerInfo info = new HandlerInfo(handler, modName, modId, requiresMod, excludedModId);
+                HandlerInfo info = new HandlerInfo(handlerID, modName, modId, requiresMod, excludedModId);
                 final String imageResource = record.get("imageResource");
                 if (imageResource != null && !imageResource.equals("")) {
                     info.setImage(
@@ -268,14 +277,14 @@ public abstract class GuiRecipeTab extends Widget {
                             HandlerInfo.DEFAULT_MAX_PER_PAGE);
                     info.setHandlerDimensions(imageHeight, imageWidth, maxRecipesPerPage);
                 } catch (NumberFormatException ignored) {
-                    NEIClientConfig.logger.info("Error setting handler dimensions for " + handler);
+                    NEIClientConfig.logger.info("Error setting handler dimensions for " + handlerID);
                 }
 
-                handlerMap.put(handler, info);
-                NEIClientConfig.logger.info("Loaded " + handler);
+                handlerMap.put(handlerID, info);
+                NEIClientConfig.logger.info("Loaded " + handlerID);
             }
         } catch (Exception e) {
-            NEIClientConfig.logger.info("Error parsing CSV");
+            NEIClientConfig.logger.error("Error parsing handlers.csv");
             e.printStackTrace();
         }
 
@@ -287,10 +296,12 @@ public abstract class GuiRecipeTab extends Widget {
             Set<String> handlerIds = new HashSet<>(handlerMap.keySet());
             handlerAdderFromIMC.keySet().forEach(handlerName -> {
                 if (!handlerIds.contains(handlerName)) {
-                    NEIClientConfig.logger.warn("Could not find a registered handlerID that matches " + handlerName);
+                    NEIClientConfig.logger.warn(
+                            "Could not find a registered handlerID that matches '{}' as received via IMC",
+                            handlerName);
                     handlerIds.forEach(handler -> {
                         if (handler.equalsIgnoreCase(handlerName)) {
-                            NEIClientConfig.logger.warn("  -- Did you mean: " + handler);
+                            NEIClientConfig.logger.warn("  -- Did you mean: {}", handler);
                         }
                     });
                 }

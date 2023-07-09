@@ -1,4 +1,4 @@
-handler,modName,itemName,nbtInfo,modId,modRequired,excludedModId,yShift,handlerHeight,handlerWidth,maxRecipesPerPage,imageResource,imageX,imageY,imageWidth,imageHeight,itemNotes
+handlerID,modName,itemName,nbtInfo,modId,modRequired,excludedModId,yShift,handlerHeight,handlerWidth,maxRecipesPerPage,imageResource,imageX,imageY,imageWidth,imageHeight,itemNotes
 codechicken.nei.recipe.BrewingRecipeHandler,Minecraft,minecraft:brewing_stand,,minecraft,FALSE,,,65,166,5,,,,,,
 codechicken.nei.recipe.FireworkRecipeHandler,Minecraft,minecraft:fireworks,,minecraft,FALSE,,,65,166,5,,,,,,
 codechicken.nei.recipe.FurnaceRecipeHandler,Minecraft,minecraft:furnace,,minecraft,FALSE,,,65,166,5,,,,,,

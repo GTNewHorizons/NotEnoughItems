@@ -11,7 +11,7 @@ import codechicken.nei.recipe.IRecipeHandler;
 import cpw.mods.fml.common.eventhandler.Event;
 
 /**
- * Event is posted every time the handler infos got registered or reloaded. During it, you can safely register your
+ * Event is posted every time the handler infos get registered or reloaded. During it, you can safely register your
  * custom handler info.
  *
  * <br>
@@ -21,9 +21,15 @@ import cpw.mods.fml.common.eventhandler.Event;
  */
 public class NEIRegisterHandlerInfosEvent extends Event {
 
-    public void registerHandlerInfo(String handlerName, String modName, String modId,
+    /**
+     * @param handlerID handler identifier as returned by {@link IRecipeHandler#getHandlerId}
+     * @param modName   display name of the mod to which the recipe handler belongs
+     * @param modId     modId of the mod for which the recipe handler is responsible
+     * @param builder
+     */
+    public void registerHandlerInfo(String handlerID, String modName, String modId,
             Consumer<HandlerInfo.Builder> builder) {
-        HandlerInfo.Builder b = new HandlerInfo.Builder(handlerName, modName, modId);
+        HandlerInfo.Builder b = new HandlerInfo.Builder(handlerID, modName, modId);
         builder.accept(b);
         HandlerInfo info = b.build();
         if (GuiRecipeTab.handlerMap.put(info.getHandlerName(), info) != null) {

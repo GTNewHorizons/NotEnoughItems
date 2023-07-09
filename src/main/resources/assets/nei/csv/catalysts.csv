@@ -1,4 +1,4 @@
-handler,itemName,nbtInfo,modId,modRequired,excludedModId,priority,minVersion,maxVersion,forceClassName,itemNotes
+catalystHandlerID,itemName,nbtInfo,modId,modRequired,excludedModId,priority,minVersion,maxVersion,forceClassName,itemNotes
 crafting,minecraft:crafting_table,,minecraft,FALSE,terrafirmacraftplus,100,,,,
 smelting,minecraft:furnace,,minecraft,FALSE,terrafirmacraftplus,100,,,,
 codechicken.nei.recipe.BrewingRecipeHandler,minecraft:brewing_stand,,minecraft,FALSE,terrafirmacraftplus,100,,,,

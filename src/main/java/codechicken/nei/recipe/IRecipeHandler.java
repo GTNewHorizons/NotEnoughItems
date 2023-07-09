@@ -29,7 +29,7 @@ public interface IRecipeHandler {
 
     /**
      *
-     * @return The name of this inventory. To be displayed at the top of the viewing container.
+     * @return The display name of this handler. To be displayed at the top of the viewing container.
      */
     String getRecipeName();
 

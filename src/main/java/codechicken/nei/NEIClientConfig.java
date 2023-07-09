@@ -5,7 +5,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import net.minecraft.client.Minecraft;
@@ -20,8 +19,6 @@ import net.minecraftforge.common.MinecraftForge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;
-
-import com.google.common.base.Objects;
 
 import codechicken.core.CCUpdateChecker;
 import codechicken.core.ClassDiscoverer;
@@ -88,11 +85,6 @@ public class NEIClientConfig {
     // Handlers will be sorted in ascending order, so smaller numbers show up earlier.
     // Any handler not in the map will be assigned to 0, and negative numbers are fine.
     public static HashMap<String, Integer> handlerOrdering = new HashMap<>();
-
-    // Function that extracts the handler ID from a handler, with special logic for
-    // TemplateRecipeHandler: prefer using the overlay ID if it exists.
-    public static final Function<IRecipeHandler, String> HANDLER_ID_FUNCTION = handler -> Objects
-            .firstNonNull(handler.getOverlayIdentifier(), handler.getHandlerId());
 
     public static int getHandlerOrder(IRecipeHandler handler) {
         if (handlerOrdering.get(handler.getOverlayIdentifier()) != null) {
