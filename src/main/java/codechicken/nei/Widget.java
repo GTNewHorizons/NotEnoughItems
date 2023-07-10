@@ -14,7 +14,7 @@ public abstract class Widget {
 
     public void postDraw(int mx, int my) {}
 
-    public void postDrawTooltips(int mx, int my) {}
+    public void postDrawTooltips(int mx, int my, List<String> tooltip) {}
 
     public boolean handleClick(int mx, int my, int button) {
         return true;

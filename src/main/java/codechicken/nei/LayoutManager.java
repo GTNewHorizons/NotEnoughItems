@@ -281,9 +281,9 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     }
 
     @Override
-    public void postRenderTooltips(GuiContainer gui, int mousex, int mousey) {
+    public void postRenderTooltips(GuiContainer gui, int mousex, int mousey, List<String> tooltip) {
         if (!isHidden() && isEnabled()) {
-            for (Widget widget : drawWidgets) widget.postDrawTooltips(mousex, mousey);
+            for (Widget widget : drawWidgets) widget.postDrawTooltips(mousex, mousey, tooltip);
         }
     }
 

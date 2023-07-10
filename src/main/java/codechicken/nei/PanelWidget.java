@@ -1,6 +1,7 @@
 package codechicken.nei;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
@@ -191,8 +192,8 @@ public abstract class PanelWidget extends Widget {
     }
 
     @Override
-    public void postDrawTooltips(int mx, int my) {
-        grid.postDrawTooltips(mx, my);
+    public void postDrawTooltips(int mx, int my, List<String> tooltip) {
+        grid.postDrawTooltips(mx, my, tooltip);
     }
 
     @Override

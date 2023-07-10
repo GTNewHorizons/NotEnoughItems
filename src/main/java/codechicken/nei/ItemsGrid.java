@@ -276,7 +276,7 @@ public class ItemsGrid {
         return listOrNull == null ? Collections.emptyList() : listOrNull;
     }
 
-    private void drawRecipeTooltip(int mousex, int mousey) {
+    private void drawRecipeTooltip(int mousex, int mousey, List<String> itemTooltip) {
         final Minecraft mc = Minecraft.getMinecraft();
         ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
         if (focused == null) {
@@ -326,12 +326,7 @@ public class ItemsGrid {
                     recipeTooltipGui.guiTop = 0;
                     recipeTooltipGui.guiLeft = 0;
                 }
-                recipeTooltipLines = 2;
-                if (focused.item != null && mc.currentScreen instanceof GuiContainer) {
-                    final List<String> tooltip = GuiContainerManager
-                            .itemDisplayNameMultiline(focused.item, (GuiContainer) mc.currentScreen, true);
-                    recipeTooltipLines = tooltip.size();
-                }
+                recipeTooltipLines = Math.max(1, itemTooltip.size());
             };
         }
         if (recipeTooltipGui == null) {
@@ -343,7 +338,7 @@ public class ItemsGrid {
         if (mousey - marginTop > height / 2) {
             tooltipYOffset = mousey - recipeTooltipGui.getHeightAsWidget() + 8;
         } else {
-            tooltipYOffset = mousey + 3 + (recipeTooltipLines * 10);
+            tooltipYOffset = mousey + ((recipeTooltipLines < 2) ? 1 : 3 + ((recipeTooltipLines - 1) * 10));
         }
         GL11.glTranslatef(mousex, tooltipYOffset, 500);
 
@@ -457,10 +452,10 @@ public class ItemsGrid {
         }
     }
 
-    public void postDrawTooltips(int mousex, int mousey) {
+    public void postDrawTooltips(int mousex, int mousey, List<String> tooltip) {
         if (NEIClientConfig.showRecipeTooltips() && showRecipeTooltips) {
             try {
-                drawRecipeTooltip(mousex, mousey);
+                drawRecipeTooltip(mousex, mousey, tooltip);
             } catch (Exception e) {
                 NEIClientConfig.logger.warn("Cannot draw recipe tooltip", e);
             }

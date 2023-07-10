@@ -515,7 +515,9 @@ public class GuiContainerManager {
 
         drawPagedTooltip(font, mousex + 12, mousey - 12, tooltip);
 
-        for (IContainerDrawHandler drawHandler : drawHandlers) drawHandler.postRenderTooltips(window, mousex, mousey);
+        for (IContainerDrawHandler drawHandler : drawHandlers) {
+            drawHandler.postRenderTooltips(window, mousex, mousey, tooltip);
+        }
     }
 
     private static int tooltipPage;
