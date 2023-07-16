@@ -277,6 +277,10 @@ public class ItemsGrid {
     }
 
     private void drawRecipeTooltip(int mousex, int mousey, List<String> itemTooltip) {
+        if (!NEIClientConfig.isLoaded()) {
+            return;
+        }
+
         final Minecraft mc = Minecraft.getMinecraft();
         ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
         if (focused == null) {
