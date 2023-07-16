@@ -13,7 +13,6 @@ import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
