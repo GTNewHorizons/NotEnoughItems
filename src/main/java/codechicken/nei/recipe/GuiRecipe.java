@@ -673,6 +673,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             for (int i = page * recipesPerPage; i < handler.numRecipes() && i < (page + 1) * recipesPerPage; i++) {
                 handler.drawForeground(i);
                 if (drawItemPresence && (isMouseOverOverlayButton(i - page * recipesPerPage) || limitToOneRecipe)
+                        && firstGui != null
                         && firstGui.inventorySlots != null) {
                     List<PositionedStack> ingredients = handler.getIngredientStacks(i);
                     if (itemPresenceCacheRecipe != i || itemPresenceCacheSlots == null
