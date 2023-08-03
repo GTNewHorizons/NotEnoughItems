@@ -27,6 +27,7 @@ import codechicken.nei.SearchField.ISearchProvider;
 import codechicken.nei.SubsetWidget;
 import codechicken.nei.SubsetWidget.SubsetTag;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
+import codechicken.nei.BookmarkContainerInfo;
 import codechicken.nei.config.Option;
 import codechicken.nei.config.OptionKeyBind;
 import codechicken.nei.recipe.CatalystInfo;
@@ -388,6 +389,10 @@ public class API {
 
     public static void removeRecipeCatalyst(ItemStack stack, String handlerID) {
         RecipeCatalysts.removeRecipeCatalyst(handlerID, stack);
+    }
+
+    public static void registerBookmarkContainerHandler(Class<? extends GuiContainer> gui, IBookmarkContainerHandler handler) {
+        BookmarkContainerInfo.registerBookmarkContainerHandler(gui, handler);
     }
 
     @Deprecated

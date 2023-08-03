@@ -473,7 +473,7 @@ public class NEIClientConfig {
         LayoutManager.load();
         NEIController.load();
         RecipeCatalysts.loadCatalystInfo();
-
+        BookmarkContainerInfo.load();
         mainNEIConfigLoaded = true;
 
         new Thread("NEI Plugin Loader") {

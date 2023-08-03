@@ -421,7 +421,8 @@ public class BookmarkPanel extends PanelWidget {
                 if (rightclick) {
                     return false;
                 }
-                IBookmarkContainerHandler containerHandler = new DefaultBookmarkContainerHandler();
+                IBookmarkContainerHandler containerHandler = BookmarkContainerInfo.getBookmarkContainerHandler(getGuiContainer());
+                if (containerHandler == null) return false;
                 containerHandler.pullBookmarkItemsFromContainer(
                         getGuiContainer(),
                         ((BookmarkGrid) grid).realItems);
