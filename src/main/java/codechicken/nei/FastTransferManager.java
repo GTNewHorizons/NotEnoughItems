@@ -184,6 +184,12 @@ public class FastTransferManager {
             moveOutputSet(window, fromSlot, toSlot);
     }
 
+    public void transferItems(GuiContainer window, int fromSlot, int itemCount) {
+        for (int i = 0; i < itemCount; i++) {
+            transferItem(window, fromSlot);
+        }
+    }
+
     public void moveOutputSet(GuiContainer window, int fromSlot, int toSlot) {
         if (NEIClientUtils.getHeldItem() != null) return;
 

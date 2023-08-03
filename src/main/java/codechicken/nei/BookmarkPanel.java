@@ -2,6 +2,7 @@ package codechicken.nei;
 
 import static codechicken.lib.gui.GuiDraw.drawRect;
 import static codechicken.lib.gui.GuiDraw.getMousePosition;
+import static codechicken.nei.NEIClientUtils.getGuiContainer;
 import static codechicken.nei.NEIClientUtils.translate;
 
 import java.awt.Point;
@@ -16,6 +17,7 @@ import java.util.*;
 
 import javax.annotation.Nullable;
 
+import codechicken.nei.api.IBookmarkContainerHandler;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
@@ -47,6 +49,7 @@ public class BookmarkPanel extends PanelWidget {
 
     public Button namespacePrev;
     public Button namespaceNext;
+    public Button pullBookmarkedItems;
     public Label namespaceLabel;
 
     protected List<BookmarkGrid> namespaces = new ArrayList<>();
@@ -410,6 +413,24 @@ public class BookmarkPanel extends PanelWidget {
             @Override
             public String getRenderLabel() {
                 return ">";
+            }
+        };
+
+        pullBookmarkedItems = new Button("Pull") {
+            public boolean onButtonPress(boolean rightclick) {
+                if (rightclick) {
+                    return false;
+                }
+                IBookmarkContainerHandler containerHandler = new DefaultBookmarkContainerHandler();
+                containerHandler.pullBookmarkItemsFromContainer(
+                        getGuiContainer(),
+                        ((BookmarkGrid) grid).realItems);
+                return true;
+            }
+
+            @Override
+            public String getRenderLabel() {
+                return "P";
             }
         };
 
@@ -816,9 +837,9 @@ public class BookmarkPanel extends PanelWidget {
         final int center = leftBorder + Math.max(0, (rightBorder - leftBorder) / 2);
         int labelWidth = 2;
 
-        namespacePrev.h = namespaceNext.h = BUTTON_SIZE;
-        namespacePrev.w = namespaceNext.w = BUTTON_SIZE;
-        namespacePrev.y = namespaceNext.y = y + h - BUTTON_SIZE;
+        namespacePrev.h = namespaceNext.h = pullBookmarkedItems.h = BUTTON_SIZE;
+        namespacePrev.w = namespaceNext.w = pullBookmarkedItems.w = BUTTON_SIZE;
+        namespacePrev.y = namespaceNext.y = pullBookmarkedItems.y = y + h - BUTTON_SIZE;
 
         if (rightBorder - leftBorder >= 70) {
             labelWidth = 36;
@@ -833,6 +854,7 @@ public class BookmarkPanel extends PanelWidget {
 
         namespacePrev.x = center - labelWidth / 2 - 2 - namespacePrev.w;
         namespaceNext.x = center + labelWidth / 2 + 2;
+        pullBookmarkedItems.x = center + 2 * labelWidth / 2 + 2;
 
         return BUTTON_SIZE + 2;
     }
@@ -845,6 +867,7 @@ public class BookmarkPanel extends PanelWidget {
             LayoutManager.addWidget(namespacePrev);
             LayoutManager.addWidget(namespaceNext);
             LayoutManager.addWidget(namespaceLabel);
+            LayoutManager.addWidget(pullBookmarkedItems);
         }
     }
 
@@ -1030,6 +1053,9 @@ public class BookmarkPanel extends PanelWidget {
         if (new Rectangle4i(pagePrev.x + pagePrev.w, pagePrev.y, pageNext.x - (pagePrev.x + pagePrev.w), pagePrev.h)
                 .contains(mx, my)) {
             tooltip.add(translate("bookmark.viewmode.toggle.tip"));
+        }
+        if (new Rectangle4i(pullBookmarkedItems.x, pullBookmarkedItems.y, pullBookmarkedItems.w, pullBookmarkedItems.h).contains(mx, my)) {
+            tooltip.add(translate("bookmark.pullBookmarkedItems.tip"));
         }
 
         return super.handleTooltip(mx, my, tooltip);
