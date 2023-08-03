@@ -351,6 +351,7 @@ public class NEIClientConfig {
         API.addHashBind(
                 "gui.bookmark_recipe_count",
                 Keyboard.KEY_A + NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH);
+        API.addHashBind("gui.bookmark_pull_items", Keyboard.KEY_V);
         API.addHashBind("gui.overlay", Keyboard.KEY_S);
         API.addHashBind("gui.overlay_use", Keyboard.KEY_S + NEIClientUtils.SHIFT_HASH);
         API.addHashBind("gui.overlay_hide", Keyboard.KEY_S + NEIClientUtils.CTRL_HASH);

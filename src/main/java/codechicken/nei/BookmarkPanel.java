@@ -421,12 +421,7 @@ public class BookmarkPanel extends PanelWidget {
                 if (rightclick) {
                     return false;
                 }
-                IBookmarkContainerHandler containerHandler = BookmarkContainerInfo.getBookmarkContainerHandler(getGuiContainer());
-                if (containerHandler == null) return false;
-                containerHandler.pullBookmarkItemsFromContainer(
-                        getGuiContainer(),
-                        ((BookmarkGrid) grid).realItems);
-                return true;
+                return pullBookmarkItems();
             }
 
             @Override
@@ -1144,5 +1139,14 @@ public class BookmarkPanel extends PanelWidget {
                 BGrid.replaceItem(slotIndex, StackInfo.loadFromNBT(nbTag));
             }
         }
+    }
+
+    public boolean pullBookmarkItems() {
+        IBookmarkContainerHandler containerHandler = BookmarkContainerInfo.getBookmarkContainerHandler(getGuiContainer());
+        if (containerHandler == null) return false;
+        containerHandler.pullBookmarkItemsFromContainer(
+                getGuiContainer(),
+                ((BookmarkGrid) grid).realItems);
+        return true;
     }
 }

@@ -2,11 +2,8 @@ package codechicken.nei;
 
 import codechicken.nei.api.API;
 import codechicken.nei.api.IBookmarkContainerHandler;
-import com.google.common.base.Objects;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.gui.inventory.GuiCrafting;
-import net.minecraft.client.gui.inventory.GuiInventory;
 
 import java.util.HashMap;
 

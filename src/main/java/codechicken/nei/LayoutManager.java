@@ -226,6 +226,10 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             return true;
         }
 
+        if (NEIClientConfig.isKeyHashDown("gui.bookmark_pull_items")) {
+            return bookmarkPanel.pullBookmarkItems();
+        }
+
         if (isEnabled() && !isHidden()) {
             for (Widget widget : controlWidgets) if (inputFocused == null) widget.lastKeyTyped(keyID, keyChar);
         }
