@@ -17,7 +17,6 @@ import java.util.*;
 
 import javax.annotation.Nullable;
 
-import codechicken.nei.api.IBookmarkContainerHandler;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
@@ -34,6 +33,7 @@ import com.google.gson.JsonSyntaxException;
 import codechicken.core.CommonUtils;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
+import codechicken.nei.api.IBookmarkContainerHandler;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.BookmarkRecipeId;
 import codechicken.nei.recipe.StackInfo;
@@ -417,6 +417,7 @@ public class BookmarkPanel extends PanelWidget {
         };
 
         pullBookmarkedItems = new Button("Pull") {
+
             public boolean onButtonPress(boolean rightclick) {
                 if (rightclick) {
                     return false;
@@ -1050,7 +1051,8 @@ public class BookmarkPanel extends PanelWidget {
                 .contains(mx, my)) {
             tooltip.add(translate("bookmark.viewmode.toggle.tip"));
         }
-        if (new Rectangle4i(pullBookmarkedItems.x, pullBookmarkedItems.y, pullBookmarkedItems.w, pullBookmarkedItems.h).contains(mx, my)) {
+        if (new Rectangle4i(pullBookmarkedItems.x, pullBookmarkedItems.y, pullBookmarkedItems.w, pullBookmarkedItems.h)
+                .contains(mx, my)) {
             tooltip.add(translate("bookmark.pullBookmarkedItems.tip"));
         }
 
@@ -1142,11 +1144,10 @@ public class BookmarkPanel extends PanelWidget {
     }
 
     public boolean pullBookmarkItems() {
-        IBookmarkContainerHandler containerHandler = BookmarkContainerInfo.getBookmarkContainerHandler(getGuiContainer());
+        IBookmarkContainerHandler containerHandler = BookmarkContainerInfo
+                .getBookmarkContainerHandler(getGuiContainer());
         if (containerHandler == null) return false;
-        containerHandler.pullBookmarkItemsFromContainer(
-                getGuiContainer(),
-                ((BookmarkGrid) grid).realItems);
+        containerHandler.pullBookmarkItemsFromContainer(getGuiContainer(), ((BookmarkGrid) grid).realItems);
         return true;
     }
 }

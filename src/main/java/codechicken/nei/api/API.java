@@ -14,6 +14,7 @@ import org.lwjgl.input.Keyboard;
 
 import com.google.common.collect.Sets;
 
+import codechicken.nei.BookmarkContainerInfo;
 import codechicken.nei.ItemList;
 import codechicken.nei.ItemSorter;
 import codechicken.nei.ItemStackSet;
@@ -27,7 +28,6 @@ import codechicken.nei.SearchField.ISearchProvider;
 import codechicken.nei.SubsetWidget;
 import codechicken.nei.SubsetWidget.SubsetTag;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
-import codechicken.nei.BookmarkContainerInfo;
 import codechicken.nei.config.Option;
 import codechicken.nei.config.OptionKeyBind;
 import codechicken.nei.recipe.CatalystInfo;
@@ -391,7 +391,8 @@ public class API {
         RecipeCatalysts.removeRecipeCatalyst(handlerID, stack);
     }
 
-    public static void registerBookmarkContainerHandler(Class<? extends GuiContainer> gui, IBookmarkContainerHandler handler) {
+    public static void registerBookmarkContainerHandler(Class<? extends GuiContainer> gui,
+            IBookmarkContainerHandler handler) {
         BookmarkContainerInfo.registerBookmarkContainerHandler(gui, handler);
     }
 

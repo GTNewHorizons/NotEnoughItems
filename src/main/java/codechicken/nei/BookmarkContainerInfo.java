@@ -1,17 +1,19 @@
 package codechicken.nei;
 
-import codechicken.nei.api.API;
-import codechicken.nei.api.IBookmarkContainerHandler;
+import java.util.HashMap;
+
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiContainer;
 
-import java.util.HashMap;
+import codechicken.nei.api.API;
+import codechicken.nei.api.IBookmarkContainerHandler;
 
 public class BookmarkContainerInfo {
 
     static final HashMap<Class<? extends GuiContainer>, IBookmarkContainerHandler> handlerMap = new HashMap<>();
 
-    public static void registerBookmarkContainerHandler(Class<? extends GuiContainer> classz, IBookmarkContainerHandler handler) {
+    public static void registerBookmarkContainerHandler(Class<? extends GuiContainer> classz,
+            IBookmarkContainerHandler handler) {
         handlerMap.put(classz, handler);
     }
 

@@ -1,14 +1,16 @@
 package codechicken.nei;
 
-import codechicken.nei.api.IBookmarkContainerHandler;
+import java.util.ArrayList;
+import java.util.LinkedList;
+
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
+import codechicken.nei.api.IBookmarkContainerHandler;
 
 public class DefaultBookmarkContainerHandler implements IBookmarkContainerHandler {
+
     @Override
     public void pullBookmarkItemsFromContainer(GuiContainer guiContainer, ArrayList<ItemStack> realItems) {
         FastTransferManager manager = new FastTransferManager();
@@ -27,7 +29,9 @@ public class DefaultBookmarkContainerHandler implements IBookmarkContainerHandle
                         bookmarkItemSize -= maxItemSize;
                         continue;
                     }
-                    if (bookmarkItemSize >= containerItem.stackSize && containerItem.stackSize != maxItemSize) { // Move partial stack
+                    if (bookmarkItemSize >= containerItem.stackSize && containerItem.stackSize != maxItemSize) { // Move
+                                                                                                                 // partial
+                                                                                                                 // stack
                         manager.transferItems(guiContainer, stacks.indexOf(containerItem), containerItem.stackSize);
                         bookmarkItemSize -= containerItem.stackSize;
                         continue;
