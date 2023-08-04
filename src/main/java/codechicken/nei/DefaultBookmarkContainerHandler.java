@@ -16,17 +16,18 @@ public class DefaultBookmarkContainerHandler implements IBookmarkContainerHandle
         LinkedList<ItemStack> stacks = manager.saveContainer(openContainer);
         for (ItemStack bookmarkItem : realItems) {
             int bookmarkItemSize = bookmarkItem.stackSize;
+            int maxItemSize = bookmarkItem.getMaxStackSize();
             for (int i = 0; i < stacks.size() - 4 * 9; i++) { // Last 36 slots are player inventory
                 ItemStack containerItem = stacks.get(i);
                 if (containerItem == null) continue;
                 if (bookmarkItem.isItemEqual(containerItem)) {
                     if (bookmarkItemSize <= 0) break;
-                    if (bookmarkItemSize > 64 && containerItem.stackSize == 64) { // Move full stack
+                    if (bookmarkItemSize > maxItemSize && containerItem.stackSize == maxItemSize) { // Move full stack
                         manager.transferItems(guiContainer, stacks.indexOf(containerItem), 64);
-                        bookmarkItemSize -= 64;
+                        bookmarkItemSize -= maxItemSize;
                         continue;
                     }
-                    if (bookmarkItemSize >= containerItem.stackSize && containerItem.stackSize != 64) { // Move partial stack
+                    if (bookmarkItemSize >= containerItem.stackSize && containerItem.stackSize != maxItemSize) { // Move partial stack
                         manager.transferItems(guiContainer, stacks.indexOf(containerItem), containerItem.stackSize);
                         bookmarkItemSize -= containerItem.stackSize;
                         continue;
