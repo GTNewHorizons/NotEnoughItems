@@ -11,11 +11,13 @@ import codechicken.nei.api.IBookmarkContainerHandler;
 public class DefaultBookmarkContainerHandler implements IBookmarkContainerHandler {
 
     @Override
-    public void pullBookmarkItemsFromContainer(GuiContainer guiContainer, ArrayList<ItemStack> realItems) {
+    public void pullBookmarkItemsFromContainer(GuiContainer guiContainer, ArrayList<ItemStack> bookmarkItems) {
         FastTransferManager manager = new FastTransferManager();
         LinkedList<ItemStack> containerStacks = manager.saveContainer(guiContainer.inventorySlots);
 
-        for (ItemStack bookmarkItem : realItems) {
+        for (ItemStack bookmarkItem : bookmarkItems) {
+
+            int bookmarkSizeBackup = bookmarkItem.stackSize;
 
             for (int i = 0; i < containerStacks.size() - 4 * 9; i++) { // Last 36 slots are player inventory
                 ItemStack containerItem = containerStacks.get(i);
@@ -39,6 +41,7 @@ public class DefaultBookmarkContainerHandler implements IBookmarkContainerHandle
                     }
                 }
             }
+            bookmarkItem.stackSize = bookmarkSizeBackup;
         }
     }
 }
