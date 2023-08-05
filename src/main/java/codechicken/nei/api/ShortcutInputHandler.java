@@ -20,6 +20,10 @@ public abstract class ShortcutInputHandler {
 
     public static boolean handleKeyEvent(ItemStack stackover) {
 
+        if (!NEIClientConfig.isLoaded()) {
+            return false;
+        }
+
         if (NEIClientConfig.isKeyHashDown("gui.overlay_hide")) {
             return hideOverlayRecipe();
         }
@@ -66,6 +70,10 @@ public abstract class ShortcutInputHandler {
     }
 
     public static boolean handleMouseClick(ItemStack stackover) {
+
+        if (!NEIClientConfig.isLoaded()) {
+            return false;
+        }
 
         if (stackover != null) {
             final int button = Mouse.getEventButton();

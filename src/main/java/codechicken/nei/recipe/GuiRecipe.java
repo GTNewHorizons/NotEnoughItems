@@ -1,5 +1,7 @@
 package codechicken.nei.recipe;
 
+import static codechicken.lib.gui.GuiDraw.fontRenderer;
+
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -13,6 +15,7 @@ import java.util.stream.IntStream;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
@@ -59,6 +62,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private static final int buttonWidth = 13;
     private static final int buttonHeight = 12;
 
+    private boolean limitToOneRecipe = false;
+
     // Background image
     final DrawableResource bgTop = new DrawableBuilder("nei:textures/gui/recipebg.png", 0, BG_TOP_Y, 176, BG_TOP_HEIGHT)
             .build();
@@ -100,6 +105,12 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
     private int yShift = 0;
 
+    /**
+     * This will only be true iff height hacking has been configured for the current recipe handler AND we are currently
+     * within the scope of an active {@link CompatibilityHacks} instance.
+     */
+    private boolean isHeightHackApplied = false;
+
     protected GuiRecipe(GuiScreen prevgui) {
         super(new ContainerRecipe());
         recipeTabs = new GuiRecipeTabs(this);
@@ -116,52 +127,107 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
     }
 
+    /** Changes the GUI mode to only display one recipe at a time, e.g. for tooltip usage */
+    public void limitToOneRecipe() {
+        limitToOneRecipe = true;
+    }
+
     /**
      * Many old mods assumed a fixed NEI window height of {@code 166} pixels. Now that this is no longer the case, their
-     * fluid mouseover handling is broken. This helper class fixes these old mods by hacking the {@link #height}
+     * tooltip and click zone handling is broken. This helper class fixes these old mods by hacking the {@link #height}
      * property's value so that these old mods' calculations return the correct value for the new height.
      *
      * <p>
+     * New and old mods often assume that the handler is only drawn when {@link GuiRecipe} is the currently active
+     * screen in {@link net.minecraft.client.Minecraft}. This is no longer true since the addition of recipe tooltips
+     * which need to render the recipe in other containers on mouse hover, this class temporarily switches the active
+     * screen to {@code this} while rendering them to avoid ClassCastExceptions and other similar crashes.
+     *
+     * <p>
      * This class is an {@link AutoCloseable} so that it can be used with try-with-resources, which will ensure that
-     * {@link #height} is returned to the correct value afterwards.
+     * {@link #height} and {@link net.minecraft.client.Minecraft#currentScreen} is returned to the correct value
+     * afterwards.
      */
-    private class HeightHack implements AutoCloseable {
+    private class CompatibilityHacks implements AutoCloseable {
 
         private final int trueHeight;
+        private final int trueGuiTop;
+        private final GuiScreen trueGui;
 
-        private HeightHack() {
+        private CompatibilityHacks() {
             trueHeight = height;
+            trueGuiTop = guiTop;
 
-            boolean applyHeightHack = NEIClientConfig.heightHackHandlerRegex.stream()
+            isHeightHackApplied = NEIClientConfig.heightHackHandlerRegex.stream()
                     .map(pattern -> pattern.matcher(handler.getHandlerId())).anyMatch(Matcher::matches);
-            if (applyHeightHack) {
-                // The old mods use the calculation ((height - 166) / 2) to compute the y-value of
-                // the top edge of the NEI window.
-                // guiTop is exactly that: the y-value of the top edge of the NEI window.
-                // So we set height to be equal to the inverse of this calculation, applied to
-                // guiTop, so that old mods get the right result back when they use this calculation.
+            if (isHeightHackApplied) {
+                // guiTop is the top edge of the recipe screen on the y-axis. Old recipe handlers expect a single paging
+                // widget at the top and at the bottom of the recipe screen with a height of 16px each, but GTNH NEI
+                // moved the bottom paging widget to the top following JEI's design, increasing the "forbidden" zone at
+                // the top to 32px. To fix these old recipe handlers we move guiTop down 16px so that they can keep
+                // working with the old 16px gap.
+                guiTop += 16;
+
+                // The old NEI recipe screen had a fixed width and height and was always centered on the screen. Legacy
+                // recipe handlers use the calculation ((height - 166) / 2) to compute the y-value of the top edge of
+                // the NEI window. GTNH NEI changes the layout so that the recipe screen length now has a flexible
+                // length and is no longer centered vertically. In order for the top-of-screen calculation to return the
+                // correct result, we have to hack the height field with an inverse of the calculation using the actual
+                // top of the recipe screen stored in guiTop.
                 height = (2 * guiTop) + 166;
 
                 // For reference, in case we ever need to modify width as well:
-                // the legacy calculation used for width is ((width - 176) / 2), which should
-                // evaluate to be equal to guiWidth (the x-value of the left edge of the NEI window).
-                // So if we wanted to override width as well, we'd do this:
+                // the legacy calculation used for width is ((width - 176) / 2), which should evaluate to be equal to
+                // guiWidth (the x-value of the left edge of the NEI recipe screen). So if we wanted to override width
+                // as well, we'd do this:
                 // width = (2 * guiWidth) + 176;
+            }
+
+            // Recipe handlers may assume the current screen is the GuiRecipe object, which is not the case in
+            // recipe tooltips drawn on the bookmarks panel with the main inventory open.
+            trueGui = NEIClientUtils.mc().currentScreen;
+            if (limitToOneRecipe) {
+                NEIClientUtils.mc().currentScreen = GuiRecipe.this;
             }
         }
 
         @Override
         public void close() {
+            guiTop = trueGuiTop;
             height = trueHeight;
+
+            // Only restore currentScreen if it hasn't been altered by a recipe handler (for example through
+            // Minecraft#displayGuiScreen).
+            if (limitToOneRecipe && NEIClientUtils.mc().currentScreen == GuiRecipe.this) {
+                NEIClientUtils.mc().currentScreen = trueGui;
+            }
+
+            isHeightHackApplied = false;
         }
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void initGui() {
+        initGui(false);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void initGui(boolean asWidget) {
         xSize = 176;
         ySize = Math.min(Math.max(height - 68, 166), 370);
-        super.initGui();
+        if (!asWidget) {
+            super.initGui();
+        } else {
+            this.guiLeft = (this.width - this.xSize) / 2;
+            this.mc = NEIClientUtils.mc();
+            this.fontRendererObj = mc.fontRenderer;
+            ScaledResolution scaledresolution = new ScaledResolution(
+                    this.mc,
+                    this.mc.displayWidth,
+                    this.mc.displayHeight);
+            this.width = scaledresolution.getScaledWidth();
+            this.height = scaledresolution.getScaledHeight();
+        }
         guiTop = (height - ySize) / 2 + 10;
         currenthandlers = getCurrentRecipeHandlers(); // Probably don't comment me out
 
@@ -198,14 +264,24 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         final int recipesPerPage = getRecipesPerPage();
         overlayButtons = new GuiButton[recipesPerPage];
+        final int xOffset = limitToOneRecipe ? ((xSize / 2) - 2) : (width / 2);
+        final int yOffset = limitToOneRecipe ? 0 : guiTop - 18;
+        final String overlayKeyName = NEIClientConfig
+                .getKeyName(NEIClientConfig.getKeyBinding("gui.overlay_use"), true);
         for (int i = 0; i < recipesPerPage; i++) {
             overlayButtons[i] = new GuiNEIButton(
                     OVERLAY_BUTTON_ID_START + i,
-                    (width / 2) + 65,
-                    guiTop + 16 + (handlerInfo.getHeight() * (i + 1)) - 2,
+                    xOffset + 65,
+                    yOffset + getRecipePosition(i).y + handlerInfo.getHeight(),
                     buttonWidth,
                     buttonHeight,
                     "?");
+            if (overlayKeyName != null && limitToOneRecipe) {
+                overlayButtons[i].visible = true;
+                overlayButtons[i].displayString = overlayKeyName;
+                overlayButtons[i].width = fontRenderer.getStringWidth(overlayKeyName) + 6;
+                overlayButtons[i].xPosition = xOffset + 85 - overlayButtons[i].width;
+            }
         }
         Collections.addAll(buttonList, overlayButtons);
         itemPresenceCacheRecipe = -1;
@@ -232,41 +308,17 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         initOverlayButtons();
     }
 
+    public List<GuiButton> getOverlayButtons() {
+        return Collections.unmodifiableList(Arrays.asList(overlayButtons));
+    }
+
     public void openTargetRecipe(BookmarkRecipeId recipeId) {
 
         if (recipeId == null) {
             return;
         }
 
-        if (recipeId.recipetype == -1 || recipeId.position == -1) {
-            recipeId.recipetype = 0;
-            recipeId.position = 0;
-
-            if (recipeId.handlerName != null) {
-
-                for (int j = 0; j < currenthandlers.size(); j++) {
-                    H localHandler = currenthandlers.get(j);
-                    HandlerInfo localHandlerInfo = GuiRecipeTab.getHandlerInfo(localHandler);
-
-                    if (localHandlerInfo.getHandlerName().equals(recipeId.handlerName)) {
-
-                        if (!recipeId.ingredients.isEmpty()) {
-                            for (int i = 0; i < localHandler.numRecipes(); i++) {
-
-                                if (recipeId.equalsIngredients(localHandler.getIngredientStacks(i))) {
-                                    recipeId.recipetype = j;
-                                    recipeId.position = i;
-                                    break;
-                                }
-                            }
-                        }
-
-                        break;
-                    }
-                }
-            }
-        }
-
+        recipeId.updateTargetRecipe(currenthandlers);
         setRecipePage(recipeId.recipetype, recipeId.position);
     }
 
@@ -350,7 +402,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
         if (GuiContainerManager.getManager(this).lastKeyTyped(i, c)) return;
 
-        try (HeightHack heightHack = new HeightHack()) {
+        try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
             for (int recipe : getRecipeIndices()) if (handler.keyTyped(this, c, i, recipe)) return;
         }
 
@@ -372,7 +424,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
     @Override
     protected void mouseClicked(int x, int y, int button) {
-        try (HeightHack heightHack = new HeightHack()) {
+        try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
             for (int recipe : getRecipeIndices()) if (handler.mouseClicked(this, button, recipe)) return;
         }
 
@@ -438,13 +490,18 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     @Override
     public void updateScreen() {
         super.updateScreen();
+        updateAsTooltip();
+    }
+
+    /** updateScreen() that's safe to call when this isn't the currently open GUI */
+    public void updateAsTooltip() {
         handler.onUpdate();
         refreshPage();
     }
 
     @Override
     public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
-        try (HeightHack heightHack = new HeightHack()) {
+        try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
             for (int i : getRecipeIndices()) currenttip = handler.handleTooltip(this, currenttip, i);
         }
         recipeTabs.handleTooltip(mousex, mousey, currenttip);
@@ -454,9 +511,9 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     @Override
     public List<String> handleItemTooltip(GuiContainer gui, ItemStack stack, int mousex, int mousey,
             List<String> currenttip) {
-        // Height hacking is probably not needed as it doesn't look like any mods check mouse
-        // position for this method.
-        for (int i : getRecipeIndices()) currenttip = handler.handleItemTooltip(this, stack, currenttip, i);
+        try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
+            for (int i : getRecipeIndices()) currenttip = handler.handleItemTooltip(this, stack, currenttip, i);
+        }
 
         return currenttip;
     }
@@ -542,6 +599,12 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         final int recipesPerPage = getRecipesPerPage();
         for (int i = page * recipesPerPage; i < handler.numRecipes() && i < (page + 1) * recipesPerPage; i++) {
             Point p = getRecipePosition(i);
+            // Legacy recipe handlers only expect a single paging widget at the top of the recipe screen, in contrast,
+            // GTNH NEI moves the recipe paging widget from the bottom to the top, which means said legacy handlers will
+            // position item slots 16px too high in the screen.
+            if (isHeightHackApplied) {
+                p.translate(0, 16);
+            }
 
             List<PositionedStack> stacks = handler.getIngredientStacks(i);
             for (PositionedStack stack : stacks) slotcontainer.addSlot(stack, p.x, p.y);
@@ -552,11 +615,13 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             PositionedStack result = handler.getResultStack(i);
             if (result != null) slotcontainer.addSlot(result, p.x, p.y);
 
-            List<PositionedStack> catalysts = RecipeCatalysts.getRecipeCatalysts(handler);
-            for (PositionedStack catalyst : catalysts) {
-                int xOffset = -GuiRecipeCatalyst.ingredientSize + 1;
-                int yOffset = BG_TOP_Y + GuiRecipeCatalyst.fullBorder;
-                slotcontainer.addSlot(catalyst, xOffset, yOffset);
+            if (!limitToOneRecipe) {
+                List<PositionedStack> catalysts = RecipeCatalysts.getRecipeCatalysts(handler);
+                for (PositionedStack catalyst : catalysts) {
+                    int xOffset = -GuiRecipeCatalyst.ingredientSize + 1;
+                    int yOffset = BG_TOP_Y + GuiRecipeCatalyst.fullBorder;
+                    slotcontainer.addSlot(catalyst, xOffset, yOffset);
+                }
             }
         }
     }
@@ -590,21 +655,25 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+    public void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         GuiContainerManager.enable2DRender();
         final int recipesPerPage = getRecipesPerPage();
-        String s = handler.getRecipeName().trim();
-        fontRendererObj.drawStringWithShadow(s, (xSize - fontRendererObj.getStringWidth(s)) / 2, 5, 0xffffff);
-        s = NEIClientUtils.translate("recipe.page", page + 1, (handler.numRecipes() - 1) / recipesPerPage + 1);
-        fontRendererObj.drawStringWithShadow(s, (xSize - fontRendererObj.getStringWidth(s)) / 2, 19, 0xffffff);
+        final int ySkip = limitToOneRecipe ? 25 : 0;
+        if (!limitToOneRecipe) {
+            String s = handler.getRecipeName().trim();
+            fontRendererObj.drawStringWithShadow(s, (xSize - fontRendererObj.getStringWidth(s)) / 2, 5, 0xffffff);
+            s = NEIClientUtils.translate("recipe.page", page + 1, (handler.numRecipes() - 1) / recipesPerPage + 1);
+            fontRendererObj.drawStringWithShadow(s, (xSize - fontRendererObj.getStringWidth(s)) / 2, 19, 0xffffff);
+        }
         final boolean drawItemPresence = NEIClientConfig.isJEIStyleItemPresenceOverlayVisible();
 
         GL11.glPushMatrix();
-        GL11.glTranslatef(5, 32 + yShift, 0);
-        try (HeightHack heightHack = new HeightHack()) {
+        GL11.glTranslatef(5, 32 - ySkip + yShift, 0);
+        try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
             for (int i = page * recipesPerPage; i < handler.numRecipes() && i < (page + 1) * recipesPerPage; i++) {
                 handler.drawForeground(i);
-                if (drawItemPresence && isMouseOverOverlayButton(i - page * recipesPerPage)
+                if (drawItemPresence && (isMouseOverOverlayButton(i - page * recipesPerPage) || limitToOneRecipe)
+                        && firstGui != null
                         && firstGui.inventorySlots != null) {
                     List<PositionedStack> ingredients = handler.getIngredientStacks(i);
                     if (itemPresenceCacheRecipe != i || itemPresenceCacheSlots == null
@@ -624,28 +693,27 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(float f, int mouseX, int mouseY) {
+    public void drawGuiContainerBackgroundLayer(float f, int mouseX, int mouseY) {
         final int recipesPerPage = getRecipesPerPage();
+        final int ySkip = limitToOneRecipe ? 25 : 0;
         GL11.glColor4f(1, 1, 1, 1);
-        final int j = (width - xSize) / 2;
-        final int k = guiTop;
 
-        drawBackgroundTiled(j, k);
+        drawBackgroundTiled(guiLeft, guiTop);
 
-        drawRect(
-                guiLeft + borderPadding + buttonWidth - 1,
-                nexttype.yPosition,
-                guiLeft + xSize - borderPadding - buttonWidth,
-                nexttype.yPosition + buttonHeight,
-                0x30000000);
-        drawRect(
-                guiLeft + borderPadding + buttonWidth - 1,
-                nextpage.yPosition,
-                guiLeft + xSize - borderPadding - buttonWidth,
-                nextpage.yPosition + buttonHeight,
-                0x30000000);
+        if (NEIClientConfig.areJEIStyleTabsVisible() && !limitToOneRecipe) {
+            drawRect(
+                    guiLeft + borderPadding + buttonWidth - 1,
+                    nexttype.yPosition,
+                    guiLeft + xSize - borderPadding - buttonWidth,
+                    nexttype.yPosition + buttonHeight,
+                    0x30000000);
+            drawRect(
+                    guiLeft + borderPadding + buttonWidth - 1,
+                    nextpage.yPosition,
+                    guiLeft + xSize - borderPadding - buttonWidth,
+                    nextpage.yPosition + buttonHeight,
+                    0x30000000);
 
-        if (NEIClientConfig.areJEIStyleTabsVisible()) {
             RenderHelper.enableGUIStandardItemLighting();
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
             recipeTabs.draw(mouseX, mouseY);
@@ -656,8 +724,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
 
         GL11.glPushMatrix();
-        GL11.glTranslatef(j + 5, k + 32 + yShift, 0);
-        try (HeightHack heightHack = new HeightHack()) {
+        GL11.glTranslatef(guiLeft + 5, guiTop - ySkip + 32 + yShift, 0);
+        try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
             for (int i = page * recipesPerPage; i < handler.numRecipes() && i < (page + 1) * recipesPerPage; i++) {
                 handler.drawBackground(i);
                 GL11.glTranslatef(0, handlerInfo.getHeight(), 0);
@@ -668,10 +736,12 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
     private void drawBackgroundTiled(int j, int k) {
         // Draw the top
+        final int ySkip = limitToOneRecipe ? 25 : 0;
+        final int handlerHeight = limitToOneRecipe ? getHeightAsWidget() : ySize;
         bgTop.draw(j, k + BG_TOP_Y);
 
         // Maybe Tile the middle
-        final int tiledHeight = ySize - BG_TOP_HEIGHT - BG_BOTTOM_HEIGHT;
+        final int tiledHeight = handlerHeight - ySkip - BG_TOP_HEIGHT - BG_BOTTOM_HEIGHT;
 
         if (tiledHeight > 0) {
             final int yTileCount = tiledHeight / BG_MIDDLE_HEIGHT;
@@ -688,7 +758,11 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
 
         // Draw the bottom
-        bgBottom.draw(j, k + ySize - BG_BOTTOM_HEIGHT);
+        bgBottom.draw(j, k + handlerHeight - ySkip - BG_BOTTOM_HEIGHT);
+    }
+
+    public int getHeightAsWidget() {
+        return (handlerInfo == null) ? ySize : (handlerInfo.getHeight() + 56);
     }
 
     @Override
@@ -724,7 +798,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     private int getRecipesPerPage() {
-        return getRecipesPerPage(handlerInfo);
+        return limitToOneRecipe ? 1 : getRecipesPerPage(handlerInfo);
     }
 
     private int getRecipesPerPage(HandlerInfo handlerInfo) {
@@ -735,7 +809,14 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     public Point getRecipePosition(int recipe) {
-        return new Point(5, 32 + yShift + ((recipe % getRecipesPerPage()) * handlerInfo.getHeight()));
+        // Legacy recipe handlers using the height hack might use getRecipePosition in combination with guiTop/height to
+        // position certain elements like tooltips. Since guiTop is moved down by 16px during height hacking, we need to
+        // reduce the vertical shift here to 16px instead of 32px.
+        return new Point(
+                5,
+                (isHeightHackApplied ? 16 : 32) - (limitToOneRecipe ? 25 : 0)
+                        + yShift
+                        + ((recipe % getRecipesPerPage()) * handlerInfo.getHeight()));
     }
 
     public abstract ArrayList<H> getCurrentRecipeHandlers();

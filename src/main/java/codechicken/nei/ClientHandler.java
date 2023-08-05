@@ -9,9 +9,6 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -48,20 +45,12 @@ import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.StackInfo;
 import cpw.mods.fml.client.CustomModLoadingErrorDisplayException;
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 
 public class ClientHandler {
 
-    private static String[] defaultSerialHandlers = {
-            "WayofTime.alchemicalWizardry.client.nei.NEIAlchemyRecipeHandler" };
-    private static String[] defaultHeightHackHandlerRegex = { "buildcraft.compat.nei.*",
-            "cofh.thermalexpansion.plugins.nei.handlers.*", "crazypants.enderio.nei.*",
-            "forestry.factory.recipes.nei.*", "ic2.neiIntegration.core.recipehandler.*", "mariculture.plugins.nei.*",
-            "redgear.brewcraft.plugins.nei.*", "tconstruct.plugins.nei.*",
-            "WayofTime.alchemicalWizardry.client.nei.*", };
     private static String[] defaultHandlerOrdering = {
             "# Each line in this file should either be a comment (starts with '#') or an ordering.",
             "# Ordering lines are <handler ID>,<ordering number>.",
@@ -165,16 +154,19 @@ public class ClientHandler {
         if (!file.exists()) {
             try (FileWriter writer = new FileWriter(file)) {
                 NEIClientConfig.logger.info("Creating default serial handlers list {}", file);
-                Collection<String> toSave = Loader.isModLoaded("dreamcraft") ? Collections.singletonList("")
-                        : Arrays.asList(defaultSerialHandlers);
-                IOUtils.writeLines(toSave, "\n", writer);
+                URL defaultSerialHandlersResource = ClientHandler.class
+                        .getResource("/assets/nei/cfg/serialhandlers.cfg");
+                if (defaultSerialHandlersResource != null) {
+                    IOUtils.copy(defaultSerialHandlersResource.openStream(), writer);
+                }
             } catch (IOException e) {
                 NEIClientConfig.logger.error("Failed to save default serial handlers list to file {}", file, e);
             }
         }
         try (FileReader reader = new FileReader(file)) {
             NEIClientConfig.logger.info("Loading serial handlers from file {}", file);
-            NEIClientConfig.serialHandlers = new HashSet<>(IOUtils.readLines(reader));
+            NEIClientConfig.serialHandlers = IOUtils.readLines(reader).stream().filter((line) -> !line.startsWith("#"))
+                    .collect(Collectors.toCollection(HashSet::new));
         } catch (IOException e) {
             NEIClientConfig.logger.error("Failed to load serial handlers from file {}", file, e);
         }
@@ -185,8 +177,11 @@ public class ClientHandler {
         if (!file.exists()) {
             try (FileWriter writer = new FileWriter(file)) {
                 NEIClientConfig.logger.info("Creating default height hack handlers list {}", file);
-                Collection<String> toSave = Arrays.asList(defaultHeightHackHandlerRegex);
-                IOUtils.writeLines(toSave, "\n", writer);
+                URL defaultHeightHackHandlersResource = ClientHandler.class
+                        .getResource("/assets/nei/cfg/heighthackhandlers.cfg");
+                if (defaultHeightHackHandlersResource != null) {
+                    IOUtils.copy(defaultHeightHackHandlersResource.openStream(), writer);
+                }
             } catch (IOException e) {
                 NEIClientConfig.logger.error("Failed to save default height hack handlers list to file {}", file, e);
             }
@@ -194,7 +189,8 @@ public class ClientHandler {
 
         try (FileReader reader = new FileReader(file)) {
             NEIClientConfig.logger.info("Loading height hack handlers from file {}", file);
-            NEIClientConfig.heightHackHandlerRegex = IOUtils.readLines(reader).stream().map(Pattern::compile)
+            NEIClientConfig.heightHackHandlerRegex = IOUtils.readLines(reader).stream()
+                    .filter((line) -> !line.startsWith("#")).map(Pattern::compile)
                     .collect(Collectors.toCollection(HashSet::new));
         } catch (IOException e) {
             NEIClientConfig.logger.error("Failed to load height hack handlers from file {}", file, e);

@@ -87,6 +87,10 @@ public class BookmarkPanel extends PanelWidget {
         protected boolean[] todoSpaces;
         protected int todoItemsCount = 0;
 
+        public BookmarkGrid() {
+            this.setShowRecipeTooltips(true);
+        }
+
         public void setViewMode(BookmarkViewMode mode) {
             if (viewMode == mode) {
                 return;
@@ -482,7 +486,7 @@ public class BookmarkPanel extends PanelWidget {
             final ItemStack normalizedA = StackInfo.loadFromNBT(nbTagA);
             BookmarkRecipeId recipeId = null;
 
-            if (handlerName != "" && ingredients != null && !ingredients.isEmpty()) {
+            if (handlerName != "" && ingredients != null) {
                 recipeId = new BookmarkRecipeId(handlerName, ingredients);
             }
 
@@ -492,7 +496,7 @@ public class BookmarkPanel extends PanelWidget {
                 BGrid.removeRecipe(idx, saveIngredients);
             } else {
 
-                if (saveIngredients && handlerName != "" && ingredients != null && !ingredients.isEmpty()) {
+                if (saveIngredients && handlerName != "" && ingredients != null) {
                     final Map<NBTTagCompound, Integer> unique = new HashMap<>();
                     final ArrayList<NBTTagCompound> sorted = new ArrayList<>();
 

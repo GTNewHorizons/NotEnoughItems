@@ -242,6 +242,9 @@ public class NEIClientConfig {
         tag.getTag("inventory.bookmarksAnimationEnabled").setComment("REI Style Animation in Bookmarks")
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.bookmarksAnimationEnabled", true));
+        tag.getTag("inventory.recipeTooltipsEnabled").setComment("Show recipe tooltips in Bookmarks")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.recipeTooltipsEnabled", true));
         tag.getTag("inventory.showRecipeMarker").setComment("Show Recipe Marker").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.showRecipeMarker", true));
 
@@ -558,6 +561,10 @@ public class NEIClientConfig {
 
     public static boolean areBookmarksAnimated() {
         return getBooleanSetting("inventory.bookmarksAnimationEnabled");
+    }
+
+    public static boolean showRecipeTooltips() {
+        return getBooleanSetting("inventory.recipeTooltipsEnabled");
     }
 
     public static boolean showRecipeMarker() {

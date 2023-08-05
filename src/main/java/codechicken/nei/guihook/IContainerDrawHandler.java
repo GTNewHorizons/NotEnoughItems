@@ -1,5 +1,7 @@
 package codechicken.nei.guihook;
 
+import java.util.List;
+
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Slot;
 
@@ -29,6 +31,17 @@ public interface IContainerDrawHandler {
      * @param mousey The y position of the mouse in pixels from top
      */
     public void postRenderObjects(GuiContainer gui, int mousex, int mousey);
+
+    /**
+     * Use this to draw things that should be drawn just after vanilla slot tooltips, on top of buttons and other
+     * usually always-on-top widgets.
+     *
+     * @param gui     An instance of the currentscreen
+     * @param mousex  The x position of the mouse in pixels from left
+     * @param mousey  The y position of the mouse in pixels from top
+     * @param tooltip The contents of the tooltip that has previously been drawn
+     */
+    default void postRenderTooltips(GuiContainer gui, int mousex, int mousey, List<String> tooltip) {}
 
     /**
      * Render something over a slot before the item in the slot.
