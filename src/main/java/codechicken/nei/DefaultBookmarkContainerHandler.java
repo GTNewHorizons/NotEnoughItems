@@ -33,7 +33,7 @@ public class DefaultBookmarkContainerHandler implements IBookmarkContainerHandle
 
                     int transferAmount = Math.min(bookmarkItem.stackSize, containerItem.stackSize);
 
-                    manager.transferItems(guiContainer, containerStacks.indexOf(containerItem), transferAmount);
+                    manager.transferItems(guiContainer, i, transferAmount);
                     bookmarkItem.stackSize -= transferAmount;
 
                     if (bookmarkItem.stackSize == 0) {
