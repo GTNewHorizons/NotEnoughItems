@@ -1150,7 +1150,9 @@ public class BookmarkPanel extends PanelWidget {
     public boolean pullBookmarkItems() {
         IBookmarkContainerHandler containerHandler = BookmarkContainerInfo
                 .getBookmarkContainerHandler(getGuiContainer());
-        if (containerHandler == null) return false;
+        if (containerHandler == null) {
+            return false;
+        }
         containerHandler.pullBookmarkItemsFromContainer(getGuiContainer(), ((BookmarkGrid) grid).realItems);
         return true;
     }
