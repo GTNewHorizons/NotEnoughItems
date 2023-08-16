@@ -132,6 +132,11 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         limitToOneRecipe = true;
     }
 
+    /** Checks if the gui only displays one recipe at a time, e.g. for tooltip usage */
+    public boolean isLimitedToOneRecipe() {
+        return limitToOneRecipe;
+    }
+
     /**
      * Many old mods assumed a fixed NEI window height of {@code 166} pixels. Now that this is no longer the case, their
      * tooltip and click zone handling is broken. This helper class fixes these old mods by hacking the {@link #height}
@@ -219,6 +224,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             super.initGui();
         } else {
             this.guiLeft = (this.width - this.xSize) / 2;
+            this.ySize = this.getHeightAsWidget();
             this.mc = NEIClientUtils.mc();
             this.fontRendererObj = mc.fontRenderer;
             ScaledResolution scaledresolution = new ScaledResolution(
