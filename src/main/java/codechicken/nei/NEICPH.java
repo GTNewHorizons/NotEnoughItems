@@ -102,7 +102,7 @@ public class NEICPH implements IClientPacketHandler {
             try {
                 ClientHandler.instance().loadWorld(world, true);
                 NEIClientConfig.setHasSMPCounterPart(true);
-                NEIClientConfig.loadWorld(getSaveName(worldName));
+                NEIClientConfig.loadWorld(getSaveName());
                 sendRequestLoginInfo();
             } catch (Exception e) {
                 NEIClientConfig.logger.error("Error handling SMP Check", e);
@@ -110,10 +110,10 @@ public class NEICPH implements IClientPacketHandler {
         }
     }
 
-    private static String getSaveName(String worldName) {
+    private static String getSaveName() {
         if (Minecraft.getMinecraft().isSingleplayer()) return "local/" + ClientUtils.getWorldSaveName();
 
-        return "remote/" + ClientUtils.getServerIP().replace(':', '~') + "/" + worldName;
+        return "remote/" + ClientUtils.getServerIP().replace(':', '~');
     }
 
     public static void sendGiveItem(ItemStack spawnstack, boolean infinite, boolean doSpawn) {
