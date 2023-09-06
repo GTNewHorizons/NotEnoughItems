@@ -1108,6 +1108,10 @@ public class BookmarkPanel extends PanelWidget {
                 final BookmarkRecipeId recipeId = BGrid.getRecipeId(slot.slotIndex);
                 final boolean addFullRecipe = NEIClientUtils.shiftKey();
 
+                if (NEIClientUtils.altKey()) {
+                    shift *= slot.item.getMaxStackSize();
+                }
+
                 if (addFullRecipe) {
                     BookmarkStackMeta iMeta;
 
