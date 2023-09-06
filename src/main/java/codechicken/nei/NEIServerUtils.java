@@ -42,6 +42,7 @@ import codechicken.core.ServerUtils;
 import codechicken.lib.inventory.InventoryRange;
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.packet.PacketCustom;
+import codechicken.nei.PacketIDs.S2C;
 import codechicken.nei.util.NBTHelper;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -295,7 +296,7 @@ public class NEIServerUtils {
         player.theItemInWorldManager.setGameType(getGameType(mode));
 
         // tell the client to change it
-        new PacketCustom(NEISPH.channel, 14).writeByte(mode).sendToPlayer(player);
+        new PacketCustom(NEISPH.channel, S2C.SEND_GAME_MODE).writeByte(mode).sendToPlayer(player);
         player.addChatMessage(new ChatComponentTranslation("nei.chat.gamemode." + mode));
     }
 

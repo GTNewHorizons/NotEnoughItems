@@ -1,5 +1,7 @@
 package codechicken.nei;
 
+import static codechicken.nei.PacketIDs.*;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.item.ItemStack;
@@ -20,37 +22,37 @@ public class NEICPH implements IClientPacketHandler {
     @Override
     public void handlePacket(PacketCustom packet, Minecraft mc, INetHandlerPlayClient netHandler) {
         switch (packet.getType()) {
-            case 1:
+            case S2C.SEND_SERVER_SIDE_CHECK:
                 handleSMPCheck(packet.readUByte(), packet.readString(), mc.theWorld);
                 break;
-            case 10:
+            case S2C.SEND_LOGIN_STATE:
                 handleLoginState(packet);
                 break;
-            case 11:
+            case S2C.SEND_ACTION_DISABLED:
                 handleActionDisabled(packet);
                 break;
-            case 12:
+            case S2C.SEND_ACTION_ENABLED:
                 handleActionEnabled(packet);
                 break;
-            case 13:
+            case S2C.SEND_MAGNETIC_ITEM:
                 ClientHandler.instance().addSMPMagneticItem(packet.readInt(), mc.theWorld);
                 break;
-            case 14:
+            case S2C.SEND_GAME_MODE:
                 handleGamemode(mc, packet.readUByte());
                 break;
-            case 21:
+            case S2C.OPEN_ENCHANTMENT_GUI:
                 ClientUtils.openSMPGui(
                         packet.readUByte(),
                         new GuiEnchantmentModifier(mc.thePlayer.inventory, mc.theWorld, 0, 0, 0));
                 break;
-            case 23:
+            case S2C.SET_CREATIVE_PLUS_MODE:
                 if (packet.readBoolean()) ClientUtils.openSMPGui(
                         packet.readUByte(),
                         new GuiExtendedCreativeInv(
                                 new ContainerCreativeInv(mc.thePlayer, new ExtendedCreativeInv(null, Side.CLIENT))));
                 else mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
                 break;
-            case 24:
+            case S2C.OPEN_POTION_GUI:
                 ClientUtils.openSMPGui(packet.readUByte(), new GuiPotionCreator(mc.thePlayer.inventory));
                 break;
         }
@@ -117,7 +119,7 @@ public class NEICPH implements IClientPacketHandler {
     }
 
     public static void sendGiveItem(ItemStack spawnstack, boolean infinite, boolean doSpawn) {
-        PacketCustom packet = new PacketCustom(channel, 1);
+        PacketCustom packet = new PacketCustom(channel, C2S.GIVE_ITEM);
         packet.writeItemStack(spawnstack, true);
         packet.writeBoolean(infinite);
         packet.writeBoolean(doSpawn);
@@ -125,7 +127,7 @@ public class NEICPH implements IClientPacketHandler {
     }
 
     public static void sendDeleteAllItems() {
-        PacketCustom packet = new PacketCustom(channel, 4);
+        PacketCustom packet = new PacketCustom(channel, C2S.DELETE_ALL_ITEMS);
         packet.sendToServer();
     }
 
@@ -139,18 +141,18 @@ public class NEICPH implements IClientPacketHandler {
             sendSetSlot(slot, item, false);
         }
 
-        PacketCustom packet = new PacketCustom(channel, 11);
+        PacketCustom packet = new PacketCustom(channel, C2S.REQUEST_CONTAINER_CONTENTS);
         packet.sendToServer();
     }
 
     public static void sendRequestContainer() {
-        PacketCustom packet = new PacketCustom(channel, 16);
+        PacketCustom packet = new PacketCustom(channel, C2S.REQUEST_CONTAINER);
         packet.writeInt(Minecraft.getMinecraft().thePlayer.openContainer.getInventory().size());
         packet.sendToServer();
     }
 
     public static void sendSetSlot(int slot, ItemStack stack, boolean container) {
-        PacketCustom packet = new PacketCustom(channel, 5);
+        PacketCustom packet = new PacketCustom(channel, C2S.SET_SLOT);
         packet.writeBoolean(container);
         packet.writeShort(slot);
         packet.writeItemStack(stack);
@@ -158,38 +160,38 @@ public class NEICPH implements IClientPacketHandler {
     }
 
     private static void sendRequestLoginInfo() {
-        PacketCustom packet = new PacketCustom(channel, 10);
+        PacketCustom packet = new PacketCustom(channel, C2S.REQUEST_LOGIN_INFO);
         packet.sendToServer();
     }
 
     public static void sendToggleMagnetMode() {
-        PacketCustom packet = new PacketCustom(channel, 6);
+        PacketCustom packet = new PacketCustom(channel, C2S.TOGGLE_MAGNET);
         packet.sendToServer();
     }
 
     public static void sendSetTime(int hour) {
-        PacketCustom packet = new PacketCustom(channel, 7);
+        PacketCustom packet = new PacketCustom(channel, C2S.SET_TIME);
         packet.writeByte(hour);
         packet.sendToServer();
     }
 
     public static void sendHeal() {
-        PacketCustom packet = new PacketCustom(channel, 8);
+        PacketCustom packet = new PacketCustom(channel, C2S.HEAL);
         packet.sendToServer();
     }
 
     public static void sendToggleRain() {
-        PacketCustom packet = new PacketCustom(channel, 9);
+        PacketCustom packet = new PacketCustom(channel, C2S.TOGGLE_RAIN);
         packet.sendToServer();
     }
 
     public static void sendOpenEnchantmentWindow() {
-        PacketCustom packet = new PacketCustom(channel, 21);
+        PacketCustom packet = new PacketCustom(channel, C2S.REQUEST_ENCHANTMENT_GUI);
         packet.sendToServer();
     }
 
     public static void sendModifyEnchantment(int enchID, int level, boolean add) {
-        PacketCustom packet = new PacketCustom(channel, 22);
+        PacketCustom packet = new PacketCustom(channel, C2S.MODIFY_ENCHANTMENT);
         packet.writeByte(enchID);
         packet.writeByte(level);
         packet.writeBoolean(add);
@@ -197,30 +199,30 @@ public class NEICPH implements IClientPacketHandler {
     }
 
     public static void sendSetPropertyDisabled(String name, boolean enable) {
-        PacketCustom packet = new PacketCustom(channel, 12);
+        PacketCustom packet = new PacketCustom(channel, C2S.CHANGE_PROPERTY);
         packet.writeString(name);
         packet.writeBoolean(enable);
         packet.sendToServer();
     }
 
     public static void sendGamemode(int mode) {
-        new PacketCustom(channel, 13).writeByte(mode).sendToServer();
+        new PacketCustom(channel, C2S.SET_GAME_MODE).writeByte(mode).sendToServer();
     }
 
     public static void sendCreativeInv(boolean open) {
-        PacketCustom packet = new PacketCustom(channel, 23);
+        PacketCustom packet = new PacketCustom(channel, C2S.SET_CREATIVE_PLUS_MODE);
         packet.writeBoolean(open);
         packet.sendToServer();
     }
 
     public static void sendCreativeScroll(int steps) {
-        PacketCustom packet = new PacketCustom(channel, 14);
+        PacketCustom packet = new PacketCustom(channel, C2S.CYCLE_CREATIVE_INV);
         packet.writeInt(steps);
         packet.sendToServer();
     }
 
     public static void sendMobSpawnerID(int x, int y, int z, String mobtype) {
-        PacketCustom packet = new PacketCustom(channel, 15);
+        PacketCustom packet = new PacketCustom(channel, C2S.SEND_MOB_SPAWNER_ID);
         packet.writeCoord(x, y, z);
         packet.writeString(mobtype);
         packet.sendToServer();
@@ -231,13 +233,13 @@ public class NEICPH implements IClientPacketHandler {
         InventoryUtils.readItemStacksFromTag(
                 potionStore,
                 NEIClientConfig.global.nbt.getCompoundTag("potionStore").getTagList("items", 10));
-        PacketCustom packet = new PacketCustom(channel, 24);
+        PacketCustom packet = new PacketCustom(channel, C2S.REQUEST_POTION_GUI);
         for (ItemStack stack : potionStore) packet.writeItemStack(stack);
         packet.sendToServer();
     }
 
     public static void sendDummySlotSet(int slotNumber, ItemStack stack) {
-        PacketCustom packet = new PacketCustom(channel, 25);
+        PacketCustom packet = new PacketCustom(channel, C2S.SET_DUMMY_SLOT);
         packet.writeShort(slotNumber);
         packet.writeItemStack(stack, true);
         packet.sendToServer();
