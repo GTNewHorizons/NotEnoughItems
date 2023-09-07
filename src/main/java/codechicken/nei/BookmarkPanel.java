@@ -868,8 +868,7 @@ public class BookmarkPanel extends PanelWidget {
             LayoutManager.addWidget(namespacePrev);
             LayoutManager.addWidget(namespaceNext);
             LayoutManager.addWidget(namespaceLabel);
-            if (BookmarkContainerInfo
-                    .getBookmarkContainerHandler(getGuiContainer()) != null) {
+            if (BookmarkContainerInfo.getBookmarkContainerHandler(getGuiContainer()) != null) {
                 LayoutManager.addWidget(pullBookmarkedItems);
             }
         }
@@ -1059,8 +1058,7 @@ public class BookmarkPanel extends PanelWidget {
             tooltip.add(translate("bookmark.viewmode.toggle.tip"));
         }
         if (new Rectangle4i(pullBookmarkedItems.x, pullBookmarkedItems.y, pullBookmarkedItems.w, pullBookmarkedItems.h)
-                .contains(mx, my) && BookmarkContainerInfo
-                .getBookmarkContainerHandler(getGuiContainer()) != null) {
+                .contains(mx, my) && BookmarkContainerInfo.getBookmarkContainerHandler(getGuiContainer()) != null) {
             tooltip.add(translate("bookmark.pullBookmarkedItems.tip"));
         }
 
