@@ -52,4 +52,20 @@ public class ItemQuantityField extends TextField {
             super.draw(mousex, mousey);
         }
     }
+
+    @Override
+    public boolean onMouseWheel(int i, int mx, int my) {
+        if (!contains(mx, my)) return false;
+        int multiplier = 1;
+        if (NEIClientUtils.shiftKey()) {
+            multiplier = 10;
+        } else if (NEIClientUtils.controlKey()) {
+            multiplier = 64;
+        }
+
+        int quantity = intValue() + i * multiplier;
+        setText(Integer.toString(quantity));
+        return true;
+    }
+
 }
