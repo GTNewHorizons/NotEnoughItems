@@ -328,7 +328,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
         if (isBookmarkPanelHidden()) visiblity.showBookmarkPanel = false;
 
-        if (gui.height - gui.ySize <= 40) visiblity.showSearchSection = false;
+        if (gui.height - gui.ySize <= 40 && NEIClientConfig.isSearchWidgetCentered())
+            visiblity.showSearchSection = false;
 
         if (visiblity.showBookmarkPanel || gui.guiTop <= 20) visiblity.showSubsetDropdown = false;
 
