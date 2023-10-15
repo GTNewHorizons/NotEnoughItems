@@ -35,7 +35,7 @@ public class DefaultStackStringifyHandler implements IStackStringifyHandler {
         final String strId = nbtTag.getString("strId");
 
         nbtTag = (NBTTagCompound) nbtTag.copy();
-        nbtTag.setInteger("id", GameData.getItemRegistry().getId(strId)); // getObject
+        nbtTag.setShort("id", (short) GameData.getItemRegistry().getId(strId)); // getObject
 
         final ItemStack stack = ItemStack.loadItemStackFromNBT(nbtTag);
 
