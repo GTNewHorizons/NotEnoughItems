@@ -22,7 +22,10 @@ public class BookmarkContainerInfo {
     }
 
     public static IBookmarkContainerHandler getBookmarkContainerHandler(GuiContainer gui) {
-        return handlerMap.get(gui.getClass());
+        if (gui != null)
+        {
+            return handlerMap.get(gui.getClass());
+        }
     }
 
     public static void load() {
