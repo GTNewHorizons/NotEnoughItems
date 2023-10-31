@@ -132,6 +132,8 @@ public class RecipeCatalysts {
         recipeCatalystMap.clear();
         URL handlerUrl = RecipeCatalysts.class.getResource("/assets/nei/csv/catalysts.csv");
 
+        resolveAdderQueue();
+
         URL url;
         if (fromJar) {
             url = handlerUrl;
@@ -208,13 +210,23 @@ public class RecipeCatalysts {
                     handlerID = handler;
                 }
 
-                addOrPut(recipeCatalystMap, handlerID, catalystInfo);
+                // Prefer info added by API if we're using default jar config.
+                // If not, user config overwrites it.
+                addOrPut(recipeCatalystMap, handlerID, catalystInfo, !fromJar);
             }
         } catch (Exception e) {
             NEIClientConfig.logger.warn("Error parsing CSV");
             e.printStackTrace();
         }
 
+        if (fromJar) {
+            resolveRemoverQueue();
+        }
+
+        updatePosition(getHeight(), true);
+    }
+
+    private static void resolveAdderQueue() {
         for (Map.Entry<String, CatalystInfoList> entry : catalystsAdderFromAPI.entrySet()) {
             String handlerID = entry.getKey();
             for (CatalystInfo catalyst : entry.getValue()) {
@@ -243,6 +255,9 @@ public class RecipeCatalysts {
                 }
             });
         }
+    }
+
+    private static void resolveRemoverQueue() {
         for (Map.Entry<String, List<ItemStack>> entry : catalystsRemoverFromAPI.entrySet()) {
             String handlerID = entry.getKey();
             if (recipeCatalystMap.containsKey(handlerID)) {
@@ -258,8 +273,6 @@ public class RecipeCatalysts {
                 entry.getValue().forEach(catalysts::remove);
             }
         }
-
-        updatePosition(getHeight(), true);
     }
 
     /**
@@ -275,8 +288,13 @@ public class RecipeCatalysts {
     }
 
     public static void addOrPut(Map<String, CatalystInfoList> map, String handlerID, CatalystInfo catalyst) {
+        addOrPut(map, handlerID, catalyst, false);
+    }
+
+    public static void addOrPut(Map<String, CatalystInfoList> map, String handlerID, CatalystInfo catalyst,
+            boolean overwrite) {
         if (map.containsKey(handlerID)) {
-            map.get(handlerID).add(catalyst);
+            map.get(handlerID).add(catalyst, overwrite);
         } else {
             map.put(handlerID, new CatalystInfoList(handlerID, catalyst));
         }

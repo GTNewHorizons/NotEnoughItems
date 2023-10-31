@@ -10,10 +10,8 @@ import net.minecraft.item.ItemStack;
 
 import com.google.common.collect.ForwardingList;
 
-import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIServerUtils;
 
-// Do not directly extend ArrayList, see Effective Java Item 16
 public class CatalystInfoList extends ForwardingList<CatalystInfo> {
 
     private final String handlerID;
@@ -34,16 +32,21 @@ public class CatalystInfoList extends ForwardingList<CatalystInfo> {
     }
 
     @Override
-    public boolean add(@Nonnull CatalystInfo catalystInfo) {
-        if (contains(catalystInfo)) {
-            NEIClientConfig.logger.info(
-                    String.format(
-                            "catalyst %s is already registered to handler %s",
-                            catalystInfo.getStack().getDisplayName(),
-                            handlerID));
-            return false;
+    public boolean add(@Nonnull CatalystInfo element) {
+        return doAdd(element);
+    }
+
+    public boolean add(@Nonnull CatalystInfo catalystInfo, boolean overwrite) {
+        if (overwrite || !contains(catalystInfo)) {
+            return add(catalystInfo);
         }
-        super.add(catalystInfo);
+        return false;
+    }
+
+    private boolean doAdd(@Nonnull CatalystInfo catalystInfo) {
+        catalystInfoList
+                .removeIf(c -> NEIServerUtils.areStacksSameTypeCraftingWithNBT(c.getStack(), catalystInfo.getStack()));
+        catalystInfoList.add(catalystInfo);
         return true;
     }
 

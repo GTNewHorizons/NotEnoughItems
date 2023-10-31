@@ -476,7 +476,6 @@ public class NEIClientConfig {
         RecipeInfo.load();
         LayoutManager.load();
         NEIController.load();
-        RecipeCatalysts.loadCatalystInfo();
         BookmarkContainerInfo.load();
         mainNEIConfigLoaded = true;
 
@@ -501,6 +500,8 @@ public class NEIClientConfig {
                         logger.error("Failed to Load " + clazz.getName(), e);
                     }
                 }
+
+                RecipeCatalysts.loadCatalystInfo();
 
                 // Set pluginNEIConfigLoaded here before posting the NEIConfigsLoadedEvent. This used to be the other
                 // way around, but apparently if your modpack includes 800 mods the event poster might not return in
