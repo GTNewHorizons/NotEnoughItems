@@ -116,11 +116,10 @@ public class DefaultOverlayHandler implements IOverlayHandler {
                 if (!slot.getHasStack() || !canMoveFrom(slot, gui)) continue;
 
                 ItemStack stack = slot.getStack();
-                int backupStackSize = stack.stackSize; // clickSlot can kill the reference
                 if (!canStack(stack, pstack)) continue;
 
+                int amount = Math.min(transferCap - transferred, stack.stackSize);
                 FastTransferManager.clickSlot(gui, slot.slotNumber);
-                int amount = Math.min(transferCap - transferred, backupStackSize);
                 for (int c = 0; c < amount; c++) {
                     FastTransferManager.clickSlot(gui, dest.slotNumber, 1);
                     transferred++;
