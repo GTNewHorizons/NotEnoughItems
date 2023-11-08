@@ -131,6 +131,12 @@ public class HandlerInfo {
             return this;
         }
 
+        public Builder setDisplayImage(DrawableResource drawable) {
+            info.itemStack = null;
+            info.image = drawable;
+            return this;
+        }
+
         public Builder setDisplayImage(ResourceLocation location, int imageX, int imageY, int imageWidth,
                 int imageHeight) {
             info.itemStack = null;
