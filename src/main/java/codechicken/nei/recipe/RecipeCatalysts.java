@@ -185,7 +185,7 @@ public class RecipeCatalysts {
                 if (itemName == null || itemName.isEmpty()) continue;
                 ItemStack stack = NEIServerUtils.getModdedItem(itemName, record.get("nbtInfo"));
                 if (stack == null) {
-                    NEIClientConfig.logger.warn("Couldn't find ItemStack " + itemName);
+                    NEIClientConfig.logger.debug("Couldn't find ItemStack " + itemName);
                     continue;
                 }
                 CatalystInfo catalystInfo = new CatalystInfo(stack, priority);
