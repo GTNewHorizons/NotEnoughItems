@@ -177,29 +177,43 @@ public class BookmarkPanel extends PanelWidget {
             }
 
             BookmarkStackMeta meta;
+            boolean isFirstColumn = false;
+            boolean isIngredient = false;
             int size = size();
             int idx = 0;
 
             while (idx < size) {
                 ArrayList<Integer> pmask = new ArrayList<>();
+                int lastIdx = idx;
 
                 for (int i = 0, perPage = rows * columns; i < perPage && idx < size; i++) {
+
                     if (isInvalidSlot(i)) {
                         pmask.add(null);
                     } else {
                         meta = getMetadata(idx);
+                        isFirstColumn = (i % columns) == 0;
+                        isIngredient = meta.recipeId != null && meta.ingredient;
 
-                        if (idx > 0 && ((i % columns) == 0) == (meta.recipeId != null && meta.ingredient
-                                && meta.recipeId.equals(getRecipeId(idx - 1)))) {
-                            pmask.add(null);
-                        } else {
+                        if (isFirstColumn && !isIngredient) {
                             pmask.add(idx++);
 
-                            if ((i % columns) == 0) {
-                                todoItemsCount++;
-                            }
+                            todoItemsCount++;
+                        } else if (isIngredient && (!isFirstColumn || i + 1 < perPage && isInvalidSlot(i + 1))) {
+                            // The ingredients that do not fit on the first line are moved to the second starting with
+                            // the second column. This condition checks whether the second column is available. If not
+                            // available, the ingredient takes the first column
+                            pmask.add(idx++);
+                        } else {
+                            pmask.add(null);
                         }
+
                     }
+
+                }
+
+                if (lastIdx == idx) {
+                    break;
                 }
 
                 gridMask.add(pmask);
