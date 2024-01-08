@@ -45,6 +45,10 @@ nei.chat.rain.on=Pluie activée
 nei.chat.rain.off=Pluie désactivée
 nei.chat.time=Jour %d. %d:00
 nei.chat.give.noitem=Objet inexistant.
+nei.chat.chunkoverlay.0=Chunk Overlay: Off
+nei.chat.chunkoverlay.1=Chunk Overlay: Chunk Corners
+nei.chat.chunkoverlay.2=Chunk Overlay: Chunks
+nei.chat.chunkoverlay.3=Chunk Overlay: GT Ore Veins
 
 nei.options=NEI Options
 nei.options.back=Retour

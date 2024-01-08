@@ -43,6 +43,10 @@ nei.chat.rain.on=비 on
 nei.chat.rain.off=비 off
 nei.chat.time=%d번째 날. %d시 정각
 nei.chat.give.noitem=아이템이 없습니다.
+nei.chat.chunkoverlay.0=Chunk Overlay: Off
+nei.chat.chunkoverlay.1=Chunk Overlay: Chunk Corners
+nei.chat.chunkoverlay.2=Chunk Overlay: Chunks
+nei.chat.chunkoverlay.3=Chunk Overlay: GT Ore Veins
 
 nei.options=NEI 옵션
 nei.options.back=뒤로
