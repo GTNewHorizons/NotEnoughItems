@@ -72,6 +72,10 @@ nei.chat.time=白天 %d. %d:00
 nei.chat.give.noitem=没有此物品
 nei.chat.recipe.error=加载合成表过程中出现错误.请查看日志了解详情.
 nei.chat.render.error=渲染物品过程中出现错误.请查看日志了解详情.
+nei.chat.chunkoverlay.0=Chunk Overlay: Off
+nei.chat.chunkoverlay.1=Chunk Overlay: Chunk Corners
+nei.chat.chunkoverlay.2=Chunk Overlay: Chunks
+nei.chat.chunkoverlay.3=Chunk Overlay: GT Ore Veins
 
 nei.options=NEI选项
 nei.options.back=后退
