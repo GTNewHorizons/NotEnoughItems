@@ -6,6 +6,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.SpawnerAnimals;
 import net.minecraft.world.World;
@@ -38,8 +39,13 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         if (Minecraft.getMinecraft().currentScreen != null) return;
 
         if (KeyManager.keyStates.get("world.moboverlay").down) mobOverlay = (mobOverlay + 1) % 2;
-        if (KeyManager.keyStates.get("world.chunkoverlay").down)
+        if (KeyManager.keyStates.get("world.chunkoverlay").down) {
             chunkOverlay = (chunkOverlay + 1) % (NEIModContainer.isGT5Loaded() ? 4 : 3);
+            // 0-2 (or 3 with gt)
+            NEIClientUtils.printChatMessage(
+                    new ChatComponentText(NEIClientUtils.translate("chat.chunkoverlay." + chunkOverlay)));
+        }
+
     }
 
     public static void render(float frame) {

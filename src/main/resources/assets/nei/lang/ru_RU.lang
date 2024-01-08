@@ -47,6 +47,10 @@ nei.chat.rain.on=Дождь включён
 nei.chat.rain.off=Дождь выключен
 nei.chat.time=День %d. %d:00
 nei.chat.give.noitem=Нет такого предмета.
+nei.chat.chunkoverlay.0=Chunk Overlay: Off
+nei.chat.chunkoverlay.1=Chunk Overlay: Chunk Corners
+nei.chat.chunkoverlay.2=Chunk Overlay: Chunks
+nei.chat.chunkoverlay.3=Chunk Overlay: GT Ore Veins
 
 nei.options=Опции NEI
 nei.options.back=Назад
