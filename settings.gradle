@@ -26,5 +26,5 @@ blowdryerSetup {
     //devLocal '.' // Use this when testing config updates locally
 }
 
-
 rootProject.name = "NotEnoughItems"
+
