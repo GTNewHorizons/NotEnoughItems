@@ -39,12 +39,12 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         if (Minecraft.getMinecraft().currentScreen != null) return;
 
         if (KeyManager.keyStates.get("world.moboverlay").down) mobOverlay = (mobOverlay + 1) % 2;
-        if (KeyManager.keyStates.get("world.chunkoverlay").down){
+        if (KeyManager.keyStates.get("world.chunkoverlay").down) {
             chunkOverlay = (chunkOverlay + 1) % (NEIModContainer.isGT5Loaded() ? 4 : 3);
             // 0-2 (or 3 with gt)
-            NEIClientUtils.printChatMessage(new ChatComponentText(NEIClientUtils.translate("chat.chunkoverlay." + chunkOverlay)));
+            NEIClientUtils.printChatMessage(
+                    new ChatComponentText(NEIClientUtils.translate("chat.chunkoverlay." + chunkOverlay)));
         }
-
 
     }
 
