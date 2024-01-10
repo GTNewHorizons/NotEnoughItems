@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,39 +32,55 @@ import codechicken.core.CommonUtils;
 import codechicken.core.gui.GuiScrollSlot;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
+import codechicken.nei.ItemList.ItemsLoadedCallback;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
+import codechicken.nei.api.API;
+import codechicken.nei.api.IRecipeFilter;
+import codechicken.nei.api.IRecipeFilter.IRecipeFilterProvider;
 import codechicken.nei.api.ItemFilter;
+import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.recipe.GuiRecipe;
+import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.NBTJson;
 import cpw.mods.fml.common.registry.GameRegistry;
 
-public class PresetsWidget extends Widget {
+public class PresetsWidget extends Widget implements ItemFilterProvider, ItemsLoadedCallback, ItemFilter {
 
-    public static class PresetTag implements ItemFilter {
+    protected static enum PresetTagState {
+
+        WHITELIST,
+        BLACKLIST,
+        BLACKLIST_PLUS;
+
+        public PresetTagState next() {
+            if (this == PresetTagState.WHITELIST) return PresetTagState.BLACKLIST;
+            if (this == PresetTagState.BLACKLIST) return PresetTagState.BLACKLIST_PLUS;
+            if (this == PresetTagState.BLACKLIST_PLUS) return PresetTagState.WHITELIST;
+            return this;
+        }
+    }
+
+    public static class PresetTag {
 
         public String filename = null;
         public String displayName = "";
-        public boolean whitelist = true;
-        public HashSet<String> items;
+        public PresetTagState state = PresetTagState.BLACKLIST;
+        public ItemStackSet items;
 
         public PresetTag(String displayName) {
-            this(displayName, new HashSet<>(), false, null);
+            this(displayName, null, PresetTagState.BLACKLIST, null);
         }
 
-        public PresetTag(String displayName, HashSet<String> items) {
-            this(displayName, items, true, null);
-        }
-
-        public PresetTag(String displayName, HashSet<String> items, boolean whitelist, String filename) {
+        public PresetTag(String displayName, ItemStackSet items, PresetTagState state, String filename) {
             this.displayName = displayName;
-            this.items = items != null ? items : new HashSet<>();
-            this.whitelist = whitelist;
+            this.items = items != null ? items : new ItemStackSet();
+            this.state = state;
             this.filename = filename;
         }
 
         public boolean matches(final ItemStack stack) {
-            return items.contains(StackInfo.getItemStackGUID(stack)) == whitelist;
+            return items.contains(stack) == (state == PresetTagState.WHITELIST);
         }
 
         public static PresetTag loadFromFile(File file) {
@@ -84,14 +102,18 @@ public class PresetsWidget extends Widget {
                 final JsonParser parser = new JsonParser();
                 final JsonObject metaObject = parser.parse(itemStrings.remove(0)).getAsJsonObject();
                 final String displayName = metaObject.get("displayName").getAsString();
-                final boolean whitelist = metaObject.get("whitelist").getAsBoolean();
-                final HashSet<String> items = new HashSet<>();
+                final PresetTagState state = metaObject.has("state")
+                        ? PresetTagState.valueOf(metaObject.get("state").getAsString())
+                        : PresetTagState.BLACKLIST;
+                final ItemStackSet items = new ItemStackSet();
 
-                for (String itemStr : itemStrings) {
-                    items.add(itemStr);
+                for (ItemStack stack : ItemList.items) {
+                    if (itemStrings.contains(StackInfo.getItemStackGUID(stack))) {
+                        items.add(stack);
+                    }
                 }
 
-                return new PresetTag(displayName, items, whitelist, file.getName());
+                return new PresetTag(displayName, items, state, file.getName());
             } catch (Throwable th) {
                 NEIClientConfig.logger.error("Failed to load presets ItemStack from file", file);
             }
@@ -127,12 +149,16 @@ public class PresetsWidget extends Widget {
             final JsonObject row = new JsonObject();
 
             row.add("displayName", new JsonPrimitive(displayName));
-            row.add("whitelist", new JsonPrimitive(whitelist));
+            row.add("state", new JsonPrimitive(state.toString()));
 
             strings.add(NBTJson.toJson(row));
 
             try {
-                strings.addAll(items);
+
+                for (ItemStack stack : items.values()) {
+                    strings.add(StackInfo.getItemStackGUID(stack));
+                }
+
             } catch (JsonSyntaxException e) {
                 NEIClientConfig.logger.error("Failed to stringify presets ItemStack to json string");
             }
@@ -146,9 +172,8 @@ public class PresetsWidget extends Widget {
             }
         }
 
-        @SuppressWarnings("unchecked")
         public PresetTag copy() {
-            return new PresetTag(displayName, (HashSet) items.clone(), whitelist, null);
+            return new PresetTag(displayName, new ItemStackSet().addAll(items.values()), state, null);
         }
     }
 
@@ -290,7 +315,7 @@ public class PresetsWidget extends Widget {
                 selected.remove(tag);
                 tag.deleteFile();
             } else if (direction.contains(mx, my)) {
-                tag.whitelist = !tag.whitelist;
+                tag.state = tag.state.next();
                 tag.saveToFile();
             }
 
@@ -299,6 +324,7 @@ public class PresetsWidget extends Widget {
             PresetsWidget.openListBox = !presets.isEmpty()
                     && (NEIClientUtils.controlKey() || NEIClientUtils.shiftKey() || !option.contains(mx, my));
             ItemList.updateFilter.restart();
+            PresetsRecipeFilter.blacklist = null;
         }
 
         @Override
@@ -319,13 +345,22 @@ public class PresetsWidget extends Widget {
 
             final String displayName = NEIClientUtils
                     .cropText(PresetsWidget.fontRenderer, tag.displayName, option.w - 6);
-            final String dirName = tag.whitelist ? translate("presets.whitelist.label")
-                    : translate("presets.blacklist.label");
+            String stateLabel = translate("presets.blacklist.label");
+
+            if (tag.state == PresetTagState.WHITELIST) {
+                stateLabel = translate("presets.whitelist.label");
+            } else if (tag.state == PresetTagState.BLACKLIST_PLUS) {
+                stateLabel = translate("presets.blacklistPlus.label");
+            }
 
             // blacklist or whitelist
             LayoutManager.getLayoutStyle()
                     .drawSubsetTag(null, direction.x, direction.y, direction.w, direction.h, directionState, false);
-            GuiDraw.drawString(dirName, direction.x + 6, direction.y + 5, directionState == 2 ? 0xFFE0E0E0 : 0xFFFFA0);
+            GuiDraw.drawString(
+                    stateLabel,
+                    direction.x + 6,
+                    direction.y + 5,
+                    directionState == 2 ? 0xFFE0E0E0 : 0xFFFFA0);
 
             // option name
             LayoutManager.getLayoutStyle()
@@ -433,6 +468,70 @@ public class PresetsWidget extends Widget {
         }
     }
 
+    protected static class PresetsRecipeFilter implements IRecipeFilterProvider, IRecipeFilter {
+
+        protected static ItemStackSet blacklist;
+
+        public IRecipeFilter getFilter() {
+
+            if (PresetsWidget.edit != null) {
+                return null;
+            }
+
+            if (blacklist == null) {
+                blacklist = new ItemStackSet();
+
+                for (PresetTag tag : listbox.getSelected()) {
+                    if (tag.state == PresetTagState.BLACKLIST_PLUS) {
+                        blacklist.addAll(tag.items.values());
+                    }
+                }
+            }
+
+            return blacklist.isEmpty() ? null : this;
+        }
+
+        @Override
+        public boolean matches(IRecipeHandler handler, List<PositionedStack> ingredients, PositionedStack result,
+                List<PositionedStack> others) {
+
+            if (matchPositionedStack(ingredients, false)) {
+                return false;
+            }
+
+            if (result != null && matchPositionedStack(result)) {
+                return true;
+            }
+
+            if (!others.isEmpty() && matchPositionedStack(others, true)) {
+                return true;
+            }
+
+            return result == null && others.isEmpty();
+        }
+
+        private boolean matchPositionedStack(List<PositionedStack> items, boolean dir) {
+            for (PositionedStack pStack : items) {
+                if (matchPositionedStack(pStack) == dir) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private boolean matchPositionedStack(PositionedStack pStack) {
+            for (ItemStack stack : pStack.items) {
+                if (!blacklist.contains(stack)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+    }
+
     protected static final FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
     protected static SubsetListBox listbox = new SubsetListBox();
     protected static File presetsDir;
@@ -517,7 +616,7 @@ public class PresetsWidget extends Widget {
 
         public boolean onButtonPress(boolean rightclick) {
             if (!rightclick && edit != null) {
-                edit.whitelist = !edit.whitelist;
+                edit.state = edit.state.next();
                 return true;
             }
 
@@ -526,19 +625,53 @@ public class PresetsWidget extends Widget {
 
         @Override
         public String getRenderLabel() {
-            return edit != null && edit.whitelist ? translate("presets.whitelist.label")
-                    : translate("presets.blacklist.label");
+
+            if (edit == null || edit.state == PresetTagState.BLACKLIST) {
+                return translate("presets.blacklist.label");
+            } else if (edit.state == PresetTagState.WHITELIST) {
+                return translate("presets.whitelist.label");
+            } else if (edit.state == PresetTagState.BLACKLIST_PLUS) {
+                return translate("presets.blacklistPlus.label");
+            }
+
+            return translate("presets.blacklist.label");
         }
 
         @Override
         public void addTooltips(List<String> tooltip) {
             if (edit != null) {
-                tooltip.add(
-                        edit.whitelist ? translate("presets.whitelist.tooltip")
-                                : translate("presets.blacklist.tooltip"));
+                if (edit.state == PresetTagState.BLACKLIST) {
+                    tooltip.add(translate("presets.blacklist.tooltip"));
+                } else if (edit.state == PresetTagState.WHITELIST) {
+                    tooltip.add(translate("presets.whitelist.tooltip"));
+                } else if (edit.state == PresetTagState.BLACKLIST_PLUS) {
+                    tooltip.add(translate("presets.blacklistPlus.tooltip"));
+                }
             }
         }
+
     };
+
+    public void itemsLoaded() {
+
+        if (presetsDir != null) {
+            listbox = new SubsetListBox(presetsDir);
+
+            edit = null;
+            openListBox = false;
+            selectedDisplayName.setText("");
+
+            ItemList.updateFilter.restart();
+            PresetsRecipeFilter.blacklist = null;
+        }
+
+    }
+
+    public PresetsWidget() {
+        API.addItemFilter(this);
+        API.addRecipeFilter(new PresetsRecipeFilter());
+        ItemList.loadCallbacks.add(this);
+    }
 
     protected static void setEditedTag(final PresetTag tag) {
         edit = tag;
@@ -564,19 +697,15 @@ public class PresetsWidget extends Widget {
         if (edit != null) {
 
             if (mouseSelection != null && mouseSelection.items.contains(item)) {
-                return mouseSelection.append != edit.whitelist;
+                return mouseSelection.append != (edit.state == PresetTagState.WHITELIST);
             }
 
             return !edit.matches(item);
         }
 
-        if (!listbox.getSelected().isEmpty()) {
-            final List<PresetTag> selected = listbox.getSelected();
-
-            for (int idx = 0; idx < selected.size(); idx++) {
-                if (!selected.get(idx).matches(item)) {
-                    return true;
-                }
+        for (PresetTag tag : listbox.getSelected()) {
+            if (!tag.matches(item)) {
+                return true;
             }
         }
 
@@ -619,12 +748,10 @@ public class PresetsWidget extends Widget {
     }
 
     protected static void hideItem(final ItemStack stack, boolean append) {
-        final String guid = StackInfo.getItemStackGUID(stack);
-
         if (append) {
-            edit.items.add(guid);
+            edit.items.add(stack);
         } else {
-            edit.items.remove(guid);
+            edit.items.remove(stack);
         }
     }
 
@@ -637,24 +764,44 @@ public class PresetsWidget extends Widget {
     }
 
     public static void loadPresets(final String worldPath) {
-        final File dir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
         presetsDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath + "/presets");
 
-        if (!dir.exists()) {
-            dir.mkdirs();
+        if (!presetsDir.getParentFile().exists()) {
+            presetsDir.getParentFile().mkdirs();
         }
 
         if (!presetsDir.exists()) {
             presetsDir.mkdirs();
         }
 
-        listbox = new SubsetListBox(presetsDir);
+        if (!(new File(presetsDir, "selected.ini")).exists()) {
+            final File configPresets = new File(NEIClientConfig.configDir, "/presets");
 
-        edit = null;
-        openListBox = false;
-        selectedDisplayName.setText("");
+            if (configPresets.exists()) {
+                for (File file : configPresets.listFiles()) {
+                    try {
+                        InputStream src = new FileInputStream(file);
+                        OutputStream dst = new FileOutputStream(new File(presetsDir, file.getName()));
 
-        ItemList.updateFilter.restart();
+                        IOUtils.copy(src, dst);
+
+                        src.close();
+                        dst.close();
+                    } catch (IOException e) {}
+                }
+            }
+        }
+
+        if (LayoutManager.itemsLoaded) {
+            listbox = new SubsetListBox(presetsDir);
+
+            edit = null;
+            openListBox = false;
+            selectedDisplayName.setText("");
+            ItemList.updateFilter.restart();
+            PresetsRecipeFilter.blacklist = null;
+        }
+
     }
 
     @Override
@@ -903,16 +1050,20 @@ public class PresetsWidget extends Widget {
         return tooltip;
     }
 
-    public static boolean matches(ItemStack stack) {
+    @Override
+    public ItemFilter getFilter() {
+        return this;
+    }
+
+    @Override
+    public boolean matches(ItemStack stack) {
 
         if (edit != null) {
             return true;
         }
 
-        final List<PresetTag> selected = listbox.getSelected();
-
-        for (int idx = 0; idx < selected.size(); idx++) {
-            if (!selected.get(idx).matches(stack)) {
+        for (PresetTag tag : listbox.getSelected()) {
+            if (!tag.matches(stack)) {
                 return false;
             }
         }

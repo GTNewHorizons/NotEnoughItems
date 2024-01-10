@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.init.Blocks;
@@ -34,14 +36,17 @@ import com.google.common.base.Stopwatch;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemList;
+import codechicken.nei.ItemList.AllMultiItemFilter;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.DefaultOverlayRenderer;
 import codechicken.nei.api.IOverlayHandler;
+import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.IRecipeOverlayRenderer;
 import codechicken.nei.api.IStackPositioner;
+import codechicken.nei.api.ItemFilter;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerTooltipHandler;
@@ -174,7 +179,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
         /**
          * This will perform default cycling of ingredients, mulitItem capable
-         * 
+         *
          * @param cycle       Current cycle step
          * @param ingredients List of ItemStacks to cycle
          * @return The provided list of ingredients, with their permutations cycled to a different permutation, if one
@@ -182,28 +187,55 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
          */
         public List<PositionedStack> getCycledIngredients(int cycle, List<PositionedStack> ingredients) {
 
-            if (!NEIClientUtils.shiftKey()) {
+            if (!NEIClientUtils.shiftKey() && !disableCycledIngredients) {
                 if (NEIClientConfig.useJEIStyledCycledIngredients()) {
                     jeiStyledRenderPermutation(ingredients, cycle);
                 } else {
-                    for (int itemIndex = 0; itemIndex < ingredients.size(); itemIndex++) {
-                        randomRenderPermutation(ingredients.get(itemIndex), cycle + itemIndex);
-                    }
+                    randomRenderPermutation(ingredients, cycle);
                 }
             }
 
             return ingredients;
         }
 
-        public void randomRenderPermutation(PositionedStack stack, long cycle) {
-            Random rand = new Random(cycle + offset);
-            stack.setPermutationToRender(Math.abs(rand.nextInt()) % stack.items.length);
+        protected void randomRenderPermutation(List<PositionedStack> stacks, long cycle) {
+            final ItemFilter filter = new AllMultiItemFilter(
+                    ItemList.getItemListFilter(),
+                    GuiRecipe.searchField.getFilter());
+            final int randCycle = Math.abs(new Random(cycle + offset).nextInt());
+
+            for (PositionedStack stack : stacks) {
+                if (stack.items.length <= 1) continue;
+                ArrayList<Integer> filtered = getFilteredIngredientAlternatives(stack, filter);
+                if (filtered.isEmpty()) {
+                    stack.setPermutationToRender((int) (randCycle % stack.items.length));
+                } else {
+                    stack.setPermutationToRender(filtered.get((int) (randCycle % filtered.size())));
+                }
+            }
+
         }
 
-        public void jeiStyledRenderPermutation(List<PositionedStack> stacks, long cycle) {
+        protected void jeiStyledRenderPermutation(List<PositionedStack> stacks, long cycle) {
+            final ItemFilter filter = new AllMultiItemFilter(
+                    ItemList.getItemListFilter(),
+                    GuiRecipe.searchField.getFilter());
+
             for (PositionedStack stack : stacks) {
-                stack.setPermutationToRender((int) (cycle % stack.items.length));
+                if (stack.items.length <= 1) continue;
+                ArrayList<Integer> filtered = getFilteredIngredientAlternatives(stack, filter);
+                if (filtered.isEmpty()) {
+                    stack.setPermutationToRender((int) (cycle % stack.items.length));
+                } else {
+                    stack.setPermutationToRender(filtered.get((int) (cycle % filtered.size())));
+                }
             }
+        }
+
+        @Deprecated
+        protected void randomRenderPermutation(PositionedStack stack, long cycle) {
+            Random rand = new Random(cycle + offset);
+            stack.setPermutationToRender((int) (Math.abs(rand.nextInt()) % stack.items.length));
         }
 
         public void setIngredientPermutation(Collection<PositionedStack> ingredients, ItemStack ingredient) {
@@ -396,9 +428,27 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
      */
     public LinkedList<RecipeTransferRect> transferRects = new LinkedList<>();
 
+    public static boolean disableCycledIngredients = false;
+
+    protected ArrayList<Integer> filteredRecipes;
+
+    protected ArrayList<Integer> searchRecipes;
+
     public TemplateRecipeHandler() {
         loadTransferRects();
         RecipeTransferRectHandler.registerRectsToGuis(getRecipeTransferRectGuis(), transferRects);
+    }
+
+    protected static ArrayList<Integer> getFilteredIngredientAlternatives(PositionedStack stack, ItemFilter filter) {
+        final ArrayList<Integer> filtered = new ArrayList<>();
+
+        for (int i = 0; i < stack.items.length; i++) {
+            if (filter.matches(stack.items[i])) {
+                filtered.add(i);
+            }
+        }
+
+        return filtered;
     }
 
     /**
@@ -594,8 +644,129 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         return null;
     }
 
+    public boolean isEmpty() {
+
+        if (arecipes.isEmpty()) {
+            return true;
+        }
+
+        final IRecipeFilter filter = GuiRecipe.getRecipeListFilter(this);
+
+        if (filter == null) {
+            return false;
+        }
+
+        final boolean disableCycledIngredients = TemplateRecipeHandler.disableCycledIngredients;
+        TemplateRecipeHandler.disableCycledIngredients = true;
+
+        boolean isEmpty = !IntStream.range(0, arecipes.size()).boxed().anyMatch(
+                recipe -> filter.matches(
+                        this,
+                        arecipes.get(recipe).getIngredients(),
+                        arecipes.get(recipe).getResult(),
+                        arecipes.get(recipe).getOtherStacks()));
+
+        TemplateRecipeHandler.disableCycledIngredients = disableCycledIngredients;
+
+        return isEmpty;
+    }
+
+    protected synchronized void applyFilter() {
+
+        if (arecipes.isEmpty() && this.filteredRecipes == null) {
+            this.filteredRecipes = new ArrayList<>();
+        }
+
+        if (this.filteredRecipes != null) {
+            return;
+        }
+
+        final Stream<Integer> items = IntStream.range(0, arecipes.size()).boxed();
+        final IRecipeFilter filter = GuiRecipe.getRecipeListFilter(this);
+
+        if (filter == null) {
+            this.filteredRecipes = items.collect(Collectors.toCollection(ArrayList::new));
+        } else {
+            final boolean disableCycledIngredients = TemplateRecipeHandler.disableCycledIngredients;
+            TemplateRecipeHandler.disableCycledIngredients = true;
+
+            this.filteredRecipes = items
+                    .filter(
+                            recipe -> filter.matches(
+                                    this,
+                                    arecipes.get(recipe).getIngredients(),
+                                    arecipes.get(recipe).getResult(),
+                                    arecipes.get(recipe).getOtherStacks()))
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            TemplateRecipeHandler.disableCycledIngredients = disableCycledIngredients;
+        }
+
+    }
+
+    public void applySearch(ArrayList<Integer> searchRecipes) {
+        this.searchRecipes = searchRecipes;
+    }
+
+    public ArrayList<Integer> getSearchResult(IRecipeFilter filter) {
+        if (filteredRecipes == null) {
+            applyFilter();
+        }
+
+        ArrayList<Integer> filtered = null;
+
+        if (!filteredRecipes.isEmpty()) {
+            final ArrayList<Integer> recipes = IntStream.range(0, filteredRecipes.size()).boxed()
+                    .collect(Collectors.toCollection(ArrayList::new));
+            final boolean disableCycledIngredients = TemplateRecipeHandler.disableCycledIngredients;
+            TemplateRecipeHandler.disableCycledIngredients = true;
+
+            try {
+                filtered = ItemList.forkJoinPool.submit(
+                        () -> recipes.parallelStream()
+                                .filter(
+                                        (recipe) -> filter.matches(
+                                                this,
+                                                arecipes.get(filteredRecipes.get(recipe)).getIngredients(),
+                                                arecipes.get(filteredRecipes.get(recipe)).getResult(),
+                                                arecipes.get(filteredRecipes.get(recipe)).getOtherStacks()))
+                                .collect(Collectors.toCollection(ArrayList::new)))
+                        .get();
+                filtered.sort((a, b) -> a - b);
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+
+            TemplateRecipeHandler.disableCycledIngredients = disableCycledIngredients;
+        }
+
+        return filtered;
+    }
+
+    private int ref(int index) {
+
+        if (filteredRecipes == null) {
+            applyFilter();
+        }
+
+        if (searchRecipes != null) {
+            index = searchRecipes.get(index);
+        }
+
+        return filteredRecipes.get(index);
+    }
+
     public int numRecipes() {
-        return arecipes.size();
+
+        if (filteredRecipes == null) {
+            applyFilter();
+        }
+
+        if (searchRecipes != null) {
+            return searchRecipes.size();
+        }
+
+        return filteredRecipes.size();
     }
 
     public void drawBackground(int recipe) {
@@ -612,19 +783,19 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     public List<PositionedStack> getIngredientStacks(int recipe) {
-        return arecipes.get(recipe).getIngredients();
+        return arecipes.get(ref(recipe)).getIngredients();
     }
 
     public PositionedStack getResultStack(int recipe) {
         try {
-            return arecipes.get(recipe).getResult();
+            return arecipes.get(ref(recipe)).getResult();
         } catch (ArrayIndexOutOfBoundsException ignored) {
             return null;
         }
     }
 
     public List<PositionedStack> getOtherStacks(int recipe) {
-        return arecipes.get(recipe).getOtherStacks();
+        return arecipes.get(ref(recipe)).getOtherStacks();
     }
 
     public void onUpdate() {
@@ -680,8 +851,12 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
     @Override
     public boolean mouseClicked(GuiRecipe<?> gui, int button, int recipe) {
-        if (button == 0) return transferRect(gui, recipe, false);
-        else if (button == 1) return transferRect(gui, recipe, true);
+
+        if (button == 0) {
+            return transferRect(gui, recipe, false);
+        } else if (button == 1) {
+            return transferRect(gui, recipe, true);
+        }
 
         return false;
     }
@@ -690,27 +865,58 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     public boolean mouseScrolled(GuiRecipe<?> gui, int scroll, int recipe) {
         if (!NEIClientUtils.shiftKey()) return false;
 
-        final Point offset = gui.getRecipePosition(recipe);
         final Point pos = getMousePosition();
+        final Point offset = gui.getRecipePosition(recipe);
         final Point relMouse = new Point(pos.x - gui.guiLeft - offset.x, pos.y - gui.guiTop - offset.y);
+        final PositionedStack overStack = getIngredientMouseOver(relMouse.x, relMouse.y, recipe);
 
-        for (PositionedStack pStack : getIngredientStacks(recipe)) {
-            if ((new Rectangle4i(pStack.relx, pStack.rely, 18, 18)).contains(relMouse.x, relMouse.y)) {
-                int index = pStack.items.length + scroll;
+        if (overStack != null && overStack.items.length > 1) {
+            final ItemFilter filter = new AllMultiItemFilter(
+                    ItemList.getItemListFilter(),
+                    GuiRecipe.searchField.getFilter());
 
-                for (int i = 0; i < pStack.items.length; i++) {
-                    if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(pStack.items[i], pStack.item)) {
-                        index = index + i;
-                        break;
-                    }
+            if (NEIClientConfig.useJEIStyledCycledIngredients()) {
+                ItemStack stack = overStack.item;
+                for (PositionedStack pStack : getIngredientStacks(recipe)) {
+                    shiftPermutationToRender(pStack, stack, scroll, filter);
                 }
-
-                pStack.setPermutationToRender(index % pStack.items.length);
-                return true;
+            } else {
+                shiftPermutationToRender(overStack, overStack.item, scroll, filter);
             }
+
+            return true;
         }
 
         return false;
+    }
+
+    private void shiftPermutationToRender(PositionedStack pStack, ItemStack stack, int scroll, ItemFilter filter) {
+
+        for (int index = 0; index < pStack.items.length; index++) {
+            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(pStack.items[index], stack)) {
+                ArrayList<Integer> filtered = getFilteredIngredientAlternatives(pStack, filter);
+
+                if (filtered.isEmpty()) {
+                    pStack.setPermutationToRender((int) ((pStack.items.length + scroll + index) % pStack.items.length));
+                } else {
+                    pStack.setPermutationToRender(
+                            filtered.get((int) ((filtered.size() + scroll + index) % filtered.size())));
+                }
+
+                break;
+            }
+        }
+    }
+
+    private PositionedStack getIngredientMouseOver(int mousex, int mousey, int recipe) {
+
+        for (PositionedStack pStack : getIngredientStacks(recipe)) {
+            if ((new Rectangle4i(pStack.relx, pStack.rely, 18, 18)).contains(mousex, mousey)) {
+                return pStack;
+            }
+        }
+
+        return null;
     }
 
     private boolean transferRect(GuiRecipe<?> gui, int recipe, boolean usage) {

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
@@ -34,9 +35,11 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
 
     ArrayList<T> runWithProfiling(String profilerSection) {
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
+        TemplateRecipeHandler.disableCycledIngredients = true;
         profiler.start(profilerSection);
         try {
             ArrayList<T> handlers = getRecipeHandlersParallel();
+
             if (error) {
                 displayRecipeLookupError();
             }
@@ -46,6 +49,7 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
             displayRecipeLookupError();
             return new ArrayList<>(0);
         } finally {
+            TemplateRecipeHandler.disableCycledIngredients = false;
             profiler.end();
         }
     }
@@ -60,27 +64,35 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
     }
 
     private ArrayList<T> getSerialHandlersWithRecipes() {
+
         return serialRecipeHandlers.stream().map(handler -> {
             try {
-                return recipeHandlerFunction.apply(handler);
+                return isHidden(handler) ? null : recipeHandlerFunction.apply(handler);
             } catch (Throwable t) {
                 printLog(t);
                 error = true;
                 return null;
             }
-        }).filter(h -> h != null && h.numRecipes() > 0).collect(Collectors.toCollection(ArrayList::new));
+        }).filter(h -> h != null && !h.isEmpty()).collect(Collectors.toCollection(ArrayList::new));
     }
 
     private ArrayList<T> getHandlersWithRecipes() throws InterruptedException, ExecutionException {
+
         return ItemList.forkJoinPool.submit(() -> recipeHandlers.parallelStream().map(handler -> {
             try {
-                return recipeHandlerFunction.apply(handler);
+                return isHidden(handler) ? null : recipeHandlerFunction.apply(handler);
             } catch (Throwable t) {
                 printLog(t);
                 error = true;
                 return null;
             }
-        }).filter(h -> h != null && h.numRecipes() > 0).collect(Collectors.toCollection(ArrayList::new))).get();
+        }).filter(h -> h != null && !h.isEmpty()).collect(Collectors.toCollection(ArrayList::new))).get();
+    }
+
+    private boolean isHidden(T handler) {
+        return NEIClientConfig.hiddenHandlerRegex.stream()
+                .map(pattern -> pattern.matcher(GuiRecipeTab.getHandlerInfo(handler).getHandlerName()))
+                .anyMatch(Matcher::matches);
     }
 
     private void printLog(Throwable t) {

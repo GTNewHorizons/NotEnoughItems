@@ -27,11 +27,13 @@ import codechicken.nei.SearchField;
 import codechicken.nei.SearchField.ISearchProvider;
 import codechicken.nei.SubsetWidget;
 import codechicken.nei.SubsetWidget.SubsetTag;
+import codechicken.nei.api.IRecipeFilter.IRecipeFilterProvider;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.config.Option;
 import codechicken.nei.config.OptionKeyBind;
 import codechicken.nei.recipe.CatalystInfo;
 import codechicken.nei.recipe.GuiCraftingRecipe;
+import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
 import codechicken.nei.recipe.ICraftingHandler;
 import codechicken.nei.recipe.IRecipeHandler;
@@ -160,7 +162,7 @@ public class API {
 
     /**
      * Adds an item to the item panel. Any items added using this function will override the default search pattern.
-     * 
+     *
      * @param item an item with data
      */
     public static void addItemListEntry(ItemStack item) {
@@ -183,7 +185,7 @@ public class API {
 
     /**
      * Add a custom KeyBinding to be configured in the Controls menu.
-     * 
+     *
      * @param ident      An identifier for your key, eg "shoot"
      * @param defaultKey The default value, commonly obtained from {@link Keyboard}
      */
@@ -195,7 +197,7 @@ public class API {
 
     /**
      * Add a custom KeyBinding to be configured in the Controls menu.
-     * 
+     *
      * @param ident      An identifier for your key, eg "shoot"
      * @param defaultKey The default value, commonly obtained from {@link Keyboard}
      */
@@ -210,7 +212,7 @@ public class API {
 
     /**
      * Add a new Layout Style for the NEI interface
-     * 
+     *
      * @param styleID The Unique ID to be used for storing your style in the config and cycling through avaliable styles
      * @param style   The style to add.
      */
@@ -220,7 +222,7 @@ public class API {
 
     /**
      * Registers a new Infinite Item Handler.
-     * 
+     *
      * @param handler The handler to be registered.
      */
     public static void addInfiniteItemHandler(IInfiniteItemHandler handler) {
@@ -229,7 +231,7 @@ public class API {
 
     /**
      * Registers a new Infinite Item Handler.
-     * 
+     *
      * @param block   The block to handle, null for all.
      * @param handler The handler to be registered.
      */
@@ -239,7 +241,7 @@ public class API {
 
     /**
      * Tells NEI not to perform any Fast Transfer operations on slots of a particular class
-     * 
+     *
      * @param slotClass The class of slot to be exempted
      */
     public static void addFastTransferExemptSlot(Class<? extends Slot> slotClass) {
@@ -248,7 +250,7 @@ public class API {
 
     /**
      * Register a new text handler for the block highlight tooltip with a layout specification (HEADER, BODY or FOOTER).
-     * 
+     *
      * @param handler The handler to be registered.
      * @param layout  A HUDAugmenterRegistry.Layout entry. HEADER is displayed before BODY which is displayed before
      *                FOOTER.
@@ -259,16 +261,22 @@ public class API {
 
     /**
      * Register a mode handler for overriding NEI recipe/utility/cheat mode settings.
-     * 
+     *
      * @param handler The handler to be registered.
      */
     public static void registerModeHandler(INEIModeHandler handler) {
         NEIInfo.modeHandlers.add(handler);
     }
 
+    public static void addRecipeFilter(IRecipeFilterProvider filterProvider) {
+        synchronized (GuiRecipe.recipeFilterers) {
+            GuiRecipe.recipeFilterers.add(filterProvider);
+        }
+    }
+
     /**
      * Register a filter provider for the item panel.
-     * 
+     *
      * @param filterProvider The filter provider to be registered.
      */
     public static void addItemFilter(ItemFilterProvider filterProvider) {
@@ -279,7 +287,7 @@ public class API {
 
     /**
      * Adds a new tag to the item subset dropdown.
-     * 
+     *
      * @param name   The fully qualified name, Eg Blocks.MobSpawners. NOT case sensitive
      * @param filter A filter for matching items that fit in this subset
      */
@@ -289,7 +297,7 @@ public class API {
 
     /**
      * Adds a new tag to the item subset dropdown.
-     * 
+     *
      * @param name  The fully qualified name, Eg Blocks.MobSpawners. NOT case sensitive
      * @param items An iterable of itemstacks to be added as a subset
      */
@@ -315,7 +323,7 @@ public class API {
 
     /**
      * Adds a new sorting option to the item panel sort menu
-     * 
+     *
      * @param name A unique id for this sort option. Will be used in the config for saving and translated in the options
      *             gui. Note that if the translation key name.tip exists, it will be used for a tooltip
      */
@@ -326,7 +334,7 @@ public class API {
     /**
      * Adds an additional item list entry for an item, sorted after the rest of the items are found through the normal
      * process
-     * 
+     *
      * @param item    The item to add the variant for
      * @param variant The stack to appear in the item panel
      */
@@ -345,7 +353,7 @@ public class API {
      * Adds an association between an ingredient and what it can craft. (i.e. Furnace ItemStack -> Smelting and Fuel
      * Recipes) Allows players to see what ingredient they need to craft in order to make recipes from a recipe
      * category.
-     * 
+     *
      * @param stack    the ingredient that can craft recipes (like a furnace or crafting table)
      * @param handler  the recipe category handled by the ingredient
      * @param priority higher priority comes first, default to 0
@@ -366,7 +374,7 @@ public class API {
      * Adds an association between an ingredient and what it can craft. (i.e. Furnace ItemStack -> Smelting and Fuel
      * Recipes) Allows players to see what ingredient they need to craft in order to make recipes from a recipe
      * category.
-     * 
+     *
      * @param stack     the ingredient that can craft recipes (like a furnace or crafting table)
      * @param handlerID recipe category identifier (see also {@link RecipeCatalysts#getRecipeID(IRecipeHandler)})
      * @param priority  higher priority comes first, default to 0

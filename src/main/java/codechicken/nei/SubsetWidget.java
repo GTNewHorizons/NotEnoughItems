@@ -533,7 +533,6 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
         NBTTagList list = dirtyHiddenItems.getAndSet(null);
         if (list != null) {
             NEIClientConfig.world.nbt.setTag("hiddenItems", list);
-            NEIClientConfig.world.saveNBT();
         }
     }
 

@@ -28,6 +28,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.world.WorldEvent;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -48,6 +49,8 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class ClientHandler {
 
@@ -145,6 +148,7 @@ public class ClientHandler {
     public static void preInit() {
         loadSerialHandlers();
         loadHeightHackHandlers();
+        loadHiddenHandlers();
         ItemInfo.preInit();
         StackInfo.loadGuidFilters();
     }
@@ -194,6 +198,31 @@ public class ClientHandler {
                     .collect(Collectors.toCollection(HashSet::new));
         } catch (IOException e) {
             NEIClientConfig.logger.error("Failed to load height hack handlers from file {}", file, e);
+        }
+    }
+
+    public static void loadHiddenHandlers() {
+        File file = NEIClientConfig.hiddenHandlersFile;
+        if (!file.exists()) {
+            try (FileWriter writer = new FileWriter(file)) {
+                NEIClientConfig.logger.info("Creating default hidden handlers list {}", file);
+                URL defaultHeightHackHandlersResource = ClientHandler.class
+                        .getResource("/assets/nei/cfg/hiddenhandlers.cfg");
+                if (defaultHeightHackHandlersResource != null) {
+                    IOUtils.copy(defaultHeightHackHandlersResource.openStream(), writer);
+                }
+            } catch (IOException e) {
+                NEIClientConfig.logger.error("Failed to save default hidden handlers list to file {}", file, e);
+            }
+        }
+
+        try (FileReader reader = new FileReader(file)) {
+            NEIClientConfig.logger.info("Loading hidden handlers from file {}", file);
+            NEIClientConfig.hiddenHandlerRegex = IOUtils.readLines(reader).stream()
+                    .filter((line) -> !line.startsWith("#")).map(Pattern::compile)
+                    .collect(Collectors.toCollection(HashSet::new));
+        } catch (IOException e) {
+            NEIClientConfig.logger.error("Failed to load hidden handlers from file {}", file, e);
         }
     }
 
@@ -303,6 +332,15 @@ public class ClientHandler {
     @SubscribeEvent
     public void renderLastEvent(RenderWorldLastEvent event) {
         if (NEIClientConfig.isEnabled()) WorldOverlayRenderer.render(event.partialTicks);
+    }
+
+    @SideOnly(Side.CLIENT)
+    @SubscribeEvent
+    public void onWorldUnload(WorldEvent.Unload event) {
+        Minecraft mc = Minecraft.getMinecraft();
+        if (event.world == mc.theWorld) {
+            NEIClientConfig.unloadWorld();
+        }
     }
 
     public void loadWorld(World world, boolean fromServer) {

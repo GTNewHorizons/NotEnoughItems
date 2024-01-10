@@ -64,18 +64,18 @@ public class ItemPanel extends PanelWidget {
             if (newItems != null) {
                 realItems = newItems;
                 newItems = null;
-                onGridChanged();
+                onItemsChanged();
             }
 
             super.refresh(gui);
         }
 
         @Override
-        protected void drawSlotOutline(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
+        protected void beforeDrawSlot(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
             if (PresetsWidget.inEditMode()) {
                 if (!PresetsWidget.isHidden(getItem(slotIdx))) drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);
             } else {
-                super.drawSlotOutline(focused, slotIdx, rect);
+                super.beforeDrawSlot(focused, slotIdx, rect);
             }
         }
 
@@ -142,7 +142,7 @@ public class ItemPanel extends PanelWidget {
     }
 
     public String getLabelText() {
-        return String.format("(%d/%d)", getPage(), Math.max(1, getNumPages()));
+        return String.format("%d/%d", getPage(), Math.max(1, getNumPages()));
     }
 
     protected String getPositioningSettingName() {

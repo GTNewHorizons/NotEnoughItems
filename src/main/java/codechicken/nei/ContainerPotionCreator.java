@@ -81,7 +81,6 @@ public class ContainerPotionCreator extends ContainerExtended {
         public void markDirty() {
             super.markDirty();
             NEIClientConfig.global.nbt.setTag("potionStore", tag);
-            NEIClientConfig.global.saveNBT();
         }
     }
 

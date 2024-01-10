@@ -26,19 +26,17 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
         Minecraft mc = NEIClientUtils.mc();
         BookmarkRecipeId recipeId = getCurrentRecipe(mc.currentScreen);
-        GuiUsageRecipe gui = new GuiUsageRecipe(handlers, recipeId);
+        GuiUsageRecipe gui = new GuiUsageRecipe(handlers);
 
         mc.displayGuiScreen(gui);
-
-        gui.openTargetRecipe(gui.recipeId);
+        gui.openTargetRecipe(recipeId);
 
         return true;
     }
 
-    private GuiUsageRecipe(ArrayList<IUsageHandler> handlers, BookmarkRecipeId recipeId) {
+    private GuiUsageRecipe(ArrayList<IUsageHandler> handlers) {
         super(NEIClientUtils.mc().currentScreen);
         this.currenthandlers = handlers;
-        this.recipeId = recipeId;
     }
 
     public static void registerUsageHandler(IUsageHandler handler) {

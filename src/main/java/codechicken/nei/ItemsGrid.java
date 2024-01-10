@@ -1,37 +1,27 @@
 package codechicken.nei;
 
 import static codechicken.lib.gui.GuiDraw.drawRect;
-import static codechicken.lib.gui.GuiDraw.getMousePosition;
 
-import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.guihook.GuiContainerManager;
-import codechicken.nei.recipe.BookmarkRecipeId;
-import codechicken.nei.recipe.GuiCraftingRecipe;
-import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.StackInfo;
 
 public class ItemsGrid {
@@ -53,7 +43,7 @@ public class ItemsGrid {
 
     protected int rows;
     protected int columns;
-    protected boolean showRecipeTooltips = false;
+    protected List<Integer> gridMask = null;
 
     protected boolean[] invalidSlotMap;
 
@@ -79,7 +69,7 @@ public class ItemsGrid {
     public int indexOf(ItemStack stackA, boolean useNBT) {
 
         for (int idx = 0; idx < realItems.size(); idx++) {
-            if (StackInfo.equalItemAndNBT(stackA, getItem(idx), useNBT)) {
+            if (StackInfo.equalItemAndNBT(stackA, realItems.get(idx), useNBT)) {
                 return idx;
             }
         }
@@ -114,6 +104,10 @@ public class ItemsGrid {
 
     public int getColumns() {
         return columns;
+    }
+
+    public int getLastRowIndex() {
+        return this.columns > 0 ? (int) Math.ceil((float) this.getMask().size() / this.columns) - 1 : 0;
     }
 
     public void setGridSize(int mleft, int mtop, int w, int h) {
@@ -159,10 +153,11 @@ public class ItemsGrid {
 
     protected void onGridChanged() {
         refreshBuffer = true;
+        this.gridMask = null;
     }
 
-    public void setShowRecipeTooltips(boolean show) {
-        this.showRecipeTooltips = show;
+    protected void onItemsChanged() {
+        onGridChanged();
     }
 
     public void refresh(GuiContainer gui) {
@@ -198,9 +193,9 @@ public class ItemsGrid {
 
             for (int r = 0; r < rows; r++) {
                 final int idx = columns * r + c;
-                if (GuiInfo.hideItemPanelSlot(gui, getSlotRect(r, c)) && idx >= 0
-                        && idx < invalidSlotMap.length
-                        && !invalidSlotMap[idx]) {
+                if (idx >= 0 && idx < invalidSlotMap.length
+                        && !invalidSlotMap[idx]
+                        && GuiInfo.hideItemPanelSlot(gui, getSlotRect(r, c))) {
                     invalidSlotMap[idx] = true;
                     validColumn = false;
                     perPage--;
@@ -238,153 +233,50 @@ public class ItemsGrid {
     }
 
     protected List<Integer> getMask() {
-        List<Integer> mask = new ArrayList<>();
 
-        int idx = page * perPage;
-        for (int i = 0; i < rows * columns && idx < size(); i++) {
-            mask.add(isInvalidSlot(i) ? null : idx++);
+        if (this.gridMask == null) {
+            this.gridMask = new ArrayList<>();
+            int idx = page * perPage;
+
+            for (int i = 0; i < rows * columns && idx < size(); i++) {
+                this.gridMask.add(isInvalidSlot(i) ? null : idx++);
+            }
+
         }
 
-        return mask;
+        return this.gridMask;
     }
 
-    private void drawSlotOutlines(int mousex, int mousey) {
-        ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
+    private void beforeDrawItems(int mousex, int mousey, @Nullable ItemPanelSlot focused) {
+
         final List<Integer> mask = getMask();
 
         for (int i = 0; i < mask.size(); i++) {
             if (mask.get(i) != null) {
-                drawSlotOutline(focused, mask.get(i), getSlotRect(i));
+                beforeDrawSlot(focused, mask.get(i), getSlotRect(i));
             }
         }
     }
 
-    private int recipeTooltipSlotIdx = -1;
-    private int recipeTooltipLines = 2;
-    private Runnable recipeTooltipUpdater = null;
-    private GuiRecipe<?> recipeTooltipGui = null;
-
-    public void update() {
-        if (recipeTooltipUpdater != null) {
-            recipeTooltipUpdater.run();
-            recipeTooltipUpdater = null;
-        }
-        if (recipeTooltipGui != null) {
-            recipeTooltipGui.updateAsTooltip();
-        }
-    }
-
-    private static <T> List<T> listOrEmptyList(final List<T> listOrNull) {
-        return listOrNull == null ? Collections.emptyList() : listOrNull;
-    }
-
-    private void drawRecipeTooltip(int mousex, int mousey, List<String> itemTooltip) {
-        if (!NEIClientConfig.isLoaded()) {
-            return;
-        }
-
-        final Minecraft mc = Minecraft.getMinecraft();
-        ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
-        if (focused == null) {
-            recipeTooltipSlotIdx = -1;
-            recipeTooltipGui = null;
-            return;
-        }
+    private void afterDrawItems(int mousex, int mousey, @Nullable ItemPanelSlot focused) {
         final List<Integer> mask = getMask();
 
-        int slotIdx = -1;
         for (int i = 0; i < mask.size(); i++) {
-            if (mask.get(i) == null) {
-                continue;
+            if (mask.get(i) != null) {
+                afterDrawSlot(focused, mask.get(i), getSlotRect(i));
             }
-            if (focused.slotIndex != mask.get(i)) {
-                continue;
-            }
-            slotIdx = i;
-            break;
         }
-        if (slotIdx == -1) {
-            recipeTooltipSlotIdx = -1;
-            recipeTooltipGui = null;
-            return;
-        }
-
-        final Point mouseover = getMousePosition();
-        final ItemPanelSlot panelSlot = ItemPanels.bookmarkPanel.getSlotMouseOver(mouseover.x, mouseover.y);
-        final BookmarkRecipeId recipeId;
-        if (panelSlot != null) {
-            recipeId = ItemPanels.bookmarkPanel.getBookmarkRecipeId(panelSlot.slotIndex);
-        } else {
-            recipeId = ItemPanels.bookmarkPanel.getBookmarkRecipeId(focused.item);
-        }
-        if (recipeId == null) {
-            return;
-        }
-
-        if (slotIdx != recipeTooltipSlotIdx) {
-            recipeTooltipSlotIdx = slotIdx;
-            recipeTooltipGui = null;
-            recipeTooltipUpdater = () -> {
-                recipeTooltipGui = GuiCraftingRecipe.createRecipeGui("item", false, false, false, focused.item);
-                if (recipeTooltipGui != null) {
-                    recipeTooltipGui.limitToOneRecipe();
-                    recipeTooltipGui.initGui(true);
-                    recipeTooltipGui.guiTop = 0;
-                    recipeTooltipGui.guiLeft = 0;
-                }
-                recipeTooltipLines = Math.max(1, itemTooltip.size());
-            };
-        }
-        if (recipeTooltipGui == null) {
-            return;
-        }
-
-        GL11.glPushMatrix();
-        final float tooltipYOffset;
-        if (mousey - marginTop > height / 2) {
-            tooltipYOffset = mousey - recipeTooltipGui.getHeightAsWidget() + 8;
-        } else {
-            tooltipYOffset = mousey + ((recipeTooltipLines < 2) ? 1 : 3 + ((recipeTooltipLines - 1) * 10));
-        }
-        GL11.glTranslatef(mousex, tooltipYOffset, 500);
-
-        final GuiContainer gui;
-        if (mc.currentScreen instanceof GuiRecipe) {
-            gui = ((GuiRecipe<?>) mc.currentScreen).firstGui;
-        } else if (mc.currentScreen instanceof GuiContainer) {
-            gui = (GuiContainer) mc.currentScreen;
-        } else {
-            gui = null;
-        }
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-        RenderHelper.disableStandardItemLighting();
-        recipeTooltipGui.drawGuiContainerBackgroundLayer(0.0f, -100, -100);
-        GL11.glPopAttrib();
-        if (recipeTooltipGui.slotcontainer != null) {
-            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-            RenderHelper.enableGUIStandardItemLighting();
-            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-            @SuppressWarnings("unchecked")
-            List<Slot> slots = (List<Slot>) recipeTooltipGui.slotcontainer.inventorySlots;
-            for (Slot slot : slots) {
-                if (slot != null && slot.getStack() != null) {
-                    GuiContainerManager.drawItem(slot.xDisplayPosition, slot.yDisplayPosition, slot.getStack());
-                }
-            }
-            GL11.glPopAttrib();
-        }
-        recipeTooltipGui.drawGuiContainerForegroundLayer(-100, -100);
-        for (GuiButton btn : recipeTooltipGui.getOverlayButtons()) {
-            btn.drawButton(mc, -100, -100);
-        }
-        GL11.glPopMatrix();
     }
 
-    protected void drawSlotOutline(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
+    public void update() {}
+
+    protected void beforeDrawSlot(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
         if (focused != null && focused.slotIndex == slotIdx) {
             drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555); // highlight
         }
     }
+
+    protected void afterDrawSlot(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {}
 
     private void blitExistingBuffer() {
         Minecraft minecraft = Minecraft.getMinecraft();
@@ -427,12 +319,18 @@ public class ItemsGrid {
         GuiContainerManager.disableMatrixStackLogging();
     }
 
+    protected boolean shouldCacheItemRendering() {
+        return NEIClientConfig.shouldCacheItemRendering();
+    }
+
     public void draw(int mousex, int mousey) {
         if (getPerPage() == 0) {
             return;
         }
 
-        if (NEIClientConfig.shouldCacheItemRendering()) {
+        final ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
+
+        if (shouldCacheItemRendering()) {
 
             if (refreshBuffer) {
                 Minecraft minecraft = Minecraft.getMinecraft();
@@ -457,23 +355,17 @@ public class ItemsGrid {
                 refreshBuffer = false;
             }
 
-            drawSlotOutlines(mousex, mousey);
+            beforeDrawItems(mousex, mousey, focused);
             blitExistingBuffer();
         } else {
-            drawSlotOutlines(mousex, mousey);
+            beforeDrawItems(mousex, mousey, focused);
             drawItems();
         }
+
+        afterDrawItems(mousex, mousey, focused);
     }
 
-    public void postDrawTooltips(int mousex, int mousey, List<String> tooltip) {
-        if (NEIClientConfig.showRecipeTooltips() && showRecipeTooltips) {
-            try {
-                drawRecipeTooltip(mousex, mousey, tooltip);
-            } catch (Exception e) {
-                NEIClientConfig.logger.warn("Cannot draw recipe tooltip", e);
-            }
-        }
-    }
+    public void postDrawTooltips(int mousex, int mousey, List<String> tooltip) {}
 
     public void setVisible() {
         if (getItems().isEmpty() && getMessageOnEmpty() != null) {
@@ -510,16 +402,20 @@ public class ItemsGrid {
     }
 
     public boolean contains(int px, int py) {
+        final Rectangle4i rect = new Rectangle4i(
+                marginLeft + paddingLeft,
+                marginTop,
+                columns * SLOT_SIZE,
+                rows * SLOT_SIZE);
 
-        if (!(new Rectangle4i(marginLeft + paddingLeft, marginTop, columns * SLOT_SIZE, height)).contains(px, py)) {
+        if (!rect.contains(px, py)) {
             return false;
         }
 
         final int r = (int) ((py - marginTop) / SLOT_SIZE);
         final int c = (int) ((px - marginLeft - paddingLeft) / SLOT_SIZE);
-        final int slt = columns * r + c;
 
-        return r >= rows || c >= columns || !isInvalidSlot(slt);
+        return !isInvalidSlot(columns * r + c);
     }
 
     public String getMessageOnEmpty() {

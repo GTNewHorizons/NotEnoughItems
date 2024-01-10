@@ -16,10 +16,6 @@ import codechicken.nei.util.NBTJson;
 
 public class BookmarkRecipeId {
 
-    public int position = -1;
-
-    public int recipetype = -1;
-
     public String handlerName = null;
 
     public List<NBTTagCompound> ingredients = new ArrayList<>();
@@ -119,43 +115,6 @@ public class BookmarkRecipeId {
         }
 
         return arr;
-    }
-
-    /**
-     * Ensures the {@link BookmarkRecipeId#recipetype} and {@link BookmarkRecipeId#position} fields point to a valid
-     * recipe. This is needed, because the recipe IDs are loaded lazily on first use.
-     * 
-     * @param recipeHandlers The subset of recipe handlers to search for the recipe
-     */
-    public void updateTargetRecipe(List<? extends IRecipeHandler> recipeHandlers) {
-        if (this.recipetype == -1 || this.position == -1) {
-            this.recipetype = 0;
-            this.position = 0;
-
-            if (this.handlerName != null) {
-
-                for (int j = 0; j < recipeHandlers.size(); j++) {
-                    IRecipeHandler localHandler = recipeHandlers.get(j);
-                    HandlerInfo localHandlerInfo = GuiRecipeTab.getHandlerInfo(localHandler);
-
-                    if (localHandlerInfo.getHandlerName().equals(this.handlerName)) {
-
-                        if (!this.ingredients.isEmpty()) {
-                            for (int i = 0; i < localHandler.numRecipes(); i++) {
-
-                                if (this.equalsIngredients(localHandler.getIngredientStacks(i))) {
-                                    this.recipetype = j;
-                                    this.position = i;
-                                    break;
-                                }
-                            }
-                        }
-
-                        break;
-                    }
-                }
-            }
-        }
     }
 
     public boolean equals(Object anObject) {

@@ -6,6 +6,8 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -23,50 +25,76 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
     public static ArrayList<ICraftingHandler> serialCraftingHandlers = new ArrayList<>();
 
     public static boolean openRecipeGui(String outputId, Object... results) {
-        return openRecipeGui(outputId, false, false, results);
+        return createRecipeGui(outputId, true, results) != null;
     }
 
-    public static boolean openRecipeGui(String outputId, final Boolean overlay, final Boolean shift,
-            Object... results) {
-        return createRecipeGui(outputId, overlay, shift, true, results) != null;
-    }
-
-    public static GuiRecipe<?> createRecipeGui(String outputId, final Boolean overlay, final Boolean shift,
-            final boolean open, Object... results) {
+    public static GuiRecipe<?> createRecipeGui(String outputId, boolean open, Object... results) {
         final Minecraft mc = NEIClientUtils.mc();
+        final BookmarkRecipeId recipeId;
 
-        final BookmarkRecipeId recipeId = "item".equals(outputId)
-                ? getRecipeId(mc.currentScreen, (ItemStack) results[0])
-                : getCurrentRecipe(mc.currentScreen);
-
-        if (overlay && recipeId == null) return null;
+        if ("item".equals(outputId)) {
+            recipeId = getRecipeId(mc.currentScreen, (ItemStack) results[0]);
+        } else if ("recipeId".equals(outputId)) {
+            recipeId = (BookmarkRecipeId) results[1];
+        } else {
+            recipeId = getCurrentRecipe(mc.currentScreen);
+        }
 
         final ArrayList<ICraftingHandler> handlers = getCraftingHandlers(outputId, results);
 
         if (!handlers.isEmpty()) {
-            GuiCraftingRecipe gui = new GuiCraftingRecipe(handlers, recipeId);
+            final GuiCraftingRecipe gui = new GuiCraftingRecipe(handlers, "recipeId".equals(outputId));
 
             if (open) {
                 mc.displayGuiScreen(gui);
             }
 
-            if (recipeId != null) {
-                gui.openTargetRecipe(gui.recipeId);
-            }
-
-            if (overlay) {
-                gui.overlayRecipe(gui.recipeId.position, shift);
-            }
-
+            gui.openTargetRecipe(recipeId);
             return gui;
         }
 
         return null;
     }
 
+    public static boolean overlayRecipe(ItemStack stack, BookmarkRecipeId recipeId, final Boolean shift) {
+
+        if (stack == null || recipeId == null) {
+            return false;
+        }
+
+        final ArrayList<ICraftingHandler> handlers = getCraftingHandlers("recipeId", stack, recipeId);
+
+        if (!handlers.isEmpty()) {
+            final GuiCraftingRecipe gui = new GuiCraftingRecipe(handlers, true);
+            final int recipe = gui.openTargetRecipe(recipeId);
+
+            if (recipe != -1) {
+                gui.overlayRecipe(recipe, shift);
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+
     public static ArrayList<ICraftingHandler> getCraftingHandlers(String outputId, Object... results) {
+        ArrayList<ICraftingHandler> craftinghandlers = GuiCraftingRecipe.craftinghandlers;
+        ArrayList<ICraftingHandler> serialCraftingHandlers = GuiCraftingRecipe.serialCraftingHandlers;
+        Function<ICraftingHandler, ICraftingHandler> recipeHandlerFunction;
+
+        if ("recipeId".equals(outputId)) {
+            ItemStack stack = (ItemStack) results[0];
+            BookmarkRecipeId recipeId = (BookmarkRecipeId) results[1];
+            craftinghandlers = filterByHandlerName(craftinghandlers, recipeId.handlerName);
+            serialCraftingHandlers = filterByHandlerName(serialCraftingHandlers, recipeId.handlerName);
+            recipeHandlerFunction = h -> h.getRecipeHandler("item", stack);
+        } else {
+            recipeHandlerFunction = h -> h.getRecipeHandler(outputId, results);
+        }
+
         final RecipeHandlerQuery<ICraftingHandler> recipeQuery = new RecipeHandlerQuery<>(
-                h -> h.getRecipeHandler(outputId, results),
+                recipeHandlerFunction,
                 craftinghandlers,
                 serialCraftingHandlers,
                 "Error while looking up crafting recipe",
@@ -74,6 +102,16 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
                 "results: " + Arrays.toString(results));
 
         return recipeQuery.runWithProfiling("recipe.concurrent.crafting");
+    }
+
+    private static ArrayList<ICraftingHandler> filterByHandlerName(ArrayList<ICraftingHandler> craftinghandlers,
+            String handlerName) {
+        return craftinghandlers.stream().filter(h -> getHandlerName(h).equals(handlerName))
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private static String getHandlerName(ICraftingHandler handler) {
+        return GuiRecipeTab.getHandlerInfo(handler).getHandlerName();
     }
 
     protected static BookmarkRecipeId getRecipeId(GuiScreen gui, ItemStack stackover) {
@@ -97,10 +135,10 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         return ItemPanels.bookmarkPanel.getBookmarkRecipeId(stackover);
     }
 
-    private GuiCraftingRecipe(ArrayList<ICraftingHandler> handlers, BookmarkRecipeId recipeId) {
+    private GuiCraftingRecipe(ArrayList<ICraftingHandler> handlers, boolean limitToOneRecipe) {
         super(NEIClientUtils.mc().currentScreen);
+        this.limitToOneRecipe = limitToOneRecipe;
         this.currenthandlers = handlers;
-        this.recipeId = recipeId;
     }
 
     public static void registerRecipeHandler(ICraftingHandler handler) {

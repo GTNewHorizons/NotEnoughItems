@@ -2,6 +2,7 @@ package codechicken.nei.recipe.stackinfo;
 
 import java.lang.reflect.Method;
 
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.Fluid;
@@ -9,16 +10,18 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 import codechicken.nei.api.IStackStringifyHandler;
+import cpw.mods.fml.common.registry.GameRegistry;
 
 public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
 
-    public static Class GTDisplayFluid = null;
-    public static Method getFluidDisplayStack = null;
-    public static Method getFluidFromDisplayStack = null;
+    protected static Class<?> GTDisplayFluid = null;
+    protected static Method getFluidDisplayStack = null;
+    protected static Method getFluidFromDisplayStack = null;
+    public static boolean replaceAE2FCFluidDrop = false;
 
     static {
         try {
-            final Class gtUtility = Class.forName("gregtech.api.util.GT_Utility");
+            final Class<?> gtUtility = Class.forName("gregtech.api.util.GT_Utility");
 
             GTDisplayFluid = Class.forName("gregtech.common.items.GT_FluidDisplayItem");
             getFluidFromDisplayStack = gtUtility.getMethod("getFluidFromDisplayStack", ItemStack.class);
@@ -31,13 +34,13 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
 
     public NBTTagCompound convertItemStackToNBT(ItemStack stack, boolean saveStackSize) {
 
-        if (GTDisplayFluid != null && GTDisplayFluid.isInstance(stack.getItem())) {
+        if (replaceAE2FCFluidDrop || stack.getItem() != GameRegistry.findItem("ae2fc", "fluid_drop")) {
             final FluidStack fluidStack = getFluid(stack);
 
             if (fluidStack != null) {
                 final NBTTagCompound nbTag = new NBTTagCompound();
                 nbTag.setString("gtFluidName", fluidStack.getFluid().getName());
-                nbTag.setInteger("Count", saveStackSize ? fluidStack.amount : 1);
+                nbTag.setInteger("Count", saveStackSize ? fluidStack.amount : 144);
                 return nbTag;
             }
         }
@@ -66,17 +69,33 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
     }
 
     public FluidStack getFluid(ItemStack stack) {
+        final Item item = stack.getItem();
 
-        if (getFluidFromDisplayStack != null && GTDisplayFluid != null && GTDisplayFluid.isInstance(stack.getItem())) {
-            try {
+        try {
+            if (getFluidFromDisplayStack != null && GTDisplayFluid != null && GTDisplayFluid.isInstance(item)) {
                 final Object obj = getFluidFromDisplayStack.invoke(null, stack);
 
                 if (obj != null) {
                     return (FluidStack) obj;
                 }
 
-            } catch (Exception e) {}
-        }
+            } else if (item == GameRegistry.findItem("ae2fc", "fluid_packet")) {
+                NBTTagCompound nbtTag = stack.getTagCompound();
+
+                return FluidStack.loadFluidStackFromNBT((NBTTagCompound) nbtTag.getTag("FluidStack"));
+            } else if (item == GameRegistry.findItem("ae2fc", "fluid_drop")) {
+                NBTTagCompound nbtTag = stack.getTagCompound();
+                Fluid fluid = FluidRegistry.getFluid(nbtTag.getString("Fluid").toLowerCase());
+
+                if (fluid != null) {
+                    FluidStack fluidStack = new FluidStack(fluid, stack.stackSize);
+                    if (nbtTag.hasKey("FluidTag")) {
+                        fluidStack.tag = nbtTag.getCompoundTag("FluidTag");
+                    }
+                    return fluidStack;
+                }
+            }
+        } catch (Exception e) {}
 
         return null;
     }

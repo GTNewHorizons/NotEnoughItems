@@ -80,7 +80,7 @@ public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
     }
 
     @Override
-    public ArrayList<PositionedStack> getOtherStacks(int recipetype) {
+    public ArrayList<PositionedStack> getOtherStacks(int recipe) {
         return new ArrayList<>();
     }
 

@@ -101,7 +101,6 @@ public class SearchField extends TextField implements ItemFilterProvider {
         if (button == 0) {
             if (focused() && (System.currentTimeMillis() - lastclicktime < 400)) { // double click
                 NEIClientConfig.world.nbt.setBoolean("searchinventories", !searchInventories());
-                NEIClientConfig.world.saveNBT();
             }
             lastclicktime = System.currentTimeMillis();
         }
@@ -123,11 +122,11 @@ public class SearchField extends TextField implements ItemFilterProvider {
         if (isVisible() && NEIClientConfig.isKeyHashDown("gui.search")) {
             setFocus(true);
         }
-        if (NEIClientConfig.isKeyHashDown("gui.getprevioussearch") && focused()) {
+        if (focused() && NEIClientConfig.isKeyHashDown("gui.getprevioussearch")) {
             handleNavigateHistory(TextHistory.Direction.PREVIOUS);
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.getnextsearch") && focused()) {
+        if (focused() && NEIClientConfig.isKeyHashDown("gui.getnextsearch")) {
             handleNavigateHistory(TextHistory.Direction.NEXT);
         }
     }
@@ -151,22 +150,33 @@ public class SearchField extends TextField implements ItemFilterProvider {
         try {
             pattern = Pattern.compile(search);
         } catch (PatternSyntaxException ignored) {}
+
         return pattern == null || pattern.toString().length() == 0 ? null : pattern;
     }
 
     @Override
     public ItemFilter getFilter() {
-        String s_filter = text().toLowerCase();
+        return getFilter(text());
+    }
 
+    public static ItemFilter getFilter(String s_filter) {
         List<ItemFilter> primary = new LinkedList<>();
         List<ItemFilter> secondary = new LinkedList<>();
+        s_filter = s_filter.toLowerCase();
+
         for (ISearchProvider p : searchProviders) {
             ItemFilter filter = p.getFilter(s_filter);
             if (filter != null) (p.isPrimary() ? primary : secondary).add(filter);
         }
 
-        if (!primary.isEmpty()) return new AnyMultiItemFilter(primary);
-        if (!secondary.isEmpty()) return new AnyMultiItemFilter(secondary);
+        if (!primary.isEmpty()) {
+            return new AnyMultiItemFilter(primary);
+        }
+
+        if (!secondary.isEmpty()) {
+            return new AnyMultiItemFilter(secondary);
+        }
+
         return new EverythingItemFilter();
     }
 

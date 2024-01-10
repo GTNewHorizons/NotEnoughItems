@@ -43,7 +43,7 @@ public class GuiRecipeTabs {
         categoriesPerPage = 0;
         numHandlers = guiRecipe.currenthandlers.size();
 
-        for (IRecipeHandler handler : guiRecipe.currenthandlers) {
+        for (int i = 0; i < numHandlers; i++) {
             if (totalWidth + tabWidth < (guiRecipe.xSize - 4)) {
                 totalWidth += tabWidth;
                 categoriesPerPage++;
@@ -79,9 +79,11 @@ public class GuiRecipeTabs {
             IRecipeHandler handler = guiRecipe.currenthandlers.get(index);
             int tabX = area.x + (i * tabWidth);
 
-            if (NEIClientConfig.useCreativeTabStyle())
+            if (NEIClientConfig.useCreativeTabStyle()) {
                 tabs.add(new GuiRecipeTabCreative(guiRecipe, handler, tabX, area.y));
-            else tabs.add(new GuiRecipeTabJEI(guiRecipe, handler, tabX, area.y));
+            } else {
+                tabs.add(new GuiRecipeTabJEI(guiRecipe, handler, tabX, area.y));
+            }
         }
 
         // Maybe add buttons

@@ -88,6 +88,12 @@ public class ItemList {
             this(new LinkedList<>());
         }
 
+        public AllMultiItemFilter(ItemFilter a, ItemFilter b) {
+            this.filters = new ArrayList<>();
+            this.filters.add(a);
+            this.filters.add(b);
+        }
+
         @Override
         public boolean matches(ItemStack item) {
             for (ItemFilter filter : filters) try {
@@ -254,7 +260,7 @@ public class ItemList {
 
             try {
                 filtered = ItemList.forkJoinPool.submit(
-                        () -> items.parallelStream().filter(PresetsWidget::matches).filter(filter::matches)
+                        () -> items.parallelStream().filter(filter::matches)
                                 .collect(Collectors.toCollection(ArrayList::new)))
                         .get();
             } catch (InterruptedException | ExecutionException e) {

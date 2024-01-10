@@ -328,7 +328,7 @@ public abstract class PanelWidget extends Widget {
         ItemPanelSlot hoverSlot = getSlotMouseOver(mousex, mousey);
 
         if (hoverSlot != null && hoverSlot.slotIndex == mouseDownSlot && draggedStack == null) {
-            ItemStack item = hoverSlot.item;
+            ItemStack item = hoverSlot.item.copy();
 
             if (NEIController.manager.window instanceof GuiRecipe || !NEIClientConfig.canCheatItem(item)) {
 

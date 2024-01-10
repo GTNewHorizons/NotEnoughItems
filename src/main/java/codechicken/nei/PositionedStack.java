@@ -26,8 +26,11 @@ public class PositionedStack {
         relx = x;
         rely = y;
 
-        if (genPerms) generatePermutations();
-        else setPermutationToRender(0);
+        if (genPerms) {
+            generatePermutations();
+        } else {
+            setPermutationToRender(0);
+        }
     }
 
     public PositionedStack(Object object, int x, int y) {
@@ -77,10 +80,13 @@ public class PositionedStack {
 
     public void setPermutationToRender(int index) {
         item = items[index].copy();
-        if (item.getItem() == null) item = new ItemStack(Blocks.fire);
-        else if (item.getItemDamage() == OreDictionary.WILDCARD_VALUE && item.getItem() != null
-                && item.getItem().isRepairable())
-            item.setItemDamage(0);
+
+        if (item.getItem() == null) {
+            item = new ItemStack(Blocks.fire);
+        } else if (item.getItemDamage() == OreDictionary.WILDCARD_VALUE && item.getItem() != null
+                && item.getItem().isRepairable()) {
+                    item.setItemDamage(0);
+                }
     }
 
     public boolean contains(ItemStack ingredient) {

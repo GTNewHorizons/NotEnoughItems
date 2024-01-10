@@ -51,15 +51,23 @@ public interface IRecipeHandler {
     int numRecipes();
 
     /**
+     *
+     * @return <tt>true</tt> if this list contains no elements
+     */
+    default boolean isEmpty() {
+        return numRecipes() == 0;
+    }
+
+    /**
      * Draw the background of this recipe handler (basically the slot layout image).
-     * 
+     *
      * @param recipe The recipe index to draw at this position.
      */
     void drawBackground(int recipe);
 
     /**
      * Draw the foreground of this recipe handler (for things like progress bars).
-     * 
+     *
      * @param recipe The recipe index to draw at this position.
      */
     void drawForeground(int recipe);
@@ -74,11 +82,11 @@ public interface IRecipeHandler {
 
     /**
      *
-     * @param recipetype The recipe index to get items for.
+     * @param recipe The recipe index to get items for.
      * @return A list of the other {@link PositionedStack}s in this recipe relative to the top left corner of your
      *         recipe drawing space. For example fuel in furnaces.
      */
-    List<PositionedStack> getOtherStacks(int recipetype);
+    List<PositionedStack> getOtherStacks(int recipe);
 
     /**
      *

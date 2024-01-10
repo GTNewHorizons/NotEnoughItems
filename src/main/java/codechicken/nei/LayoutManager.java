@@ -14,7 +14,6 @@ import static codechicken.nei.NEIClientConfig.isEnabled;
 import static codechicken.nei.NEIClientConfig.isHidden;
 import static codechicken.nei.NEIClientConfig.showIDs;
 import static codechicken.nei.NEIClientConfig.toggleBooleanSetting;
-import static codechicken.nei.NEIClientConfig.world;
 import static codechicken.nei.NEIClientUtils.cycleGamemode;
 import static codechicken.nei.NEIClientUtils.decreaseSlotStack;
 import static codechicken.nei.NEIClientUtils.deleteEverything;
@@ -286,7 +285,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     @Override
     public void postRenderTooltips(GuiContainer gui, int mousex, int mousey, List<String> tooltip) {
-        if (!isHidden() && isEnabled()) {
+        if (!isHidden() && isEnabled() && GuiContainerManager.shouldShowTooltip(gui)) {
             for (Widget widget : drawWidgets) widget.postDrawTooltips(mousex, mousey, tooltip);
         }
     }
@@ -336,6 +335,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (!visiblity.showBookmarkPanel || gui.guiTop <= 20) visiblity.showPresetsDropdown = false;
 
         if (gui.guiLeft - 4 < 76) visiblity.showWidgets = false;
+
+        if (!itemsLoaded) visiblity.showPresetsDropdown = false;
 
         try {
             GuiInfo.readLock.lock();
@@ -735,7 +736,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     @Override
     public boolean shouldShowTooltip(GuiContainer gui) {
-        return itemPanel.draggedStack == null && bookmarkPanel.sortedStackIndex == -1;
+        return itemPanel.draggedStack == null && !bookmarkPanel.inEditingState();
     }
 
     /** Note: this method isn't actually used by this mod, but NEI add-ons might need it. */
@@ -758,17 +759,21 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     @Override
     public void renderSlotOverlay(GuiContainer window, Slot slot) {
-        ItemStack item = slot.getStack();
-        if (world.nbt.getBoolean("searchinventories") && (item == null ? !getSearchExpression().equals("")
-                : !((SearchField) searchField).getFilter().matches(item))) {
-            GL11.glDisable(GL11.GL_LIGHTING);
-            GL11.glDisable(GL11.GL_DEPTH_TEST);
-            GL11.glTranslatef(0, 0, 150);
-            drawRect(slot.xDisplayPosition, slot.yDisplayPosition, 16, 16, 0x80000000);
-            GL11.glTranslatef(0, 0, -150);
-            GL11.glEnable(GL11.GL_LIGHTING);
-            GL11.glEnable(GL11.GL_DEPTH_TEST);
+
+        if (SearchField.searchInventories()) {
+            ItemStack item = slot.getStack();
+
+            if (item == null ? !getSearchExpression().equals("") : !searchField.getFilter().matches(item)) {
+                GL11.glDisable(GL11.GL_LIGHTING);
+                GL11.glDisable(GL11.GL_DEPTH_TEST);
+                GL11.glTranslatef(0, 0, 150);
+                drawRect(slot.xDisplayPosition, slot.yDisplayPosition, 16, 16, 0x80000000);
+                GL11.glTranslatef(0, 0, -150);
+                GL11.glEnable(GL11.GL_LIGHTING);
+                GL11.glEnable(GL11.GL_DEPTH_TEST);
+            }
         }
+
     }
 
     public static void drawIcon(int x, int y, Image image) {

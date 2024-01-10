@@ -62,7 +62,6 @@ public class GuiEnchantmentModifier extends GuiContainer {
 
     public static void toggleEnchantmentValidation() {
         NEIClientConfig.world.nbt.setBoolean("validateenchantments", !validateEnchantments());
-        NEIClientConfig.world.saveNBT();
     }
 
     protected void actionPerformed(GuiButton guibutton) {

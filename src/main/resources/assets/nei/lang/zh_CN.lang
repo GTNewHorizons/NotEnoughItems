@@ -147,9 +147,6 @@ nei.options.inventory.jei_style_recipe_catalyst.false=否
 nei.options.inventory.saveCurrentRecipeInBookmarksEnabled=保存书签中的当前合成表
 nei.options.inventory.saveCurrentRecipeInBookmarksEnabled.true=启用
 nei.options.inventory.saveCurrentRecipeInBookmarksEnabled.false=禁用
-nei.options.inventory.useNBTInBookmarks=在书签中启用NBT
-nei.options.inventory.useNBTInBookmarks.true=是
-nei.options.inventory.useNBTInBookmarks.false=否
 nei.options.inventory.bookmarksAnimationEnabled=REI风格书签动画
 nei.options.inventory.bookmarksAnimationEnabled.true=是
 nei.options.inventory.bookmarksAnimationEnabled.false=否
@@ -271,7 +268,7 @@ nei.recipe.furnace=烧制
 nei.recipe.fuel=燃料
 nei.recipe.fuel.smeltCount=可冶炼%s个物品
 # Deprecated
-nei.recipe.fuel.required=需要%s个 
+nei.recipe.fuel.required=需要%s个
 # Deprecated
 nei.recipe.fuel.processed=可烧制%s个
 # Deprecated

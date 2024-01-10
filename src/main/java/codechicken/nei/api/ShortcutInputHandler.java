@@ -1,5 +1,8 @@
 package codechicken.nei.api;
 
+import static codechicken.lib.gui.GuiDraw.getMousePosition;
+
+import java.awt.Point;
 import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -7,14 +10,18 @@ import net.minecraft.item.ItemStack;
 
 import org.lwjgl.input.Mouse;
 
+import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
+import codechicken.nei.recipe.BookmarkRecipeId;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
+import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 
 public abstract class ShortcutInputHandler {
 
@@ -43,11 +50,11 @@ public abstract class ShortcutInputHandler {
         }
 
         if (NEIClientConfig.isKeyHashDown("gui.recipe")) {
-            return GuiCraftingRecipe.openRecipeGui("item", stackover);
+            return GuiCraftingRecipe.openRecipeGui("item", normalizeItemStack(stackover));
         }
 
         if (NEIClientConfig.isKeyHashDown("gui.usage")) {
-            return GuiUsageRecipe.openRecipeGui("item", stackover);
+            return GuiUsageRecipe.openRecipeGui("item", normalizeItemStack(stackover));
         }
 
         if (NEIClientConfig.isKeyHashDown("gui.bookmark")) {
@@ -99,14 +106,28 @@ public abstract class ShortcutInputHandler {
         return false;
     }
 
-    private static boolean openOverlayRecipe(ItemStack stack, boolean shift) {
+    private static boolean openOverlayRecipe(ItemStack stackover, boolean shift) {
         final GuiContainer gui = NEIClientUtils.getGuiContainer();
 
         if (gui == null || gui instanceof GuiRecipe) {
             return false;
         }
 
-        return GuiCraftingRecipe.openRecipeGui("item", true, shift, stack);
+        final Point mouseover = getMousePosition();
+        ItemPanelSlot panelSlot = ItemPanels.bookmarkPanel.getSlotMouseOver(mouseover.x, mouseover.y);
+        BookmarkRecipeId recipeId = null;
+
+        if (panelSlot != null) {
+            recipeId = ItemPanels.bookmarkPanel.getBookmarkRecipeId(panelSlot.slotIndex);
+        } else {
+            recipeId = ItemPanels.bookmarkPanel.getBookmarkRecipeId(stackover);
+        }
+
+        if (recipeId != null) {
+            return GuiCraftingRecipe.overlayRecipe(stackover, recipeId, shift);
+        }
+
+        return false;
     }
 
     private static boolean saveRecipeInBookmark(ItemStack stack, boolean saveIngredients, boolean saveStackSize) {
@@ -127,5 +148,12 @@ public abstract class ShortcutInputHandler {
         }
 
         return false;
+    }
+
+    private static ItemStack normalizeItemStack(ItemStack stack) {
+        GTFluidStackStringifyHandler.replaceAE2FCFluidDrop = true;
+        stack = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack));
+        GTFluidStackStringifyHandler.replaceAE2FCFluidDrop = false;
+        return stack;
     }
 }

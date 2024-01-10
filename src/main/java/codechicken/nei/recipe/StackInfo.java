@@ -8,14 +8,18 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.WeakHashMap;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.IFluidContainerItem;
 
 import org.apache.commons.io.IOUtils;
 
@@ -29,6 +33,13 @@ public class StackInfo {
     public static final ArrayList<IStackStringifyHandler> stackStringifyHandlers = new ArrayList<>();
     private static final HashMap<String, HashMap<String, String[]>> guidfilters = new HashMap<>();
     private static final WeakHashMap<ItemStack, String> guidcache = new WeakHashMap<>();
+    private static final LinkedHashMap<ItemStack, FluidStack> fluidcache = new LinkedHashMap<ItemStack, FluidStack>() {
+
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<ItemStack, FluidStack> eldest) {
+            return size() > 20;
+        }
+    };
 
     static {
         stackStringifyHandlers.add(new DefaultStackStringifyHandler());
@@ -49,11 +60,24 @@ public class StackInfo {
         return nbTag;
     }
 
+    public static ItemStack loadFromNBT(NBTTagCompound nbtTag, long customCount) {
+
+        if (nbtTag != null) {
+            nbtTag = (NBTTagCompound) nbtTag.copy();
+            nbtTag.setInteger("Count", Math.max(customCount <= Integer.MAX_VALUE ? (int) customCount : 0, 0));
+            return loadFromNBT(nbtTag);
+        }
+
+        return null;
+    }
+
     public static ItemStack loadFromNBT(NBTTagCompound nbtTag) {
         ItemStack stack = null;
 
-        for (int i = stackStringifyHandlers.size() - 1; i >= 0 && nbtTag != null && stack == null; i--) {
-            stack = stackStringifyHandlers.get(i).convertNBTToItemStack(nbtTag);
+        if (nbtTag != null) {
+            for (int i = stackStringifyHandlers.size() - 1; i >= 0 && stack == null; i--) {
+                stack = stackStringifyHandlers.get(i).convertNBTToItemStack(nbtTag);
+            }
         }
 
         return stack;
@@ -76,13 +100,22 @@ public class StackInfo {
     }
 
     public static FluidStack getFluid(ItemStack stack) {
-        FluidStack fluid = null;
+        FluidStack fluid = fluidcache.get(stack);
 
-        for (int i = stackStringifyHandlers.size() - 1; i >= 0 && fluid == null; i--) {
-            fluid = stackStringifyHandlers.get(i).getFluid(stack);
+        if (fluid == null && !fluidcache.containsKey(stack)) {
+
+            for (int i = stackStringifyHandlers.size() - 1; i >= 0 && fluid == null; i--) {
+                fluid = stackStringifyHandlers.get(i).getFluid(stack);
+            }
+
+            fluidcache.put(stack, fluid);
         }
 
         return fluid;
+    }
+
+    public static boolean isFluidContainer(ItemStack stack) {
+        return stack.getItem() instanceof IFluidContainerItem || FluidContainerRegistry.isContainer(stack);
     }
 
     public static String getItemStackGUID(ItemStack stack) {
