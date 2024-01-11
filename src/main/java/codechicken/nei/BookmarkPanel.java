@@ -682,6 +682,22 @@ public class BookmarkPanel extends PanelWidget {
             onItemsChanged();
         }
 
+        protected void removeGroup(int groupId) {
+
+            for (int i = this.metadata.size() - 1; i >= 0; i--) {
+                if (this.metadata.get(i).groupId == groupId) {
+                    this.metadata.remove(i);
+                    this.realItems.remove(i);
+                }
+            }
+
+            if (groupId != DEFAULT_GROUP_ID) {
+                this.groups.remove(groupId);
+            }
+
+            onItemsChanged();
+        }
+
         public int indexOf(ItemStack stackA, BookmarkRecipeId recipeId) {
             return indexOf(stackA, recipeId, DEFAULT_GROUP_ID);
         }
@@ -857,7 +873,8 @@ public class BookmarkPanel extends PanelWidget {
                             && groupMeta.crafting.multiplier.containsKey(stack)) {
                         multiplier = this.groups.get(meta.groupId).crafting.multiplier.get(stack);
                     } else if (focus != null && meta.factor > 0
-                            && meta.recipeId.equals(this.getRecipeId(focus.slotIndex))) {
+                            && meta.groupId == this.metadata.get(focus.slotIndex).groupId
+                            && meta.recipeId.equals(this.metadata.get(focus.slotIndex).recipeId)) {
                                 multiplier = StackInfo.itemStackToNBT(stack).getInteger("Count") / meta.factor;
                             }
                 }
@@ -1922,10 +1939,29 @@ public class BookmarkPanel extends PanelWidget {
     }
 
     @Override
+    public boolean handleKeyPress(int keyID, char keyChar) {
+
+        if (NEIClientConfig.isKeyHashDown("gui.bookmark_recipe")) {
+            final BookmarkGrid BGrid = (BookmarkGrid) grid;
+            final int overRowIndex = BGrid.getHoveredRowIndex(true);
+
+            if (overRowIndex >= 0) {
+                BGrid.removeGroup(BGrid.getRowGroupId(overRowIndex));
+                saveBookmarks();
+                return true;
+            }
+
+        }
+
+        return super.handleKeyPress(keyID, keyChar);
+    }
+
+    @Override
     public void mouseUp(int mousex, int mousey, int button) {
 
         if (this.sortableItem != null) {
             this.sortableItem = null;
+            this.mouseDownSlot = -1;
             grid.onGridChanged(); /* make sure grid redraws the new item */
             saveBookmarks();
         } else if (this.groupingItem != null) {
@@ -1946,6 +1982,7 @@ public class BookmarkPanel extends PanelWidget {
 
             }
 
+            this.mouseDownSlot = -1;
             this.groupingItem = null;
             saveBookmarks();
         } else {
@@ -1981,7 +2018,7 @@ public class BookmarkPanel extends PanelWidget {
 
             if (slot != null) {
                 final BookmarkGrid BGrid = (BookmarkGrid) grid;
-                final BookmarkRecipeId recipeId = BGrid.getRecipeId(slot.slotIndex);
+                final ItemStackMetadata overMeta = BGrid.getMetadata(slot.slotIndex);
                 final HashMap<Integer, ItemStack> items = new HashMap<>();
                 int shiftMultiplier = 1;
 
@@ -1993,12 +2030,14 @@ public class BookmarkPanel extends PanelWidget {
                 }
 
                 if (NEIClientUtils.shiftKey()) {
-                    ItemStackMetadata iMeta;
+                    ItemStackMetadata ingrMeta;
 
                     for (int slotIndex = grid.size() - 1; slotIndex >= 0; slotIndex--) {
-                        iMeta = BGrid.getMetadata(slotIndex);
+                        ingrMeta = BGrid.getMetadata(slotIndex);
 
-                        if (iMeta.recipeId != null && iMeta.recipeId.equals(recipeId) && slotIndex != slot.slotIndex) {
+                        if (ingrMeta.recipeId != null && ingrMeta.groupId == overMeta.groupId
+                                && ingrMeta.recipeId.equals(overMeta.recipeId)
+                                && slotIndex != slot.slotIndex) {
                             items.put(slotIndex, shiftStackSize(BGrid, slotIndex, shift, shiftMultiplier));
                         }
                     }
