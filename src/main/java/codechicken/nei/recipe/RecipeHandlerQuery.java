@@ -91,8 +91,7 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
 
     private boolean isHidden(T handler) {
         return NEIClientConfig.hiddenHandlerRegex.stream()
-                .map(pattern -> pattern.matcher(GuiRecipeTab.getHandlerInfo(handler).getHandlerName()))
-                .anyMatch(Matcher::matches);
+                .map(pattern -> pattern.matcher(RecipeCatalysts.getRecipeID(handler))).anyMatch(Matcher::matches);
     }
 
     private void printLog(Throwable t) {
