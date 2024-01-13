@@ -203,6 +203,11 @@ public class ItemStackMap<T> {
         return map == null ? null : map.get(key);
     }
 
+    public T getOrDefault(ItemStack key, T defaultValue) {
+        T e = get(key);
+        return e == null ? defaultValue : e;
+    }
+
     public void put(ItemStack key, T value) {
         if (key == null || key.getItem() == null) return;
 

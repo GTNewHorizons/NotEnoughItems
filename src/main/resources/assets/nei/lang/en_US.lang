@@ -112,6 +112,7 @@ nei.options.keys.gui.bookmark=Add Bookmark
 nei.options.keys.gui.bookmark_recipe=Add Bookmark with Recipe
 nei.options.keys.gui.bookmark_count=Add Bookmark with Count
 nei.options.keys.gui.bookmark_pull_items=Pull all Bookmarked Items
+nei.options.keys.gui.bookmark_pull_items_ingredients=Pull all Bookmarked Ingredients
 nei.options.keys.gui.bookmark_recipe_count=Add Bookmark with Recipe & Count
 nei.options.keys.gui.hide_bookmarks=Toggle Bookmark Panel Visibility
 nei.options.keys.gui.overlay=Overlay Recipe

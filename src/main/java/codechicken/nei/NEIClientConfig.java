@@ -85,9 +85,8 @@ public class NEIClientConfig {
     // We use regex here so that we can apply the height hack to entire mods with one entry.
     public static HashSet<Pattern> heightHackHandlerRegex = new HashSet<>();
 
-    // Set of regexes matching handler Name of handlers that need hide.
-    // We use regex here so that we can hide to entire mods with one entry.
-    public static HashSet<Pattern> hiddenHandlerRegex = new HashSet<>();
+    // Set of handler Name or Id of handlers that need hide.
+    public static HashSet<String> hiddenHandlers = new HashSet<>();
 
     // Map of handler ID to sort order.
     // Handlers will be sorted in ascending order, so smaller numbers show up earlier.
@@ -362,6 +361,7 @@ public class NEIClientConfig {
                 "gui.bookmark_recipe_count",
                 Keyboard.KEY_A + NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH);
         API.addHashBind("gui.bookmark_pull_items", Keyboard.KEY_V);
+        API.addHashBind("gui.bookmark_pull_items_ingredients", Keyboard.KEY_V + NEIClientUtils.SHIFT_HASH);
         API.addHashBind("gui.overlay", Keyboard.KEY_S);
         API.addHashBind("gui.overlay_use", Keyboard.KEY_S + NEIClientUtils.SHIFT_HASH);
         API.addHashBind("gui.overlay_hide", Keyboard.KEY_S + NEIClientUtils.CTRL_HASH);
