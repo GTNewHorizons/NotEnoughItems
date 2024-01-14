@@ -218,8 +218,7 @@ public class ClientHandler {
 
         try (FileReader reader = new FileReader(file)) {
             NEIClientConfig.logger.info("Loading hidden handlers from file {}", file);
-            NEIClientConfig.hiddenHandlerRegex = IOUtils.readLines(reader).stream()
-                    .filter((line) -> !line.startsWith("#")).map(Pattern::compile)
+            NEIClientConfig.hiddenHandlers = IOUtils.readLines(reader).stream().filter((line) -> !line.startsWith("#"))
                     .collect(Collectors.toCollection(HashSet::new));
         } catch (IOException e) {
             NEIClientConfig.logger.error("Failed to load hidden handlers from file {}", file, e);

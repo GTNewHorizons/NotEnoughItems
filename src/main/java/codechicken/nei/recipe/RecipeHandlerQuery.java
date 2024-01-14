@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
@@ -12,6 +11,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+
+import com.google.common.base.Objects;
 
 import codechicken.core.TaskProfiler;
 import codechicken.nei.ItemList;
@@ -90,8 +91,8 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
     }
 
     private boolean isHidden(T handler) {
-        return NEIClientConfig.hiddenHandlerRegex.stream()
-                .map(pattern -> pattern.matcher(RecipeCatalysts.getRecipeID(handler))).anyMatch(Matcher::matches);
+        final String handlerId = Objects.firstNonNull(handler.getOverlayIdentifier(), handler.getHandlerId());
+        return NEIClientConfig.hiddenHandlers.stream().anyMatch(h -> h.equals(handlerId));
     }
 
     private void printLog(Throwable t) {

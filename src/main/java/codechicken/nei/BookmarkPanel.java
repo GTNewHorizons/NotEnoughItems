@@ -456,8 +456,15 @@ public class BookmarkPanel extends PanelWidget {
             }
 
             if (NEIClientUtils.shiftKey() && !LayoutManager.bookmarkPanel.inEditingState()) {
-                final ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
-                this.focusedGroupId = focused != null ? this.metadata.get(focused.slotIndex).groupId : -1;
+                final int rowId = getHoveredRowIndex(true);
+
+                if (rowId != -1) {
+                    this.focusedGroupId = getRowGroupId(rowId);
+                } else {
+                    final ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
+                    this.focusedGroupId = focused != null ? this.metadata.get(focused.slotIndex).groupId : -1;
+                }
+
             } else {
                 this.focusedGroupId = -1;
             }
@@ -1138,7 +1145,7 @@ public class BookmarkPanel extends PanelWidget {
                 if (rightclick) {
                     return false;
                 }
-                return pullBookmarkItems();
+                return pullBookmarkItems(-1, false);
             }
 
             @Override
@@ -1276,6 +1283,12 @@ public class BookmarkPanel extends PanelWidget {
         }
 
         return null;
+    }
+
+    protected int getHoveredGroupId() {
+        final BookmarkGrid BGrid = (BookmarkGrid) grid;
+        final int overRowIndex = BGrid.getHoveredRowIndex(true);
+        return overRowIndex >= 0 ? BGrid.getRowGroupId(overRowIndex) : -1;
     }
 
     protected String getNamespaceLabelText(boolean shortFormat) {
@@ -1941,6 +1954,14 @@ public class BookmarkPanel extends PanelWidget {
     @Override
     public boolean handleKeyPress(int keyID, char keyChar) {
 
+        if (NEIClientConfig.isKeyHashDown("gui.bookmark_pull_items")) {
+            return this.pullBookmarkItems(this.getHoveredGroupId(), false);
+        }
+
+        if (NEIClientConfig.isKeyHashDown("gui.bookmark_pull_items_ingredients")) {
+            return this.pullBookmarkItems(this.getHoveredGroupId(), true);
+        }
+
         if (NEIClientConfig.isKeyHashDown("gui.bookmark_recipe")) {
             final BookmarkGrid BGrid = (BookmarkGrid) grid;
             final int overRowIndex = BGrid.getHoveredRowIndex(true);
@@ -2078,7 +2099,7 @@ public class BookmarkPanel extends PanelWidget {
         return null;
     }
 
-    public boolean pullBookmarkItems() {
+    public boolean pullBookmarkItems(int groupId, boolean onlyIngredients) {
         IBookmarkContainerHandler containerHandler = BookmarkContainerInfo
                 .getBookmarkContainerHandler(getGuiContainer());
 
@@ -2086,7 +2107,39 @@ public class BookmarkPanel extends PanelWidget {
             return false;
         }
 
-        containerHandler.pullBookmarkItemsFromContainer(getGuiContainer(), ((BookmarkGrid) grid).realItems);
+        final BookmarkGrid BGrid = (BookmarkGrid) grid;
+        final ArrayList<ItemStack> items = new ArrayList<>();
+        final ItemStackMap<Integer> uniqueItems = new ItemStackMap<>();
+        final BookmarkGroup group = groupId >= 0 ? BGrid.groups.get(groupId) : null;
+        ItemStackMetadata meta;
+
+        System.out.println("onlyIngredients: " + onlyIngredients);
+
+        for (int idx = 0; idx < BGrid.realItems.size(); idx++) {
+            meta = BGrid.metadata.get(idx);
+
+            if (groupId == -1 || groupId == meta.groupId) {
+                final ItemStack stack = BGrid.getItem(idx);
+
+                if (!onlyIngredients || meta.ingredient && (group == null || group.crafting == null
+                        || group.crafting.inputs.containsKey(BGrid.realItems.get(idx)))) {
+                    final NBTTagCompound nbTag = StackInfo.itemStackToNBT(stack);
+                    uniqueItems.put(stack, uniqueItems.getOrDefault(stack, 0) + nbTag.getInteger("Count"));
+                }
+
+            }
+        }
+
+        for (ItemStackMap.Entry<Integer> entry : uniqueItems.entries()) {
+            final NBTTagCompound nbTag = StackInfo.itemStackToNBT(entry.key);
+            items.add(StackInfo.loadFromNBT(nbTag, entry.value));
+        }
+
+        if (items.isEmpty()) {
+            return false;
+        }
+
+        containerHandler.pullBookmarkItemsFromContainer(getGuiContainer(), items);
         return true;
     }
 }
