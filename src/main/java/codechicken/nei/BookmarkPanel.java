@@ -1983,7 +1983,7 @@ public class BookmarkPanel extends PanelWidget {
         if (this.sortableItem != null) {
             this.sortableItem = null;
             this.mouseDownSlot = -1;
-            grid.onGridChanged(); /* make sure grid redraws the new item */
+            grid.onItemsChanged(); /* make sure grid redraws the new item */
             saveBookmarks();
         } else if (this.groupingItem != null) {
             final BookmarkGrid BGrid = (BookmarkGrid) grid;
