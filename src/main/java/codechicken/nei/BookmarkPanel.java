@@ -2113,8 +2113,6 @@ public class BookmarkPanel extends PanelWidget {
         final BookmarkGroup group = groupId >= 0 ? BGrid.groups.get(groupId) : null;
         ItemStackMetadata meta;
 
-        System.out.println("onlyIngredients: " + onlyIngredients);
-
         for (int idx = 0; idx < BGrid.realItems.size(); idx++) {
             meta = BGrid.metadata.get(idx);
 
