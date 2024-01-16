@@ -269,27 +269,23 @@ public class BookmarkCraftingChain {
             return false;
         }
 
-        int shift = 0;
         int minRecipeIndex = 0;
-        int minShift = 0x7fffff;
+        int minShift = Integer.MAX_VALUE;
 
         for (CraftingChainItem item : request.outputs.get(stackIndex)) {
             if (!request.initialItems.contains(item.recipeIndex) && item.factor > 0) {
                 long ingrCount = calculateCount(request, request.inputs.get(item.stackIndex));
                 long outputCount = calculateCount(request, request.outputs.get(item.stackIndex));
+                long shift = (ingrCount - outputCount) / item.factor;
 
-                while ((outputCount + item.factor * shift) < ingrCount && shift < minShift) {
-                    shift++;
-                }
-
-                if (shift < minShift) {
-                    minShift = shift;
+                if (shift > 0 && shift < minShift) {
+                    minShift = (int) shift;
                     minRecipeIndex = item.recipeIndex;
                 }
             }
         }
 
-        if (minShift < 0x7fffff) {
+        if (minShift < Integer.MAX_VALUE) {
             request.multiplier.put(minRecipeIndex, request.multiplier.get(minRecipeIndex) + minShift);
             return true;
         }

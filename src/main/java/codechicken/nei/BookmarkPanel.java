@@ -1983,7 +1983,7 @@ public class BookmarkPanel extends PanelWidget {
         if (this.sortableItem != null) {
             this.sortableItem = null;
             this.mouseDownSlot = -1;
-            grid.onGridChanged(); /* make sure grid redraws the new item */
+            grid.onItemsChanged(); /* make sure grid redraws the new item */
             saveBookmarks();
         } else if (this.groupingItem != null) {
             final BookmarkGrid BGrid = (BookmarkGrid) grid;
@@ -2112,8 +2112,6 @@ public class BookmarkPanel extends PanelWidget {
         final ItemStackMap<Integer> uniqueItems = new ItemStackMap<>();
         final BookmarkGroup group = groupId >= 0 ? BGrid.groups.get(groupId) : null;
         ItemStackMetadata meta;
-
-        System.out.println("onlyIngredients: " + onlyIngredients);
 
         for (int idx = 0; idx < BGrid.realItems.size(); idx++) {
             meta = BGrid.metadata.get(idx);
