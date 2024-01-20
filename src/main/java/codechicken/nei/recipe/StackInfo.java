@@ -64,7 +64,7 @@ public class StackInfo {
 
         if (nbtTag != null) {
             nbtTag = (NBTTagCompound) nbtTag.copy();
-            nbtTag.setInteger("Count", Math.max(customCount <= Integer.MAX_VALUE ? (int) customCount : 0, 0));
+            nbtTag.setInteger("Count", (int) Math.max(Math.min(customCount, Integer.MAX_VALUE), 0));
             return loadFromNBT(nbtTag);
         }
 

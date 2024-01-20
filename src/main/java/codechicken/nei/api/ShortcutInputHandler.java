@@ -35,6 +35,23 @@ public abstract class ShortcutInputHandler {
             return hideOverlayRecipe();
         }
 
+        if (NEIClientConfig.isKeyHashDown("gui.bookmark_pull_items")) {
+            return ItemPanels.bookmarkPanel.pullBookmarkItems(ItemPanels.bookmarkPanel.getHoveredGroupId(true), false);
+        }
+
+        if (NEIClientConfig.isKeyHashDown("gui.bookmark_pull_items_ingredients")) {
+            return ItemPanels.bookmarkPanel.pullBookmarkItems(ItemPanels.bookmarkPanel.getHoveredGroupId(true), true);
+        }
+
+        if (stackover == null && NEIClientConfig.isKeyHashDown("gui.bookmark_recipe")) {
+            final int groupId = ItemPanels.bookmarkPanel.getHoveredGroupId(true);
+
+            if (groupId != -1) {
+                ItemPanels.bookmarkPanel.removeGroup(groupId);
+                return true;
+            }
+        }
+
         if (stackover == null) {
             return false;
         }

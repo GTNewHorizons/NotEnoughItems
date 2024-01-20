@@ -12,8 +12,6 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.google.common.base.Objects;
-
 import codechicken.core.TaskProfiler;
 import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
@@ -91,8 +89,9 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
     }
 
     private boolean isHidden(T handler) {
-        final String handlerId = Objects.firstNonNull(handler.getOverlayIdentifier(), handler.getHandlerId());
-        return NEIClientConfig.hiddenHandlers.stream().anyMatch(h -> h.equals(handlerId));
+        final String handlerName = handler.getHandlerId();
+        final String handlerId = handler.getOverlayIdentifier();
+        return NEIClientConfig.hiddenHandlers.stream().anyMatch(h -> h.equals(handlerId) || h.equals(handlerName));
     }
 
     private void printLog(Throwable t) {
