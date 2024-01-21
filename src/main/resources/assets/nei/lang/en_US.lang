@@ -288,7 +288,6 @@ nei.options.tools.dump.handlers.mode.1=Json
 
 nei.recipe.page=Page %s/%s
 nei.recipe.tooltip=Recipes
-nei.recipe.search.show=Click to Search
 nei.recipe.shaped=Shaped Crafting
 nei.recipe.shapeless=Shapeless Crafting
 nei.recipe.furnace=Smelting

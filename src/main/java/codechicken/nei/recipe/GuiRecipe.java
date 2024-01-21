@@ -1,7 +1,6 @@
 package codechicken.nei.recipe;
 
 import static codechicken.lib.gui.GuiDraw.fontRenderer;
-import static codechicken.nei.NEIClientUtils.translate;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -31,6 +30,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.Button;
 import codechicken.nei.GuiNEIButton;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEICPH;
@@ -248,6 +248,28 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
     };
 
+    protected static Button toggleSearch = new Button() {
+
+        @Override
+        public boolean onButtonPress(boolean rightclick) {
+            if (rightclick) return false;
+
+            if (searchField.isVisible()) {
+                searchField.setText("");
+                searchField.setFocus(false);
+                searchField.setVisible(false);
+                state = 0;
+            } else {
+                searchField.setVisible(true);
+                searchField.setFocus(true);
+                state = 2;
+            }
+
+            return true;
+        }
+
+    };
+
     /**
      * This will only be true iff height hacking has been configured for the current recipe handler AND we are currently
      * within the scope of an active {@link CompatibilityHacks} instance.
@@ -395,6 +417,9 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         nextpage = new GuiNEIButton(2, leftButtonX, guiTop + 17, buttonWidth, buttonHeight, "<");
         prevpage = new GuiNEIButton(3, rightButtonX, guiTop + 17, buttonWidth, buttonHeight, ">");
 
+        toggleSearch.icon = new DrawableBuilder("nei:textures/nei_sprites.png", 0, 38, 8, 8).setTextureSize(128, 128)
+                .build();
+
         buttonList.addAll(Arrays.asList(nexttype, prevtype, nextpage, prevpage));
 
         if (currenthandlers.size() == 1) {
@@ -484,6 +509,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         if (!limitToOneRecipe) {
             searchField.setText("");
             searchField.setVisible(false);
+            toggleSearch.state = 0;
         }
 
         page = Math.min(Math.max(0, recipe), handler.numRecipes() - 1) / getRecipesPerPage();
@@ -648,19 +674,14 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     protected void mouseClicked(int mousex, int mousey, int button) {
 
         if (!limitToOneRecipe && handler != null && IRecipeFilterProvider.filteringAvailable(handler)) {
-            if (new Rectangle(borderPadding + buttonWidth - 2, 15, xSize - (borderPadding + buttonWidth) * 2 + 2, 16)
-                    .contains(mousex - guiLeft, mousey - guiTop)) {
-                searchField.setVisible(true);
+            if (toggleSearch.contains(mousex - guiLeft, mousey - guiTop)) {
+                toggleSearch.handleClick(mousex - guiLeft, mousey - guiTop, button);
+            } else if (searchField.contains(mousex - guiLeft, mousey - guiTop)) {
                 searchField.handleClick(mousex - guiLeft, mousey - guiTop, button);
-                if (!searchField.focused()) {
-                    searchField.setFocus(true);
-                }
             } else {
                 searchField.onGuiClick(mousex - guiLeft, mousey - guiTop);
-                if (searchField.text().isEmpty() && !searchField.focused()) {
-                    searchField.setVisible(false);
-                }
             }
+
         }
 
         try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
@@ -753,14 +774,15 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
         recipeTabs.handleTooltip(mousex, mousey, currenttip);
 
-        if (currenttip.isEmpty()
-                && new Rectangle(borderPadding + buttonWidth - 2, 15, xSize - (borderPadding + buttonWidth) * 2 + 2, 16)
+        if (currenttip.isEmpty() && searchField.isVisible()
+                && new Rectangle(searchField.x + searchField.w, 15, 44, 16)
                         .contains(mousex - guiLeft, mousey - guiTop)) {
 
-            if (!searchField.isVisible() && IRecipeFilterProvider.filteringAvailable(handler)) {
-                currenttip.add(translate("recipe.search.show"));
-            }
+            final String s = String.format("%d/%d", page + 1, (handler.numRecipes() - 1) / getRecipesPerPage() + 1);
 
+            if (fontRendererObj.getStringWidth(s) >= 45) {
+                currenttip.add(s);
+            }
         }
 
         return currenttip;
@@ -845,9 +867,13 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         checkYShift();
 
         if (!limitToOneRecipe) {
+            toggleSearch.w = toggleSearch.h = 12;
+            toggleSearch.x = borderPadding + buttonWidth;
+            toggleSearch.y = 17;
+
             searchField.y = 16;
-            searchField.x = borderPadding + buttonWidth - 2;
-            searchField.w = xSize - (borderPadding + buttonWidth) * 2 + 1 - 45;
+            searchField.x = borderPadding + buttonWidth + toggleSearch.w - 1;
+            searchField.w = xSize - (borderPadding + buttonWidth) * 2 + 1 - toggleSearch.w - 45;
             searchField.h = 14;
         }
 
@@ -940,7 +966,11 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             String s = handler.getRecipeName().trim();
             fontRendererObj.drawStringWithShadow(s, (xSize - fontRendererObj.getStringWidth(s)) / 2, 5, 0xffffff);
 
-            if (!limitToOneRecipe && searchField.isVisible()) {
+            if (IRecipeFilterProvider.filteringAvailable(handler)) {
+                toggleSearch.draw(mouseX - guiLeft, mouseY - guiTop);
+            }
+
+            if (searchField.isVisible()) {
                 searchField.draw(mouseX - guiLeft, mouseY - guiTop);
                 s = NEIClientUtils.cropText(
                         fontRendererObj,
@@ -1143,10 +1173,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     @Override
     public boolean handleDragNDrop(GuiContainer gui, int mousex, int mousey, ItemStack draggedStack, int button) {
 
-        if (!limitToOneRecipe && handler != null
-                && new Rectangle(borderPadding + buttonWidth - 2, 15, xSize - (borderPadding + buttonWidth) * 2 + 2, 16)
-                        .contains(mousex - guiLeft, mousey - guiTop)
-                && IRecipeFilterProvider.filteringAvailable(handler)) {
+        if (searchField.isVisible() && searchField.contains(mousex - guiLeft, mousey - guiTop)) {
             final FluidStack fluidStack = StackInfo.getFluid(draggedStack);
 
             if (fluidStack != null) {
@@ -1155,7 +1182,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 searchField.setText(formattingText(draggedStack.getDisplayName()));
             }
 
-            searchField.setVisible(true);
             return true;
         }
 

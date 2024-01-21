@@ -1988,6 +1988,7 @@ public class BookmarkPanel extends PanelWidget {
 
             this.mouseDownSlot = -1;
             this.groupingItem = null;
+            grid.onItemsChanged(); /* make sure grid redraws the new item */
             saveBookmarks();
         } else {
             super.mouseUp(mousex, mousey, button);
