@@ -779,7 +779,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         GL11.glColor4f(1, 1, 1, 1);
         GL11.glDisable(GL11.GL_LIGHTING);
         changeTexture(getGuiTexture());
-        drawExtras(recipe);
+        drawExtras(ref(recipe));
     }
 
     public List<PositionedStack> getIngredientStacks(int recipe) {
