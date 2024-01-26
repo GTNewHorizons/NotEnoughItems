@@ -1,6 +1,7 @@
 package codechicken.nei;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -84,20 +85,18 @@ public class ItemList {
             this.filters = filters;
         }
 
-        public AllMultiItemFilter() {
-            this(new LinkedList<>());
+        public AllMultiItemFilter(ItemFilter... filters) {
+            this(Arrays.asList(filters));
         }
 
-        public AllMultiItemFilter(ItemFilter a, ItemFilter b) {
-            this.filters = new ArrayList<>();
-            this.filters.add(a);
-            this.filters.add(b);
+        public AllMultiItemFilter() {
+            this(new LinkedList<>());
         }
 
         @Override
         public boolean matches(ItemStack item) {
             for (ItemFilter filter : filters) try {
-                if (!filter.matches(item)) return false;
+                if (filter != null && !filter.matches(item)) return false;
             } catch (Exception e) {
                 NEIClientConfig.logger.error("Exception filtering " + item + " with " + filter, e);
             }

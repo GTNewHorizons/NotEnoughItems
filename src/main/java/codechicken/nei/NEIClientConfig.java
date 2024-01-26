@@ -432,8 +432,13 @@ public class NEIClientConfig {
     }
 
     public static void unloadWorld() {
-        ItemPanels.bookmarkPanel.saveBookmarks();
-        world.saveNBT();
+        if (ItemPanels.bookmarkPanel != null) {
+            ItemPanels.bookmarkPanel.saveBookmarks();
+        }
+
+        if (world != null) {
+            world.saveNBT();
+        }
     }
 
     public static int getKeyBinding(String string) {
