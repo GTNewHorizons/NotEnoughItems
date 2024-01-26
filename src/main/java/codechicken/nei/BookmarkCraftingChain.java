@@ -276,7 +276,7 @@ public class BookmarkCraftingChain {
             if (!request.initialItems.contains(item.recipeIndex) && item.factor > 0) {
                 long ingrCount = calculateCount(request, request.inputs.get(item.stackIndex));
                 long outputCount = calculateCount(request, request.outputs.get(item.stackIndex));
-                long shift = (ingrCount - outputCount) / item.factor;
+                long shift = (long) Math.ceil((ingrCount - outputCount) / (double) item.factor);
 
                 if (shift > 0 && shift < minShift) {
                     minShift = (int) shift;
