@@ -34,7 +34,6 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
 
     ArrayList<T> runWithProfiling(String profilerSection) {
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
-        TemplateRecipeHandler.disableCycledIngredients = true;
         profiler.start(profilerSection);
         try {
             ArrayList<T> handlers = getRecipeHandlersParallel();
@@ -48,7 +47,6 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
             displayRecipeLookupError();
             return new ArrayList<>(0);
         } finally {
-            TemplateRecipeHandler.disableCycledIngredients = false;
             profiler.end();
         }
     }
@@ -72,7 +70,8 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
                 error = true;
                 return null;
             }
-        }).filter(h -> h != null && !h.isEmpty()).collect(Collectors.toCollection(ArrayList::new));
+        }).filter(h -> h != null && h.numRecipes() > 0 && SearchRecipeHandler.findFirst(h, (recipeIndex) -> true) != -1)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private ArrayList<T> getHandlersWithRecipes() throws InterruptedException, ExecutionException {
@@ -85,7 +84,8 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
                 error = true;
                 return null;
             }
-        }).filter(h -> h != null && !h.isEmpty()).collect(Collectors.toCollection(ArrayList::new))).get();
+        }).filter(h -> h != null && h.numRecipes() > 0 && SearchRecipeHandler.findFirst(h, (recipeIndex) -> true) != -1)
+                .collect(Collectors.toCollection(ArrayList::new))).get();
     }
 
     private boolean isHidden(T handler) {

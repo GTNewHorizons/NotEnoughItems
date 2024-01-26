@@ -51,14 +51,6 @@ public interface IRecipeHandler {
     int numRecipes();
 
     /**
-     *
-     * @return <tt>true</tt> if this list contains no elements
-     */
-    default boolean isEmpty() {
-        return numRecipes() == 0;
-    }
-
-    /**
      * Draw the background of this recipe handler (basically the slot layout image).
      *
      * @param recipe The recipe index to draw at this position.

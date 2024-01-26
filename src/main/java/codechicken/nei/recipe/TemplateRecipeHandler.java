@@ -18,8 +18,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.init.Blocks;
@@ -37,16 +35,17 @@ import com.google.common.base.Stopwatch;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemList;
 import codechicken.nei.ItemList.AllMultiItemFilter;
+import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.DefaultOverlayRenderer;
 import codechicken.nei.api.IOverlayHandler;
-import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.IRecipeOverlayRenderer;
 import codechicken.nei.api.IStackPositioner;
 import codechicken.nei.api.ItemFilter;
+import codechicken.nei.api.ItemInfo;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerTooltipHandler;
@@ -199,9 +198,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
 
         protected void randomRenderPermutation(List<PositionedStack> stacks, long cycle) {
-            final ItemFilter filter = new AllMultiItemFilter(
-                    ItemList.getItemListFilter(),
-                    GuiRecipe.searchField.getFilter());
+            final ItemFilter filter = getItemFilter();
             final int randCycle = Math.abs(new Random(cycle + offset).nextInt());
 
             for (PositionedStack stack : stacks) {
@@ -217,9 +214,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
 
         protected void jeiStyledRenderPermutation(List<PositionedStack> stacks, long cycle) {
-            final ItemFilter filter = new AllMultiItemFilter(
-                    ItemList.getItemListFilter(),
-                    GuiRecipe.searchField.getFilter());
+            final ItemFilter filter = getItemFilter();
 
             for (PositionedStack stack : stacks) {
                 if (stack.items.length <= 1) continue;
@@ -428,15 +423,18 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
      */
     public LinkedList<RecipeTransferRect> transferRects = new LinkedList<>();
 
-    public static boolean disableCycledIngredients = false;
-
-    protected ArrayList<Integer> filteredRecipes;
-
-    protected ArrayList<Integer> searchRecipes;
+    public static boolean disableCycledIngredients = true;
 
     public TemplateRecipeHandler() {
         loadTransferRects();
         RecipeTransferRectHandler.registerRectsToGuis(getRecipeTransferRectGuis(), transferRects);
+    }
+
+    protected static ItemFilter getItemFilter() {
+        return new AllMultiItemFilter(
+                item -> !ItemInfo.hiddenItems.contains(item),
+                LayoutManager.presetsPanel != null ? LayoutManager.presetsPanel.getFilter() : null,
+                GuiRecipe.searchField != null ? GuiRecipe.searchField.getFilter() : null);
     }
 
     protected static ArrayList<Integer> getFilteredIngredientAlternatives(PositionedStack stack, ItemFilter filter) {
@@ -591,7 +589,8 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
     public TemplateRecipeHandler newInstance() {
         try {
-            // Use the non parallel version since we might already be using the forkJoinPool and might have no threads
+            // Use the non parallel version since we might already be using the forkJoinPool
+            // and might have no threads
             // available
             // This will ideally have been pre-cached elsewhere and will be a NOOP
             findFuelsOnce();
@@ -644,129 +643,8 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         return null;
     }
 
-    public boolean isEmpty() {
-
-        if (arecipes.isEmpty()) {
-            return true;
-        }
-
-        final IRecipeFilter filter = GuiRecipe.getRecipeListFilter(this);
-
-        if (filter == null) {
-            return false;
-        }
-
-        final boolean disableCycledIngredients = TemplateRecipeHandler.disableCycledIngredients;
-        TemplateRecipeHandler.disableCycledIngredients = true;
-
-        boolean isEmpty = !IntStream.range(0, arecipes.size()).boxed().anyMatch(
-                recipe -> filter.matches(
-                        this,
-                        arecipes.get(recipe).getIngredients(),
-                        arecipes.get(recipe).getResult(),
-                        arecipes.get(recipe).getOtherStacks()));
-
-        TemplateRecipeHandler.disableCycledIngredients = disableCycledIngredients;
-
-        return isEmpty;
-    }
-
-    protected synchronized void applyFilter() {
-
-        if (arecipes.isEmpty() && this.filteredRecipes == null) {
-            this.filteredRecipes = new ArrayList<>();
-        }
-
-        if (this.filteredRecipes != null) {
-            return;
-        }
-
-        final Stream<Integer> items = IntStream.range(0, arecipes.size()).boxed();
-        final IRecipeFilter filter = GuiRecipe.getRecipeListFilter(this);
-
-        if (filter == null) {
-            this.filteredRecipes = items.collect(Collectors.toCollection(ArrayList::new));
-        } else {
-            final boolean disableCycledIngredients = TemplateRecipeHandler.disableCycledIngredients;
-            TemplateRecipeHandler.disableCycledIngredients = true;
-
-            this.filteredRecipes = items
-                    .filter(
-                            recipe -> filter.matches(
-                                    this,
-                                    arecipes.get(recipe).getIngredients(),
-                                    arecipes.get(recipe).getResult(),
-                                    arecipes.get(recipe).getOtherStacks()))
-                    .collect(Collectors.toCollection(ArrayList::new));
-
-            TemplateRecipeHandler.disableCycledIngredients = disableCycledIngredients;
-        }
-
-    }
-
-    public void applySearch(ArrayList<Integer> searchRecipes) {
-        this.searchRecipes = searchRecipes;
-    }
-
-    public ArrayList<Integer> getSearchResult(IRecipeFilter filter) {
-        if (filteredRecipes == null) {
-            applyFilter();
-        }
-
-        ArrayList<Integer> filtered = null;
-
-        if (!filteredRecipes.isEmpty()) {
-            final ArrayList<Integer> recipes = IntStream.range(0, filteredRecipes.size()).boxed()
-                    .collect(Collectors.toCollection(ArrayList::new));
-            final boolean disableCycledIngredients = TemplateRecipeHandler.disableCycledIngredients;
-            TemplateRecipeHandler.disableCycledIngredients = true;
-
-            try {
-                filtered = ItemList.forkJoinPool.submit(
-                        () -> recipes.parallelStream()
-                                .filter(
-                                        (recipe) -> filter.matches(
-                                                this,
-                                                arecipes.get(filteredRecipes.get(recipe)).getIngredients(),
-                                                arecipes.get(filteredRecipes.get(recipe)).getResult(),
-                                                arecipes.get(filteredRecipes.get(recipe)).getOtherStacks()))
-                                .collect(Collectors.toCollection(ArrayList::new)))
-                        .get();
-                filtered.sort((a, b) -> a - b);
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-
-            TemplateRecipeHandler.disableCycledIngredients = disableCycledIngredients;
-        }
-
-        return filtered;
-    }
-
-    private int ref(int index) {
-
-        if (filteredRecipes == null) {
-            applyFilter();
-        }
-
-        if (searchRecipes != null) {
-            index = searchRecipes.get(index);
-        }
-
-        return filteredRecipes.get(index);
-    }
-
     public int numRecipes() {
-
-        if (filteredRecipes == null) {
-            applyFilter();
-        }
-
-        if (searchRecipes != null) {
-            return searchRecipes.size();
-        }
-
-        return filteredRecipes.size();
+        return arecipes.size();
     }
 
     public void drawBackground(int recipe) {
@@ -779,23 +657,23 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         GL11.glColor4f(1, 1, 1, 1);
         GL11.glDisable(GL11.GL_LIGHTING);
         changeTexture(getGuiTexture());
-        drawExtras(ref(recipe));
+        drawExtras(recipe);
     }
 
     public List<PositionedStack> getIngredientStacks(int recipe) {
-        return arecipes.get(ref(recipe)).getIngredients();
+        return arecipes.get(recipe).getIngredients();
     }
 
     public PositionedStack getResultStack(int recipe) {
         try {
-            return arecipes.get(ref(recipe)).getResult();
+            return arecipes.get(recipe).getResult();
         } catch (ArrayIndexOutOfBoundsException ignored) {
             return null;
         }
     }
 
     public List<PositionedStack> getOtherStacks(int recipe) {
-        return arecipes.get(ref(recipe)).getOtherStacks();
+        return arecipes.get(recipe).getOtherStacks();
     }
 
     public void onUpdate() {
@@ -871,9 +749,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         final PositionedStack overStack = getIngredientMouseOver(relMouse.x, relMouse.y, recipe);
 
         if (overStack != null && overStack.items.length > 1) {
-            final ItemFilter filter = new AllMultiItemFilter(
-                    ItemList.getItemListFilter(),
-                    GuiRecipe.searchField.getFilter());
+            final ItemFilter filter = getItemFilter();
 
             if (NEIClientConfig.useJEIStyledCycledIngredients()) {
                 ItemStack stack = overStack.item;
