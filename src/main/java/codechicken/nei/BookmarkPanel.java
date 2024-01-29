@@ -91,6 +91,44 @@ public class BookmarkPanel extends PanelWidget {
             this.ungroup = ungroup;
             this.rowIndexA = rowIndexA;
         }
+
+        public int getTopRowIndex(BookmarkGrid BGrid) {
+            int topRowIndex = Math.min(this.rowIndexA, this.rowIndexB);
+            int topItemIndex = BGrid.getRowItemIndex(topRowIndex, true);
+            ItemStackMetadata meta = topItemIndex >= 0 ? BGrid.metadata.get(topItemIndex) : null;
+
+            if (meta != null && meta.recipeId != null) {
+                while (topItemIndex > 0 && meta.groupId == BGrid.metadata.get(topItemIndex - 1).groupId
+                        && meta.recipeId.equals(BGrid.metadata.get(topItemIndex - 1).recipeId)) {
+                    topItemIndex--;
+                }
+
+                int index = BGrid.getMask().indexOf(topItemIndex);
+                topRowIndex = index == -1 ? 0 : index / BGrid.columns;
+            }
+
+            return topRowIndex;
+        }
+
+        public int getBottomRowIndex(BookmarkGrid BGrid) {
+            int bottomRowIndex = Math.max(this.rowIndexA, this.rowIndexB);
+            int bottomItemIndex = BGrid.getRowItemIndex(bottomRowIndex, false);
+            ItemStackMetadata meta = bottomItemIndex >= 0 ? BGrid.metadata.get(bottomItemIndex) : null;
+
+            if (meta != null && meta.recipeId != null) {
+                int size = BGrid.size();
+
+                while (bottomItemIndex < size - 1 && meta.groupId == BGrid.metadata.get(bottomItemIndex + 1).groupId
+                        && meta.recipeId.equals(BGrid.metadata.get(bottomItemIndex + 1).recipeId)) {
+                    bottomItemIndex++;
+                }
+
+                int index = BGrid.getMask().indexOf(bottomItemIndex);
+                bottomRowIndex = index == -1 ? BGrid.getLastRowIndex() : index / BGrid.columns;
+            }
+
+            return bottomRowIndex;
+        }
     }
 
     protected static class ItemStackMetadata {
@@ -281,6 +319,7 @@ public class BookmarkPanel extends PanelWidget {
 
                                 if (c == 0 && (meta.recipeId == null || meta.ingredient == false
                                         || index + 1 < rows * columns && isInvalidSlot(index + 1)
+                                        || previousMeta.groupId != meta.groupId
                                         || meta.ingredient && !meta.recipeId.equals(previousMeta.recipeId))) {
                                     // In first column must be an item without recipe, a recipe result, or an ingredient
                                     // if the second column is occupied
@@ -402,8 +441,8 @@ public class BookmarkPanel extends PanelWidget {
             int previoudGroupId = DEFAULT_GROUP_ID;
 
             if (groupingItem != null && groupingItem.rowIndexB != -1) {
-                int topRowIndex = Math.min(groupingItem.rowIndexA, groupingItem.rowIndexB);
-                int bottomRowIndex = Math.max(groupingItem.rowIndexA, groupingItem.rowIndexB);
+                int topRowIndex = groupingItem.getTopRowIndex(this);
+                int bottomRowIndex = groupingItem.getBottomRowIndex(this);
                 int groupIdA = groupMask.get(groupingItem.rowIndexA);
                 int groupId = groupingItem.ungroup ? DEFAULT_GROUP_ID : (groupIdA == DEFAULT_GROUP_ID ? -1 : groupIdA);
                 groupMask = new ArrayList<>(groupMask);
@@ -414,12 +453,12 @@ public class BookmarkPanel extends PanelWidget {
 
                 if (groupIdA != DEFAULT_GROUP_ID && !groupingItem.ungroup
                         && groupingItem.rowIndexA != groupingItem.rowIndexB) {
-                    if (groupingItem.rowIndexB == topRowIndex) {
+                    if (groupingItem.rowIndexB < groupingItem.rowIndexA) {
                         for (int rowIndex = topRowIndex - 1; rowIndex >= 0
                                 && groupMask.get(rowIndex) == groupIdA; rowIndex--) {
                             groupMask.set(rowIndex, DEFAULT_GROUP_ID);
                         }
-                    } else if (groupingItem.rowIndexB == bottomRowIndex) {
+                    } else if (groupingItem.rowIndexB > groupingItem.rowIndexA) {
                         for (int rowIndex = bottomRowIndex + 1; rowIndex < groupMask.size()
                                 && groupMask.get(rowIndex) == groupIdA; rowIndex++) {
                             groupMask.set(rowIndex, DEFAULT_GROUP_ID);
@@ -633,8 +672,8 @@ public class BookmarkPanel extends PanelWidget {
 
         protected void createGroup(GroupingItem groupingItem) {
             final List<Integer> mask = getMask();
-            final int topRowIndex = Math.min(groupingItem.rowIndexA, groupingItem.rowIndexB);
-            final int bottomRowIndex = Math.max(groupingItem.rowIndexA, groupingItem.rowIndexB);
+            final int topRowIndex = groupingItem.getTopRowIndex(this);
+            final int bottomRowIndex = groupingItem.getBottomRowIndex(this);
             final int groupIdA = getRowGroupId(groupingItem.rowIndexA);
             final int startMaskIndex = topRowIndex * columns;
             final int endMaskIntex = Math.min((bottomRowIndex + 1) * columns, mask.size());
