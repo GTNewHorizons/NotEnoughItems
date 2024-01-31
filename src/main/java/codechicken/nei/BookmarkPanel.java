@@ -217,7 +217,9 @@ public class BookmarkPanel extends PanelWidget {
 
         private static class RecipeTooltipRenderer {
 
-            public int slotIndex = 0;
+            public ItemStack stack = null;
+            public BookmarkRecipeId recipeId = null;
+
             public GuiRecipe<?> gui = null;
             public Runnable createRecipeGui = null;
         }
@@ -1071,16 +1073,17 @@ public class BookmarkPanel extends PanelWidget {
                 return;
             }
 
-            if (this.recipeTooltipRenderer == null || this.recipeTooltipRenderer.slotIndex != focused.slotIndex) {
-
+            if (this.recipeTooltipRenderer == null || this.recipeTooltipRenderer.recipeId != meta.recipeId) {
                 this.recipeTooltipRenderer = new RecipeTooltipRenderer();
-                this.recipeTooltipRenderer.slotIndex = focused.slotIndex;
+                this.recipeTooltipRenderer.stack = this.realItems.get(focused.slotIndex);
+                this.recipeTooltipRenderer.recipeId = meta.recipeId;
 
                 this.recipeTooltipRenderer.createRecipeGui = () -> {
-                    final int slotIndex = this.recipeTooltipRenderer.slotIndex;
-                    final BookmarkRecipeId recipeId = this.metadata.get(slotIndex).recipeId;
-                    GuiRecipe<?> gui = GuiCraftingRecipe
-                            .createRecipeGui("recipeId", false, this.realItems.get(slotIndex), recipeId);
+                    GuiRecipe<?> gui = GuiCraftingRecipe.createRecipeGui(
+                            "recipeId",
+                            false,
+                            this.recipeTooltipRenderer.stack,
+                            this.recipeTooltipRenderer.recipeId);
 
                     if (gui != null) {
                         gui.initGui();
