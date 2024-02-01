@@ -144,6 +144,7 @@ public class BookmarkCraftingChain {
 
             for (int index = 0; index < items.size(); index++) {
                 CraftingChainItem item = new CraftingChainItem(items.get(index), metadata.get(index));
+                item.guid = item.ingredient ? "i" + item.guid : "r" + item.guid;
                 this.items.add(item);
 
                 if (this.multiplier.get(item.recipeIndex) == null) {
@@ -274,7 +275,7 @@ public class BookmarkCraftingChain {
 
         for (CraftingChainItem item : request.outputs.get(stackIndex)) {
             if (!request.initialItems.contains(item.recipeIndex) && item.factor > 0) {
-                long ingrCount = calculateCount(request, request.inputs.get(item.stackIndex));
+                long ingrCount = calculateCount(request, request.inputs.get(item.stackIndex), item.recipeIndex);
                 long outputCount = calculateCount(request, request.outputs.get(item.stackIndex));
                 long shift = (long) Math.ceil((ingrCount - outputCount) / (double) item.factor);
 
@@ -294,11 +295,17 @@ public class BookmarkCraftingChain {
     }
 
     private long calculateCount(CraftingChainRequest request, HashSet<CraftingChainItem> items) {
+        return calculateCount(request, items, -1);
+    }
+
+    private long calculateCount(CraftingChainRequest request, HashSet<CraftingChainItem> items, int recipeIndex) {
         long count = 0L;
 
         if (items != null) {
             for (CraftingChainItem item : items) {
-                count += request.counts.get(item.guid) + item.factor * request.multiplier.get(item.recipeIndex);
+                if (item.recipeIndex != recipeIndex || recipeIndex == -1) {
+                    count += request.counts.get(item.guid) + item.factor * request.multiplier.get(item.recipeIndex);
+                }
             }
         }
 
