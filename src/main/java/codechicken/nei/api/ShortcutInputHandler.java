@@ -20,8 +20,6 @@ import codechicken.nei.recipe.BookmarkRecipeId;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
-import codechicken.nei.recipe.StackInfo;
-import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 
 public abstract class ShortcutInputHandler {
 
@@ -67,11 +65,11 @@ public abstract class ShortcutInputHandler {
         }
 
         if (NEIClientConfig.isKeyHashDown("gui.recipe")) {
-            return GuiCraftingRecipe.openRecipeGui("item", normalizeItemStack(stackover));
+            return GuiCraftingRecipe.openRecipeGui("item", stackover);
         }
 
         if (NEIClientConfig.isKeyHashDown("gui.usage")) {
-            return GuiUsageRecipe.openRecipeGui("item", normalizeItemStack(stackover));
+            return GuiUsageRecipe.openRecipeGui("item", stackover);
         }
 
         if (NEIClientConfig.isKeyHashDown("gui.bookmark")) {
@@ -101,7 +99,6 @@ public abstract class ShortcutInputHandler {
 
         if (stackover != null) {
             final int button = Mouse.getEventButton();
-            stackover = stackover.copy();
 
             if (button == 0) {
                 return GuiCraftingRecipe.openRecipeGui("item", stackover);
@@ -167,10 +164,4 @@ public abstract class ShortcutInputHandler {
         return false;
     }
 
-    private static ItemStack normalizeItemStack(ItemStack stack) {
-        GTFluidStackStringifyHandler.replaceAE2FCFluidDrop = true;
-        stack = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack));
-        GTFluidStackStringifyHandler.replaceAE2FCFluidDrop = false;
-        return stack;
-    }
 }
