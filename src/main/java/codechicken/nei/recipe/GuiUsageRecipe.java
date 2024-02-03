@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.item.ItemStack;
 
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 
 public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
@@ -14,29 +16,50 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
     public static ArrayList<IUsageHandler> serialUsageHandlers = new ArrayList<>();
 
     public static boolean openRecipeGui(String inputId, Object... ingredients) {
-        RecipeHandlerQuery<IUsageHandler> recipeQuery = new RecipeHandlerQuery<>(
+
+        if ("item".equals(inputId)) {
+            ingredients = Arrays.asList(ingredients).stream().map(ingr -> normalizeItemStack((ItemStack) ingr))
+                    .toArray();
+        }
+
+        final ArrayList<IUsageHandler> handlers = getUsageHandlers(inputId, ingredients);
+
+        if (!handlers.isEmpty()) {
+            final Minecraft mc = NEIClientUtils.mc();
+            final BookmarkRecipeId recipeId = getCurrentRecipe(mc.currentScreen);
+            final GuiUsageRecipe gui = new GuiUsageRecipe(handlers);
+
+            mc.displayGuiScreen(gui);
+            gui.openTargetRecipe(recipeId);
+            return true;
+        }
+
+        return false;
+    }
+
+    private GuiUsageRecipe(ArrayList<IUsageHandler> handlers) {
+        super(NEIClientUtils.mc().currentScreen);
+        this.currenthandlers = handlers;
+    }
+
+    public static ArrayList<IUsageHandler> getUsageHandlers(String inputId, Object... ingredients) {
+
+        final RecipeHandlerQuery<IUsageHandler> recipeQuery = new RecipeHandlerQuery<>(
                 h -> getUsageOrCatalystHandler(h, inputId, ingredients),
                 usagehandlers,
                 serialUsageHandlers,
                 "Error while looking up usage recipe",
                 "inputId: " + inputId,
                 "ingredients: " + Arrays.toString(ingredients));
-        ArrayList<IUsageHandler> handlers = recipeQuery.runWithProfiling("recipe.concurrent.usage");
-        if (handlers.isEmpty()) return false;
 
-        Minecraft mc = NEIClientUtils.mc();
-        BookmarkRecipeId recipeId = getCurrentRecipe(mc.currentScreen);
-        GuiUsageRecipe gui = new GuiUsageRecipe(handlers);
-
-        mc.displayGuiScreen(gui);
-        gui.openTargetRecipe(recipeId);
-
-        return true;
+        return recipeQuery.runWithProfiling("recipe.concurrent.usage");
     }
 
-    private GuiUsageRecipe(ArrayList<IUsageHandler> handlers) {
-        super(NEIClientUtils.mc().currentScreen);
-        this.currenthandlers = handlers;
+    private static ItemStack normalizeItemStack(ItemStack stack) {
+        GTFluidStackStringifyHandler.replaceAE2FCFluidDrop = true;
+        stack = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack));
+        GTFluidStackStringifyHandler.replaceAE2FCFluidDrop = false;
+        return stack;
     }
 
     public static void registerUsageHandler(IUsageHandler handler) {

@@ -18,6 +18,7 @@ import codechicken.nei.ItemPanels;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
+import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 
 public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
@@ -33,6 +34,7 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         final BookmarkRecipeId recipeId;
 
         if ("item".equals(outputId)) {
+            results = Arrays.asList(results).stream().map(rslt -> normalizeItemStack((ItemStack) rslt)).toArray();
             recipeId = getRecipeId(mc.currentScreen, (ItemStack) results[0]);
         } else if ("recipeId".equals(outputId)) {
             recipeId = (BookmarkRecipeId) results[1];
@@ -112,6 +114,13 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
     private static String getHandlerName(ICraftingHandler handler) {
         return GuiRecipeTab.getHandlerInfo(handler).getHandlerName();
+    }
+
+    private static ItemStack normalizeItemStack(ItemStack stack) {
+        GTFluidStackStringifyHandler.replaceAE2FCFluidDrop = true;
+        stack = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack));
+        GTFluidStackStringifyHandler.replaceAE2FCFluidDrop = false;
+        return stack;
     }
 
     protected static BookmarkRecipeId getRecipeId(GuiScreen gui, ItemStack stackover) {
