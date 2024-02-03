@@ -29,7 +29,7 @@ public class BookmarkCraftingChain {
         public int factor = 0;
         public int count = 0;
         public boolean ingredient = false;
-        public boolean fluidCell = false;
+        public int fluidCellAmount = 1;
         public ItemStack stack = null;
 
         public CraftingChainItem(ItemStack stack, ItemStackMetadata stackMetadata) {
@@ -40,9 +40,9 @@ public class BookmarkCraftingChain {
 
             if (fluid != null) {
                 this.stackIndex = getStackIndex(fluid);
-                this.count = fluid.amount * Math.max(1, stack.stackSize);
-                this.fluidCell = StackInfo.isFluidContainer(stack);
-                this.factor = this.fluidCell ? fluid.amount : stackMetadata.factor;
+                this.count = fluid.amount * Math.max(0, stack.stackSize);
+                this.fluidCellAmount = StackInfo.isFluidContainer(stack) ? fluid.amount : 1;
+                this.factor = this.fluidCellAmount * stackMetadata.factor;
             } else {
                 this.stackIndex = getStackIndex(stack);
                 this.count = StackInfo.itemStackToNBT(stack).getInteger("Count");
@@ -55,7 +55,7 @@ public class BookmarkCraftingChain {
         public ItemStack getItemStack(long count) {
             return StackInfo.loadFromNBT(
                     StackInfo.itemStackToNBT(this.stack),
-                    this.factor > 0 ? (this.fluidCell ? (count / this.factor) : count) : 0);
+                    this.factor > 0 ? (count / this.fluidCellAmount) : 0);
         }
 
         public static void clearStatic() {
