@@ -443,6 +443,7 @@ public class NEIClientConfig {
     }
 
     private static final Map<String, String> keySettings = new HashMap<>();
+
     public static int getKeyBinding(String string) {
         final String key = keySettings.computeIfAbsent(string, (s) -> "keys." + s);
         return getSetting(key).getIntValue(Keyboard.KEY_NONE);
