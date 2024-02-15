@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -441,8 +442,10 @@ public class NEIClientConfig {
         }
     }
 
+    private static final Map<String, String> keySettings = new HashMap<>();
     public static int getKeyBinding(String string) {
-        return getSetting("keys." + string).getIntValue(Keyboard.KEY_NONE);
+        final String key = keySettings.computeIfAbsent(string, (s) -> "keys." + s);
+        return getSetting(key).getIntValue(Keyboard.KEY_NONE);
     }
 
     public static void setDefaultKeyBinding(String string, int key) {
