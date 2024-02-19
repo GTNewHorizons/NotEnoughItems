@@ -825,9 +825,22 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         drawTexturedModalRect(x2, y2, tx2, ty2, w2, h2); // bottom right
     }
 
-    public static void drawItemPresenceOverlay(int slotX, int slotY, boolean isPresent) {
-        Image icon = itemPresenceOverlays[isPresent ? 1 : 0];
-        drawIcon(slotX + 16 - icon.width, slotY + 16 - icon.height, icon);
+    public static void drawItemPresenceOverlay(int slotX, int slotY, boolean isPresent, boolean slotHighlight) {
+        if (isPresent) return;
+
+        if (slotHighlight) {
+            GL11.glDisable(GL11.GL_LIGHTING);
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
+            GL11.glTranslatef(0, 0, -150);
+            drawRect(slotX, slotY, 16, 16, 0x80AA0000);
+            GL11.glTranslatef(0, 0, 150);
+            GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glEnable(GL11.GL_DEPTH_TEST);
+        } else {
+            Image icon = itemPresenceOverlays[isPresent ? 1 : 0];
+            drawIcon(slotX + 16 - icon.width, slotY + 16 - icon.height, icon);
+        }
+
     }
 
     public static LayoutManager instance() {

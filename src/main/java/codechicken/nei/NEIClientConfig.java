@@ -289,6 +289,11 @@ public class NEIClientConfig {
                 .setComment("Require holding shift to move items when overlaying recipe").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.shift_overlay_recipe", true));
 
+        tag.getTag("inventory.slotHighlight")
+                .setComment("Highlight the entire slot instead of just showing an icon for the recipe overlay")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.slotHighlight", true));
+
         tag.getTag("tools.handler_load_from_config").setComment("ADVANCED: Load handlers from config")
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("tools.handler_load_from_config", true) {
@@ -627,6 +632,10 @@ public class NEIClientConfig {
 
     public static boolean requireShiftForOverlayRecipe() {
         return getBooleanSetting("inventory.shift_overlay_recipe");
+    }
+
+    public static boolean isSlotHighlightEnabled() {
+        return getBooleanSetting("inventory.slotHighlight");
     }
 
     public static boolean isEnabled() {
