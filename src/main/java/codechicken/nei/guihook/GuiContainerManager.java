@@ -277,17 +277,16 @@ public class GuiContainerManager {
 
             if (stackSize == null) {
                 if (itemstack.stackSize > 1) {
-                    String amountText = ReadableNumberConverter.INSTANCE.toWideReadableForm(itemstack.stackSize);
+                    stackSize = ReadableNumberConverter.INSTANCE.toWideReadableForm(itemstack.stackSize);
 
-                    if (amountText.length() == 3) {
+                    if (stackSize.length() == 3) {
                         scale = 0.8f;
-                    } else if (amountText.length() == 4) {
+                    } else if (stackSize.length() == 4) {
                         scale = 0.6f;
-                    } else if (amountText.length() > 4) {
+                    } else if (stackSize.length() > 4) {
                         scale = 0.5f;
                     }
 
-                    stackSize = String.valueOf(itemstack.stackSize);
                 } else {
                     stackSize = "";
                 }
