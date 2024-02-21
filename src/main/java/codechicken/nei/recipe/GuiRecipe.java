@@ -1021,6 +1021,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
                 int recipeIndex = indices.get(refIndex);
 
+                handler.original.drawForeground(recipeIndex);
+
                 if (presenceOverlay > 0 && firstGui != null
                         && firstGui.inventorySlots != null
                         && (isMouseOverOverlayButton(refIndex) || limitToOneRecipe)) {
