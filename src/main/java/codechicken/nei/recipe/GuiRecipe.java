@@ -1041,7 +1041,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                         boolean isPresent = itemPresenceCacheSlots.get(j);
 
                         if (highlightPresentItem || !isPresent) {
-                            LayoutManager.drawItemPresenceOverlay(stack.relx, stack.rely, isPresent, presenceOverlay == 2);
+                            LayoutManager
+                                    .drawItemPresenceOverlay(stack.relx, stack.rely, isPresent, presenceOverlay == 2);
                         }
                     }
                 }

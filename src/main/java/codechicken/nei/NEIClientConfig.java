@@ -276,8 +276,7 @@ public class NEIClientConfig {
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
 
-        tag.getTag("inventory.itemPresenceOverlay")
-                .setComment("Item presence overlay on ?-hover").getIntValue(1);
+        tag.getTag("inventory.itemPresenceOverlay").setComment("Item presence overlay on ?-hover").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemPresenceOverlay", 3, true));
 
         tag.getTag("inventory.slotHighlightPresent").setComment("Highlight Present Item").getBooleanValue(true);
