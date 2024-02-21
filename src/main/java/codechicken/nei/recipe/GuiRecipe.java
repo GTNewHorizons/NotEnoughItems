@@ -1013,8 +1013,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         final int presenceOverlay = NEIClientConfig.itemPresenceOverlay();
         final boolean highlightPresentItem = NEIClientConfig.isSlotHighlightPresent();
 
-        System.out.println("presenceOverlay: " + presenceOverlay);
-
         GL11.glPushMatrix();
         GL11.glTranslatef(5, 32 - ySkip + yShift, 0);
         try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
