@@ -11,7 +11,6 @@ import codechicken.nei.config.GuiOptionList.OptionScrollSlot;
 
 public class OptionTextField extends Option {
 
-    private boolean focused = false;
     private TextField textField = new TextField("test") {
 
         @Override
@@ -26,15 +25,10 @@ public class OptionTextField extends Option {
         }
 
         @Override
-        public boolean focused() {
-            return focused;
-        }
-
-        @Override
         public void setFocus(boolean focus) {
             if (!focus && !isValidValue(text())) setText(renderTag().getValue());
 
-            focused = focus;
+            super.setFocus(focus);
         }
     };
 

@@ -34,6 +34,7 @@ public class ItemPanel extends PanelWidget {
     public Button more;
     public Button less;
     public ItemQuantityField quantity;
+    public ItemHistoryPanel historyPanel;
 
     public static class ItemPanelSlot {
 
@@ -134,6 +135,7 @@ public class ItemPanel extends PanelWidget {
         };
 
         quantity = new ItemQuantityField("quantity");
+        historyPanel = new ItemHistoryPanel();
     }
 
     @Deprecated
@@ -191,18 +193,38 @@ public class ItemPanel extends PanelWidget {
             less.y = more.y + more.h;
         }
 
-        return BUTTON_SIZE + 2;
+        if (NEIClientConfig.showHistoryPanelWidget()) {
+            historyPanel.x = x;
+            historyPanel.w = w;
+            historyPanel.h = ItemsGrid.SLOT_SIZE * NEIClientConfig.getIntSetting("inventory.history.useRows");
+            historyPanel.y = quantity.y - PanelWidget.PADDING - historyPanel.h;
+            return quantity.h + historyPanel.h + PanelWidget.PADDING * 2;
+        }
+
+        return quantity.h + PanelWidget.PADDING;
     }
 
     @Override
     public void setVisible() {
         super.setVisible();
 
-        if (grid.getPerPage() > 0 && NEIClientConfig.showItemQuantityWidget()) {
-            LayoutManager.addWidget(more);
-            LayoutManager.addWidget(less);
-            LayoutManager.addWidget(quantity);
+        if (grid.getPerPage() > 0) {
+            if (NEIClientConfig.showItemQuantityWidget()) {
+                LayoutManager.addWidget(more);
+                LayoutManager.addWidget(less);
+                LayoutManager.addWidget(quantity);
+            }
+
+            if (NEIClientConfig.showHistoryPanelWidget()) {
+                LayoutManager.addWidget(historyPanel);
+            }
         }
+    }
+
+    @Override
+    public void resize(GuiContainer gui) {
+        super.resize(gui);
+        historyPanel.resize(gui);
     }
 
     protected ItemStack getDraggedStackWithQuantity(int mouseDownSlot) {

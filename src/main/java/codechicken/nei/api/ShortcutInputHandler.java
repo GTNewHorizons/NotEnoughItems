@@ -3,10 +3,13 @@ package codechicken.nei.api;
 import static codechicken.lib.gui.GuiDraw.getMousePosition;
 
 import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.oredict.OreDictionary;
 
 import org.lwjgl.input.Mouse;
 
@@ -58,6 +61,14 @@ public abstract class ShortcutInputHandler {
 
         if (NEIClientConfig.isKeyHashDown("gui.overlay")) {
             return openOverlayRecipe(stackover, false);
+        }
+
+        if (NEIClientConfig.isKeyHashDown("gui.copy_name")) {
+            return copyItemStackName(stackover);
+        }
+
+        if (NEIClientConfig.isKeyHashDown("gui.copy_oredict")) {
+            return copyItemStackOreDictionary(stackover);
         }
 
         if (NEIClientConfig.isKeyHashDown("gui.overlay_use")) {
@@ -118,6 +129,30 @@ public abstract class ShortcutInputHandler {
         }
 
         return false;
+    }
+
+    private static boolean copyItemStackName(ItemStack stackover) {
+        Toolkit.getDefaultToolkit().getSystemClipboard()
+                .setContents(new StringSelection(stackover.getDisplayName()), null);
+        return true;
+    }
+
+    private static boolean copyItemStackOreDictionary(ItemStack stackover) {
+        StringBuilder builder = new StringBuilder();
+
+        for (int id : OreDictionary.getOreIDs(stackover)) {
+            String oreDictionaryName = OreDictionary.getOreName(id);
+            if (!"Unknown".equals(oreDictionaryName)) {
+                builder.append(oreDictionaryName).append(",");
+            }
+        }
+
+        if (builder.length() > 0) {
+            builder.deleteCharAt(builder.length() - 1);
+        }
+
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(builder.toString()), null);
+        return true;
     }
 
     private static boolean openOverlayRecipe(ItemStack stackover, boolean shift) {

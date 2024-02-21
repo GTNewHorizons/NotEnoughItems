@@ -113,5 +113,7 @@ public class RecipeInfo {
 
         API.registerRecipeHandler(new ProfilerRecipeHandler(true));
         API.registerUsageHandler(new ProfilerRecipeHandler(false));
+        API.registerRecipeHandler(new ItemsHistoryHandler());
+        API.registerUsageHandler(new ItemsHistoryHandler());
     }
 }

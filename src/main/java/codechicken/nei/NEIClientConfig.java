@@ -43,6 +43,7 @@ import codechicken.nei.config.GuiOptionList;
 import codechicken.nei.config.GuiPanelSettings;
 import codechicken.nei.config.OptionCycled;
 import codechicken.nei.config.OptionGamemodes;
+import codechicken.nei.config.OptionIntegerField;
 import codechicken.nei.config.OptionList;
 import codechicken.nei.config.OptionOpenGui;
 import codechicken.nei.config.OptionTextField;
@@ -161,6 +162,19 @@ public class NEIClientConfig {
         API.addOption(new OptionGamemodes("inventory.gamemodes"));
 
         ItemSorter.initConfig(tag);
+
+        tag.getTag("inventory.history.enabled").setComment("Enable/disable History Panel").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.history.enabled", true));
+
+        tag.getTag("inventory.history.historyColor").setComment("Color of the history area display")
+                .getHexValue(0xee555555);
+        API.addOption(new OptionIntegerField("inventory.history.historyColor"));
+
+        tag.getTag("inventory.history.useRows").setComment("Rows used in historical areas").getIntValue(2);
+        API.addOption(new OptionIntegerField("inventory.history.useRows", 1, 5));
+
+        tag.getTag("inventory.history.splittingMode").getIntValue(1);
+        API.addOption(new OptionCycled("inventory.history.splittingMode", 2, true));
 
         tag.getTag("inventory.itemIDs").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemIDs", 3, true));
@@ -386,6 +400,8 @@ public class NEIClientConfig {
         API.addKeyBind("world.rain", 0);
         API.addKeyBind("world.heal", 0);
         API.addKeyBind("world.creative", 0);
+        API.addHashBind("gui.copy_name", Keyboard.KEY_C + NEIClientUtils.CTRL_HASH);
+        API.addHashBind("gui.copy_oredict", Keyboard.KEY_D + NEIClientUtils.CTRL_HASH);
     }
 
     public static OptionList getOptionList() {
@@ -723,6 +739,10 @@ public class NEIClientConfig {
 
     public static boolean shouldInvertMouseScrollTransfer() {
         return !getBooleanSetting("inventory.invertMouseScrollTransfer");
+    }
+
+    public static boolean showHistoryPanelWidget() {
+        return getBooleanSetting("inventory.history.enabled");
     }
 
     public static boolean shouldCacheItemRendering() {
