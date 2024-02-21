@@ -37,6 +37,7 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.util.ReadableNumberConverter;
 
 public class GuiContainerManager {
 
@@ -269,17 +270,34 @@ public class GuiContainerManager {
         boolean glRescale = GL11.glGetBoolean(GL12.GL_RESCALE_NORMAL);
 
         float zLevel = drawItems.zLevel += 100F;
+        float scale = smallAmount ? 0.5f : 1f;
+
         try {
             drawItems.renderItemAndEffectIntoGUI(fontRenderer, renderEngine, itemstack, i, j);
 
             if (stackSize == null) {
-                stackSize = itemstack.stackSize > 1 ? String.valueOf(itemstack.stackSize) : "";
+                if (itemstack.stackSize > 1) {
+                    String amountText = ReadableNumberConverter.INSTANCE.toWideReadableForm(itemstack.stackSize);
+
+                    if (amountText.length() == 3) {
+                        scale = 0.8f;
+                    } else if (amountText.length() == 4) {
+                        scale = 0.6f;
+                    } else if (amountText.length() > 4) {
+                        scale = 0.5f;
+                    }
+
+                    stackSize = String.valueOf(itemstack.stackSize);
+                } else {
+                    stackSize = "";
+                }
+
             }
 
-            if (smallAmount) {
+            if (scale != 1f) {
 
                 if (!stackSize.isEmpty()) {
-                    drawBigStackSize(i, j, stackSize);
+                    drawBigStackSize(i, j, stackSize, scale);
                 }
 
                 // stackSize = "". it needed for correct draw item with alpha and blend
@@ -311,16 +329,15 @@ public class GuiContainerManager {
     }
 
     // copy from appeng.client.render.AppEngRenderItem
-    protected static void drawBigStackSize(int offsetX, int offsetY, String stackSize) {
-        final float scaleFactor = fontRenderer.getUnicodeFlag() ? 0.85f : 0.5f;
-        final float inverseScaleFactor = 1.0f / scaleFactor;
+    protected static void drawBigStackSize(int offsetX, int offsetY, String stackSize, float scale) {
+        final float inverseScaleFactor = 1.0f / scale;
 
         enable2DRender();
-        GL11.glScaled(scaleFactor, scaleFactor, scaleFactor);
+        GL11.glScaled(scale, scale, scale);
 
-        final int X = (int) (((float) offsetX + 16.0f - fontRenderer.getStringWidth(stackSize) * scaleFactor)
+        final int X = (int) (((float) offsetX + 16.0f - fontRenderer.getStringWidth(stackSize) * scale)
                 * inverseScaleFactor);
-        final int Y = (int) (((float) offsetY + 16.0f - 7.0f * scaleFactor) * inverseScaleFactor);
+        final int Y = (int) (((float) offsetY + 16.0f - 7.0f * scale) * inverseScaleFactor);
         fontRenderer.drawStringWithShadow(stackSize, X, Y, 16777215);
 
         GL11.glScaled(inverseScaleFactor, inverseScaleFactor, inverseScaleFactor);

@@ -828,11 +828,10 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public static void drawItemPresenceOverlay(int slotX, int slotY, boolean isPresent, boolean slotHighlight) {
 
         if (slotHighlight) {
-            if (isPresent) return;
             GL11.glDisable(GL11.GL_LIGHTING);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
             GL11.glTranslatef(0, 0, -150);
-            drawRect(slotX, slotY, 16, 16, 0x80AA0000);
+            drawRect(slotX, slotY, 16, 16, isPresent ? 0x8000AA00 : 0x80AA0000);
             GL11.glTranslatef(0, 0, 150);
             GL11.glEnable(GL11.GL_LIGHTING);
             GL11.glEnable(GL11.GL_DEPTH_TEST);
