@@ -1010,8 +1010,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         }
 
-        final boolean drawItemPresence = NEIClientConfig.isJEIStyleItemPresenceOverlayVisible();
-        final boolean slotHighlight = NEIClientConfig.isSlotHighlightEnabled();
+        final int presenceOverlay = NEIClientConfig.itemPresenceOverlay();
+        final boolean highlightPresentItem = NEIClientConfig.isSlotHighlightPresent();
+
+        System.out.println("presenceOverlay: " + presenceOverlay);
 
         GL11.glPushMatrix();
         GL11.glTranslatef(5, 32 - ySkip + yShift, 0);
@@ -1023,7 +1025,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
                 handler.original.drawForeground(recipeIndex);
 
-                if (drawItemPresence && firstGui != null
+                if (presenceOverlay > 0 && firstGui != null
                         && firstGui.inventorySlots != null
                         && (isMouseOverOverlayButton(refIndex) || limitToOneRecipe)) {
 
@@ -1037,7 +1039,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                     for (int j = 0; j < ingredients.size(); j++) {
                         PositionedStack stack = ingredients.get(j);
                         boolean isPresent = itemPresenceCacheSlots.get(j);
-                        LayoutManager.drawItemPresenceOverlay(stack.relx, stack.rely, isPresent, slotHighlight);
+
+                        if (highlightPresentItem || !isPresent) {
+                            LayoutManager.drawItemPresenceOverlay(stack.relx, stack.rely, isPresent, presenceOverlay == 2);
+                        }
                     }
                 }
 

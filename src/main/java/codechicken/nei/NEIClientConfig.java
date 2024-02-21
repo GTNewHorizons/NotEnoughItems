@@ -276,9 +276,12 @@ public class NEIClientConfig {
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
 
-        tag.getTag("inventory.jei_style_item_presence_overlay")
-                .setComment("Enable/disable JEI Style item presence overlay on ?-hover").getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.jei_style_item_presence_overlay", true));
+        tag.getTag("inventory.itemPresenceOverlay")
+                .setComment("Item presence overlay on ?-hover").getIntValue(1);
+        API.addOption(new OptionCycled("inventory.itemPresenceOverlay", 3, true));
+
+        tag.getTag("inventory.slotHighlightPresent").setComment("Highlight Present Item").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.slotHighlightPresent", true));
 
         tag.getTag("inventory.jei_style_recipe_catalyst").setComment("Enable/disable JEI Style Recipe Catalysts")
                 .getBooleanValue(true);
@@ -302,11 +305,6 @@ public class NEIClientConfig {
         tag.getTag("inventory.shift_overlay_recipe")
                 .setComment("Require holding shift to move items when overlaying recipe").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.shift_overlay_recipe", true));
-
-        tag.getTag("inventory.slotHighlight")
-                .setComment("Highlight the entire slot instead of just showing an icon for the recipe overlay")
-                .getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.slotHighlight", true));
 
         tag.getTag("tools.handler_load_from_config").setComment("ADVANCED: Load handlers from config")
                 .getBooleanValue(false);
@@ -622,8 +620,12 @@ public class NEIClientConfig {
         return getBooleanSetting("inventory.jei_style_tabs");
     }
 
-    public static boolean isJEIStyleItemPresenceOverlayVisible() {
-        return getBooleanSetting("inventory.jei_style_item_presence_overlay");
+    public static int itemPresenceOverlay() {
+        return getIntSetting("inventory.itemPresenceOverlay");
+    }
+
+    public static boolean isSlotHighlightPresent() {
+        return getBooleanSetting("inventory.slotHighlightPresent");
     }
 
     public static boolean areJEIStyleRecipeCatalystsVisible() {
@@ -648,10 +650,6 @@ public class NEIClientConfig {
 
     public static boolean requireShiftForOverlayRecipe() {
         return getBooleanSetting("inventory.shift_overlay_recipe");
-    }
-
-    public static boolean isSlotHighlightEnabled() {
-        return getBooleanSetting("inventory.slotHighlight");
     }
 
     public static boolean isEnabled() {
