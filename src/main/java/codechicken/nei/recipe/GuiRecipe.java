@@ -546,8 +546,9 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         List<Integer> indices = getRecipeIndices();
 
         for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
-            if (recipeInFocus(refIndex, indices.get(refIndex))) {
-                return handler.original.getIngredientStacks(indices.get(refIndex));
+            final int recipeIndex = indices.get(refIndex);
+            if (recipeInFocus(refIndex, recipeIndex)) {
+                return handler.original.getIngredientStacks(recipeIndex);
             }
         }
 
