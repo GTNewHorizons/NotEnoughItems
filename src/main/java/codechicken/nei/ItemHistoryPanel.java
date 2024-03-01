@@ -39,8 +39,7 @@ public class ItemHistoryPanel extends Widget {
 
     public void addItem(ItemStack stack) {
         if (stack != null) {
-            ItemStack is = stack.copy();
-            is.stackSize = 1;
+            ItemStack is = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack), 0);
 
             grid.realItems.removeIf(historyStack -> StackInfo.equalItemAndNBT(historyStack, stack, true));
             grid.realItems.add(0, is);

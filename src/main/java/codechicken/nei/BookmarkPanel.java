@@ -1631,7 +1631,7 @@ public class BookmarkPanel extends PanelWidget {
                             itemStr);
                 }
 
-            } catch (IllegalArgumentException | JsonSyntaxException e) {
+            } catch (IllegalArgumentException | JsonSyntaxException | IllegalStateException e) {
                 NEIClientConfig.logger.error("Failed to load bookmarked ItemStack from json string:\n{}", itemStr);
             }
         }

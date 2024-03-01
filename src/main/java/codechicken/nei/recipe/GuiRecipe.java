@@ -543,10 +543,11 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     public List<PositionedStack> getFocusedRecipeIngredients() {
+        List<Integer> indices = getRecipeIndices();
 
-        for (int recipeIndex : getRecipeIndices()) {
-            if (recipeInFocus(recipeIndex)) {
-                return handler.original.getIngredientStacks(recipeIndex);
+        for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
+            if (recipeInFocus(refIndex, indices.get(refIndex))) {
+                return handler.original.getIngredientStacks(indices.get(refIndex));
             }
         }
 
@@ -554,9 +555,11 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     public int prepareFocusedRecipeResultStackSize(ItemStack stackover) {
+        List<Integer> indices = getRecipeIndices();
 
-        for (int recipeIndex : getRecipeIndices()) {
-            if (recipeInFocus(recipeIndex)) {
+        for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
+            final int recipeIndex = indices.get(refIndex);
+            if (recipeInFocus(refIndex, recipeIndex)) {
                 final PositionedStack result = handler.original.getResultStack(recipeIndex);
                 int stackSize = 0;
 
@@ -578,15 +581,16 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         return stackover.stackSize;
     }
 
-    protected boolean recipeInFocus(int recipeIndex) {
+    protected boolean recipeInFocus(int refIndex, int recipeIndex) {
         final PositionedStack result = handler.original.getResultStack(recipeIndex);
-        if (result != null && isMouseOver(result, recipeIndex)) {
+
+        if (result != null && isMouseOver(result, refIndex)) {
             return true;
         }
 
         final List<PositionedStack> stacks = handler.original.getOtherStacks(recipeIndex);
         for (PositionedStack stack : stacks) {
-            if (isMouseOver(stack, recipeIndex)) {
+            if (isMouseOver(stack, refIndex)) {
                 return true;
             }
         }
