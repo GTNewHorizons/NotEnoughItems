@@ -168,7 +168,10 @@ public class ItemPanel extends PanelWidget {
     }
 
     protected int resizeFooter(GuiContainer gui) {
-        if (!NEIClientConfig.showItemQuantityWidget() && NEIClientConfig.isSearchWidgetCentered()) return 0;
+        if (!NEIClientConfig.showItemQuantityWidget() && NEIClientConfig.isSearchWidgetCentered()
+                && !NEIClientConfig.showHistoryPanelWidget()) {
+            return 0;
+        }
 
         final int BUTTON_SIZE = 20;
         more.w = less.w = BUTTON_SIZE;
@@ -197,8 +200,13 @@ public class ItemPanel extends PanelWidget {
             historyPanel.x = x;
             historyPanel.w = w;
             historyPanel.h = ItemsGrid.SLOT_SIZE * NEIClientConfig.getIntSetting("inventory.history.useRows");
-            historyPanel.y = quantity.y - PanelWidget.PADDING - historyPanel.h;
-            return quantity.h + historyPanel.h + PanelWidget.PADDING * 2;
+            if (NEIClientConfig.showItemQuantityWidget() || !NEIClientConfig.isSearchWidgetCentered()) {
+                historyPanel.y = quantity.y - historyPanel.h - PanelWidget.PADDING;
+            } else {
+                historyPanel.y = y + h - historyPanel.h - PanelWidget.PADDING;
+            }
+            return ((NEIClientConfig.showItemQuantityWidget() || !NEIClientConfig.isSearchWidgetCentered()) ? quantity.h
+                    : 0) + historyPanel.h + PanelWidget.PADDING * 2;
         }
 
         return quantity.h + PanelWidget.PADDING;
