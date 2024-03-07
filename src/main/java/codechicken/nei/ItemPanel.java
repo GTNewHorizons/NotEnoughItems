@@ -200,13 +200,14 @@ public class ItemPanel extends PanelWidget {
             historyPanel.x = x;
             historyPanel.w = w;
             historyPanel.h = ItemsGrid.SLOT_SIZE * NEIClientConfig.getIntSetting("inventory.history.useRows");
+
             if (NEIClientConfig.showItemQuantityWidget() || !NEIClientConfig.isSearchWidgetCentered()) {
                 historyPanel.y = quantity.y - historyPanel.h - PanelWidget.PADDING;
+                return quantity.h + historyPanel.h + PanelWidget.PADDING * 2;
             } else {
-                historyPanel.y = y + h - historyPanel.h - PanelWidget.PADDING;
+                historyPanel.y = y + h - historyPanel.h;
+                return historyPanel.h + PanelWidget.PADDING;
             }
-            return ((NEIClientConfig.showItemQuantityWidget() || !NEIClientConfig.isSearchWidgetCentered()) ? quantity.h
-                    : 0) + historyPanel.h + PanelWidget.PADDING * 2;
         }
 
         return quantity.h + PanelWidget.PADDING;
