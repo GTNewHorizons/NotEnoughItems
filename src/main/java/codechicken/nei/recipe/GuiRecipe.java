@@ -416,8 +416,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         nextpage = new GuiNEIButton(2, leftButtonX, guiTop + 17, buttonWidth, buttonHeight, "<");
         prevpage = new GuiNEIButton(3, rightButtonX, guiTop + 17, buttonWidth, buttonHeight, ">");
 
-        toggleSearch.icon = new DrawableBuilder("nei:textures/nei_sprites.png", 0, 38, 8, 8).setTextureSize(128, 128)
-                .build();
+        toggleSearch.icon = new DrawableBuilder("nei:textures/nei_sprites.png", 0, 76, 10, 10).build();
 
         buttonList.addAll(Arrays.asList(nexttype, prevtype, nextpage, prevpage));
 
