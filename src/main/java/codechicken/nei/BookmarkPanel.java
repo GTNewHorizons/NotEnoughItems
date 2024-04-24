@@ -2060,7 +2060,7 @@ public class BookmarkPanel extends PanelWidget {
             return false;
         }
 
-        if (NEIClientUtils.controlKey()) {
+        if (!inEditingState() && NEIClientUtils.controlKey()) {
             final ItemPanelSlot slot = getSlotMouseOver(mousex, mousey);
 
             if (slot != null) {
