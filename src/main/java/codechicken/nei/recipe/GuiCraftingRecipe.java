@@ -34,7 +34,9 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         final BookmarkRecipeId recipeId;
 
         if ("item".equals(outputId)) {
-            results = Arrays.asList(results).stream().map(rslt -> normalizeItemStack((ItemStack) rslt)).toArray();
+            for (int i = 0; i < results.length; i++) {
+                results[i] = normalizeItemStack((ItemStack) results[i]);
+            }
             recipeId = getRecipeId(mc.currentScreen, (ItemStack) results[0]);
         } else if ("recipeId".equals(outputId)) {
             recipeId = (BookmarkRecipeId) results[1];
@@ -103,7 +105,7 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
                 "outputId: " + outputId,
                 "results: " + Arrays.toString(results));
 
-        return recipeQuery.runWithProfiling("recipe.concurrent.crafting");
+        return recipeQuery.runWithProfiling(NEIClientUtils.translate("recipe.concurrent.crafting"));
     }
 
     private static ArrayList<ICraftingHandler> filterByHandlerName(ArrayList<ICraftingHandler> craftinghandlers,
