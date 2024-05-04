@@ -3,29 +3,26 @@ package codechicken.nei.recipe;
 import static codechicken.lib.gui.GuiDraw.drawString;
 import static codechicken.lib.gui.GuiDraw.getStringWidth;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 
-import codechicken.core.TaskProfiler;
 import codechicken.core.TaskProfiler.ProfilerResult;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.IOverlayHandler;
 import codechicken.nei.api.IRecipeOverlayRenderer;
+import codechicken.nei.util.AsyncTaskProfiler;
 
 public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
 
-    private static final TaskProfiler profiler = new TaskProfiler();
+    private static final AsyncTaskProfiler profiler = new AsyncTaskProfiler();
 
-    public static TaskProfiler getProfiler() {
-        profiler.clear();
+    public static AsyncTaskProfiler getProfiler() {
         return profiler;
     }
 
@@ -55,8 +52,7 @@ public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
     @Override
     public void drawForeground(int recipe) {
         List<ProfilerResult> results = profiler.getResults();
-        for (Iterator<ProfilerResult> it = results.iterator(); it.hasNext();)
-            if (it.next().name.equals(getRecipeName())) it.remove();
+        results.removeIf(profilerResult -> getRecipeName().equals(profilerResult.name));
 
         results.sort((o1, o2) -> o1.time < o2.time ? 1 : -1);
 
@@ -65,10 +61,9 @@ public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
             int y = (i % 6) * 20 + 6;
             drawString(r.name, 8, y, 0xFF808080, false);
 
-            DecimalFormat format = new DecimalFormat("0.00");
-            String s = format.format(r.fraction * 100) + "%";
-            if (r.time < 1000000L) s += " (" + (r.time / 1000) + "us)";
-            else s += " (" + (r.time / 1000000) + "ms)";
+            String s;
+            if (r.time < 1000000L) s = (r.time / 1000) + "us";
+            else s = (r.time / 1000000) + "ms";
 
             drawString(s, 156 - getStringWidth(s), y + 10, 0xFF404040, false);
         }

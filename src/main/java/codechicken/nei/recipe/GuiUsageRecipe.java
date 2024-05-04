@@ -18,8 +18,9 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
     public static boolean openRecipeGui(String inputId, Object... ingredients) {
 
         if ("item".equals(inputId)) {
-            ingredients = Arrays.asList(ingredients).stream().map(ingr -> normalizeItemStack((ItemStack) ingr))
-                    .toArray();
+            for (int i = 0; i < ingredients.length; i++) {
+                ingredients[i] = normalizeItemStack((ItemStack) ingredients[i]);
+            }
         }
 
         final ArrayList<IUsageHandler> handlers = getUsageHandlers(inputId, ingredients);
@@ -52,7 +53,7 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
                 "inputId: " + inputId,
                 "ingredients: " + Arrays.toString(ingredients));
 
-        return recipeQuery.runWithProfiling("recipe.concurrent.usage");
+        return recipeQuery.runWithProfiling(NEIClientUtils.translate("recipe.concurrent.usage"));
     }
 
     private static ItemStack normalizeItemStack(ItemStack stack) {

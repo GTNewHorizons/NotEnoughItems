@@ -15,6 +15,7 @@ import net.minecraft.util.IChatComponent;
 import codechicken.core.TaskProfiler;
 import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
+import codechicken.nei.util.AsyncTaskProfiler;
 
 class RecipeHandlerQuery<T extends IRecipeHandler> {
 
@@ -34,6 +35,7 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
 
     ArrayList<T> runWithProfiling(String profilerSection) {
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
+        profiler.clear();
         profiler.start(profilerSection);
         try {
             ArrayList<T> handlers = getRecipeHandlersParallel();
@@ -63,12 +65,17 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
     private ArrayList<T> getSerialHandlersWithRecipes() {
 
         return serialRecipeHandlers.stream().map(handler -> {
+            AsyncTaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
+            profiler.clearCurrent();
+            profiler.start(handler.getRecipeName());
             try {
                 return isHidden(handler) ? null : recipeHandlerFunction.apply(handler);
             } catch (Throwable t) {
                 printLog(t);
                 error = true;
                 return null;
+            } finally {
+                profiler.end();
             }
         }).filter(h -> h != null && h.numRecipes() > 0 && SearchRecipeHandler.findFirst(h, (recipeIndex) -> true) != -1)
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -77,12 +84,17 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
     private ArrayList<T> getHandlersWithRecipes() throws InterruptedException, ExecutionException {
 
         return ItemList.forkJoinPool.submit(() -> recipeHandlers.parallelStream().map(handler -> {
+            AsyncTaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
+            profiler.clearCurrent();
+            profiler.start(handler.getRecipeName());
             try {
                 return isHidden(handler) ? null : recipeHandlerFunction.apply(handler);
             } catch (Throwable t) {
                 printLog(t);
                 error = true;
                 return null;
+            } finally {
+                profiler.end();
             }
         }).filter(h -> h != null && h.numRecipes() > 0 && SearchRecipeHandler.findFirst(h, (recipeIndex) -> true) != -1)
                 .collect(Collectors.toCollection(ArrayList::new))).get();

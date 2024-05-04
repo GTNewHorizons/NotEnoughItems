@@ -321,6 +321,8 @@ nei.recipe.firework.tooltip2=Multiple charges can be spawned from one rocket
 nei.recipe.brewing=Brewing
 nei.recipe.profiler.crafting=Crafting Profiling
 nei.recipe.profiler.usage=Usage Profiling
+nei.recipe.concurrent.usage=Concurrent Usage - Total
+nei.recipe.concurrent.crafting=Concurrent Crafting - Total
 
 nei.itemsort.minecraft=Minecraft
 nei.itemsort.minecraft.tip=Sorts items from vanilla minecraft first
