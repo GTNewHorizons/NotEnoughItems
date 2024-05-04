@@ -15,6 +15,7 @@ public class AsyncTaskProfiler extends TaskProfiler {
     public Map<String, Long> times = new ConcurrentHashMap<>();
 
     public void start(String section) {
+        if (section == null) section = "<unnamed>";
         threadedProfiler.get().start(section);
     }
 

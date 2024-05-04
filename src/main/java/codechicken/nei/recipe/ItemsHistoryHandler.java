@@ -81,7 +81,7 @@ class ItemsHistoryHandler implements ICraftingHandler, IUsageHandler {
 
     @Override
     public String getRecipeName() {
-        return null;
+        return "Items History";
     }
 
     @Override
