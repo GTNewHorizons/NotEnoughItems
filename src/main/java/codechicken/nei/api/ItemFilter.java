@@ -2,6 +2,7 @@ package codechicken.nei.api;
 
 import net.minecraft.item.ItemStack;
 
+@Deprecated
 public interface ItemFilter {
 
     /**

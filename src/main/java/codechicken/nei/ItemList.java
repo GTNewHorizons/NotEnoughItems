@@ -167,6 +167,10 @@ public class ItemList {
         return getItemListFilter().matches(item);
     }
 
+    /**
+     * @deprecated Move to PrefixInfo for filtering
+     */
+    @Deprecated
     public static ItemFilter getItemListFilter() {
         return new AllMultiItemFilter(getItemFilters());
     }
@@ -294,20 +298,12 @@ public class ItemList {
         public void execute() {
             // System.out.println("Executing NEI Item Filtering");
             ArrayList<ItemStack> filtered;
-            ItemFilter filter = getItemListFilter();
 
             try {
                 String searchText = NEIClientConfig.searchExpression;
-                // if (searchText == null || searchText.isEmpty()) {
-                // filtered = ItemList.forkJoinPool.submit(
-                // () -> items.parallelStream().filter(filter::matches)
-                // .collect(Collectors.toCollection(ArrayList::new)))
-                // .get();
-                // } else {
                 filtered = getIngredientListUncached(searchText).stream().map(IIngredientListElement::getIngredient)
                         .filter(ItemStack.class::isInstance).map(i -> (ItemStack) i)
                         .collect(Collectors.toCollection(ArrayList::new));
-                // }
 
             } catch (Exception e) {
                 filtered = new ArrayList<>();
