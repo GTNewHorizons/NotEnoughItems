@@ -63,7 +63,9 @@ public class ItemPanel extends PanelWidget {
         public void refresh(GuiContainer gui) {
 
             if (newItems != null) {
-                realItems = newItems;
+                ArrayList<ItemStack> ne = new ArrayList<>();
+                ne.addAll(newItems);
+                realItems = ne;
                 newItems = null;
                 onItemsChanged();
             }

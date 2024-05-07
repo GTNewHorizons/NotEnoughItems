@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -22,6 +21,13 @@ import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.recipe.GuiRecipe;
+import mezz.jei.search.ElementSearch;
+import mezz.jei.search.ForgeModIdHelper;
+import mezz.jei.search.IIngredientListElement;
+import mezz.jei.search.IngredientListElement;
+import mezz.jei.search.ItemStackHelper;
+import mezz.jei.search.TokenInfo;
 
 public class ItemList {
 
@@ -33,12 +39,17 @@ public class ItemList {
      * Fields are replaced atomically and contents never modified.
      */
     public static volatile ListMultimap<Item, ItemStack> itemMap = ArrayListMultimap.create();
+
+    public static volatile ElementSearch elementSearch = new ElementSearch();
+
     /**
      * Updates to this should be synchronised on this
      */
     public static final List<ItemFilterProvider> itemFilterers = new LinkedList<>();
 
     public static final List<ItemsLoadedCallback> loadCallbacks = new LinkedList<>();
+
+    public static final ItemStackHelper stackHelper = new ItemStackHelper();
 
     private static final HashSet<Item> erroredItems = new HashSet<>();
     private static final HashSet<String> stackTraces = new HashSet<>();
@@ -232,6 +243,16 @@ public class ItemList {
             if (interrupted()) return;
             ItemList.items = items;
             ItemList.itemMap = itemMap;
+
+            ElementSearch elementSearch1 = new ElementSearch();
+
+            elementSearch1.addAll(
+                    items.stream()
+                            .map(x -> IngredientListElement.create(x, stackHelper, ForgeModIdHelper.getInstance(), 0))
+                            .collect(Collectors.toList()));
+            elementSearch1.logStatistics();
+            elementSearch = elementSearch1;
+
             for (ItemsLoadedCallback callback : loadCallbacks) callback.itemsLoaded();
 
             updateFilter.restart();
@@ -247,7 +268,7 @@ public class ItemList {
     }
 
     public static final int numProcessors = Runtime.getRuntime().availableProcessors();
-    public static ForkJoinPool forkJoinPool = getPool(numProcessors * 2 / 3);
+    public static final ForkJoinPool forkJoinPool = getPool(numProcessors * 2 / 3);
 
     public static final RestartableTask updateFilter = new RestartableTask("NEI Item Filtering") {
 
@@ -258,13 +279,21 @@ public class ItemList {
             ItemFilter filter = getItemListFilter();
 
             try {
-                filtered = ItemList.forkJoinPool.submit(
-                        () -> items.parallelStream().filter(filter::matches)
-                                .collect(Collectors.toCollection(ArrayList::new)))
-                        .get();
-            } catch (InterruptedException | ExecutionException e) {
+                String searchText = GuiRecipe.searchField.text();
+                if (searchText == null || searchText.isEmpty()) {
+                    filtered = ItemList.forkJoinPool.submit(
+                            () -> items.parallelStream().filter(filter::matches)
+                                    .collect(Collectors.toCollection(ArrayList::new)))
+                            .get();
+                } else {
+                    filtered = elementSearch.getSearchResults(TokenInfo.parseRawToken(searchText)).stream()
+                            .map(IIngredientListElement::getIngredient)
+                            .collect(Collectors.toCollection(ArrayList::new));
+                }
+
+            } catch (Exception e) {
                 filtered = new ArrayList<>();
-                e.printStackTrace();
+                NEIClientConfig.logger.error("Exception in " + name, e);
                 stop();
             }
 

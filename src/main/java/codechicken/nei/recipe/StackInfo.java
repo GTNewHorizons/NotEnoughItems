@@ -84,6 +84,10 @@ public class StackInfo {
     }
 
     public static boolean equalItemAndNBT(ItemStack stackA, ItemStack stackB, boolean useNBT) {
+        if (stackA == null || stackB == null) {
+            NEIClientConfig.logger.warn("Trying to compare {} with {}!");
+            return false;
+        }
         if (!stackA.isItemEqual(stackB)) {
             return false;
         }
@@ -164,7 +168,7 @@ public class StackInfo {
                     }
 
                     if (local instanceof NBTBase) {
-                        keys.add(((NBTBase) local).toString());
+                        keys.add(local.toString());
                     } else if (local != null) {
                         keys.add(String.valueOf(local));
                     }

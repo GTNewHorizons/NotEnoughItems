@@ -4,4 +4,5 @@ dependencies {
     api('com.github.GTNewHorizons:CodeChickenLib:1.2.1:dev')
     api('com.github.GTNewHorizons:CodeChickenCore:1.2.1:dev')
     shadowImplementation('org.apache.commons:commons-csv:1.10.0')
+    shadowImplementation('it.unimi.dsi:fastutil:8.5.8')
 }

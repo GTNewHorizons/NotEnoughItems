@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -56,6 +57,8 @@ import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
 import codechicken.nei.recipe.RecipeInfo;
 import codechicken.obfuscator.ObfuscationRun;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 
 public class NEIClientConfig {
 
@@ -81,19 +84,19 @@ public class NEIClientConfig {
     public static File bookmarkFile;
 
     // Set of handlers that need to be run in serial
-    public static HashSet<String> serialHandlers = new HashSet<>();
+    public static Set<String> serialHandlers = new ObjectArraySet<>();
 
     // Set of regexes matching handler ID of handlers that need the hack in GuiRecipe.startHeightHack().
     // We use regex here so that we can apply the height hack to entire mods with one entry.
     public static HashSet<Pattern> heightHackHandlerRegex = new HashSet<>();
 
     // Set of handler Name or Id of handlers that need hide.
-    public static HashSet<String> hiddenHandlers = new HashSet<>();
+    public static Set<String> hiddenHandlers = new ObjectArraySet<>();
 
     // Map of handler ID to sort order.
     // Handlers will be sorted in ascending order, so smaller numbers show up earlier.
     // Any handler not in the map will be assigned to 0, and negative numbers are fine.
-    public static HashMap<String, Integer> handlerOrdering = new HashMap<>();
+    public static Object2IntOpenHashMap<String> handlerOrdering = new Object2IntOpenHashMap<>();
 
     // Function that extracts the handler ID from a handler, with special logic for
     // TemplateRecipeHandler: prefer using the overlay ID if it exists.
@@ -101,11 +104,11 @@ public class NEIClientConfig {
             .firstNonNull(handler.getOverlayIdentifier(), handler.getHandlerId());
 
     public static int getHandlerOrder(IRecipeHandler handler) {
-        if (handlerOrdering.get(handler.getOverlayIdentifier()) != null) {
-            return handlerOrdering.get(handler.getOverlayIdentifier());
+        if (handlerOrdering.containsKey(handler.getOverlayIdentifier())) {
+            return handlerOrdering.getInt(handler.getOverlayIdentifier());
         }
-        if (handlerOrdering.get(handler.getHandlerId()) != null) {
-            return handlerOrdering.get(handler.getHandlerId());
+        if (handlerOrdering.containsKey(handler.getHandlerId())) {
+            return handlerOrdering.getInt(handler.getHandlerId());
         }
         return 0;
     }
@@ -137,6 +140,27 @@ public class NEIClientConfig {
         tag.getTag("command").useBraces().setComment(
                 "Change these options if you have a different mod installed on the server that handles the commands differently, Eg. Bukkit Essentials");
         tag.setNewLineMode(1);
+
+        tag.getTag("search.strippeddiacritics")
+                .setComment(
+                        "Includes stripped diacritics version of strings in search trees [WILL RELOAD SEARCH TREES]")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("search.strippeddiacritics"));
+
+        tag.getTag("search.modnamesearchmode").getIntValue(1);
+        API.addOption(new OptionCycled("search.modnamesearchmode", 3));
+
+        tag.getTag("search.tooltipsearchmode").getIntValue(0);
+        API.addOption(new OptionCycled("search.tooltipsearchmode", 3));
+
+        tag.getTag("search.oredictsearchmode").getIntValue(2);
+        API.addOption(new OptionCycled("search.oredictsearchmode", 3));
+
+        tag.getTag("search.creativetabsearchmode").getIntValue(2);
+        API.addOption(new OptionCycled("search.creativetabsearchmode", 3));
+
+        tag.getTag("search.colorsearchmode").getIntValue(2);
+        API.addOption(new OptionCycled("search.colorsearchmode", 2));
 
         tag.getTag("inventory.widgetsenabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.widgetsenabled"));
@@ -822,5 +846,39 @@ public class NEIClientConfig {
 
         for (File file : saveDir.listFiles())
             if (file.isDirectory() && !saveFileNames.contains(file.getName())) ObfuscationRun.deleteDir(file, true);
+    }
+
+    public static boolean getSearchStrippedDiacritics() {
+        return getBooleanSetting("search.strippeddiacritics");
+    }
+
+    public static SearchMode getTooltipSearchMode() {
+        return SearchMode.values()[getIntSetting("search.tooltipsearchmode")];
+    }
+
+    public static SearchMode getColorSearchMode() {
+        return SearchMode.values()[getIntSetting("search.colorsearchmode")];
+    }
+
+    public static SearchMode getOreDictSearchMode() {
+        return SearchMode.values()[getIntSetting("search.oredictsearchmode")];
+    }
+
+    public static SearchMode getModNameSearchMode() {
+        return SearchMode.values()[getIntSetting("search.modnamesearchmode")];
+    }
+
+    public static SearchMode getCreativeTabSearchMode() {
+        return SearchMode.values()[getIntSetting("search.creativetabsearchmode")];
+    }
+
+    public static boolean getSearchAdvancedTooltips() {
+        return false;
+    }
+
+    public enum SearchMode {
+        ENABLED,
+        REQUIRE_PREFIX,
+        DISABLED
     }
 }
