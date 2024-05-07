@@ -371,3 +371,27 @@ nei.presets.textfield.tooltip.1=Enter - save
 nei.presets.textfield.tooltip.2=Escape - cancel
 nei.presets.label.tooltip=Double click to edit
 nei.presets.label.selected=%s Presets
+
+nei.options.search=Search Options
+nei.options.search.strippeddiacritics.false=Don't Strip Diacritics
+nei.options.search.strippeddiacritics.true=Strip Diacritics
+
+nei.options.search.modnamesearchmode.0=Enable Mod Name Search
+nei.options.search.modnamesearchmode.1=Enable Mod Name Search (Require Prefix)
+nei.options.search.modnamesearchmode.2=Disable Mod Name Search
+
+nei.options.search.tooltipsearchmode.0=Enable Tooltip Search
+nei.options.search.tooltipsearchmode.1=Enable Tooltip Search (Require Prefix)
+nei.options.search.tooltipsearchmode.2=Disable Tooltip Search
+
+nei.options.search.resourceidsearchmode.0=Enable Resource ID Search
+nei.options.search.resourceidsearchmode.1=Enable Resource ID Search (Require Prefix)
+nei.options.search.resourceidsearchmode.2=Disable Resource ID Search
+
+nei.options.search.oredictsearchmode.0=Enable OreDict Search
+nei.options.search.oredictsearchmode.1=Enable OreDict Search (Require Prefix)
+nei.options.search.oredictsearchmode.2=Disable OreDict Search
+
+nei.options.search.creativetabsearchmode.0=Enable Creative Tab Search
+nei.options.search.creativetabsearchmode.1=Enable Creative Tab Search (Require Prefix)
+nei.options.search.creativetabsearchmode.2=Disable Creative Tab Search

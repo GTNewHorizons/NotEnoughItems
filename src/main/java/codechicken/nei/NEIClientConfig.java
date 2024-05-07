@@ -172,10 +172,6 @@ public class NEIClientConfig {
                 .getIntValue(2);
         API.addOption(new OptionCycled("search.creativetabsearchmode", 3));
 
-        tag.getTag("search.colorsearchmode")
-                .setComment("Enable Color search mode, 0 - Enabled, 1 - Require prefix, 2 - Disabled").getIntValue(2);
-        API.addOption(new OptionCycled("search.colorsearchmode", 2));
-
         tag.getTag("inventory.widgetsenabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.widgetsenabled"));
 
@@ -873,10 +869,6 @@ public class NEIClientConfig {
 
     public static SearchMode getResourceIdSearchMode() {
         return SearchMode.values()[getIntSetting("search.resourceidsearchmode")];
-    }
-
-    public static SearchMode getColorSearchMode() {
-        return SearchMode.values()[getIntSetting("search.colorsearchmode")];
     }
 
     public static SearchMode getOreDictSearchMode() {
