@@ -9,6 +9,8 @@ import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
+import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
+
 /**
  * An ingredient helper allows JEI to get information about ingredients for searching and other purposes. An ingredient
  * is anything used in a recipe, like ItemStacks and FluidStacks.
@@ -105,7 +107,7 @@ public interface IIngredientHelper<V> {
      *
      * @since JEI 4.3.2
      */
-    String getResourceId(V ingredient);
+    UniqueIdentifier getResourceId(V ingredient);
 
     /**
      * Return the ordinal for the ingredient

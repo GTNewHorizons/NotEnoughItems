@@ -37,17 +37,24 @@ public class PrefixInfo implements Comparable<PrefixInfo> {
                         NEIClientConfig::getTooltipSearchMode,
                         IIngredientListElement::getTooltipStrings,
                         GeneralizedSuffixTree::new));
-        // addPrefix(new PrefixInfo('&', 1, false, "resource_id", NEIClientConfig::getResourceIdSearchMode, e ->
-        // Collections.singleton(e.getResourceId()), GeneralizedSuffixTree::new));
         addPrefix(
                 new PrefixInfo(
-                        '^',
-                        2,
-                        true,
-                        "color",
-                        NEIClientConfig::getColorSearchMode,
-                        IIngredientListElement::getColorStrings,
-                        LimitedStringStorage::new));
+                        '&',
+                        1,
+                        false,
+                        "resource_id",
+                        NEIClientConfig::getResourceIdSearchMode,
+                        e -> Collections.singleton(e.getResourceId().toString()),
+                        GeneralizedSuffixTree::new));
+        // addPrefix(
+        // new PrefixInfo(
+        // '^',
+        // 2,
+        // true,
+        // "color",
+        // NEIClientConfig::getColorSearchMode,
+        // IIngredientListElement::getColorStrings,
+        // LimitedStringStorage::new));
         addPrefix(
                 new PrefixInfo(
                         '$',

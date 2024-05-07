@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
+
 public interface IIngredientListElement<V> {
 
     V getIngredient();
@@ -33,4 +35,6 @@ public interface IIngredientListElement<V> {
     default int getOrdinal() {
         return 0; // Preserve compatibility
     }
+
+    UniqueIdentifier getResourceId();
 }

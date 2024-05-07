@@ -9,7 +9,7 @@ If you have issues with NEI outside of the GTNH modpack you may report them in t
 ## New Features:
 
 * Speed
-  - Uses a parallel stream to search the item list over multiple cores, resulting in 2-6x faster searches on average
+  - Uses a JEI-customized suffix tree to search over items, resulting in 2-6x faster searches on average
   - Loads the recipe handlers in parallel
 * A textbox for search with most of the features you'd expect - moving forward, backwards, selection, etc
 * Bookmarks! Are you in the process of crafting? Bookmark it using either 'A' or configure your own key.
@@ -34,5 +34,7 @@ GTNH Modifications Copyright (c) 2019-2024 mitchej123 and the GTNH Team
 Licensed under LGPL-3.0 or later - use this however you want, but please give back any modifications
 
 Parts inspired/borrowed/backported from [JEI](https://github.com/mezz/JustEnoughItems/tree/1.12) under the MIT License.
+
+JEI Search Tree are backported from [HEI](https://github.com/CleanroomMC/HadEnoughItems) under the Apache-2.0 License.
 
 Originial code Copyright (c) 2014-2015 mezz and was licensed under the MIT License.

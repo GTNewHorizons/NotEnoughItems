@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,13 +22,14 @@ import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.guihook.GuiContainerManager;
-import codechicken.nei.recipe.GuiRecipe;
 import mezz.jei.search.ElementSearch;
 import mezz.jei.search.ForgeModIdHelper;
 import mezz.jei.search.IIngredientListElement;
 import mezz.jei.search.IngredientListElement;
+import mezz.jei.search.IngredientListElementComparator;
 import mezz.jei.search.ItemStackHelper;
-import mezz.jei.search.TokenInfo;
+import mezz.jei.search.SearchToken;
+import mezz.jei.util.Translator;
 
 public class ItemList {
 
@@ -250,7 +252,6 @@ public class ItemList {
                     items.stream()
                             .map(x -> IngredientListElement.create(x, stackHelper, ForgeModIdHelper.getInstance(), 0))
                             .collect(Collectors.toList()));
-            elementSearch1.logStatistics();
             elementSearch = elementSearch1;
 
             for (ItemsLoadedCallback callback : loadCallbacks) callback.itemsLoaded();
@@ -270,6 +271,23 @@ public class ItemList {
     public static final int numProcessors = Runtime.getRuntime().availableProcessors();
     public static final ForkJoinPool forkJoinPool = getPool(numProcessors * 2 / 3);
 
+    private static List<IIngredientListElement<?>> getIngredientListUncached(String filterText) {
+        if (filterText.isEmpty()) {
+            return elementSearch.getAllIngredients().stream().filter(IIngredientListElement::isVisible)
+                    .sorted(IngredientListElementComparator.INSTANCE).collect(Collectors.toList());
+        }
+        filterText = Translator.toLowercaseWithLocale(filterText);
+        List<SearchToken> tokens = Arrays.stream(filterText.split("\\|")).map(SearchToken::parseSearchToken)
+                .filter(s -> !s.search.isEmpty()).collect(Collectors.toList());
+        if (tokens.isEmpty()) {
+            return elementSearch.getAllIngredients().stream().filter(IIngredientListElement::isVisible)
+                    .sorted(IngredientListElementComparator.INSTANCE).collect(Collectors.toList());
+        }
+        return tokens.stream().map(token -> token.getSearchResults(elementSearch)).flatMap(Set::stream)
+                .filter(IIngredientListElement::isVisible).sorted(IngredientListElementComparator.INSTANCE)
+                .collect(Collectors.toList());
+    }
+
     public static final RestartableTask updateFilter = new RestartableTask("NEI Item Filtering") {
 
         @Override
@@ -279,17 +297,17 @@ public class ItemList {
             ItemFilter filter = getItemListFilter();
 
             try {
-                String searchText = GuiRecipe.searchField.text();
-                if (searchText == null || searchText.isEmpty()) {
-                    filtered = ItemList.forkJoinPool.submit(
-                            () -> items.parallelStream().filter(filter::matches)
-                                    .collect(Collectors.toCollection(ArrayList::new)))
-                            .get();
-                } else {
-                    filtered = elementSearch.getSearchResults(TokenInfo.parseRawToken(searchText)).stream()
-                            .map(IIngredientListElement::getIngredient)
-                            .collect(Collectors.toCollection(ArrayList::new));
-                }
+                String searchText = NEIClientConfig.searchExpression;
+                // if (searchText == null || searchText.isEmpty()) {
+                // filtered = ItemList.forkJoinPool.submit(
+                // () -> items.parallelStream().filter(filter::matches)
+                // .collect(Collectors.toCollection(ArrayList::new)))
+                // .get();
+                // } else {
+                filtered = getIngredientListUncached(searchText).stream().map(IIngredientListElement::getIngredient)
+                        .filter(ItemStack.class::isInstance).map(i -> (ItemStack) i)
+                        .collect(Collectors.toCollection(ArrayList::new));
+                // }
 
             } catch (Exception e) {
                 filtered = new ArrayList<>();

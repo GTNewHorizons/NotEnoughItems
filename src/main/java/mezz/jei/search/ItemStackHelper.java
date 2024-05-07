@@ -18,6 +18,8 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 
 import codechicken.nei.recipe.StackInfo;
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
 public class ItemStackHelper implements IIngredientHelper<ItemStack> {
 
@@ -61,19 +63,24 @@ public class ItemStackHelper implements IIngredientHelper<ItemStack> {
 
     @Override
     public String getModId(ItemStack ingredient) {
-        String itemName = ingredient.getItem().delegate.name().split(":")[0];
-
-        return itemName;
+        return getResourceId(ingredient).modId;
     }
 
     @Override
     public String getDisplayModId(ItemStack ingredient) {
-        return getModId(ingredient);
+        return getResourceId(ingredient).modId;
     }
 
     @Override
-    public String getResourceId(ItemStack ingredient) {
-        return null;
+    public UniqueIdentifier getResourceId(ItemStack ingredient) {
+        try {
+            UniqueIdentifier id = GameRegistry.findUniqueIdentifierFor(ingredient.getItem());
+            if (id == null) return new UniqueIdentifier("minecraft:null");
+            return id;
+        } catch (Exception ex) {
+            // Why the **** does a Mod registers item.null to NEI??????
+            return new UniqueIdentifier("minecraft:null");
+        }
     }
 
     @Override

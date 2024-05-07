@@ -1,40 +1,37 @@
 package codechicken.nei.recipe;
 
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
-import java.util.function.IntPredicate;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import javax.annotation.Nullable;
-
 import codechicken.nei.ItemList;
 import codechicken.nei.api.IRecipeFilter;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 
 class SearchRecipeHandler<H extends IRecipeHandler> {
 
     public H original;
 
-    private IntList filteredRecipes;
+    private ArrayList<Integer> filteredRecipes;
 
-    private IntList searchRecipes;
+    private ArrayList<Integer> searchRecipes;
 
     public SearchRecipeHandler(H handler) {
         this.original = handler;
 
         if (this.original.numRecipes() == 0) {
-            this.filteredRecipes = new IntArrayList();
+            this.filteredRecipes = new ArrayList<>();
         } else {
             final Stream<Integer> items = IntStream.range(0, this.original.numRecipes()).boxed();
             final IRecipeFilter filter = this.searchingAvailable() ? GuiRecipe.getRecipeListFilter() : null;
 
             if (filter == null) {
-                this.filteredRecipes = items.collect(Collectors.toCollection(IntArrayList::new));
+                this.filteredRecipes = items.collect(Collectors.toCollection(ArrayList::new));
             } else {
                 this.filteredRecipes = items.filter(recipe -> mathRecipe(this.original, recipe, filter))
-                        .collect(Collectors.toCollection(IntArrayList::new));
+                        .collect(Collectors.toCollection(ArrayList::new));
             }
         }
     }
@@ -55,7 +52,7 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
         return handler instanceof TemplateRecipeHandler;
     }
 
-    public static int findFirst(IRecipeHandler handler, IntPredicate predicate) {
+    public static int findFirst(IRecipeHandler handler, Predicate<Integer> predicate) {
         final IRecipeFilter filter = searchingAvailable(handler) ? GuiRecipe.getRecipeListFilter() : null;
         int refIndex = -1;
 
@@ -72,22 +69,21 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
         return -1;
     }
 
-    @Nullable
-    public IntArrayList getSearchResult(IRecipeFilter filter) {
+    public ArrayList<Integer> getSearchResult(IRecipeFilter filter) {
 
         if (filteredRecipes.isEmpty() || !this.searchingAvailable()) {
             return null;
         }
 
-        IntArrayList filtered = null;
-        final IntArrayList recipes = IntStream.range(0, filteredRecipes.size()).boxed()
-                .collect(Collectors.toCollection(IntArrayList::new));
+        ArrayList<Integer> filtered = null;
+        final ArrayList<Integer> recipes = IntStream.range(0, filteredRecipes.size()).boxed()
+                .collect(Collectors.toCollection(ArrayList::new));
 
         try {
             filtered = ItemList.forkJoinPool.submit(
                     () -> recipes.parallelStream()
-                            .filter(recipe -> mathRecipe(this.original, filteredRecipes.getInt(recipe), filter))
-                            .collect(Collectors.toCollection(IntArrayList::new)))
+                            .filter(recipe -> mathRecipe(this.original, filteredRecipes.get(recipe), filter))
+                            .collect(Collectors.toCollection(ArrayList::new)))
                     .get();
 
             filtered.sort((a, b) -> a - b);
@@ -99,17 +95,17 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
         return filtered;
     }
 
-    public void setSearchIndices(IntList searchRecipes) {
+    public void setSearchIndices(ArrayList<Integer> searchRecipes) {
         this.searchRecipes = searchRecipes;
     }
 
     public int ref(int index) {
 
         if (searchRecipes != null) {
-            index = searchRecipes.getInt(index);
+            index = searchRecipes.get(index);
         }
 
-        return filteredRecipes.getInt(index);
+        return filteredRecipes.get(index);
     }
 
     public int numRecipes() {

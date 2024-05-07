@@ -126,6 +126,8 @@ public class NEIClientConfig {
 
     public static ItemStackSet bannedBlocks = new ItemStackSet();
 
+    public static String searchExpression = "";
+
     static {
         if (global.config.getTag("checkUpdates").getBooleanValue(true)) CCUpdateChecker.updateCheck("NotEnoughItems");
         linkOptionList();
@@ -147,19 +149,31 @@ public class NEIClientConfig {
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("search.strippeddiacritics"));
 
-        tag.getTag("search.modnamesearchmode").getIntValue(1);
+        tag.getTag("search.modnamesearchmode")
+                .setComment("Enable Mod Name search mode, 0 - Enabled, 1 - Require prefix, 2 - Disabled")
+                .getIntValue(1);
         API.addOption(new OptionCycled("search.modnamesearchmode", 3));
 
-        tag.getTag("search.tooltipsearchmode").getIntValue(0);
+        tag.getTag("search.tooltipsearchmode")
+                .setComment("Enable Tooltip search mode, 0 - Enabled, 1 - Require prefix, 2 - Disabled").getIntValue(0);
         API.addOption(new OptionCycled("search.tooltipsearchmode", 3));
 
-        tag.getTag("search.oredictsearchmode").getIntValue(2);
+        tag.getTag("search.resourceidsearchmode")
+                .setComment("Enable Resource id search mode, 0 - Enabled, 1 - Require prefix, 2 - Disabled")
+                .getIntValue(2);
+        API.addOption(new OptionCycled("search.resourceidsearchmode", 3));
+
+        tag.getTag("search.oredictsearchmode")
+                .setComment("Enable OreDict search mode, 0 - Enabled, 1 - Require prefix, 2 - Disabled").getIntValue(2);
         API.addOption(new OptionCycled("search.oredictsearchmode", 3));
 
-        tag.getTag("search.creativetabsearchmode").getIntValue(2);
+        tag.getTag("search.creativetabsearchmode")
+                .setComment("Enable Creative Tab search mode, 0 - Enabled, 1 - Require prefix, 2 - Disabled")
+                .getIntValue(2);
         API.addOption(new OptionCycled("search.creativetabsearchmode", 3));
 
-        tag.getTag("search.colorsearchmode").getIntValue(2);
+        tag.getTag("search.colorsearchmode")
+                .setComment("Enable Color search mode, 0 - Enabled, 1 - Require prefix, 2 - Disabled").getIntValue(2);
         API.addOption(new OptionCycled("search.colorsearchmode", 2));
 
         tag.getTag("inventory.widgetsenabled").getBooleanValue(true);
@@ -752,6 +766,7 @@ public class NEIClientConfig {
 
     public static void setSearchExpression(String expression) {
         world.nbt.setString("search", expression);
+        searchExpression = expression;
     }
 
     public static boolean isMouseScrollTransferEnabled() {
@@ -854,6 +869,10 @@ public class NEIClientConfig {
 
     public static SearchMode getTooltipSearchMode() {
         return SearchMode.values()[getIntSetting("search.tooltipsearchmode")];
+    }
+
+    public static SearchMode getResourceIdSearchMode() {
+        return SearchMode.values()[getIntSetting("search.resourceidsearchmode")];
     }
 
     public static SearchMode getColorSearchMode() {

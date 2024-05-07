@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableSet;
 
 import codechicken.nei.NEIClientConfig;
+import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 import cpw.mods.fml.relauncher.FMLLaunchHandler;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -110,6 +111,7 @@ public class IngredientListElement<V> implements IIngredientListElement<V> {
     }
 
     private static void addModNameStrings(Set<String> modNames, String modId, String modName) {
+        modId = modId.toLowerCase(); // Because in 1.7.10 some mod may have a CAPITALIZED modid.
         String modNameLowercase = modName.toLowerCase(Locale.ENGLISH);
         String modNameNoSpaces = SPACE_PATTERN.matcher(modNameLowercase).replaceAll("");
         String modIdNoSpaces = SPACE_PATTERN.matcher(modId).replaceAll("");
@@ -138,6 +140,11 @@ public class IngredientListElement<V> implements IIngredientListElement<V> {
     public Collection<String> getCreativeTabsStrings() {
         Collection<String> creativeTabsStrings = ingredientHelper.getCreativeTabNames(ingredient);
         return creativeTabsStrings.stream().map(Translator::toLowercaseWithLocale).collect(Collectors.toList());
+    }
+
+    @Override
+    public UniqueIdentifier getResourceId() {
+        return ingredientHelper.getResourceId(ingredient);
     }
 
     @Override
