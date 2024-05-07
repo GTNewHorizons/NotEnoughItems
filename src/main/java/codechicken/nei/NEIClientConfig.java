@@ -147,30 +147,72 @@ public class NEIClientConfig {
                 .setComment(
                         "Includes stripped diacritics version of strings in search trees [WILL RELOAD SEARCH TREES]")
                 .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("search.strippeddiacritics"));
+        API.addOption(new OptionToggleButton("search.strippeddiacritics") {
+
+            @Override
+            public boolean onClick(int button) {
+                LayoutManager.markItemsDirty();
+                return super.onClick(button);
+            }
+        });
 
         tag.getTag("search.modnamesearchmode")
                 .setComment("Enable Mod Name search mode, 0 - Enabled, 1 - Require prefix, 2 - Disabled")
                 .getIntValue(1);
-        API.addOption(new OptionCycled("search.modnamesearchmode", 3));
+        API.addOption(new OptionCycled("search.modnamesearchmode", 3) {
+
+            @Override
+            public boolean cycle() {
+                LayoutManager.markItemsDirty();
+                return super.cycle();
+            }
+        });
 
         tag.getTag("search.tooltipsearchmode")
                 .setComment("Enable Tooltip search mode, 0 - Enabled, 1 - Require prefix, 2 - Disabled").getIntValue(0);
-        API.addOption(new OptionCycled("search.tooltipsearchmode", 3));
+        API.addOption(new OptionCycled("search.tooltipsearchmode", 3) {
+
+            @Override
+            public boolean cycle() {
+                LayoutManager.markItemsDirty();
+                return super.cycle();
+            }
+        });
 
         tag.getTag("search.resourceidsearchmode")
                 .setComment("Enable Resource id search mode, 0 - Enabled, 1 - Require prefix, 2 - Disabled")
                 .getIntValue(2);
-        API.addOption(new OptionCycled("search.resourceidsearchmode", 3));
+        API.addOption(new OptionCycled("search.resourceidsearchmode", 3) {
+
+            @Override
+            public boolean cycle() {
+                LayoutManager.markItemsDirty();
+                return super.cycle();
+            }
+        });
 
         tag.getTag("search.oredictsearchmode")
                 .setComment("Enable OreDict search mode, 0 - Enabled, 1 - Require prefix, 2 - Disabled").getIntValue(2);
-        API.addOption(new OptionCycled("search.oredictsearchmode", 3));
+        API.addOption(new OptionCycled("search.oredictsearchmode", 3) {
+
+            @Override
+            public boolean cycle() {
+                LayoutManager.markItemsDirty();
+                return super.cycle();
+            }
+        });
 
         tag.getTag("search.creativetabsearchmode")
                 .setComment("Enable Creative Tab search mode, 0 - Enabled, 1 - Require prefix, 2 - Disabled")
                 .getIntValue(2);
-        API.addOption(new OptionCycled("search.creativetabsearchmode", 3));
+        API.addOption(new OptionCycled("search.creativetabsearchmode", 3) {
+
+            @Override
+            public boolean cycle() {
+                LayoutManager.markItemsDirty();
+                return super.cycle();
+            }
+        });
 
         tag.getTag("inventory.widgetsenabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.widgetsenabled"));

@@ -22,9 +22,7 @@ public class ElementSearch implements IElementSearch {
     private boolean loggedStatistics = false;
 
     public ElementSearch() {
-        // TODO if (NEIClientConfig.isSearchTreeBuildingAsync()) {
         AsyncPrefixedSearchable.startService();
-        // }
 
         ISearchStorage<IIngredientListElement<ItemStack>> storage = PrefixInfo.NO_PREFIX.createStorage();
         PrefixedSearchable searchable = new PrefixedSearchable(storage, PrefixInfo.NO_PREFIX);
