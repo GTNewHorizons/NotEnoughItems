@@ -667,6 +667,10 @@ public class NEIClientConfig {
         return !getBooleanSetting("tools.catalyst_load_from_config");
     }
 
+    public static boolean isProfileRecipeEnabled() {
+        return NEIClientConfig.getBooleanSetting("inventory.profileRecipes");
+    }
+
     public static void setEnabled(boolean flag) {
         getSetting("inventory.widgetsenabled").setBooleanValue(flag);
     }

@@ -35,8 +35,15 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
 
     ArrayList<T> runWithProfiling(String profilerSection) {
         TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
-        profiler.clear();
-        profiler.start(profilerSection);
+
+        // Save the current config state here, as it may be altered
+        // if getRecipeHandlesParallel took so long and player accidentally changed config.
+        boolean profileRecipes = NEIClientConfig.isProfileRecipeEnabled();
+        if (profileRecipes) {
+            profiler.clear();
+            profiler.start(profilerSection);
+        }
+
         try {
             ArrayList<T> handlers = getRecipeHandlersParallel();
 
@@ -49,7 +56,7 @@ class RecipeHandlerQuery<T extends IRecipeHandler> {
             displayRecipeLookupError();
             return new ArrayList<>(0);
         } finally {
-            profiler.end();
+            if (profileRecipes) profiler.end();
         }
     }
 

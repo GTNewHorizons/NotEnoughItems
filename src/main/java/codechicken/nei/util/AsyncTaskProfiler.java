@@ -14,14 +14,21 @@ public class AsyncTaskProfiler extends TaskProfiler {
 
     public Map<String, Long> times = new ConcurrentHashMap<>();
 
+    @Override
     public void start(String section) {
         if (section == null) section = "<unnamed>";
         threadedProfiler.get().start(section);
     }
 
+    @Override
     public void end() {
-        threadedProfiler.get().end();
-        times.putAll(threadedProfiler.get().times);
+        TaskProfiler profiler = threadedProfiler.get();
+        if (profiler != null) {
+            profiler.end();
+            if (profiler.times != null && !profiler.times.isEmpty()) {
+                times.putAll(threadedProfiler.get().times);
+            }
+        }
     }
 
     @Override
