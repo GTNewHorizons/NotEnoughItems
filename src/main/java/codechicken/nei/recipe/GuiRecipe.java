@@ -11,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.gui.GuiButton;
@@ -22,8 +21,6 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraftforge.fluids.FluidStack;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -38,6 +35,7 @@ import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.RecipeSearchField;
 import codechicken.nei.RestartableTask;
+import codechicken.nei.SearchField;
 import codechicken.nei.VisiblityData;
 import codechicken.nei.api.IGuiContainerOverlay;
 import codechicken.nei.api.INEIGuiHandler;
@@ -1212,23 +1210,11 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     public boolean handleDragNDrop(GuiContainer gui, int mousex, int mousey, ItemStack draggedStack, int button) {
 
         if (searchField.isVisible() && searchField.contains(mousex - guiLeft, mousey - guiTop)) {
-            final FluidStack fluidStack = StackInfo.getFluid(draggedStack);
-
-            if (fluidStack != null) {
-                searchField.setText(formattingText(fluidStack.getLocalizedName()));
-            } else {
-                searchField.setText(formattingText(draggedStack.getDisplayName()));
-            }
-
+            searchField.setText(SearchField.getEscapedSearchText(draggedStack));
             return true;
         }
 
         return false;
-    }
-
-    protected String formattingText(String displayName) {
-        return Pattern.compile("[{}()\\[\\].+*?^$\\\\|]")
-                .matcher(EnumChatFormatting.getTextWithoutFormattingCodes(displayName)).replaceAll("\\\\$0");
     }
 
     @Override

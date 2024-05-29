@@ -4,8 +4,8 @@ import static codechicken.nei.LayoutManager.searchField;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
 
+import codechicken.nei.SearchField;
 import codechicken.nei.api.INEIGuiAdapter;
 
 public class SearchInputDropHandler extends INEIGuiAdapter {
@@ -14,14 +14,7 @@ public class SearchInputDropHandler extends INEIGuiAdapter {
     public boolean handleDragNDrop(GuiContainer gui, int mouseX, int mouseY, ItemStack draggedStack, int button) {
 
         if (searchField.isVisible() && searchField.contains(mouseX, mouseY)) {
-            final FluidStack fluidStack = StackInfo.getFluid(draggedStack);
-
-            if (fluidStack != null) {
-                searchField.setText(formattingText(fluidStack.getLocalizedName()));
-            } else {
-                searchField.setText(formattingText(draggedStack.getDisplayName()));
-            }
-
+            searchField.setText(SearchField.getEscapedSearchText(draggedStack));
             return true;
         }
 

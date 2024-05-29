@@ -14,6 +14,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.storage.SaveFormatComparator;
 import net.minecraftforge.common.MinecraftForge;
@@ -163,6 +164,70 @@ public class NEIClientConfig {
 
         ItemSorter.initConfig(tag);
 
+        tag.getTag("inventory.search.widgetPosition").setComment("Widget Position").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.search.widgetPosition", true));
+
+        tag.getTag("inventory.search.patternMode").setComment("Search Mode").getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.patternMode", 3, true));
+
+        tag.getTag("inventory.search.quoteDropItemName").setComment("Quote Drop Item Name").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.search.quoteDropItemName", true));
+
+        tag.getTag("inventory.search.modNameSearchMode").setComment("Search mode for Mod Names (prefix: @)")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.modNameSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(name + "." + value(), EnumChatFormatting.LIGHT_PURPLE + "@");
+            }
+
+        });
+
+        tag.getTag("inventory.search.tooltipSearchMode").setComment("Search mode for Tooltips (prefix: #)")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.tooltipSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(name + "." + value(), EnumChatFormatting.YELLOW + "#");
+            }
+
+        });
+
+        tag.getTag("inventory.search.identifierSearchMode").setComment("Search mode for identifier (prefix: &)")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.identifierSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(name + "." + value(), EnumChatFormatting.GOLD + "&");
+            }
+
+        });
+
+        tag.getTag("inventory.search.oreDictSearchMode").setComment("Search mode for Tag Names (prefix: $)")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.oreDictSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(name + "." + value(), EnumChatFormatting.AQUA + "$");
+            }
+
+        });
+
+        tag.getTag("inventory.search.subsetsSearchMode").setComment("Search mode for Item Subsets (prefix: %)")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.subsetsSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(name + "." + value(), EnumChatFormatting.DARK_PURPLE + "%");
+            }
+
+        });
+
         tag.getTag("inventory.history.enabled").setComment("Enable/disable History Panel").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.history.enabled", true));
 
@@ -178,9 +243,6 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.itemIDs").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemIDs", 3, true));
-
-        tag.getTag("inventory.searchmode").getIntValue(1);
-        API.addOption(new OptionCycled("inventory.searchmode", 3, true));
 
         tag.getTag("world.highlight_tips").getBooleanValue(false);
         tag.getTag("world.highlight_tips.x").getIntValue(5000);
@@ -269,9 +331,6 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.showItemQuantityWidget").setComment("Show Item Quantity Widget").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.showItemQuantityWidget", true));
-
-        tag.getTag("inventory.centerSearchWidget").setComment("Center Search Widget").getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.centerSearchWidget", true));
 
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
@@ -612,7 +671,7 @@ public class NEIClientConfig {
     }
 
     public static boolean isSearchWidgetCentered() {
-        return getBooleanSetting("inventory.centerSearchWidget");
+        return getBooleanSetting("inventory.search.widgetPosition");
     }
 
     public static boolean areJEIStyleTabsVisible() {
