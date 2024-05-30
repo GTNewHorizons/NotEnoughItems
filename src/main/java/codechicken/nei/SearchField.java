@@ -91,17 +91,21 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
     public static class SearchParserProvider implements ISearchParserProvider {
 
-        protected final Function<Pattern, ItemFilter> createFilter;
+        protected final List<Function<Pattern, ItemFilter>> subFilters = new ArrayList<>();
         protected final String name;
         protected final char prefix;
         protected final EnumChatFormatting highlightedColor;
 
         public SearchParserProvider(char prefix, String name, EnumChatFormatting highlightedColor,
                 Function<Pattern, ItemFilter> createFilter) {
-            this.createFilter = createFilter;
             this.prefix = prefix;
             this.name = name;
             this.highlightedColor = highlightedColor;
+            this.addSubFilter(createFilter);
+        }
+
+        public void addSubFilter(Function<Pattern, ItemFilter> subFilter) {
+            this.subFilters.add(subFilter);
         }
 
         @Override
@@ -116,7 +120,17 @@ public class SearchField extends TextField implements ItemFilterProvider {
         }
 
         protected ItemFilter createFilter(Pattern pattern) {
-            return this.createFilter.apply(pattern);
+            final List<ItemFilter> filters = new ArrayList<>();
+
+            for (Function<Pattern, ItemFilter> createFilter : this.subFilters) {
+                ItemFilter filter = createFilter.apply(pattern);
+                if (filter != null) {
+                    filters.add(filter);
+                }
+
+            }
+
+            return filters.isEmpty() ? null : new AnyMultiItemFilter(filters);
         }
 
         @Override
@@ -132,31 +146,6 @@ public class SearchField extends TextField implements ItemFilterProvider {
         @Override
         public SearchMode getSearchMode() {
             return SearchMode.fromInt(NEIClientConfig.getIntSetting("inventory.search." + this.name + "SearchMode"));
-        }
-    }
-
-    private static class DefaultParserProvider implements ISearchParserProvider {
-
-        public ItemFilter getFilter(String searchText) {
-            Pattern pattern = SearchField.getPattern(searchText);
-
-            if (pattern != null) {
-                return new PatternItemFilter(pattern);
-            }
-
-            return null;
-        }
-
-        public char getPrefix() {
-            return '\0';
-        }
-
-        public EnumChatFormatting getHighlightedColor() {
-            return EnumChatFormatting.RESET;
-        }
-
-        public SearchMode getSearchMode() {
-            return SearchMode.ALWAYS;
         }
     }
 
@@ -233,7 +222,19 @@ public class SearchField extends TextField implements ItemFilterProvider {
     public SearchField(String ident) {
         super(ident);
         API.addItemFilter(this);
-        API.addSearchProvider(new DefaultParserProvider());
+        API.addSearchProvider(
+                new SearchParserProvider(
+                        '\0',
+                        "default",
+                        EnumChatFormatting.RESET,
+                        (pattern) -> new PatternItemFilter(pattern)) {
+
+                    @Override
+                    public SearchMode getSearchMode() {
+                        return SearchMode.ALWAYS;
+                    }
+
+                });
         API.addSearchProvider(
                 new SearchParserProvider(
                         '@',
@@ -496,7 +497,6 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
             return filters.isEmpty() ? new NothingItemFilter() : new AnyMultiItemFilter(filters);
         } else {
-            // $ore | spaw | #speed | slab | stairs | @mine"c | %blo"ck | "pickaxe" cc
             ItemFilter filter = provider.getFilter(token);
             return filter != null ? filter : new NothingItemFilter();
         }
