@@ -348,7 +348,6 @@ public class SearchField extends TextField implements ItemFilterProvider {
                 search = Pattern.quote(search);
                 break;
             case 1: // extended
-                search = search.replace(".", "");
                 final Matcher matcher = Pattern.compile("(\\?|\\*)").matcher(search);
                 String cleanedString = "";
                 int lastEndIndex = 0;
