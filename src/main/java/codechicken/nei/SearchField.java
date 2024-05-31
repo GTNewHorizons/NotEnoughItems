@@ -375,7 +375,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
         if (!search.isEmpty()) {
             try {
-                return Pattern.compile(search, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+                return Pattern.compile(search, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
             } catch (PatternSyntaxException ignored) {}
         }
 
