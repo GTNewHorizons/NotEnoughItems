@@ -421,6 +421,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
     protected static Pattern getFilterSplitPattern() {
         StringJoiner prefixes = new StringJoiner("");
+        prefixes.add(String.valueOf('\0'));
 
         for (ISearchParserProvider provider : SearchField.searchParserProviders.values()) {
             if (provider.getSearchMode() == SearchMode.PREFIX) {
