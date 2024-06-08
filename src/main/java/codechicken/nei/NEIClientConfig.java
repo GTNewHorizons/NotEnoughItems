@@ -273,6 +273,11 @@ public class NEIClientConfig {
         tag.getTag("inventory.centerSearchWidget").setComment("Center Search Widget").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.centerSearchWidget", true));
 
+        tag.getTag("inventory.focusSearchWidgetOnOpen")
+                .setComment("Focus Search Widget on Open, blurs on mouse move unless typing has started first")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.focusSearchWidgetOnOpen", true));
+
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
 
@@ -613,6 +618,10 @@ public class NEIClientConfig {
 
     public static boolean isSearchWidgetCentered() {
         return getBooleanSetting("inventory.centerSearchWidget");
+    }
+
+    public static boolean isFocusSearchWidgetOnOpen() {
+        return getBooleanSetting("inventory.focusSearchWidgetOnOpen");
     }
 
     public static boolean areJEIStyleTabsVisible() {
