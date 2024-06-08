@@ -343,33 +343,42 @@ public class SearchField extends TextField implements ItemFilterProvider {
     }
 
     public static Pattern getPattern(String search) {
-        switch (NEIClientConfig.getIntSetting("inventory.search.patternMode")) {
+        return getPattern(search, NEIClientConfig.getIntSetting("inventory.search.patternMode"));
+    }
+
+    public static Pattern getPattern(String search, int patternMode) {
+        switch (patternMode) {
             case 0: // plain
                 search = Pattern.quote(search);
                 break;
             case 1: // extended
-                final Matcher matcher = Pattern.compile("(\\?|\\*)").matcher(search);
-                String cleanedString = "";
-                int lastEndIndex = 0;
 
-                while (matcher.find()) {
-                    cleanedString += Pattern.quote(search.substring(lastEndIndex, matcher.start()));
+                if (search.length() >= 3 && search.startsWith("r/") && search.endsWith("/")) {
+                    search = search.substring(2, search.length() - 1);
+                } else {
+                    final Matcher matcher = Pattern.compile("(\\?|\\*)").matcher(search);
+                    String cleanedString = "";
+                    int lastEndIndex = 0;
 
-                    switch (matcher.group(0).charAt(0)) {
-                        case '?':
-                            cleanedString += ".";
-                            break;
-                        case '*':
-                            cleanedString += ".+?";
-                            break;
-                        default:
-                            break;
+                    while (matcher.find()) {
+                        cleanedString += Pattern.quote(search.substring(lastEndIndex, matcher.start()));
+
+                        switch (matcher.group(0).charAt(0)) {
+                            case '?':
+                                cleanedString += ".";
+                                break;
+                            case '*':
+                                cleanedString += ".+?";
+                                break;
+                            default:
+                                break;
+                        }
+
+                        lastEndIndex = matcher.end();
                     }
 
-                    lastEndIndex = matcher.end();
+                    search = cleanedString + Pattern.quote(search.substring(lastEndIndex, search.length()));
                 }
-
-                search = cleanedString + Pattern.quote(search.substring(lastEndIndex, search.length()));
                 break;
         }
 
