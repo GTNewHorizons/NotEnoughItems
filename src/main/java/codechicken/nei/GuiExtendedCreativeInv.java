@@ -12,10 +12,11 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.vec.Rectangle4i;
+import codechicken.nei.api.INEIAutoFocusSearchEnable;
 import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.api.TaggedInventoryArea;
 
-public class GuiExtendedCreativeInv extends GuiContainer implements INEIGuiHandler {
+public class GuiExtendedCreativeInv extends GuiContainer implements INEIGuiHandler, INEIAutoFocusSearchEnable {
 
     public GuiExtendedCreativeInv(Container par1Container) {
         super(par1Container);
