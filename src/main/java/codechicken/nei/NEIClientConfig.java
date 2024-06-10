@@ -282,7 +282,8 @@ public class NEIClientConfig {
         // semicolon delimited list in a string since a semicolon should be a safe delimiter.
         tag.getTag("inventory.focusSearchWidgetAllowClassPrefix")
                 .setComment("semicolon delimited list of class prefixes to allow focus search widget on open")
-                .setDefaultValue("net.minecraft.client.gui.inventory.GuiContainer;codechicken.nei.GuiExtendedCreativeInv");
+                .setDefaultValue(
+                        "net.minecraft.client.gui.inventory.GuiContainer;codechicken.nei.GuiExtendedCreativeInv");
         API.addOption(new OptionTextField("inventory.focusSearchWidgetAllowClassPrefix"));
 
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
