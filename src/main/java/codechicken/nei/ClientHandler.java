@@ -225,6 +225,30 @@ public class ClientHandler {
         }
     }
 
+    public static void loadEnableAutoFocus() {
+        File file = NEIClientConfig.enableAutoFocusFile;
+        if (!file.exists()) {
+            try (FileWriter writer = new FileWriter(file)) {
+                NEIClientConfig.logger.info("Creating default enable auto focus list {}", file);
+                URL defaultEnableAutoFocusResource = ClientHandler.class
+                        .getResource("/assets/nei/cfg/enableautofocus.cfg");
+                if (defaultEnableAutoFocusResource != null) {
+                    IOUtils.copy(defaultEnableAutoFocusResource.openStream(), writer);
+                }
+            } catch (IOException e) {
+                NEIClientConfig.logger.error("Failed to save default enable auto focus list to file {}", file, e);
+            }
+        }
+
+        try (FileReader reader = new FileReader(file)) {
+            NEIClientConfig.logger.info("Loading enable auto focus from file {}", file);
+            NEIClientConfig.enableAutoFocusPrefixes = IOUtils.readLines(reader).stream()
+                    .filter((line) -> !line.startsWith("#")).collect(Collectors.toCollection(ArrayList::new));
+        } catch (IOException e) {
+            NEIClientConfig.logger.error("Failed to load enable auto focus from file {}", file, e);
+        }
+    }
+
     public static void load() {
         instance = new ClientHandler();
 

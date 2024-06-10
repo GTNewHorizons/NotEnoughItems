@@ -1,11 +1,7 @@
 package codechicken.nei;
 
 import java.io.File;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -76,6 +72,7 @@ public class NEIClientConfig {
     public static final File heightHackHandlersFile = new File(configDir, "heighthackhandlers.cfg");
     public static final File handlerOrderingFile = new File(configDir, "handlerordering.csv");
     public static final File hiddenHandlersFile = new File(configDir, "hiddenhandlers.csv");
+    public static final File enableAutoFocusFile = new File(configDir, "enableautofocus.cfg");
 
     @Deprecated
     public static File bookmarkFile;
@@ -94,6 +91,9 @@ public class NEIClientConfig {
     // Handlers will be sorted in ascending order, so smaller numbers show up earlier.
     // Any handler not in the map will be assigned to 0, and negative numbers are fine.
     public static HashMap<String, Integer> handlerOrdering = new HashMap<>();
+
+    // List of prefixes of classes that should enable the autofocus search widget on open.
+    public static ArrayList<String> enableAutoFocusPrefixes = new ArrayList<>();
 
     // Function that extracts the handler ID from a handler, with special logic for
     // TemplateRecipeHandler: prefer using the overlay ID if it exists.
@@ -277,13 +277,6 @@ public class NEIClientConfig {
                 .setComment("Focus Search Widget on Open, blurs on mouse move unless typing has started first")
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.focusSearchWidgetOnOpen", true));
-
-        // This configuration format doesn't seem to support lists of values, so encode as a
-        // semicolon delimited list in a string since a semicolon should be a safe delimiter.
-        tag.getTag("inventory.focusSearchWidgetAllowClassPrefix")
-                .setComment("semicolon delimited list of class prefixes to allow focus search widget on open")
-                .setDefaultValue("net.minecraft.client.gui.inventory.GuiContainer;codechicken.nei.GuiExtendedCreativeInv");
-        API.addOption(new OptionTextField("inventory.focusSearchWidgetAllowClassPrefix"));
 
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
@@ -629,10 +622,6 @@ public class NEIClientConfig {
 
     public static boolean isFocusSearchWidgetOnOpen() {
         return getBooleanSetting("inventory.focusSearchWidgetOnOpen");
-    }
-
-    public static String getFocusSearchWidgetAllowClassPrefix() {
-        return getStringSetting("inventory.focusSearchWidgetAllowClassPrefix");
     }
 
     public static boolean areJEIStyleTabsVisible() {

@@ -50,11 +50,7 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.KeyManager.IKeyStateTracker;
-import codechicken.nei.api.API;
-import codechicken.nei.api.GuiInfo;
-import codechicken.nei.api.IRecipeOverlayRenderer;
-import codechicken.nei.api.ItemInfo;
-import codechicken.nei.api.LayoutStyle;
+import codechicken.nei.api.*;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
@@ -166,14 +162,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     }
 
     public boolean isAllowedGuiAutoSearchFocus(GuiContainer gui) {
-        if (gui instanceof GuiContainerCreative) {
+        if (gui instanceof INEIAutoFocusSearchEnable) {
             return true;
         }
-        // Maybe cache this, but we'd need to update the cache when it changes...
-        // Not like this is called enough for it to honestly matter, but still...
-        String[] allowedClassPrefixes = NEIClientConfig.getFocusSearchWidgetAllowClassPrefix().split(";");
         String guiClassName = gui.getClass().getName();
-        for (String prefix : allowedClassPrefixes) {
+        for (String prefix : NEIClientConfig.enableAutoFocusPrefixes) {
             if (guiClassName.startsWith(prefix)) {
                 return true;
             }
