@@ -149,6 +149,7 @@ public class ClientHandler {
         loadSerialHandlers();
         loadHeightHackHandlers();
         loadHiddenHandlers();
+        loadEnableAutoFocus();
         ItemInfo.preInit();
         StackInfo.loadGuidFilters();
     }
