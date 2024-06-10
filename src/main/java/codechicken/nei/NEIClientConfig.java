@@ -172,6 +172,11 @@ public class NEIClientConfig {
         tag.getTag("inventory.search.widgetPosition").setComment("Widget Position").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.search.widgetPosition", true));
 
+        tag.getTag("inventory.search.widgetAutofocus")
+                .setComment("Focus Search Widget on Open, blurs on mouse move unless typing has started first")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.search.widgetAutofocus", true));
+
         tag.getTag("inventory.search.patternMode").setComment("Search Mode").getIntValue(1);
         API.addOption(new OptionCycled("inventory.search.patternMode", 3, true));
 
@@ -336,14 +341,6 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.showItemQuantityWidget").setComment("Show Item Quantity Widget").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.showItemQuantityWidget", true));
-
-        tag.getTag("inventory.centerSearchWidget").setComment("Center Search Widget").getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.centerSearchWidget", true));
-
-        tag.getTag("inventory.focusSearchWidgetOnOpen")
-                .setComment("Focus Search Widget on Open, blurs on mouse move unless typing has started first")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.focusSearchWidgetOnOpen", true));
 
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
@@ -688,7 +685,7 @@ public class NEIClientConfig {
     }
 
     public static boolean isFocusSearchWidgetOnOpen() {
-        return getBooleanSetting("inventory.focusSearchWidgetOnOpen");
+        return getBooleanSetting("inventory.search.widgetAutofocus");
     }
 
     public static boolean areJEIStyleTabsVisible() {
