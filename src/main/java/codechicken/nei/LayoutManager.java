@@ -50,7 +50,12 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.KeyManager.IKeyStateTracker;
-import codechicken.nei.api.*;
+import codechicken.nei.api.API;
+import codechicken.nei.api.GuiInfo;
+import codechicken.nei.api.INEIAutoFocusSearchEnable;
+import codechicken.nei.api.IRecipeOverlayRenderer;
+import codechicken.nei.api.ItemInfo;
+import codechicken.nei.api.LayoutStyle;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
