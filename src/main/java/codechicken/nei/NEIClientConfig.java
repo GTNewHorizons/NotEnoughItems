@@ -278,6 +278,13 @@ public class NEIClientConfig {
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.focusSearchWidgetOnOpen", true));
 
+        // This configuration format doesn't seem to support lists of values, so encode as a
+        // semicolon delimited list in a string since a semicolon should be a safe delimiter.
+        tag.getTag("inventory.focusSearchWidgetAllowClassPrefix")
+                .setComment("semicolon delimited list of class prefixes to allow focus search widget on open")
+                .setDefaultValue("net.minecraft.client.gui.inventory.GuiContainer;codechicken.nei.GuiExtendedCreativeInv");
+        API.addOption(new OptionTextField("inventory.focusSearchWidgetAllowClassPrefix"));
+
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
 
@@ -622,6 +629,10 @@ public class NEIClientConfig {
 
     public static boolean isFocusSearchWidgetOnOpen() {
         return getBooleanSetting("inventory.focusSearchWidgetOnOpen");
+    }
+
+    public static String getFocusSearchWidgetAllowClassPrefix() {
+        return getStringSetting("inventory.focusSearchWidgetAllowClassPrefix");
     }
 
     public static boolean areJEIStyleTabsVisible() {

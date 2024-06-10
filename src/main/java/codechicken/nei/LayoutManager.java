@@ -165,9 +165,29 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         return getSideWidth(gui);
     }
 
+    public boolean isAllowedGuiAutoSearchFocus(GuiContainer gui) {
+        if (gui instanceof GuiContainerCreative) {
+            return true;
+        }
+        // Maybe cache this, but we'd need to update the cache when it changes...
+        // Not like this is called enough for it to honestly matter, but still...
+        String[] allowedClassPrefixes = NEIClientConfig.getFocusSearchWidgetAllowClassPrefix().split(";");
+        String guiClassName = gui.getClass().getName();
+        for (String prefix : allowedClassPrefixes) {
+            if (guiClassName.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void searchFocusInitCancelCheck() {
         if (searchInitFocusedCancellable) {
-            searchField.setFocus(false);
+            if (searchField.isVisible() && NEIClientConfig.isFocusSearchWidgetOnOpen()
+                    && getInputFocused() == searchField) {
+                searchField.setFocus(false);
+                setInputFocused(null);
+            }
             searchInitFocusedCancellable = false;
         }
     }
@@ -648,8 +668,10 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             mousePriorX = -1;
             mousePriorY = -1;
 
-            if (searchField.isVisible() && NEIClientConfig.isFocusSearchWidgetOnOpen()) {
+            if (searchField.isVisible() && NEIClientConfig.isFocusSearchWidgetOnOpen()
+                    && isAllowedGuiAutoSearchFocus(gui)) {
                 searchField.setFocus(true);
+                setInputFocused(searchField);
                 searchInitFocusedCancellable = true;
             }
         }
