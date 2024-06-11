@@ -40,6 +40,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
+import net.minecraft.client.settings.GameSettings;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -177,6 +178,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 return true;
             }
         }
+        // Maybe make this an option to make it easier to figure out what GPU class to add to the configuration?
+        // NEIClientConfig.logger.info("Checking for autofocus on " + guiClassName + " had no match");
         return false;
     }
 
@@ -228,7 +231,14 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     public boolean keyTyped(GuiContainer gui, char keyChar, int keyID) {
         if (isEnabled() && !isHidden()) {
-            searchInitFocusedCancellable = false;
+            if (searchInitFocusedCancellable) {
+                searchInitFocusedCancellable = false;
+                if (NEIClientConfig.isFirstInvCloseClosesInSearch()
+                        && GameSettings.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindInventory)) {
+                    searchField.setFocus(false);
+                    setInputFocused(null);
+                }
+            }
             if (inputFocused != null) return inputFocused.handleKeyPress(keyID, keyChar);
 
             for (Widget widget : controlWidgets) if (widget.handleKeyPress(keyID, keyChar)) return true;

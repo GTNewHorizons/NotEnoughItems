@@ -342,6 +342,20 @@ public class NEIClientConfig {
         tag.getTag("inventory.showItemQuantityWidget").setComment("Show Item Quantity Widget").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.showItemQuantityWidget", true));
 
+        tag.getTag("inventory.centerSearchWidget").setComment("Center Search Widget").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.centerSearchWidget", true));
+
+        tag.getTag("inventory.focusSearchWidgetOnOpen")
+                .setComment(
+                        "Focus Search Widget on Open, blurs/unfocuses on mouse move unless typing has started first")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.focusSearchWidgetOnOpen", true));
+
+        tag.getTag("inventory.firstInvCloseClosesInSearch").setComment(
+                "Pressing the open inventory key when the inventory was just opened when the search is focused will close it instead of typing in the search")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.firstInvCloseClosesInSearch", true));
+
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
 
@@ -686,6 +700,10 @@ public class NEIClientConfig {
 
     public static boolean isFocusSearchWidgetOnOpen() {
         return getBooleanSetting("inventory.search.widgetAutofocus");
+    }
+
+    public static boolean isFirstInvCloseClosesInSearch() {
+        return getBooleanSetting("inventory.firstInvCloseClosesInSearch");
     }
 
     public static boolean areJEIStyleTabsVisible() {
