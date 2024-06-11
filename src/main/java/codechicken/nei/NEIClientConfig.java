@@ -285,7 +285,7 @@ public class NEIClientConfig {
         API.addOption(new OptionToggleButton("inventory.focusSearchWidgetOnOpen", true));
 
         tag.getTag("inventory.firstInvCloseClosesInSearch").setComment(
-                "Pressing the open inventory key when the inventory\nwas just opened when the search is focused will\nclose it instead of typing in the search\n(This will prevent typing the inventory open\nkey into the search as the first input though)")
+                "Pressing the open inventory key when the inventory was just opened when the search is focused will close it instead of typing in the search")
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.firstInvCloseClosesInSearch", true));
 

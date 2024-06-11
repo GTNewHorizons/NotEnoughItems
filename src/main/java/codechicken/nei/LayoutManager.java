@@ -177,7 +177,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 return true;
             }
         }
-        NEIClientConfig.logger.info("Checking for auto focus on " + guiClassName + " had no match");
+        // Maybe make this an option to make it easier to figure out what GPU class to add to the configuration?
+        // NEIClientConfig.logger.info("Checking for autofocus on " + guiClassName + " had no match");
         return false;
     }
 
