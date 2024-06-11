@@ -279,7 +279,8 @@ public class NEIClientConfig {
         API.addOption(new OptionToggleButton("inventory.centerSearchWidget", true));
 
         tag.getTag("inventory.focusSearchWidgetOnOpen")
-                .setComment("Focus Search Widget on Open, blurs on mouse move unless typing has started first")
+                .setComment(
+                        "Focus Search Widget on Open, blurs/unfocuses on mouse move unless typing has started first")
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.focusSearchWidgetOnOpen", true));
 
