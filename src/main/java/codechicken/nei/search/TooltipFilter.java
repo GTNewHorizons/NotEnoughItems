@@ -68,7 +68,7 @@ public class TooltipFilter implements ItemFilter {
         itemSearchNames.keySet().removeAll(oldItems);
     }
 
-    private static String getSearchName(ItemStack stack) {
+    protected static String getSearchName(ItemStack stack) {
         return itemSearchNames.computeIfAbsent(new ItemStackKey(stack), key -> getTooltip(key.stack));
     }
 

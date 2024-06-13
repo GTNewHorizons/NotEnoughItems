@@ -185,7 +185,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     protected void searchFocusInitCancelCheck() {
         if (searchInitFocusedCancellable) {
-            if (searchField.isVisible() && NEIClientConfig.isFocusSearchWidgetOnOpen()
+            if (searchField.isVisible() && NEIClientConfig.searchWidgetAutofocus()
                     && getInputFocused() == searchField) {
                 searchField.setFocus(false);
                 setInputFocused(null);
@@ -676,7 +676,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             mousePriorX = -1;
             mousePriorY = -1;
 
-            if (searchField.isVisible() && NEIClientConfig.isFocusSearchWidgetOnOpen()
+            if (searchField.isVisible() && NEIClientConfig.searchWidgetAutofocus()
                     && isAllowedGuiAutoSearchFocus(gui)) {
                 searchField.setFocus(true);
                 setInputFocused(searchField);

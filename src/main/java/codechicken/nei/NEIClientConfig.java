@@ -173,7 +173,8 @@ public class NEIClientConfig {
         API.addOption(new OptionToggleButton("inventory.search.widgetPosition", true));
 
         tag.getTag("inventory.search.widgetAutofocus")
-                .setComment("Focus Search Widget on Open, blurs on mouse move unless typing has started first")
+                .setComment(
+                        "Focus Search Widget on Open, blurs/unfocuses on mouse move unless typing has started first")
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.search.widgetAutofocus", true));
 
@@ -341,15 +342,6 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.showItemQuantityWidget").setComment("Show Item Quantity Widget").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.showItemQuantityWidget", true));
-
-        tag.getTag("inventory.centerSearchWidget").setComment("Center Search Widget").getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.centerSearchWidget", true));
-
-        tag.getTag("inventory.focusSearchWidgetOnOpen")
-                .setComment(
-                        "Focus Search Widget on Open, blurs/unfocuses on mouse move unless typing has started first")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.focusSearchWidgetOnOpen", true));
 
         tag.getTag("inventory.firstInvCloseClosesInSearch").setComment(
                 "Pressing the open inventory key when the inventory was just opened when the search is focused will close it instead of typing in the search")
@@ -698,7 +690,7 @@ public class NEIClientConfig {
         return getBooleanSetting("inventory.search.widgetPosition");
     }
 
-    public static boolean isFocusSearchWidgetOnOpen() {
+    public static boolean searchWidgetAutofocus() {
         return getBooleanSetting("inventory.search.widgetAutofocus");
     }
 

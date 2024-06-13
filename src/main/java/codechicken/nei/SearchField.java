@@ -2,18 +2,12 @@ package codechicken.nei;
 
 import static codechicken.nei.NEIClientConfig.world;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
@@ -21,45 +15,16 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fluids.FluidStack;
 
 import codechicken.lib.gui.GuiDraw;
-import codechicken.nei.FormattedTextField.TextFormatter;
-import codechicken.nei.ItemList.AllMultiItemFilter;
-import codechicken.nei.ItemList.AnyMultiItemFilter;
-import codechicken.nei.ItemList.EverythingItemFilter;
-import codechicken.nei.ItemList.NegatedItemFilter;
 import codechicken.nei.ItemList.NothingItemFilter;
-import codechicken.nei.ItemList.PatternItemFilter;
+import codechicken.nei.SearchTokenParser.ISearchParserProvider;
+import codechicken.nei.SearchTokenParser.SearchMode;
 import codechicken.nei.api.API;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.recipe.StackInfo;
-import codechicken.nei.search.IdentifierFilter;
-import codechicken.nei.search.ModNameFilter;
-import codechicken.nei.search.OreDictionaryFilter;
-import codechicken.nei.search.TooltipFilter;
 import codechicken.nei.util.TextHistory;
-import scala.collection.mutable.StringBuilder;
 
 public class SearchField extends TextField implements ItemFilterProvider {
-
-    public enum SearchMode {
-
-        ALWAYS,
-        PREFIX,
-        NEVER;
-
-        public static SearchMode fromInt(int value) {
-            switch (value) {
-                case 0:
-                    return ALWAYS;
-                case 1:
-                    return PREFIX;
-                case 2:
-                    return NEVER;
-                default:
-                    return ALWAYS;
-            }
-        }
-    }
 
     /**
      * Interface for returning a custom filter based on search field text
@@ -78,20 +43,9 @@ public class SearchField extends TextField implements ItemFilterProvider {
         public ItemFilter getFilter(String searchText);
     }
 
-    public static interface ISearchParserProvider {
-
-        public ItemFilter getFilter(String searchText);
-
-        public char getPrefix();
-
-        public EnumChatFormatting getHighlightedColor();
-
-        public SearchMode getSearchMode();
-    }
-
     public static class SearchParserProvider implements ISearchParserProvider {
 
-        protected final List<Function<Pattern, ItemFilter>> subFilters = new ArrayList<>();
+        protected final Function<Pattern, ItemFilter> createFilter;
         protected final String name;
         protected final char prefix;
         protected final EnumChatFormatting highlightedColor;
@@ -101,11 +55,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
             this.prefix = prefix;
             this.name = name;
             this.highlightedColor = highlightedColor;
-            this.addSubFilter(createFilter);
-        }
-
-        public void addSubFilter(Function<Pattern, ItemFilter> subFilter) {
-            this.subFilters.add(subFilter);
+            this.createFilter = createFilter;
         }
 
         @Override
@@ -116,21 +66,13 @@ public class SearchField extends TextField implements ItemFilterProvider {
                 return this.createFilter(pattern);
             }
 
-            return null;
+            return new NothingItemFilter();
         }
 
         protected ItemFilter createFilter(Pattern pattern) {
-            final List<ItemFilter> filters = new ArrayList<>();
+            final ItemFilter filter = this.createFilter.apply(pattern);
 
-            for (Function<Pattern, ItemFilter> createFilter : this.subFilters) {
-                ItemFilter filter = createFilter.apply(pattern);
-                if (filter != null) {
-                    filters.add(filter);
-                }
-
-            }
-
-            return filters.isEmpty() ? null : new AnyMultiItemFilter(filters);
+            return filter == null ? new NothingItemFilter() : filter;
         }
 
         @Override
@@ -149,72 +91,9 @@ public class SearchField extends TextField implements ItemFilterProvider {
         }
     }
 
-    public static class SearchTextFormatter implements TextFormatter {
-
-        public String format(String text) {
-            final String[] parts = text.split("\\|");
-            StringJoiner formattedText = new StringJoiner(EnumChatFormatting.GRAY + "|");
-
-            for (String filterText : parts) {
-                Matcher filterMatcher = SearchField.getFilterSplitPattern().matcher(filterText);
-                StringBuilder formattedPart = new StringBuilder();
-                int startIndex = 0;
-
-                while (filterMatcher.find()) {
-                    boolean ignore = "-".equals(filterMatcher.group(2));
-                    String firstChar = filterMatcher.group(3);
-                    String token = filterMatcher.group(4);
-                    boolean quotes = token.length() > 1 && token.startsWith("\"") && token.endsWith("\"");
-
-                    if (quotes) {
-                        token = token.substring(1, token.length() - 1);
-                    }
-
-                    formattedPart.append(filterText.substring(startIndex, filterMatcher.start()));
-                    EnumChatFormatting tokenColor = EnumChatFormatting.RESET;
-
-                    if (!firstChar.isEmpty()) {
-                        tokenColor = SearchField.searchParserProviders.get(firstChar.charAt(0)).getHighlightedColor();
-                    }
-
-                    if (ignore) {
-                        formattedPart.append(EnumChatFormatting.BLUE + "-");
-                    }
-
-                    if (!firstChar.isEmpty()) {
-                        formattedPart.append(tokenColor + firstChar);
-                    }
-
-                    if (quotes) {
-                        formattedPart.append(EnumChatFormatting.GOLD + "\"");
-                    }
-
-                    if (!token.isEmpty()) {
-                        formattedPart.append(tokenColor + token);
-                    }
-
-                    if (quotes) {
-                        formattedPart.append(EnumChatFormatting.GOLD + "\"");
-                    }
-
-                    startIndex = filterMatcher.end();
-                }
-
-                formattedPart.append(filterText.substring(startIndex, filterText.length()));
-                formattedText.add(formattedPart);
-            }
-
-            if (text.endsWith("|")) {
-                formattedText.add("");
-            }
-
-            return formattedText.toString();
-        }
-    }
-
     @Deprecated
     public static List<ISearchProvider> searchProviders = new LinkedList<>();
-    public static final Map<Character, ISearchParserProvider> searchParserProviders = new HashMap<>();
+    public static SearchTokenParser searchParser = new SearchTokenParser();
     private static final TextHistory history = new TextHistory();
     private boolean isVisible = true;
     private long lastclicktime;
@@ -222,49 +101,12 @@ public class SearchField extends TextField implements ItemFilterProvider {
     public SearchField(String ident) {
         super(ident);
         API.addItemFilter(this);
-        API.addSearchProvider(
-                new SearchParserProvider(
-                        '\0',
-                        "default",
-                        EnumChatFormatting.RESET,
-                        (pattern) -> new PatternItemFilter(pattern)) {
-
-                    @Override
-                    public SearchMode getSearchMode() {
-                        return SearchMode.ALWAYS;
-                    }
-
-                });
-        API.addSearchProvider(
-                new SearchParserProvider(
-                        '@',
-                        "modName",
-                        EnumChatFormatting.LIGHT_PURPLE,
-                        (pattern) -> new ModNameFilter(pattern)));
-        API.addSearchProvider(
-                new SearchParserProvider(
-                        '$',
-                        "oreDict",
-                        EnumChatFormatting.AQUA,
-                        (pattern) -> new OreDictionaryFilter(pattern)));
-        API.addSearchProvider(
-                new SearchParserProvider(
-                        '#',
-                        "tooltip",
-                        EnumChatFormatting.YELLOW,
-                        (pattern) -> new TooltipFilter(pattern)));
-        API.addSearchProvider(
-                new SearchParserProvider(
-                        '&',
-                        "identifier",
-                        EnumChatFormatting.GOLD,
-                        (pattern) -> new IdentifierFilter(pattern)));
     }
 
     @Override
     protected void initInternalTextField() {
         field = new FormattedTextField(Minecraft.getMinecraft().fontRenderer, 0, 0, 0, 0);
-        ((FormattedTextField) field).setFormatter(new SearchTextFormatter());
+        ((FormattedTextField) field).setFormatter(new SearchTextFormatter(SearchField.searchParser));
         field.setMaxStringLength(maxSearchLength);
         field.setCursorPositionZero();
     }
@@ -292,7 +134,6 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
     @Override
     public void draw(int mousex, int mousey) {
-
         super.draw(mousex, mousey);
 
         if (searchInventories()) {
@@ -317,9 +158,11 @@ public class SearchField extends TextField implements ItemFilterProvider {
     @Override
     public void onTextChange(String oldText) {
         final String newText = text();
-        if (newText.length() > 0) NEIClientConfig.logger.debug("Searching for " + newText);
-        NEIClientConfig.setSearchExpression(newText);
-        ItemList.updateFilter.restart();
+        if (!newText.equals(oldText)) {
+            if (newText.length() > 0) NEIClientConfig.logger.debug("Searching for " + newText);
+            NEIClientConfig.setSearchExpression(newText);
+            ItemList.updateFilter.restart();
+        }
     }
 
     @Override
@@ -428,87 +271,8 @@ public class SearchField extends TextField implements ItemFilterProvider {
         return getFilter(text());
     }
 
-    protected static Pattern getFilterSplitPattern() {
-        StringJoiner prefixes = new StringJoiner("");
-        prefixes.add(String.valueOf('\0'));
-
-        for (ISearchParserProvider provider : SearchField.searchParserProviders.values()) {
-            if (provider.getSearchMode() == SearchMode.PREFIX) {
-                prefixes.add(String.valueOf(provider.getPrefix()));
-            }
-        }
-
-        return Pattern.compile("((-*)([" + Pattern.quote(prefixes.toString()) + "]*)(\\\".*?(?:\\\"|$)|\\S+))");
-    }
-
     public static ItemFilter getFilter(String filterText) {
-        final String[] parts = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase().split("\\|");
-        final List<ItemFilter> searchTokens = Arrays.stream(parts).map(SearchField::parseSearchTokens)
-                .filter(s -> s != null).collect(Collectors.toCollection(ArrayList::new));
-
-        if (searchTokens.isEmpty()) {
-            return new EverythingItemFilter();
-        } else {
-            return new AnyMultiItemFilter(searchTokens);
-        }
-    }
-
-    private static ItemFilter parseSearchTokens(String filterText) {
-
-        if (filterText.isEmpty()) {
-            return null;
-        }
-
-        final Matcher filterMatcher = getFilterSplitPattern().matcher(filterText);
-        final AllMultiItemFilter searchTokens = new AllMultiItemFilter();
-
-        while (filterMatcher.find()) {
-            boolean ignore = "-".equals(filterMatcher.group(2));
-            String firstChar = filterMatcher.group(3);
-            String token = filterMatcher.group(4);
-            boolean quotes = token.length() > 1 && token.startsWith("\"") && token.endsWith("\"");
-
-            if (quotes) {
-                token = token.substring(1, token.length() - 1);
-            }
-
-            if (!token.isEmpty()) {
-                ItemFilter result = parseToken(firstChar, token);
-
-                if (ignore) {
-                    searchTokens.filters.add(new NegatedItemFilter(result));
-                } else {
-                    searchTokens.filters.add(result);
-                }
-            } else if (!ignore) {
-                searchTokens.filters.add(new NothingItemFilter());
-            }
-        }
-
-        return searchTokens;
-    }
-
-    private static ItemFilter parseToken(String firstChar, String token) {
-        final ISearchParserProvider provider = firstChar.isEmpty() ? null
-                : SearchField.searchParserProviders.get(firstChar.charAt(0));
-
-        if (provider == null || provider.getSearchMode() == SearchMode.NEVER) {
-            final List<ItemFilter> filters = new ArrayList<>();
-
-            for (ISearchParserProvider _provider : SearchField.searchParserProviders.values()) {
-                if (_provider.getSearchMode() == SearchMode.ALWAYS) {
-                    ItemFilter filter = _provider.getFilter(token);
-                    if (filter != null) {
-                        filters.add(filter);
-                    }
-                }
-            }
-
-            return filters.isEmpty() ? new NothingItemFilter() : new AnyMultiItemFilter(filters);
-        } else {
-            ItemFilter filter = provider.getFilter(token);
-            return filter != null ? filter : new NothingItemFilter();
-        }
+        return SearchField.searchParser.getFilter(filterText);
     }
 
     @Override

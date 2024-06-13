@@ -6,6 +6,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import codechicken.nei.api.ItemFilter;
+import cpw.mods.fml.common.registry.GameData;
 
 public class IdentifierFilter implements ItemFilter {
 
@@ -16,18 +17,17 @@ public class IdentifierFilter implements ItemFilter {
     }
 
     @Override
-    public boolean matches(ItemStack itemStack) {
-        return this.pattern.matcher(getIdentifier(itemStack)).find();
+    public boolean matches(ItemStack stack) {
+        return this.pattern.matcher(getStringIdentifier(stack) + "\n" + getIdentifier(stack)).find();
     }
 
-    private String getIdentifier(ItemStack itemStack) {
-        String mainname = String.valueOf(Item.getIdFromItem(itemStack.getItem()));
+    protected String getIdentifier(ItemStack stack) {
+        return Item.getIdFromItem(stack.getItem()) + ":" + stack.getItemDamage();
+    }
 
-        if (itemStack.getItemDamage() != 0) {
-            mainname += ":" + itemStack.getItemDamage();
-        }
-
-        return mainname;
+    protected String getStringIdentifier(ItemStack stack) {
+        String name = GameData.getItemRegistry().getNameForObject(stack.getItem());
+        return name == null || name.isEmpty() ? "Unknown:Unknown" : name;
     }
 
 }

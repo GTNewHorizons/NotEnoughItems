@@ -44,11 +44,14 @@ import codechicken.core.featurehack.GameDataManipulator;
 import codechicken.nei.InfiniteStackSizeHandler;
 import codechicken.nei.InfiniteToolHandler;
 import codechicken.nei.ItemList;
+import codechicken.nei.ItemList.PatternItemFilter;
 import codechicken.nei.ItemMobSpawner;
 import codechicken.nei.ItemStackMap;
 import codechicken.nei.ItemStackSet;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.PopupInputHandler;
+import codechicken.nei.SearchField.SearchParserProvider;
+import codechicken.nei.SearchTokenParser.SearchMode;
 import codechicken.nei.config.ArrayDumper;
 import codechicken.nei.config.HandlerDumper;
 import codechicken.nei.config.ItemPanelDumper;
@@ -56,6 +59,9 @@ import codechicken.nei.config.RegistryDumper;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.BrewingRecipeHandler;
 import codechicken.nei.recipe.RecipeItemInputHandler;
+import codechicken.nei.search.IdentifierFilter;
+import codechicken.nei.search.ModNameFilter;
+import codechicken.nei.search.OreDictionaryFilter;
 import codechicken.nei.search.TooltipFilter;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ModContainer;
@@ -125,15 +131,52 @@ public class ItemInfo {
         addInputHandlers();
         addIDDumps();
         addHiddenItemFilter();
-        addSearchOptimisation();
-    }
-
-    private static void addSearchOptimisation() {
+        addSearchProviders();
         ItemList.loadCallbacks.add(TooltipFilter::populateSearchMap);
     }
 
     private static void addHiddenItemFilter() {
         API.addItemFilter(() -> item -> !hiddenItems.contains(item));
+    }
+
+    private static void addSearchProviders() {
+        API.addSearchProvider(
+                new SearchParserProvider(
+                        '\0',
+                        "default",
+                        EnumChatFormatting.RESET,
+                        (pattern) -> new PatternItemFilter(pattern)) {
+
+                    @Override
+                    public SearchMode getSearchMode() {
+                        return SearchMode.ALWAYS;
+                    }
+
+                });
+        API.addSearchProvider(
+                new SearchParserProvider(
+                        '@',
+                        "modName",
+                        EnumChatFormatting.LIGHT_PURPLE,
+                        (pattern) -> new ModNameFilter(pattern)));
+        API.addSearchProvider(
+                new SearchParserProvider(
+                        '$',
+                        "oreDict",
+                        EnumChatFormatting.AQUA,
+                        (pattern) -> new OreDictionaryFilter(pattern)));
+        API.addSearchProvider(
+                new SearchParserProvider(
+                        '#',
+                        "tooltip",
+                        EnumChatFormatting.YELLOW,
+                        (pattern) -> new TooltipFilter(pattern)));
+        API.addSearchProvider(
+                new SearchParserProvider(
+                        '&',
+                        "identifier",
+                        EnumChatFormatting.GOLD,
+                        (pattern) -> new IdentifierFilter(pattern)));
     }
 
     private static void addIDDumps() {
