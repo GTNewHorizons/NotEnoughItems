@@ -8,6 +8,8 @@ import net.minecraft.item.ItemStack;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 
@@ -21,7 +23,16 @@ public class ModNameFilter implements ItemFilter {
 
     @Override
     public boolean matches(ItemStack itemStack) {
-        return this.pattern.matcher(getModId(itemStack.getItem())).find();
+        return this.pattern.matcher(nameFromStack(itemStack.getItem())).find();
+    }
+
+    protected static String nameFromStack(Item item) {
+        try {
+            ModContainer mod = Loader.instance().getIndexedModList().get(getModId(item));
+            return mod == null ? "Minecraft" : mod.getName();
+        } catch (NullPointerException e) {
+            return "";
+        }
     }
 
     protected static String getModId(Item item) {

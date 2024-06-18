@@ -54,7 +54,7 @@ public class TooltipFilter implements ItemFilter {
 
     @Override
     public boolean matches(ItemStack itemStack) {
-        return pattern.matcher(getSearchName(itemStack)).find();
+        return pattern.matcher(getSearchTooltip(itemStack)).find();
     }
 
     public static void populateSearchMap() {
@@ -68,7 +68,7 @@ public class TooltipFilter implements ItemFilter {
         itemSearchNames.keySet().removeAll(oldItems);
     }
 
-    protected static String getSearchName(ItemStack stack) {
+    protected static String getSearchTooltip(ItemStack stack) {
         return itemSearchNames.computeIfAbsent(new ItemStackKey(stack), key -> getTooltip(key.stack));
     }
 
