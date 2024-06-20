@@ -65,12 +65,17 @@ public class SearchTokenParser {
 
     private static class ProvidersCache {
 
-        protected String languageCode = null;
-        protected List<ISearchParserProvider> providers;
+        public String languageCode = null;
+        public List<ISearchParserProvider> providers = new ArrayList<>();
+
+        public void clear() {
+            this.languageCode = null;
+            this.providers.clear();
+        }
     }
 
     protected final List<ISearchParserProvider> searchProviders;
-    protected ProvidersCache providersCache = new ProvidersCache();
+    protected final ProvidersCache providersCache = new ProvidersCache();
 
     public SearchTokenParser(List<ISearchParserProvider> searchProviders) {
         this.searchProviders = searchProviders;
@@ -82,6 +87,7 @@ public class SearchTokenParser {
 
     public void addProvider(ISearchParserProvider provider) {
         this.searchProviders.add(provider);
+        this.providersCache.clear();
     }
 
     protected List<ISearchParserProvider> getProviders() {
@@ -93,7 +99,7 @@ public class SearchTokenParser {
             for (int index = this.searchProviders.size() - 1; index >= 0; index--) {
                 ISearchParserProvider provider = this.searchProviders.get(index);
 
-                if (!providers.containsKey(provider.getPrefix()) && provider.getSearchMode() != SearchMode.NEVER
+                if (!providers.containsKey(provider.getPrefix())
                         && provider.getMatchingLanguages().contains(currentLanguage)) {
                     providers.put(provider.getPrefix(), provider);
                 }
@@ -107,7 +113,9 @@ public class SearchTokenParser {
     }
 
     public ISearchParserProvider getProvider(char ch) {
-        return getProviders().stream().filter(provider -> provider.getPrefix() == ch).findFirst().orElse(null);
+        return getProviders().stream()
+                .filter(provider -> provider.getSearchMode() == SearchMode.PREFIX && provider.getPrefix() == ch)
+                .findFirst().orElse(null);
     }
 
     public ItemFilter getFilter(String filterText) {
