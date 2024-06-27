@@ -6,10 +6,13 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
@@ -76,6 +79,20 @@ public class ItemList {
         }
     }
 
+    public static class NegatedItemFilter implements ItemFilter {
+
+        public ItemFilter filter;
+
+        public NegatedItemFilter(ItemFilter filter) {
+            this.filter = filter;
+        }
+
+        @Override
+        public boolean matches(ItemStack item) {
+            return this.filter == null || !this.filter.matches(item);
+        }
+    }
+
     public static class PatternItemFilter implements ItemFilter {
 
         public Pattern pattern;
@@ -86,7 +103,7 @@ public class ItemList {
 
         @Override
         public boolean matches(ItemStack item) {
-            return pattern.matcher(ItemInfo.getSearchName(item)).find();
+            return pattern.matcher(item.getDisplayName()).find();
         }
     }
 
@@ -178,7 +195,9 @@ public class ItemList {
     public static List<ItemFilter> getItemFilters() {
         LinkedList<ItemFilter> filters = new LinkedList<>();
         synchronized (itemFilterers) {
-            for (ItemFilterProvider p : itemFilterers) filters.add(p.getFilter());
+            for (ItemFilterProvider p : itemFilterers) {
+                filters.add(p.getFilter());
+            }
         }
         return filters;
     }
@@ -190,7 +209,7 @@ public class ItemList {
             for (int damage = 0; damage < 16; damage++) try {
                 ItemStack itemstack = new ItemStack(item, 1, damage);
                 IIcon icon = item.getIconIndex(itemstack);
-                String name = GuiContainerManager.concatenatedDisplayName(itemstack, false);
+                String name = getTooltip(itemstack);
                 String s = name + "@" + (icon == null ? 0 : icon.hashCode());
                 if (!damageIconSet.contains(s)) {
                     damageIconSet.add(s);
@@ -205,6 +224,22 @@ public class ItemList {
                         "Ommiting " + item + ":" + damage + " " + item.getClass().getSimpleName(),
                         item.toString());
             }
+        }
+
+        private String getTooltip(ItemStack stack) {
+            try {
+                @SuppressWarnings("unchecked")
+                final List<String> namelist = stack.getTooltip(Minecraft.getMinecraft().thePlayer, false);
+                final StringJoiner sb = new StringJoiner("\n");
+
+                for (String name : namelist) {
+                    sb.add(name);
+                }
+
+                return sb.toString();
+            } catch (Throwable ignored) {}
+
+            return "";
         }
 
         @Override

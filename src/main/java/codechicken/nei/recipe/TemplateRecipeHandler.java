@@ -197,7 +197,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
             return ingredients;
         }
 
-        protected void randomRenderPermutation(List<PositionedStack> stacks, long cycle) {
+        public void randomRenderPermutation(List<PositionedStack> stacks, long cycle) {
             final ItemFilter filter = getItemFilter();
             final int randCycle = Math.abs(new Random(cycle + offset).nextInt());
 
@@ -228,7 +228,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
 
         @Deprecated
-        protected void randomRenderPermutation(PositionedStack stack, long cycle) {
+        public void randomRenderPermutation(PositionedStack stack, long cycle) {
             Random rand = new Random(cycle + offset);
             stack.setPermutationToRender((int) (Math.abs(rand.nextInt()) % stack.items.length));
         }

@@ -25,6 +25,7 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.OffsetPositioner;
 import codechicken.nei.SearchField;
 import codechicken.nei.SearchField.ISearchProvider;
+import codechicken.nei.SearchTokenParser.ISearchParserProvider;
 import codechicken.nei.SubsetWidget;
 import codechicken.nei.SubsetWidget.SubsetTag;
 import codechicken.nei.api.IRecipeFilter.IRecipeFilterProvider;
@@ -314,11 +315,14 @@ public class API {
         SubsetWidget.addTag(tag);
     }
 
+    @Deprecated
+    public static void addSearchProvider(ISearchProvider provider) {}
+
     /**
      * Adds a new search provider to the search field
      */
-    public static void addSearchProvider(ISearchProvider provider) {
-        SearchField.searchProviders.add(provider);
+    public static void addSearchProvider(ISearchParserProvider provider) {
+        SearchField.searchParser.addProvider(provider);
     }
 
     /**

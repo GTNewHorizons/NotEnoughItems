@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
@@ -45,11 +44,14 @@ import codechicken.core.featurehack.GameDataManipulator;
 import codechicken.nei.InfiniteStackSizeHandler;
 import codechicken.nei.InfiniteToolHandler;
 import codechicken.nei.ItemList;
+import codechicken.nei.ItemList.PatternItemFilter;
 import codechicken.nei.ItemMobSpawner;
 import codechicken.nei.ItemStackMap;
 import codechicken.nei.ItemStackSet;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.PopupInputHandler;
+import codechicken.nei.SearchField.SearchParserProvider;
+import codechicken.nei.SearchTokenParser.SearchMode;
 import codechicken.nei.config.ArrayDumper;
 import codechicken.nei.config.HandlerDumper;
 import codechicken.nei.config.ItemPanelDumper;
@@ -57,6 +59,10 @@ import codechicken.nei.config.RegistryDumper;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.BrewingRecipeHandler;
 import codechicken.nei.recipe.RecipeItemInputHandler;
+import codechicken.nei.search.IdentifierFilter;
+import codechicken.nei.search.ModNameFilter;
+import codechicken.nei.search.OreDictionaryFilter;
+import codechicken.nei.search.TooltipFilter;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -85,36 +91,6 @@ public class ItemInfo {
     public static final HashSet<Class<? extends Slot>> fastTransferExemptions = new HashSet<>();
 
     public static final HashMap<Item, String> itemOwners = new HashMap<>();
-
-    private static class ItemStackKey {
-
-        public final ItemStack stack;
-
-        public ItemStackKey(ItemStack stack) {
-            this.stack = stack;
-        }
-
-        @Override
-        public int hashCode() {
-            if (this.stack == null) return 1;
-            int hashCode = 1;
-            hashCode = 31 * hashCode + stack.stackSize;
-            hashCode = 31 * hashCode + Item.getIdFromItem(stack.getItem());
-            hashCode = 31 * hashCode + stack.getItemDamage();
-            hashCode = 31 * hashCode + (!stack.hasTagCompound() ? 0 : stack.getTagCompound().hashCode());
-            return hashCode;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == this) return true;
-            if (!(o instanceof ItemStackKey)) return false;
-            return ItemStack.areItemStacksEqual(this.stack, ((ItemStackKey) o).stack);
-        }
-    }
-
-    // lookup optimisation
-    public static final ConcurrentHashMap<ItemStackKey, String> itemSearchNames = new ConcurrentHashMap<>();
 
     public static boolean isHidden(ItemStack stack) {
         return hiddenItems.contains(stack);
@@ -155,26 +131,52 @@ public class ItemInfo {
         addInputHandlers();
         addIDDumps();
         addHiddenItemFilter();
-        addSearchOptimisation();
-    }
-
-    private static void addSearchOptimisation() {
-        ItemList.loadCallbacks.add(ItemInfo::populateSearchMap);
-    }
-
-    private static void populateSearchMap() {
-        /* Create a snapshot of the current keys in the cache */
-        HashSet<ItemStackKey> oldItems = new HashSet<>(itemSearchNames.keySet());
-        for (ItemStack stack : ItemList.items) {
-            /* Populate each entry and remove it from the snapshot */
-            getSearchName(stack);
-            oldItems.remove(new ItemStackKey(stack));
-        }
-        itemSearchNames.keySet().removeAll(oldItems);
+        addSearchProviders();
+        ItemList.loadCallbacks.add(TooltipFilter::populateSearchMap);
     }
 
     private static void addHiddenItemFilter() {
         API.addItemFilter(() -> item -> !hiddenItems.contains(item));
+    }
+
+    private static void addSearchProviders() {
+        API.addSearchProvider(
+                new SearchParserProvider(
+                        '\0',
+                        "default",
+                        EnumChatFormatting.RESET,
+                        (pattern) -> new PatternItemFilter(pattern)) {
+
+                    @Override
+                    public SearchMode getSearchMode() {
+                        return SearchMode.ALWAYS;
+                    }
+
+                });
+        API.addSearchProvider(
+                new SearchParserProvider(
+                        '@',
+                        "modName",
+                        EnumChatFormatting.LIGHT_PURPLE,
+                        (pattern) -> new ModNameFilter(pattern)));
+        API.addSearchProvider(
+                new SearchParserProvider(
+                        '$',
+                        "oreDict",
+                        EnumChatFormatting.AQUA,
+                        (pattern) -> new OreDictionaryFilter(pattern)));
+        API.addSearchProvider(
+                new SearchParserProvider(
+                        '#',
+                        "tooltip",
+                        EnumChatFormatting.YELLOW,
+                        (pattern) -> new TooltipFilter(pattern)));
+        API.addSearchProvider(
+                new SearchParserProvider(
+                        '&',
+                        "identifier",
+                        EnumChatFormatting.GOLD,
+                        (pattern) -> new IdentifierFilter(pattern)));
     }
 
     private static void addIDDumps() {
@@ -516,10 +518,8 @@ public class ItemInfo {
         return retString;
     }
 
+    @Deprecated
     public static String getSearchName(ItemStack stack) {
-        return itemSearchNames.computeIfAbsent(
-                new ItemStackKey(stack),
-                key -> EnumChatFormatting.getTextWithoutFormattingCodes(
-                        GuiContainerManager.concatenatedDisplayName(key.stack, true).toLowerCase()));
+        return GuiContainerManager.concatenatedDisplayName(stack, true);
     }
 }

@@ -123,8 +123,8 @@ public class ItemSorter implements Comparator<ItemStack>, ItemsLoadedCallback {
             return compareInt(id1, id2);
         });
         API.addSortOption("nei.itemsort.name", (o1, o2) -> {
-            String name1 = ItemInfo.getSearchName(o1);
-            String name2 = ItemInfo.getSearchName(o2);
+            String name1 = o1.getDisplayName();
+            String name2 = o2.getDisplayName();
             return name1.compareTo(name2);
         });
         tag.getTag("inventory.itemsort").setDefaultValue(getSaveString(list));

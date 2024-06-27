@@ -1,6 +1,7 @@
 package codechicken.nei;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,6 +16,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.storage.SaveFormatComparator;
 import net.minecraftforge.common.MinecraftForge;
@@ -79,6 +81,7 @@ public class NEIClientConfig {
     public static final File heightHackHandlersFile = new File(configDir, "heighthackhandlers.cfg");
     public static final File handlerOrderingFile = new File(configDir, "handlerordering.csv");
     public static final File hiddenHandlersFile = new File(configDir, "hiddenhandlers.csv");
+    public static final File enableAutoFocusFile = new File(configDir, "enableautofocus.cfg");
 
     @Deprecated
     public static File bookmarkFile;
@@ -97,6 +100,9 @@ public class NEIClientConfig {
     // Handlers will be sorted in ascending order, so smaller numbers show up earlier.
     // Any handler not in the map will be assigned to 0, and negative numbers are fine.
     public static Object2IntOpenHashMap<String> handlerOrdering = new Object2IntOpenHashMap<>();
+
+    // List of prefixes of classes that should enable the autofocus search widget on open.
+    public static ArrayList<String> enableAutoFocusPrefixes = new ArrayList<>();
 
     // Function that extracts the handler ID from a handler, with special logic for
     // TemplateRecipeHandler: prefer using the overlay ID if it exists.
@@ -239,6 +245,76 @@ public class NEIClientConfig {
 
         ItemSorter.initConfig(tag);
 
+        tag.getTag("inventory.search.widgetPosition").setComment("Widget Position").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.search.widgetPosition", true));
+
+        tag.getTag("inventory.search.widgetAutofocus")
+                .setComment(
+                        "Focus Search Widget on Open, blurs/unfocuses on mouse move unless typing has started first")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.search.widgetAutofocus", true));
+
+        tag.getTag("inventory.search.patternMode").setComment("Search Mode").getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.patternMode", 3, true));
+
+        tag.getTag("inventory.search.quoteDropItemName").setComment("Quote Drop Item Name").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.search.quoteDropItemName", true));
+
+        tag.getTag("inventory.search.modNameSearchMode").setComment("Search mode for Mod Names (prefix: @)")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.modNameSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(name + "." + value(), EnumChatFormatting.LIGHT_PURPLE + "@");
+            }
+
+        });
+
+        tag.getTag("inventory.search.tooltipSearchMode").setComment("Search mode for Tooltips (prefix: #)")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.tooltipSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(name + "." + value(), EnumChatFormatting.YELLOW + "#");
+            }
+
+        });
+
+        tag.getTag("inventory.search.identifierSearchMode").setComment("Search mode for identifier (prefix: &)")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.identifierSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(name + "." + value(), EnumChatFormatting.GOLD + "&");
+            }
+
+        });
+
+        tag.getTag("inventory.search.oreDictSearchMode").setComment("Search mode for Tag Names (prefix: $)")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.oreDictSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(name + "." + value(), EnumChatFormatting.AQUA + "$");
+            }
+
+        });
+
+        tag.getTag("inventory.search.subsetsSearchMode").setComment("Search mode for Item Subsets (prefix: %)")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.subsetsSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(name + "." + value(), EnumChatFormatting.DARK_PURPLE + "%");
+            }
+
+        });
+
         tag.getTag("inventory.history.enabled").setComment("Enable/disable History Panel").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.history.enabled", true));
 
@@ -254,9 +330,6 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.itemIDs").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemIDs", 3, true));
-
-        tag.getTag("inventory.searchmode").getIntValue(1);
-        API.addOption(new OptionCycled("inventory.searchmode", 3, true));
 
         tag.getTag("world.highlight_tips").getBooleanValue(false);
         tag.getTag("world.highlight_tips.x").getIntValue(5000);
@@ -346,8 +419,10 @@ public class NEIClientConfig {
         tag.getTag("inventory.showItemQuantityWidget").setComment("Show Item Quantity Widget").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.showItemQuantityWidget", true));
 
-        tag.getTag("inventory.centerSearchWidget").setComment("Center Search Widget").getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.centerSearchWidget", true));
+        tag.getTag("inventory.firstInvCloseClosesInSearch").setComment(
+                "Pressing the open inventory key when the inventory was just opened when the search is focused will close it instead of typing in the search")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.firstInvCloseClosesInSearch", true));
 
         tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
@@ -688,7 +763,15 @@ public class NEIClientConfig {
     }
 
     public static boolean isSearchWidgetCentered() {
-        return getBooleanSetting("inventory.centerSearchWidget");
+        return getBooleanSetting("inventory.search.widgetPosition");
+    }
+
+    public static boolean searchWidgetAutofocus() {
+        return getBooleanSetting("inventory.search.widgetAutofocus");
+    }
+
+    public static boolean isFirstInvCloseClosesInSearch() {
+        return getBooleanSetting("inventory.firstInvCloseClosesInSearch");
     }
 
     public static boolean areJEIStyleTabsVisible() {
@@ -741,6 +824,10 @@ public class NEIClientConfig {
 
     public static boolean loadCatalystsFromJar() {
         return !getBooleanSetting("tools.catalyst_load_from_config");
+    }
+
+    public static boolean isProfileRecipeEnabled() {
+        return NEIClientConfig.getBooleanSetting("inventory.profileRecipes");
     }
 
     public static void setEnabled(boolean flag) {

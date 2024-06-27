@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Pattern;
 
@@ -133,6 +134,7 @@ public class GuiContainerManager {
      * @param includeHandlers If true tooltip handlers will add to the item tip
      * @return A list of Strings representing the text to be displayed on each line of the tool tip.
      */
+    @SuppressWarnings("unchecked")
     public static List<String> itemDisplayNameMultiline(ItemStack stack, GuiContainer gui, boolean includeHandlers) {
         List<String> namelist = null;
         try {
@@ -218,8 +220,18 @@ public class GuiContainerManager {
      * @return The first line of the multiline display name.
      */
     public static String itemDisplayNameShort(ItemStack itemstack) {
-        List<String> list = itemDisplayNameMultiline(itemstack, null, false);
-        return list.get(0);
+
+        try {
+            @SuppressWarnings("unchecked")
+            List<String> namelist = itemstack.getTooltip(Minecraft.getMinecraft().thePlayer, false);
+
+            if (!namelist.isEmpty() && !"".equals(namelist.get(0))) {
+                return itemstack.getRarity().rarityColor.toString() + namelist.get(0) + EnumChatFormatting.RESET;
+            }
+
+        } catch (Throwable ignored) {}
+
+        return "Unnamed";
     }
 
     /**
@@ -229,18 +241,17 @@ public class GuiContainerManager {
      * @param itemstack The stack to get the name for
      * @return The multiline display name of this item separated by '#'
      */
+    @Deprecated
     public static String concatenatedDisplayName(ItemStack itemstack, boolean includeHandlers) {
         List<String> list = itemDisplayNameMultiline(itemstack, null, includeHandlers);
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
+        StringJoiner sb = new StringJoiner("#");
+
         for (String name : list) {
-            if (first) {
-                first = false;
-            } else {
-                sb.append("#");
+            if (!name.isEmpty()) {
+                sb.add(name);
             }
-            sb.append(name);
         }
+
         return EnumChatFormatting.getTextWithoutFormattingCodes(sb.toString());
     }
 

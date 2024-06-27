@@ -1,5 +1,6 @@
 package codechicken.nei;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.nei.api.ItemFilter;
@@ -12,6 +13,14 @@ public abstract class RecipeSearchField extends TextField {
     public RecipeSearchField(String ident) {
         super(ident);
         this.field.setVisible(false);
+    }
+
+    @Override
+    protected void initInternalTextField() {
+        field = new FormattedTextField(Minecraft.getMinecraft().fontRenderer, 0, 0, 0, 0);
+        ((FormattedTextField) field).setFormatter(new SearchTextFormatter(SearchField.searchParser));
+        field.setMaxStringLength(maxSearchLength);
+        field.setCursorPositionZero();
     }
 
     public boolean isVisible() {

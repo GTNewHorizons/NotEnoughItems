@@ -28,14 +28,15 @@ import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.ItemsLoadedCallback;
 import codechicken.nei.ItemList.NothingItemFilter;
-import codechicken.nei.SearchField.ISearchProvider;
+import codechicken.nei.SearchTokenParser.ISearchParserProvider;
+import codechicken.nei.SearchTokenParser.SearchMode;
 import codechicken.nei.api.API;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.guihook.GuiContainerManager;
 
-public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoadedCallback, ISearchProvider {
+public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoadedCallback {
 
     public static ReentrantReadWriteLock hiddenItemLock = new ReentrantReadWriteLock();
     public static Lock writeLock = hiddenItemLock.writeLock();
@@ -70,14 +71,20 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
             protected void slotClicked(int slot, int button, int mx, int my, int count) {
                 if (slot < sorted.size()) {
                     SubsetTag tag = sorted.get(slot);
-                    if (NEIClientUtils.shiftKey())
-                        codechicken.nei.LayoutManager.searchField.setText("@" + tag.fullname);
-                    else if (button == 0 && count >= 2) SubsetWidget.showOnly(tag);
-                    else SubsetWidget.setHidden(tag, button == 1);
+                    if (NEIClientUtils.shiftKey()) {
+                        codechicken.nei.LayoutManager.searchField.setText("%" + tag.fullname);
+                    } else if (button == 0 && count >= 2) {
+                        SubsetWidget.showOnly(tag);
+                    } else {
+                        SubsetWidget.setHidden(tag, button == 1);
+                    }
                 } else {
                     ItemStack item = state.items.get(slot - sorted.size());
-                    if (NEIClientUtils.controlKey()) NEIClientUtils.cheatItem(item, button, -1);
-                    else SubsetWidget.setHidden(state.items.get(slot - sorted.size()), button == 1);
+                    if (NEIClientUtils.controlKey()) {
+                        NEIClientUtils.cheatItem(item, button, -1);
+                    } else {
+                        SubsetWidget.setHidden(state.items.get(slot - sorted.size()), button == 1);
+                    }
                 }
             }
 
@@ -170,7 +177,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
         private SubsetTag getTag(String name) {
             int idx = name.indexOf('.');
             String childname = idx > 0 ? name.substring(0, idx) : name;
-            SubsetTag child = children.get(childname.toLowerCase());
+            SubsetTag child = children.get(childname.replaceAll(" ", "").toLowerCase());
             if (child == null) return null;
 
             return idx > 0 ? child.getTag(name.substring(idx + 1)) : child;
@@ -187,7 +194,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
             int idx = name.indexOf('.');
 
             if (idx < 0) { // add or replace tag
-                SubsetTag prev = children.put(name.toLowerCase(), tag);
+                SubsetTag prev = children.put(name.replaceAll(" ", "").toLowerCase(), tag);
                 if (prev != null) { // replaced, load children
                     tag.children = prev.children;
                     tag.sorted = prev.sorted;
@@ -195,10 +202,12 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
                 recacheChildren();
             } else {
                 String childname = name.substring(0, idx);
-                SubsetTag child = children.get(childname.toLowerCase());
-                if (child == null) children.put(
-                        childname.toLowerCase(),
-                        child = new SubsetTag(fullname == null ? childname : fullname + '.' + childname));
+                SubsetTag child = children.get(childname.replaceAll(" ", "").toLowerCase());
+                if (child == null) {
+                    children.put(
+                            childname.replaceAll(" ", "").toLowerCase(),
+                            child = new SubsetTag(fullname == null ? childname : fullname + '.' + childname));
+                }
                 recacheChildren();
                 child.addTag(tag);
             }
@@ -207,16 +216,6 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
         protected void cacheState() {
             state = SubsetWidget.getState(this);
             for (SubsetTag tag : sorted) tag.cacheState();
-        }
-
-        public void addFiltersWithItem(List<ItemFilter> filters, String itemSearch) {
-            if (itemSearch == null) {
-                addFilters(filters);
-            } else {
-                if (filter != null) filters.add(new DoubleFilteredFilter(filter, itemSearch));
-
-                for (SubsetTag child : sorted) child.addFiltersWithItem(filters, itemSearch);
-            }
         }
 
         public void addFilters(List<ItemFilter> filters) {
@@ -353,6 +352,45 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
 
         public boolean isScrolling() {
             return slot.isScrolling() || selectedChild != null && selectedChild.isScrolling();
+        }
+    }
+
+    private static class DefaultParserProvider implements ISearchParserProvider {
+
+        public ItemFilter getFilter(String searchText) {
+            final AnyMultiItemFilter filter = new AnyMultiItemFilter();
+            final SubsetTag tag = getTag(searchText);
+
+            if (tag != null) {
+                // We've got an exact match
+                tag.addFilters(filter.filters);
+            } else {
+                // Try searching for a substring
+                Pattern p = SearchField.getPattern(searchText);
+                if (p == null) return null;
+
+                List<SubsetTag> matching = new LinkedList<>();
+                root.search(matching, p);
+                if (matching.isEmpty()) return null;
+                for (SubsetTag tag2 : matching) {
+                    tag2.addFilters(filter.filters);
+                }
+            }
+
+            return filter;
+        }
+
+        public char getPrefix() {
+            return '%';
+        }
+
+        public EnumChatFormatting getHighlightedColor() {
+            return EnumChatFormatting.DARK_PURPLE;
+        }
+
+        @Override
+        public SearchMode getSearchMode() {
+            return SearchMode.fromInt(NEIClientConfig.getIntSetting("inventory.search.subsetsSearchMode"));
         }
     }
 
@@ -659,7 +697,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
     public SubsetWidget() {
         super("NEI Subsets");
         API.addItemFilter(this);
-        API.addSearchProvider(this);
+        API.addSearchProvider(new DefaultParserProvider());
         ItemList.loadCallbacks.add(this);
     }
 
@@ -772,44 +810,6 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
             }
             return false;
         };
-    }
-
-    @Override
-    public boolean isPrimary() {
-        return true;
-    }
-
-    @Override
-    public ItemFilter getFilter(String searchText) {
-        if (!searchText.startsWith("@")) return null;
-
-        searchText = searchText.substring(1);
-        String itemSearch = null;
-        if (searchText.contains("->")) {
-            String[] split = searchText.split("->");
-            searchText = split[0];
-            if (split.length > 1) itemSearch = split[1];
-        }
-
-        AnyMultiItemFilter filter = new AnyMultiItemFilter();
-        SubsetTag tag = getTag(searchText);
-        if (tag != null) {
-            // We've got an exact match
-            tag.addFiltersWithItem(filter.filters, itemSearch);
-        } else {
-            // Try searching for a substring
-            Pattern p = SearchField.getPattern(searchText);
-            if (p == null) return null;
-
-            List<SubsetTag> matching = new LinkedList<>();
-            root.search(matching, p);
-            if (matching.isEmpty()) return null;
-            for (SubsetTag tag2 : matching) {
-                tag2.addFiltersWithItem(filter.filters, itemSearch);
-            }
-        }
-
-        return filter;
     }
 
     @Override

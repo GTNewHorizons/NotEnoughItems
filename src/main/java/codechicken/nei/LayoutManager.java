@@ -40,6 +40,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
+import net.minecraft.client.settings.GameSettings;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -52,6 +53,7 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.KeyManager.IKeyStateTracker;
 import codechicken.nei.api.API;
 import codechicken.nei.api.GuiInfo;
+import codechicken.nei.api.INEIAutoFocusSearchEnable;
 import codechicken.nei.api.IRecipeOverlayRenderer;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.api.LayoutStyle;
@@ -87,6 +89,9 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public static SubsetWidget dropDown;
     public static PresetsWidget presetsPanel;
     public static SearchField searchField;
+    public static boolean searchInitFocusedCancellable = false;
+    protected static int mousePriorX;
+    protected static int mousePriorY;
 
     public static ButtonCycled options;
     public static ButtonCycled bookmarksButton;
@@ -163,9 +168,37 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         return getSideWidth(gui);
     }
 
+    protected boolean isAllowedGuiAutoSearchFocus(GuiContainer gui) {
+        if (gui instanceof INEIAutoFocusSearchEnable) {
+            return true;
+        }
+        String guiClassName = gui.getClass().getName();
+        for (String prefix : NEIClientConfig.enableAutoFocusPrefixes) {
+            if (guiClassName.startsWith(prefix)) {
+                return true;
+            }
+        }
+        // Maybe make this an option to make it easier to figure out what GPU class to add to the configuration?
+        // NEIClientConfig.logger.info("Checking for autofocus on " + guiClassName + " had no match");
+        return false;
+    }
+
+    protected void searchFocusInitCancelCheck() {
+        if (searchInitFocusedCancellable) {
+            if (searchField.isVisible() && NEIClientConfig.searchWidgetAutofocus()
+                    && getInputFocused() == searchField) {
+                searchField.setFocus(false);
+                setInputFocused(null);
+            }
+            searchInitFocusedCancellable = false;
+        }
+    }
+
     @Override
     public void onMouseClicked(GuiContainer gui, int mousex, int mousey, int button) {
         if (isHidden()) return;
+
+        searchFocusInitCancelCheck();
 
         for (Widget widget : controlWidgets) widget.onGuiClick(mousex, mousey);
     }
@@ -175,6 +208,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (isHidden()) return false;
 
         if (!isEnabled()) return options.contains(mousex, mousey) && options.handleClick(mousex, mousey, button);
+
+        searchFocusInitCancelCheck();
 
         for (Widget widget : controlWidgets) {
             widget.onGuiClick(mousex, mousey);
@@ -196,6 +231,14 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     public boolean keyTyped(GuiContainer gui, char keyChar, int keyID) {
         if (isEnabled() && !isHidden()) {
+            if (searchInitFocusedCancellable) {
+                searchInitFocusedCancellable = false;
+                if (NEIClientConfig.isFirstInvCloseClosesInSearch()
+                        && GameSettings.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindInventory)) {
+                    searchField.setFocus(false);
+                    setInputFocused(null);
+                }
+            }
             if (inputFocused != null) return inputFocused.handleKeyPress(keyID, keyChar);
 
             for (Widget widget : controlWidgets) if (widget.handleKeyPress(keyID, keyChar)) return true;
@@ -234,6 +277,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     public void onMouseUp(GuiContainer gui, int mx, int my, int button) {
         if (!isHidden() && isEnabled()) {
+            searchFocusInitCancelCheck();
             for (Widget widget : controlWidgets) widget.mouseUp(mx, my, button);
         }
     }
@@ -241,6 +285,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public void onMouseDragged(GuiContainer gui, int mx, int my, int button, long heldTime) {
         if (!isHidden() && isEnabled()) {
+            searchFocusInitCancelCheck();
             for (Widget widget : controlWidgets) widget.mouseDragged(mx, my, button, heldTime);
         }
     }
@@ -259,6 +304,14 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public void renderObjects(GuiContainer gui, int mousex, int mousey) {
         if (!isHidden()) {
             layout(gui);
+            if (mousePriorX == -1) {
+                mousePriorX = mousex;
+                mousePriorY = mousey;
+            } else if (mousePriorX != mousex || mousePriorY != mousey) {
+                searchFocusInitCancelCheck();
+                mousePriorX = mousex;
+                mousePriorY = mousey;
+            }
             if (isEnabled()) {
                 getLayoutStyle().drawBackground(GuiContainerManager.getManager(gui));
                 for (Widget widget : drawWidgets) widget.draw(mousex, mousey);
@@ -620,6 +673,15 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
             getLayoutStyle().init();
             layout(gui);
+            mousePriorX = -1;
+            mousePriorY = -1;
+
+            if (searchField.isVisible() && NEIClientConfig.searchWidgetAutofocus()
+                    && isAllowedGuiAutoSearchFocus(gui)) {
+                searchField.setFocus(true);
+                setInputFocused(searchField);
+                searchInitFocusedCancellable = true;
+            }
         }
 
         NEIController.load(gui);
@@ -721,6 +783,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public boolean mouseScrolled(GuiContainer gui, int mousex, int mousey, int scrolled) {
         if (isHidden() || !isEnabled()) return false;
+        searchFocusInitCancelCheck();
 
         for (Widget widget : drawWidgets) if (widget.onMouseWheel(scrolled, mousex, mousey)) return true;
 

@@ -9,7 +9,7 @@ public abstract class TextField extends Widget {
 
     protected GuiTextField field;
 
-    private static final int maxSearchLength = 256;
+    protected static final int maxSearchLength = 256;
 
     public boolean centered;
     public String identifier;
