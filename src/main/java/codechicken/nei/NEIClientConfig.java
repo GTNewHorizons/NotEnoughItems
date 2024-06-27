@@ -196,7 +196,7 @@ public class NEIClientConfig {
         });
 
         tag.getTag("inventory.search.tooltipSearchMode").setComment("Search mode for Tooltips (prefix: #)")
-                .getIntValue(1);
+                .getIntValue(0);
         API.addOption(new OptionCycled("inventory.search.tooltipSearchMode", 3, true) {
 
             @Override
@@ -207,7 +207,7 @@ public class NEIClientConfig {
         });
 
         tag.getTag("inventory.search.identifierSearchMode").setComment("Search mode for identifier (prefix: &)")
-                .getIntValue(1);
+                .getIntValue(0);
         API.addOption(new OptionCycled("inventory.search.identifierSearchMode", 3, true) {
 
             @Override
@@ -218,7 +218,7 @@ public class NEIClientConfig {
         });
 
         tag.getTag("inventory.search.oreDictSearchMode").setComment("Search mode for Tag Names (prefix: $)")
-                .getIntValue(1);
+                .getIntValue(0);
         API.addOption(new OptionCycled("inventory.search.oreDictSearchMode", 3, true) {
 
             @Override
@@ -229,7 +229,7 @@ public class NEIClientConfig {
         });
 
         tag.getTag("inventory.search.subsetsSearchMode").setComment("Search mode for Item Subsets (prefix: %)")
-                .getIntValue(1);
+                .getIntValue(2);
         API.addOption(new OptionCycled("inventory.search.subsetsSearchMode", 3, true) {
 
             @Override
