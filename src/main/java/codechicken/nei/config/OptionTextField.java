@@ -80,7 +80,7 @@ public class OptionTextField extends Option {
     public List<String> handleTooltip(int mousex, int mousey, List<String> currenttip) {
         if (new Rectangle4i(10, 0, textField.x - 10, 20).contains(mousex, mousey)) {
             String tip = translateN(name + ".tip");
-            if (!tip.equals(name + ".tip")) currenttip.add(tip);
+            if (!tip.equals(namespaced(name + ".tip"))) currenttip.add(tip);
         }
         return currenttip;
     }
