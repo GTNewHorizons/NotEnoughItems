@@ -1,8 +1,8 @@
 package codechicken.nei;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.util.EnumChatFormatting;
 
+import codechicken.nei.SearchField.GuiSearchField;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.util.TextHistory;
 
@@ -17,8 +17,7 @@ public abstract class RecipeSearchField extends TextField {
 
     @Override
     protected void initInternalTextField() {
-        field = new FormattedTextField(Minecraft.getMinecraft().fontRenderer, 0, 0, 0, 0);
-        ((FormattedTextField) field).setFormatter(new SearchTextFormatter(SearchField.searchParser));
+        field = new GuiSearchField();
         field.setMaxStringLength(maxSearchLength);
         field.setCursorPositionZero();
     }
@@ -60,7 +59,7 @@ public abstract class RecipeSearchField extends TextField {
     }
 
     public ItemFilter getFilter() {
-        return SearchField.getFilter(text());
+        return ((GuiSearchField) field).getFilter();
     }
 
     @Override

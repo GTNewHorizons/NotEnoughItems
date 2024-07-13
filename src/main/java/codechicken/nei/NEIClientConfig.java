@@ -43,6 +43,7 @@ import codechicken.nei.config.GuiHighlightTips;
 import codechicken.nei.config.GuiNEIOptionList;
 import codechicken.nei.config.GuiOptionList;
 import codechicken.nei.config.GuiPanelSettings;
+import codechicken.nei.config.OptionButton;
 import codechicken.nei.config.OptionCycled;
 import codechicken.nei.config.OptionGamemodes;
 import codechicken.nei.config.OptionIntegerField;
@@ -52,6 +53,7 @@ import codechicken.nei.config.OptionTextField;
 import codechicken.nei.config.OptionToggleButton;
 import codechicken.nei.config.OptionToggleButtonBoubs;
 import codechicken.nei.config.OptionUtilities;
+import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.IRecipeHandler;
@@ -79,6 +81,7 @@ public class NEIClientConfig {
     public static final File handlerOrderingFile = new File(configDir, "handlerordering.csv");
     public static final File hiddenHandlersFile = new File(configDir, "hiddenhandlers.csv");
     public static final File enableAutoFocusFile = new File(configDir, "enableautofocus.cfg");
+    public static final File collapsibleItemsFile = new File(configDir, "collapsibleitems.cfg");
 
     @Deprecated
     public static File bookmarkFile;
@@ -252,6 +255,37 @@ public class NEIClientConfig {
         tag.getTag("inventory.history.splittingMode").getIntValue(1);
         API.addOption(new OptionCycled("inventory.history.splittingMode", 2, true));
 
+        tag.getTag("inventory.collapsibleItems.enabled").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.collapsibleItems.enabled", true) {
+
+            @Override
+            public boolean onClick(int button) {
+                LayoutManager.markItemsDirty();
+                return super.onClick(button);
+            }
+        });
+
+        tag.getTag("inventory.collapsibleItems.expandedColor")
+                .setComment("Color of the collapsible item expanded state").getHexValue(0x335555EE);
+        API.addOption(new OptionIntegerField("inventory.collapsibleItems.expandedColor"));
+
+        tag.getTag("inventory.collapsibleItems.collapsedColor")
+                .setComment("Color of the collapsible item collapsed state").getHexValue(0x335555EE);
+        API.addOption(new OptionIntegerField("inventory.collapsibleItems.collapsedColor"));
+
+        API.addOption(
+                new OptionButton(
+                        "inventory.collapsibleItems.reloadLabel",
+                        "inventory.collapsibleItems.reloadButton",
+                        "inventory.collapsibleItems.reloadTip") {
+
+                    @Override
+                    public boolean onClick(int button) {
+                        LayoutManager.markItemsDirty();
+                        return super.onClick(button);
+                    }
+                });
+
         tag.getTag("inventory.itemIDs").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemIDs", 3, true));
 
@@ -271,6 +305,8 @@ public class NEIClientConfig {
         tag.getTag("world.panels.items.bottom").getIntValue(0);
 
         API.addOption(new OptionOpenGui("world.panels", GuiPanelSettings.class));
+
+        API.addOption(new OptionOpenGui("world.presets", GuiPresetList.class));
 
         tag.getTag("inventory.profileRecipes").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.profileRecipes", true));
@@ -645,7 +681,7 @@ public class NEIClientConfig {
             worldPath = "global";
         }
 
-        PresetsWidget.loadPresets(worldPath);
+        PresetsList.setPresetsFile(worldPath);
     }
 
     public static boolean isWorldSpecific(String setting) {
@@ -831,6 +867,10 @@ public class NEIClientConfig {
 
     public static boolean shouldCacheItemRendering() {
         return getBooleanSetting("inventory.cacheItemRendering") && OpenGlHelper.framebufferSupported;
+    }
+
+    public static boolean enableCollapsibleItems() {
+        return getBooleanSetting("inventory.collapsibleItems.enabled");
     }
 
     public static boolean getMagnetMode() {

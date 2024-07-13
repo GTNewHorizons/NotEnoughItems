@@ -16,10 +16,6 @@ public class VisiblityData {
      */
     public boolean showSubsetDropdown = true;
     /**
-     * Presets dropdown
-     */
-    public boolean showPresetsDropdown = true;
-    /**
      * Item and search section
      */
     public boolean showItemSection = true;
@@ -44,7 +40,6 @@ public class VisiblityData {
     public void translateDependancies() {
         if (!showNEI) showWidgets = false;
         if (!showWidgets) showItemSection = showUtilityButtons = false;
-        if (!showItemSection)
-            showBookmarkPanel = showSubsetDropdown = showPresetsDropdown = showSearchSection = showItemPanel = false;
+        if (!showItemSection) showBookmarkPanel = showSubsetDropdown = showSearchSection = showItemPanel = false;
     }
 }

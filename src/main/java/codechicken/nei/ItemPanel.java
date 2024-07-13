@@ -1,17 +1,27 @@
 package codechicken.nei;
 
-import static codechicken.lib.gui.GuiDraw.drawRect;
-
+import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
+
+import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.vec.Rectangle4i;
+import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.guihook.IContainerTooltipHandler;
 
-public class ItemPanel extends PanelWidget {
+public class ItemPanel extends PanelWidget implements IContainerTooltipHandler {
 
     /**
      * Backwards compat :-/
@@ -35,6 +45,7 @@ public class ItemPanel extends PanelWidget {
     public Button less;
     public ItemQuantityField quantity;
     public ItemHistoryPanel historyPanel;
+    public Button toggleGroups;
 
     public static class ItemPanelSlot {
 
@@ -52,9 +63,29 @@ public class ItemPanel extends PanelWidget {
         }
     }
 
+    protected static class MaskMetadata {
+
+        public int groupIndex = -1;
+        public boolean extended = false;
+
+        public Color bgColor = null;
+        public Color color = null;
+
+        public boolean left = false;
+        public boolean top = false;
+        public boolean right = false;
+        public boolean bottom = false;
+
+    }
+
     protected static class ItemPanelGrid extends ItemsGrid {
 
         public ArrayList<ItemStack> newItems;
+        public ArrayList<ItemStack> rawItems;
+
+        protected final HashMap<Integer, List<ItemStack>> groupItems = new HashMap<>();
+        protected final HashMap<Integer, MaskMetadata> maskMetadata = new HashMap<>();
+        protected boolean forceExpand = false;
 
         public void setItems(ArrayList<ItemStack> items) {
             newItems = items;
@@ -62,9 +93,48 @@ public class ItemPanel extends PanelWidget {
 
         public void refresh(GuiContainer gui) {
 
-            if (newItems != null) {
-                realItems = newItems;
-                newItems = null;
+            if (this.newItems != null) {
+                this.groupItems.clear();
+                this.forceExpand = false;
+
+                if (NEIClientConfig.enableCollapsibleItems() && !this.newItems.isEmpty()) {
+                    final Set<Integer> groups = new HashSet<>();
+                    boolean outsideGroup = false;
+
+                    this.realItems = new ArrayList<>();
+                    this.rawItems = new ArrayList<>(this.newItems);
+
+                    for (ItemStack stack : this.newItems) {
+                        final int groupIndex = ItemList.collapsibleItems.getGroupIndex(stack);
+
+                        if (groupIndex == -1) {
+                            this.realItems.add(stack);
+                            outsideGroup = true;
+                        } else {
+
+                            if (!groups.contains(groupIndex) || ItemList.collapsibleItems.isExpanded(groupIndex)) {
+                                this.realItems.add(stack);
+                                groups.add(groupIndex);
+                            }
+
+                            if (!this.groupItems.containsKey(groupIndex)) {
+                                this.groupItems.put(groupIndex, new ArrayList<>());
+                            }
+
+                            this.groupItems.get(groupIndex).add(stack);
+                        }
+                    }
+
+                    // automatically opens if there are elements from only one group
+                    if (!outsideGroup && groups.size() == 1) {
+                        this.realItems = new ArrayList<>(this.newItems);
+                        this.forceExpand = true;
+                    }
+                } else {
+                    this.realItems = new ArrayList<>(this.newItems);
+                }
+
+                this.newItems = null;
                 onItemsChanged();
             }
 
@@ -72,11 +142,170 @@ public class ItemPanel extends PanelWidget {
         }
 
         @Override
-        protected void beforeDrawSlot(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
-            if (PresetsWidget.inEditMode()) {
-                if (!PresetsWidget.isHidden(getItem(slotIdx))) drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);
+        protected List<Integer> getMask() {
+            final boolean updateBorders = this.gridMask == null;
+            final List<Integer> mask = super.getMask();
+
+            if (updateBorders) {
+                calculateGroupBorders(mask);
+            }
+
+            return mask;
+        }
+
+        protected void calculateGroupBorders(List<Integer> mask) {
+            this.maskMetadata.clear();
+
+            if (mask.isEmpty() || this.groupItems.isEmpty()) {
+                return;
+            }
+
+            final HashMap<Integer, Integer> maskGroup = new HashMap<>();
+            final Color collapsedColor = new Color(
+                    NEIClientConfig.getSetting("inventory.collapsibleItems.collapsedColor").getHexValue(),
+                    true);
+            final Color expandedColor = new Color(
+                    NEIClientConfig.getSetting("inventory.collapsibleItems.expandedColor").getHexValue(),
+                    true);
+
+            for (int slotIndex = 0; slotIndex < mask.size(); slotIndex++) {
+                if (mask.get(slotIndex) == null) {
+                    continue;
+                }
+
+                int idx = mask.get(slotIndex);
+                maskGroup.put(idx, ItemList.collapsibleItems.getGroupIndex(getItem(idx)));
+            }
+
+            for (int slotIndex = 0; slotIndex < mask.size(); slotIndex++) {
+                if (mask.get(slotIndex) == null) {
+                    continue;
+                }
+
+                int idx = mask.get(slotIndex);
+                int groupIndex = maskGroup.get(idx);
+
+                if (groupIndex == -1 || this.groupItems.get(groupIndex).size() == 1) {
+                    continue;
+                }
+
+                int column = slotIndex % this.columns;
+                int row = slotIndex / this.columns;
+                int prevSlotIndex = (row - 1) * this.columns + column;
+                int nextSlotIndex = (row + 1) * this.columns + column;
+                MaskMetadata metadata = new MaskMetadata();
+
+                metadata.groupIndex = groupIndex;
+                metadata.extended = this.forceExpand || ItemList.collapsibleItems.isExpanded(groupIndex);
+                metadata.bgColor = metadata.extended ? expandedColor : collapsedColor;
+                metadata.color = darkerColor(metadata.bgColor);
+                metadata.left = column == 0 || idx == 0
+                        || mask.get(slotIndex - 1) == null
+                        || maskGroup.getOrDefault(idx - 1, -1) != groupIndex;
+                metadata.right = column == this.columns - 1 || maskGroup.getOrDefault(idx + 1, -1) != groupIndex;
+
+                if (prevSlotIndex >= 0) {
+                    Integer previdx = mask.get(prevSlotIndex);
+                    metadata.top = previdx == null || maskGroup.getOrDefault(previdx, -1) != groupIndex;
+                } else {
+                    metadata.top = true;
+                }
+
+                if (nextSlotIndex < mask.size()) {
+                    Integer nextidx = mask.get(nextSlotIndex);
+                    metadata.bottom = nextidx == null || maskGroup.getOrDefault(nextidx, -1) != groupIndex;
+                } else {
+                    metadata.bottom = true;
+                }
+
+                this.maskMetadata.put(idx, metadata);
+            }
+        }
+
+        @Override
+        protected void beforeDrawItems(int mousex, int mousey, @Nullable ItemPanelSlot focused) {
+            final List<Integer> mask = getMask();
+
+            super.beforeDrawItems(mousex, mousey, focused);
+
+            for (int i = 0; i < mask.size(); i++) {
+                if (mask.get(i) != null) {
+                    drawBorder(mask.get(i), getSlotRect(i));
+                }
+            }
+        }
+
+        protected void drawBorder(int slotIdx, Rectangle4i rect) {
+            final MaskMetadata metadata = this.maskMetadata.get(slotIdx);
+
+            if (metadata != null) {
+                final float LINE_WIDTH = 0.75f;
+
+                drawRect(rect.x, rect.y, rect.w, rect.h, metadata.bgColor);
+
+                if (metadata.left) {
+                    float leftBottom = metadata.bottom ? -LINE_WIDTH : 0;
+                    drawRect(rect.x, rect.y, LINE_WIDTH, rect.h + leftBottom, metadata.color);
+                }
+
+                if (metadata.right) {
+                    float rightTop = metadata.top ? LINE_WIDTH : 0;
+                    drawRect(rect.x + rect.w, rect.y - rightTop, LINE_WIDTH, rect.h + rightTop, metadata.color);
+                }
+
+                if (metadata.top) {
+                    drawRect(rect.x, rect.y - LINE_WIDTH, rect.w, LINE_WIDTH, metadata.color);
+                }
+
+                if (metadata.bottom) {
+                    drawRect(rect.x, rect.y + rect.h - LINE_WIDTH, rect.w, LINE_WIDTH, metadata.color);
+                }
+            }
+        }
+
+        private static Color darkerColor(Color color) {
+            return new Color(
+                    color.getRed(),
+                    color.getGreen(),
+                    color.getBlue(),
+                    Math.min((int) (color.getAlpha() + (255f / 5) * 2), 255));
+        }
+
+        private static void drawRect(double left, double top, double width, double height, Color color) {
+            Tessellator tessellator = Tessellator.instance;
+
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+            GL11.glColor4f(
+                    color.getRed() / 255f,
+                    color.getGreen() / 255f,
+                    color.getBlue() / 255f,
+                    color.getAlpha() / 255f);
+            tessellator.startDrawingQuads();
+            tessellator.addVertex(left, top + height, 0.0D);
+            tessellator.addVertex(left + width, top + height, 0.0D);
+            tessellator.addVertex(left + width, top, 0.0D);
+            tessellator.addVertex(left, top, 0.0D);
+            tessellator.draw();
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            GL11.glDisable(GL11.GL_BLEND);
+        }
+
+        @Override
+        protected void drawItem(Rectangle4i rect, int slotIdx) {
+            final MaskMetadata metadata = this.maskMetadata.get(slotIdx);
+
+            if (metadata != null && !metadata.extended) {
+                final List<ItemStack> groupItems = this.groupItems.get(metadata.groupIndex);
+
+                GuiContainerManager.drawItems.zLevel -= 10F;
+                GuiContainerManager.drawItem(rect.x + 1, rect.y - 1, groupItems.get(groupItems.size() - 1), true, "");
+                GuiContainerManager.drawItems.zLevel += 10F;
+
+                GuiContainerManager.drawItem(rect.x - 1, rect.y + 1, getItem(slotIdx), true, "");
             } else {
-                super.beforeDrawSlot(focused, slotIdx, rect);
+                super.drawItem(rect, slotIdx);
             }
         }
 
@@ -88,6 +317,7 @@ public class ItemPanel extends PanelWidget {
 
     public ItemPanel() {
         grid = new ItemPanelGrid();
+        GuiContainerManager.addTooltipHandler(this);
     }
 
     public static void updateItemList(ArrayList<ItemStack> newItems) {
@@ -98,6 +328,21 @@ public class ItemPanel extends PanelWidget {
     @Override
     public void init() {
         super.init();
+
+        toggleGroups = new Button("G") {
+
+            @Override
+            public String getButtonTip() {
+                return NEIClientUtils.translate("itempanel.collapsed.button.tip");
+            }
+
+            @Override
+            public boolean onButtonPress(boolean rightclick) {
+                ItemList.collapsibleItems.toggleGroups(rightclick ? false : null);
+                ItemList.updateFilter.restart();
+                return true;
+            }
+        };
 
         more = new Button("+") {
 
@@ -167,6 +412,18 @@ public class ItemPanel extends PanelWidget {
         return gui.height - getMarginTop(gui) - PADDING;
     }
 
+    @Override
+    protected int resizeHeader(GuiContainer gui) {
+        int marginTop = super.resizeHeader(gui);
+
+        toggleGroups.w = pageNext.w;
+        toggleGroups.h = pageNext.h;
+        toggleGroups.y = pageNext.y;
+        toggleGroups.x = pageNext.x - toggleGroups.w - 2;
+
+        return marginTop;
+    }
+
     protected int resizeFooter(GuiContainer gui) {
         if (!NEIClientConfig.showItemQuantityWidget() && NEIClientConfig.isSearchWidgetCentered()
                 && !NEIClientConfig.showHistoryPanelWidget()) {
@@ -224,6 +481,10 @@ public class ItemPanel extends PanelWidget {
                 LayoutManager.addWidget(quantity);
             }
 
+            if (NEIClientConfig.enableCollapsibleItems()) {
+                LayoutManager.addWidget(toggleGroups);
+            }
+
             if (NEIClientConfig.showHistoryPanelWidget()) {
                 LayoutManager.addWidget(historyPanel);
             }
@@ -251,4 +512,66 @@ public class ItemPanel extends PanelWidget {
 
         return null;
     }
+
+    @Override
+    public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
+        return currenttip;
+    }
+
+    @Override
+    public List<String> handleItemDisplayName(GuiContainer gui, ItemStack itemstack, List<String> currenttip) {
+        return currenttip;
+    }
+
+    @Override
+    public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
+            List<String> currenttip) {
+        final ItemPanelGrid panelGrid = ((ItemPanelGrid) this.grid);
+
+        if (!panelGrid.forceExpand) {
+            final ItemPanelSlot hoverSlot = getSlotMouseOver(mousex, mousey);
+
+            if (hoverSlot != null) {
+
+                final MaskMetadata metadata = panelGrid.maskMetadata.get(hoverSlot.slotIndex);
+
+                if (metadata != null) {
+                    final List<ItemStack> items = panelGrid.groupItems.get(metadata.groupIndex);
+
+                    if (items != null && items.size() > 1) {
+                        String message = metadata.extended ? "itempanel.collapsed.hint.collapse"
+                                : "itempanel.collapsed.hint.expand";
+                        currenttip.add(
+                                1,
+                                EnumChatFormatting.GRAY + NEIClientUtils.translate(message, items.size())
+                                        + EnumChatFormatting.RESET);
+                    }
+                }
+            }
+        }
+
+        return currenttip;
+    }
+
+    @Override
+    public boolean handleClick(int mousex, int mousey, int button) {
+        final ItemPanelGrid panelGrid = ((ItemPanelGrid) this.grid);
+
+        if (NEIClientUtils.altKey() && button == 0 && !panelGrid.forceExpand) {
+            final ItemPanelSlot hoverSlot = grid.getSlotMouseOver(mousex, mousey);
+
+            if (hoverSlot != null) {
+                final MaskMetadata metadata = panelGrid.maskMetadata.get(hoverSlot.slotIndex);
+
+                if (metadata != null) {
+                    ItemList.collapsibleItems.setExpanded(metadata.groupIndex, !metadata.extended);
+                    panelGrid.setItems(panelGrid.rawItems);
+                    return true;
+                }
+            }
+        }
+
+        return super.handleClick(mousex, mousey, button);
+    }
+
 }

@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
@@ -23,6 +22,7 @@ import net.minecraftforge.fluids.IFluidContainerItem;
 
 import org.apache.commons.io.IOUtils;
 
+import codechicken.nei.ItemStackMap;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.api.IStackStringifyHandler;
 import codechicken.nei.recipe.stackinfo.DefaultStackStringifyHandler;
@@ -32,7 +32,7 @@ public class StackInfo {
 
     public static final ArrayList<IStackStringifyHandler> stackStringifyHandlers = new ArrayList<>();
     private static final HashMap<String, HashMap<String, String[]>> guidfilters = new HashMap<>();
-    private static final WeakHashMap<ItemStack, String> guidcache = new WeakHashMap<>();
+    private static final ItemStackMap<String> guidcache = new ItemStackMap<>();
     private static final LinkedHashMap<ItemStack, FluidStack> fluidcache = new LinkedHashMap<ItemStack, FluidStack>() {
 
         @Override
@@ -119,64 +119,67 @@ public class StackInfo {
     }
 
     public static String getItemStackGUID(ItemStack stack) {
-        if (!guidcache.containsKey(stack)) {
+        String guid = guidcache.get(stack);
 
-            final NBTTagCompound nbTag = itemStackToNBT(stack, false);
+        if (guid != null) {
+            return guid;
+        }
 
-            if (nbTag == null) {
-                return null;
-            }
+        final NBTTagCompound nbTag = itemStackToNBT(stack, false);
 
-            nbTag.removeTag("Count");
+        if (nbTag == null) {
+            return null;
+        }
 
-            if (nbTag.getShort("Damage") == 0) {
-                nbTag.removeTag("Damage");
-            }
+        nbTag.removeTag("Count");
 
-            if (nbTag.hasKey("tag") && nbTag.getCompoundTag("tag").hasNoTags()) {
-                nbTag.removeTag("tag");
-            }
+        if (nbTag.getShort("Damage") == 0) {
+            nbTag.removeTag("Damage");
+        }
 
-            if (nbTag.hasKey("strId") && guidfilters.containsKey(nbTag.getString("strId"))) {
-                final ArrayList<String> keys = new ArrayList<>();
-                final String strId = nbTag.getString("strId");
+        if (nbTag.hasKey("tag") && nbTag.getCompoundTag("tag").hasNoTags()) {
+            nbTag.removeTag("tag");
+        }
 
-                keys.add(strId);
+        if (nbTag.hasKey("strId") && guidfilters.containsKey(nbTag.getString("strId"))) {
+            final ArrayList<String> keys = new ArrayList<>();
+            final String strId = nbTag.getString("strId");
 
-                guidfilters.get(strId).forEach((key, rule) -> {
-                    Object local = nbTag;
+            keys.add(strId);
 
-                    for (int i = 0; i < rule.length; i++) {
+            guidfilters.get(strId).forEach((key, rule) -> {
+                Object local = nbTag;
 
-                        try {
+                for (int i = 0; i < rule.length; i++) {
 
-                            if (local instanceof NBTTagCompound) {
-                                local = ((NBTTagCompound) local).getTag(rule[i]);
-                            } else if (local instanceof NBTTagList) {
-                                local = ((NBTTagList) local).tagList.get(Integer.parseInt(rule[i]));
-                            } else {
-                                break;
-                            }
+                    try {
 
-                        } catch (Throwable e) {
+                        if (local instanceof NBTTagCompound) {
+                            local = ((NBTTagCompound) local).getTag(rule[i]);
+                        } else if (local instanceof NBTTagList) {
+                            local = ((NBTTagList) local).tagList.get(Integer.parseInt(rule[i]));
+                        } else {
                             break;
                         }
-                    }
 
-                    if (local instanceof NBTBase) {
-                        keys.add(((NBTBase) local).toString());
-                    } else if (local != null) {
-                        keys.add(String.valueOf(local));
+                    } catch (Throwable e) {
+                        break;
                     }
-                });
+                }
 
-                synchronized (guidcache) {
-                    guidcache.put(stack, keys.toString());
+                if (local instanceof NBTBase) {
+                    keys.add(((NBTBase) local).toString());
+                } else if (local != null) {
+                    keys.add(String.valueOf(local));
                 }
-            } else {
-                synchronized (guidcache) {
-                    guidcache.put(stack, nbTag.toString());
-                }
+            });
+
+            synchronized (guidcache) {
+                guidcache.put(stack, keys.toString());
+            }
+        } else {
+            synchronized (guidcache) {
+                guidcache.put(stack, nbTag.toString());
             }
         }
 

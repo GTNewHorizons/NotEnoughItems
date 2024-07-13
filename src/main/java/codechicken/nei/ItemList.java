@@ -2,6 +2,7 @@ package codechicken.nei;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,11 +39,12 @@ public class ItemList {
      * Updates to this should be synchronised on this
      */
     public static final List<ItemFilterProvider> itemFilterers = new LinkedList<>();
-
     public static final List<ItemsLoadedCallback> loadCallbacks = new LinkedList<>();
+    public static final CollapsibleItems collapsibleItems = new CollapsibleItems();
 
     private static final HashSet<Item> erroredItems = new HashSet<>();
     private static final HashSet<String> stackTraces = new HashSet<>();
+    private static final HashMap<ItemStack, Integer> ordering = new HashMap<>();
     /**
      * Unlike {@link LayoutManager#itemsLoaded}, this indicates whether item loading is actually finished or not.
      */
@@ -223,6 +225,38 @@ public class ItemList {
             return "";
         }
 
+        private void updateOrdering(List<ItemStack> items) {
+            ItemList.ordering.clear();
+
+            ItemSorter.sort(items);
+
+            if (NEIClientConfig.enableCollapsibleItems()) {
+                HashMap<Integer, Integer> groups = new HashMap<>();
+                int orderIndex = 0;
+
+                for (ItemStack stack : items) {
+                    final int groupIndex = ItemList.collapsibleItems.getGroupIndex(stack);
+
+                    if (groupIndex == -1) {
+                        ItemList.ordering.put(stack, orderIndex++);
+                    } else {
+
+                        if (!groups.containsKey(groupIndex)) {
+                            groups.put(groupIndex, orderIndex++);
+                        }
+
+                        ItemList.ordering.put(stack, groups.get(groupIndex));
+                    }
+                }
+            } else {
+                int orderIndex = 0;
+
+                for (ItemStack stack : items) {
+                    ItemList.ordering.put(stack, orderIndex++);
+                }
+            }
+        }
+
         @Override
         @SuppressWarnings("unchecked")
         public void execute() {
@@ -230,8 +264,8 @@ public class ItemList {
             ThreadOperationTimer timer = getTimer(NEIClientConfig.getItemLoadingTimeout());
             loadFinished = false;
 
-            LinkedList<ItemStack> items = new LinkedList<>();
-            LinkedList<ItemStack> permutations = new LinkedList<>();
+            List<ItemStack> items = new LinkedList<>();
+            List<ItemStack> permutations = new LinkedList<>();
             ListMultimap<Item, ItemStack> itemMap = ArrayListMultimap.create();
 
             timer.setLimit(NEIClientConfig.getItemLoadingTimeout());
@@ -267,9 +301,12 @@ public class ItemList {
             ItemList.itemMap = itemMap;
             for (ItemsLoadedCallback callback : loadCallbacks) callback.itemsLoaded();
 
-            updateFilter.restart();
+            if (interrupted()) return;
+            ItemList.collapsibleItems.updateCache(items);
+            updateOrdering(items);
 
             loadFinished = true;
+            updateFilter.restart();
         }
     };
 
@@ -284,11 +321,15 @@ public class ItemList {
 
     public static final RestartableTask updateFilter = new RestartableTask("NEI Item Filtering") {
 
+        private int compare(ItemStack o1, ItemStack o2) {
+            return Integer.compare(ItemList.ordering.get(o1), ItemList.ordering.get(o2));
+        }
+
         @Override
         public void execute() {
-            // System.out.println("Executing NEI Item Filtering");
-            ArrayList<ItemStack> filtered;
+            if (!loadFinished) return;
             ItemFilter filter = getItemListFilter();
+            ArrayList<ItemStack> filtered;
 
             try {
                 filtered = ItemList.forkJoinPool.submit(
@@ -302,7 +343,7 @@ public class ItemList {
             }
 
             if (interrupted()) return;
-            ItemSorter.sort(filtered);
+            filtered.sort(this::compare);
             if (interrupted()) return;
             ItemPanel.updateItemList(filtered);
         }

@@ -8,7 +8,7 @@ import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.opengl.GL11;
 
-class FormattedTextField extends GuiTextField {
+public class FormattedTextField extends GuiTextField {
 
     public static interface TextFormatter {
 
