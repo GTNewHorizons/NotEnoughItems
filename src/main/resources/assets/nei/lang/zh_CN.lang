@@ -316,12 +316,3 @@ nei.subsets.Items.Weapons=武器
 nei.subsets.Items.Weapons.Ranged=远程
 nei.subsets.Items.Weapons.Swords=剑
 nei.subsets.Mod=Mod
-
-nei.presets.blacklist.label=黑
-nei.presets.blacklist.tooltip=黑名单
-nei.presets.whitelist.label=白
-nei.presets.whitelist.tooltip=白名单
-nei.presets.textfield.tooltip.1=Enter - 保存
-nei.presets.textfield.tooltip.2=Esc - 取消
-nei.presets.label.tooltip=双击编辑
-nei.presets.label.selected=%s 预设

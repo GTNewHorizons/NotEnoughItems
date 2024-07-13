@@ -113,8 +113,13 @@ public class GuiItemSorter extends GuiOptionPane {
             if (nslot != list.indexOf(dragged.e)) {
                 list.remove(dragged.e);
                 list.add(nslot, dragged.e);
+
                 opt.getTag().setValue(ItemSorter.getSaveString(list));
-                if (opt.activeTag() == opt.getTag()) ItemSorter.list = new ArrayList<>(list);
+                LayoutManager.markItemsDirty();
+
+                if (opt.activeTag() == opt.getTag()) {
+                    ItemSorter.list = new ArrayList<>(list);
+                }
             }
         }
     }

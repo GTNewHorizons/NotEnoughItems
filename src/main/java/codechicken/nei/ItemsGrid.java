@@ -173,11 +173,13 @@ public class ItemsGrid {
         invalidSlotMap = new boolean[rows * columns];
         perPage = columns * rows;
 
-        if (NEIClientConfig.optimizeGuiOverlapComputation()) {
-            checkGuiOverlap(gui, 0, columns - 2, 1);
-            checkGuiOverlap(gui, columns - 1, 1, -1);
-        } else {
-            checkGuiOverlap(gui, 0, columns, 1);
+        if (gui != null) {
+            if (NEIClientConfig.optimizeGuiOverlapComputation()) {
+                checkGuiOverlap(gui, 0, columns - 2, 1);
+                checkGuiOverlap(gui, columns - 1, 1, -1);
+            } else {
+                checkGuiOverlap(gui, 0, columns, 1);
+            }
         }
 
         if (oldRows != rows || oldColumns != columns || !Arrays.equals(oldSlotMap, invalidSlotMap)) {
@@ -247,7 +249,7 @@ public class ItemsGrid {
         return this.gridMask;
     }
 
-    private void beforeDrawItems(int mousex, int mousey, @Nullable ItemPanelSlot focused) {
+    protected void beforeDrawItems(int mousex, int mousey, @Nullable ItemPanelSlot focused) {
 
         final List<Integer> mask = getMask();
 

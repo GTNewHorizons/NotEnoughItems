@@ -42,11 +42,14 @@ public abstract class PanelWidget extends Widget {
         pagePrev = new Button("Prev") {
 
             public boolean onButtonPress(boolean rightclick) {
-                if (!rightclick) {
+
+                if (rightclick) {
+                    grid.setPage(0);
+                } else {
                     grid.shiftPage(-1);
-                    return true;
                 }
-                return false;
+
+                return true;
             }
 
             @Override
@@ -57,11 +60,14 @@ public abstract class PanelWidget extends Widget {
         pageNext = new Button("Next") {
 
             public boolean onButtonPress(boolean rightclick) {
-                if (!rightclick) {
+
+                if (rightclick) {
+                    grid.setPage(grid.getNumPages() - 1);
+                } else {
                     grid.shiftPage(1);
-                    return true;
                 }
-                return false;
+
+                return true;
             }
 
             @Override

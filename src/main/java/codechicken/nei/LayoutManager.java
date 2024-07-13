@@ -87,7 +87,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public static ItemPanel itemPanel;
     public static BookmarkPanel bookmarkPanel;
     public static SubsetWidget dropDown;
-    public static PresetsWidget presetsPanel;
     public static SearchField searchField;
     public static boolean searchInitFocusedCancellable = false;
     protected static int mousePriorX;
@@ -381,11 +380,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
         if (visiblity.showBookmarkPanel || gui.guiTop <= 20) visiblity.showSubsetDropdown = false;
 
-        if (!visiblity.showBookmarkPanel || gui.guiTop <= 20) visiblity.showPresetsDropdown = false;
-
         if (gui.guiLeft - 4 < 76) visiblity.showWidgets = false;
-
-        if (!itemsLoaded) visiblity.showPresetsDropdown = false;
 
         try {
             GuiInfo.readLock.lock();
@@ -409,8 +404,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         bookmarkPanel.init();
 
         dropDown = new SubsetWidget();
-        presetsPanel = new PresetsWidget();
         searchField = new SearchField("search");
+        API.addItemFilter(searchField);
 
         options = new ButtonCycled(3) {
 
@@ -714,23 +709,13 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         addWidget(options);
         addWidget(bookmarksButton);
         if (visiblity.showItemPanel) {
-
-            if (PresetsWidget.inEditMode()) {
-                drawWidgets.add(itemPanel);
-            } else {
-                addWidget(itemPanel);
-            }
-
+            addWidget(itemPanel);
             itemPanel.setVisible();
         }
 
         if (visiblity.showBookmarkPanel) {
             addWidget(bookmarkPanel);
             bookmarkPanel.setVisible();
-        }
-
-        if (visiblity.showPresetsDropdown) {
-            addWidget(presetsPanel);
         }
 
         searchField.setVisible(visiblity.showSearchSection);

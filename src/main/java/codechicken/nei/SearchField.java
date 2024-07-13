@@ -1,7 +1,5 @@
 package codechicken.nei;
 
-import static codechicken.nei.NEIClientConfig.world;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
@@ -18,7 +16,6 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.SearchTokenParser.ISearchParserProvider;
 import codechicken.nei.SearchTokenParser.SearchMode;
-import codechicken.nei.api.API;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.recipe.StackInfo;
@@ -91,28 +88,50 @@ public class SearchField extends TextField implements ItemFilterProvider {
         }
     }
 
+    public static class GuiSearchField extends FormattedTextField {
+
+        protected final SearchTokenParser searchParser;
+
+        public GuiSearchField() {
+            this(SearchField.searchParser);
+        }
+
+        public GuiSearchField(SearchTokenParser searchParser) {
+            super(Minecraft.getMinecraft().fontRenderer, 0, 0, 0, 0);
+            this.searchParser = searchParser;
+            setFormatter(new SearchTextFormatter(searchParser));
+        }
+
+        public ItemFilter getFilter() {
+            return getFilter(getText());
+        }
+
+        public ItemFilter getFilter(String filterText) {
+            return this.searchParser.getFilter(filterText);
+        }
+
+    }
+
     @Deprecated
     public static List<ISearchProvider> searchProviders = new LinkedList<>();
-    public static SearchTokenParser searchParser = new SearchTokenParser();
+    public static final SearchTokenParser searchParser = new SearchTokenParser();
     private static final TextHistory history = new TextHistory();
     private boolean isVisible = true;
     private long lastclicktime;
 
     public SearchField(String ident) {
         super(ident);
-        API.addItemFilter(this);
     }
 
     @Override
     protected void initInternalTextField() {
-        field = new FormattedTextField(Minecraft.getMinecraft().fontRenderer, 0, 0, 0, 0);
-        ((FormattedTextField) field).setFormatter(new SearchTextFormatter(SearchField.searchParser));
+        field = new GuiSearchField();
         field.setMaxStringLength(maxSearchLength);
         field.setCursorPositionZero();
     }
 
     public static boolean searchInventories() {
-        return world.nbt.getBoolean("searchinventories");
+        return NEIClientConfig.world.nbt.getBoolean("searchinventories");
     }
 
     public boolean isVisible() {
@@ -137,10 +156,34 @@ public class SearchField extends TextField implements ItemFilterProvider {
         super.draw(mousex, mousey);
 
         if (searchInventories()) {
-            GuiDraw.drawGradientRect(x - 1, y - 1, 1, h + 2, 0xFFFFFF00, 0xFFC0B000); // Left
-            GuiDraw.drawGradientRect(x - 1, y - 1, w + 2, 1, 0xFFFFFF00, 0xFFC0B000); // Top
-            GuiDraw.drawGradientRect(x + w, y - 1, 1, h + 2, 0xFFFFFF00, 0xFFC0B000); // Left
-            GuiDraw.drawGradientRect(x - 1, y + h, w + 2, 1, 0xFFFFFF00, 0xFFC0B000); // Bottom
+            GuiDraw.drawGradientRect(
+                    field.xPosition - 1,
+                    field.yPosition - 1,
+                    1,
+                    field.height + 2,
+                    0xFFFFFF00,
+                    0xFFC0B000); // Left
+            GuiDraw.drawGradientRect(
+                    field.xPosition - 1,
+                    field.yPosition - 1,
+                    field.width + 2,
+                    1,
+                    0xFFFFFF00,
+                    0xFFC0B000); // Top
+            GuiDraw.drawGradientRect(
+                    field.xPosition + field.width,
+                    field.yPosition - 1,
+                    1,
+                    field.height + 2,
+                    0xFFFFFF00,
+                    0xFFC0B000); // Left
+            GuiDraw.drawGradientRect(
+                    field.xPosition - 1,
+                    field.yPosition + field.height,
+                    field.width + 2,
+                    1,
+                    0xFFFFFF00,
+                    0xFFC0B000); // Bottom
         }
     }
 
@@ -268,7 +311,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
     @Override
     public ItemFilter getFilter() {
-        return getFilter(text());
+        return ((GuiSearchField) field).getFilter();
     }
 
     public static ItemFilter getFilter(String filterText) {

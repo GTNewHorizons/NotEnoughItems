@@ -35,11 +35,11 @@ import com.google.common.base.Stopwatch;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemList;
 import codechicken.nei.ItemList.AllMultiItemFilter;
-import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
+import codechicken.nei.PresetsList;
 import codechicken.nei.api.DefaultOverlayRenderer;
 import codechicken.nei.api.IOverlayHandler;
 import codechicken.nei.api.IRecipeOverlayRenderer;
@@ -433,7 +433,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     protected static ItemFilter getItemFilter() {
         return new AllMultiItemFilter(
                 item -> !ItemInfo.hiddenItems.contains(item),
-                LayoutManager.presetsPanel != null ? LayoutManager.presetsPanel.getFilter() : null,
+                PresetsList.getItemFilter(),
                 GuiRecipe.searchField != null ? GuiRecipe.searchField.getFilter() : null);
     }
 

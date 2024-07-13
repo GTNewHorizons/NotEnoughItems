@@ -46,7 +46,7 @@ public class ItemSorter implements Comparator<ItemStack>, ItemsLoadedCallback {
     // optimisations
     public HashMap<ItemStack, Integer> ordering = null;
 
-    public static void sort(ArrayList<ItemStack> items) {
+    public static void sort(List<ItemStack> items) {
         try {
             // items = (ArrayList<ItemStack>)
             // items.parallelStream().sorted(instance).collect(Collectors.toList());
