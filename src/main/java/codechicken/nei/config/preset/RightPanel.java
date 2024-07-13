@@ -17,6 +17,7 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemList;
 import codechicken.nei.ItemList.AllMultiItemFilter;
+import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.NegatedItemFilter;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.ItemsGrid;
@@ -138,12 +139,20 @@ public class RightPanel extends GuiWidget {
             filter.filters.add(searchField.getFilter());
 
             if (enabledPresets.isChecked()) {
-                Preset preset = slotIndex != -1 ? PresetsList.presets.get(slotIndex) : null;
-                Set<String> identifiers = PresetsList.presets.stream().filter(p -> p.enabled && p != preset)
-                        .flatMap(p -> p.items.stream()).collect(Collectors.toSet());
+                AllMultiItemFilter andFilter = new AllMultiItemFilter();
+                AnyMultiItemFilter orFilter = new AnyMultiItemFilter();
+                Set<String> identifiers = PresetsList.presets.stream().flatMap(p -> p.items.stream())
+                        .collect(Collectors.toSet());
 
-                filter.filters.add(item -> !identifiers.contains(Preset.getIdentifier(item)));
-                filter.filters.add(new NegatedItemFilter(ItemList.collapsibleItems.getItemFilter()));
+                andFilter.filters.add(item -> !identifiers.contains(Preset.getIdentifier(item)));
+                andFilter.filters.add(new NegatedItemFilter(ItemList.collapsibleItems.getItemFilter()));
+
+                if (slotIndex != -1) {
+                    orFilter.filters.add(PresetsList.presets.get(slotIndex));
+                }
+
+                orFilter.filters.add(andFilter);
+                filter.filters.add(orFilter);
             }
 
             return filter;
