@@ -528,11 +528,10 @@ public class ItemPanel extends PanelWidget implements IContainerTooltipHandler {
             List<String> currenttip) {
         final ItemPanelGrid panelGrid = ((ItemPanelGrid) this.grid);
 
-        if (!panelGrid.forceExpand) {
+        if (!panelGrid.forceExpand && !NEIClientConfig.isHidden() && !currenttip.isEmpty()) {
             final ItemPanelSlot hoverSlot = getSlotMouseOver(mousex, mousey);
 
             if (hoverSlot != null) {
-
                 final MaskMetadata metadata = panelGrid.maskMetadata.get(hoverSlot.slotIndex);
 
                 if (metadata != null) {
