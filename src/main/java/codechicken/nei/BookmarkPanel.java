@@ -1277,7 +1277,7 @@ public class BookmarkPanel extends PanelWidget {
         } else {
             BookmarkRecipeId recipeId = null;
 
-            if (!handlerName.isEmpty() && ingredients != null) {
+            if (handlerName != null && !handlerName.isEmpty() && ingredients != null) {
                 recipeId = new BookmarkRecipeId(handlerName, ingredients);
             }
 
@@ -1285,7 +1285,7 @@ public class BookmarkPanel extends PanelWidget {
 
             if (idx != -1) {
                 BGrid.removeRecipe(idx, saveIngredients);
-            } else if (saveIngredients && !handlerName.isEmpty() && ingredients != null) {
+            } else if (saveIngredients && handlerName != null && !handlerName.isEmpty() && ingredients != null) {
                 BookmarkRecipe recipe = new BookmarkRecipe(stackover);
                 recipe.handlerName = handlerName;
 
