@@ -17,11 +17,11 @@ import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.opengl.GL11;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.guihook.GuiContainerManager;
-import codechicken.nei.guihook.IContainerTooltipHandler;
 
-public class ItemPanel extends PanelWidget implements IContainerTooltipHandler {
+public class ItemPanel extends PanelWidget {
 
     /**
      * Backwards compat :-/
@@ -66,6 +66,7 @@ public class ItemPanel extends PanelWidget implements IContainerTooltipHandler {
     protected static class MaskMetadata {
 
         public int groupIndex = -1;
+        public String displayName = "";
         public boolean extended = false;
 
         public Color bgColor = null;
@@ -97,7 +98,7 @@ public class ItemPanel extends PanelWidget implements IContainerTooltipHandler {
                 this.groupItems.clear();
                 this.forceExpand = false;
 
-                if (NEIClientConfig.enableCollapsibleItems() && !this.newItems.isEmpty()) {
+                if (!ItemList.collapsibleItems.isEmpty() && !this.newItems.isEmpty()) {
                     final Set<Integer> groups = new HashSet<>();
                     boolean outsideGroup = false;
 
@@ -196,6 +197,7 @@ public class ItemPanel extends PanelWidget implements IContainerTooltipHandler {
                 MaskMetadata metadata = new MaskMetadata();
 
                 metadata.groupIndex = groupIndex;
+                metadata.displayName = ItemList.collapsibleItems.getDisplayName(groupIndex);
                 metadata.extended = this.forceExpand || ItemList.collapsibleItems.isExpanded(groupIndex);
                 metadata.bgColor = metadata.extended ? expandedColor : collapsedColor;
                 metadata.color = darkerColor(metadata.bgColor);
@@ -317,7 +319,6 @@ public class ItemPanel extends PanelWidget implements IContainerTooltipHandler {
 
     public ItemPanel() {
         grid = new ItemPanelGrid();
-        GuiContainerManager.addTooltipHandler(this);
     }
 
     public static void updateItemList(ArrayList<ItemStack> newItems) {
@@ -481,7 +482,7 @@ public class ItemPanel extends PanelWidget implements IContainerTooltipHandler {
                 LayoutManager.addWidget(quantity);
             }
 
-            if (NEIClientConfig.enableCollapsibleItems()) {
+            if (!ItemList.collapsibleItems.isEmpty()) {
                 LayoutManager.addWidget(toggleGroups);
             }
 
@@ -514,16 +515,6 @@ public class ItemPanel extends PanelWidget implements IContainerTooltipHandler {
     }
 
     @Override
-    public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
-        return currenttip;
-    }
-
-    @Override
-    public List<String> handleItemDisplayName(GuiContainer gui, ItemStack itemstack, List<String> currenttip) {
-        return currenttip;
-    }
-
-    @Override
     public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
             List<String> currenttip) {
         final ItemPanelGrid panelGrid = ((ItemPanelGrid) this.grid);
@@ -537,6 +528,12 @@ public class ItemPanel extends PanelWidget implements IContainerTooltipHandler {
                 if (metadata != null) {
                     final List<ItemStack> items = panelGrid.groupItems.get(metadata.groupIndex);
 
+                    if (NEIClientConfig.getBooleanSetting("inventory.collapsibleItems.customName") && !metadata.extended
+                            && !"".equals(metadata.displayName)) {
+                        currenttip.clear();
+                        currenttip.add(metadata.displayName + GuiDraw.TOOLTIP_LINESPACE);
+                    }
+
                     if (items != null && items.size() > 1) {
                         String message = metadata.extended ? "itempanel.collapsed.hint.collapse"
                                 : "itempanel.collapsed.hint.expand";
@@ -549,7 +546,7 @@ public class ItemPanel extends PanelWidget implements IContainerTooltipHandler {
             }
         }
 
-        return currenttip;
+        return super.handleItemTooltip(gui, itemstack, mousex, mousey, currenttip);
     }
 
     @Override

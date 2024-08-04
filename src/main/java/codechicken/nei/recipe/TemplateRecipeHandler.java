@@ -430,7 +430,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         RecipeTransferRectHandler.registerRectsToGuis(getRecipeTransferRectGuis(), transferRects);
     }
 
-    protected static ItemFilter getItemFilter() {
+    public static ItemFilter getItemFilter() {
         return new AllMultiItemFilter(
                 item -> !ItemInfo.hiddenItems.contains(item),
                 PresetsList.getItemFilter(),
@@ -767,20 +767,31 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     private void shiftPermutationToRender(PositionedStack pStack, ItemStack stack, int scroll, ItemFilter filter) {
+        if (!pStack.containsWithNBT(stack)) return;
 
-        for (int index = 0; index < pStack.items.length; index++) {
-            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(pStack.items[index], stack)) {
-                ArrayList<Integer> filtered = getFilteredIngredientAlternatives(pStack, filter);
+        final List<Integer> filtered = getFilteredIngredientAlternatives(pStack, filter);
+        int index = 0;
 
-                if (filtered.isEmpty()) {
-                    pStack.setPermutationToRender((int) ((pStack.items.length + scroll + index) % pStack.items.length));
-                } else {
-                    pStack.setPermutationToRender(
-                            filtered.get((int) ((filtered.size() + scroll + index) % filtered.size())));
+        if (filtered.isEmpty()) {
+
+            for (int i = 0; i < pStack.items.length; i++) {
+                if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(pStack.items[i], stack)) {
+                    index = i;
+                    break;
                 }
-
-                break;
             }
+
+            pStack.setPermutationToRender((int) ((pStack.items.length - scroll + index) % pStack.items.length));
+        } else {
+
+            for (int i = 0; i < filtered.size(); i++) {
+                if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(pStack.items[filtered.get(i)], stack)) {
+                    index = i;
+                    break;
+                }
+            }
+
+            pStack.setPermutationToRender(filtered.get((int) ((filtered.size() - scroll + index) % filtered.size())));
         }
     }
 

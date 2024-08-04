@@ -89,9 +89,9 @@ nei.options.inventory.cheatmode.0=Mód Receptov
 nei.options.inventory.cheatmode.1=Úžitkový mód
 nei.options.inventory.cheatmode.2=Čítovací mód
 
-nei.options.inventory.profileRecipes=Profilovanie receptov
-nei.options.inventory.profileRecipes.true=Áno
-nei.options.inventory.profileRecipes.false=Nie
+nei.options.inventory.guirecipe.profile=Profilovanie receptov
+nei.options.inventory.guirecipe.profile.true=Áno
+nei.options.inventory.guirecipe.profile.false=Nie
 nei.options.inventory.itemsort=Zoradenie itemov
 nei.options.inventory.itemIDs=ID itemov
 nei.options.inventory.itemIDs.0=Skryté

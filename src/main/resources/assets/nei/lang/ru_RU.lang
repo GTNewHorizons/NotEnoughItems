@@ -92,9 +92,9 @@ nei.options.inventory.cheatmode.0=Режим рецептов
 nei.options.inventory.cheatmode.1=Режим полезностей
 nei.options.inventory.cheatmode.2=Чит-режим
 
-nei.options.inventory.profileRecipes=Рецепты профиля
-nei.options.inventory.profileRecipes.true=Да
-nei.options.inventory.profileRecipes.false=Нет
+nei.options.inventory.guirecipe.profile=Рецепты профиля
+nei.options.inventory.guirecipe.profile.true=Да
+nei.options.inventory.guirecipe.profile.false=Нет
 nei.options.inventory.itemsort=Панель сортировки предметов
 nei.options.inventory.itemIDs=ID предметов
 nei.options.inventory.itemIDs.0=Спрятаны

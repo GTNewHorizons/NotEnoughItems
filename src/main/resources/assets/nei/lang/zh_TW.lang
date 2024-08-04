@@ -88,9 +88,9 @@ nei.options.inventory.cheatmode.0=合成模式
 nei.options.inventory.cheatmode.1=實用模式
 nei.options.inventory.cheatmode.2=作弊模式
 
-nei.options.inventory.profileRecipes=合成查詢
-nei.options.inventory.profileRecipes.true=開啟
-nei.options.inventory.profileRecipes.false=關閉
+nei.options.inventory.guirecipe.profile=合成查詢
+nei.options.inventory.guirecipe.profile.true=開啟
+nei.options.inventory.guirecipe.profile.false=關閉
 nei.options.inventory.itemsort=物品面板排序方式
 nei.options.inventory.itemIDs=物品ID
 nei.options.inventory.itemIDs.0=隱藏

@@ -19,6 +19,7 @@ public class BookmarkCraftingChain {
 
     public HashMap<ItemStack, ItemStack> inputs = new HashMap<>();
     public HashMap<ItemStack, ItemStack> outputs = new HashMap<>();
+    public HashMap<ItemStack, ItemStack> remainder = new HashMap<>();
     public HashMap<ItemStack, ItemStack> intermediate = new HashMap<>();
 
     protected static class CraftingChainItem {
@@ -206,6 +207,7 @@ public class BookmarkCraftingChain {
 
         this.inputs.clear();
         this.outputs.clear();
+        this.remainder.clear();
         this.intermediate.clear();
         this.calculatedItems.clear();
         this.multiplier.clear();
@@ -245,18 +247,20 @@ public class BookmarkCraftingChain {
                     }
 
                 } else { // output
-                    long iCount = calculateCount(request, request.inputs.get(item.stackIndex))
-                            - iShift.getOrDefault(item.stackIndex, 0L);
+                    long iCalcCount = calculateCount(request, request.inputs.get(item.stackIndex));
+                    long iCount = iCalcCount - iShift.getOrDefault(item.stackIndex, 0L);
                     this.multiplier.put(item.stack, item.factor > 0 ? (int) (count / item.factor) : 0);
 
-                    if (iCount < count) {
-                        this.outputs.put(item.stack, item.getItemStack(count - iCount));
-                        iShift.put(item.stackIndex, iShift.getOrDefault(item.stackIndex, 0L) + iCount);
-                    } else if (iCount >= count) {
+                    if (iCount >= count) {
                         this.intermediate.put(item.stack, item.getItemStack(0));
                         iShift.put(item.stackIndex, iShift.getOrDefault(item.stackIndex, 0L) + count);
+                    } else if (iCalcCount > 0) {
+                        this.remainder.put(item.stack, item.getItemStack(count - iCount));
+                        iShift.put(item.stackIndex, iShift.getOrDefault(item.stackIndex, 0L) + iCount);
+                    } else {
+                        this.outputs.put(item.stack, item.getItemStack(count - iCount));
+                        iShift.put(item.stackIndex, iShift.getOrDefault(item.stackIndex, 0L) + iCount);
                     }
-
                 }
 
             }

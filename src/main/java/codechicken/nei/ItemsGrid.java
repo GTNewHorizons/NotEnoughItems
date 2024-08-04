@@ -260,7 +260,7 @@ public class ItemsGrid {
         }
     }
 
-    private void afterDrawItems(int mousex, int mousey, @Nullable ItemPanelSlot focused) {
+    protected void afterDrawItems(int mousex, int mousey, @Nullable ItemPanelSlot focused) {
         final List<Integer> mask = getMask();
 
         for (int i = 0; i < mask.size(); i++) {
@@ -366,8 +366,6 @@ public class ItemsGrid {
 
         afterDrawItems(mousex, mousey, focused);
     }
-
-    public void postDrawTooltips(int mousex, int mousey, List<String> tooltip) {}
 
     public void setVisible() {
         if (getItems().isEmpty() && getMessageOnEmpty() != null) {

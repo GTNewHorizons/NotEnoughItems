@@ -1,21 +1,25 @@
 package codechicken.nei;
 
+import static codechicken.nei.NEIClientUtils.translate;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
 
-public abstract class PanelWidget extends Widget {
+public abstract class PanelWidget extends Widget implements IContainerTooltipHandler {
 
     protected static final int PADDING = 2;
 
@@ -198,11 +202,6 @@ public abstract class PanelWidget extends Widget {
     }
 
     @Override
-    public void postDrawTooltips(int mx, int my, List<String> tooltip) {
-        grid.postDrawTooltips(mx, my, tooltip);
-    }
-
-    @Override
     public void mouseDragged(int mousex, int mousey, int button, long heldTime) {
         if (mouseDownSlot >= 0 && draggedStack == null
                 && NEIClientUtils.getHeldItem() == null
@@ -221,13 +220,7 @@ public abstract class PanelWidget extends Widget {
     @Override
     public boolean handleClick(int mousex, int mousey, int button) {
 
-        if (handleClickExt(mousex, mousey, button)) return true;
-
-        if (NEIClientUtils.getHeldItem() != null) {
-
-            if (!grid.contains(mousex, mousey)) {
-                return false;
-            }
+        if (grid.contains(mousex, mousey) && NEIClientUtils.getHeldItem() != null) {
 
             if (NEIClientConfig.canPerformAction("delete") && NEIClientConfig.canPerformAction("item")) {
                 if (button == 1) {
@@ -241,6 +234,8 @@ public abstract class PanelWidget extends Widget {
 
             return true;
         }
+
+        if (handleClickExt(mousex, mousey, button)) return true;
 
         ItemPanelSlot hoverSlot = getSlotMouseOver(mousex, mousey);
         if (hoverSlot != null) {
@@ -336,7 +331,8 @@ public abstract class PanelWidget extends Widget {
         if (hoverSlot != null && hoverSlot.slotIndex == mouseDownSlot && draggedStack == null) {
             ItemStack item = hoverSlot.item.copy();
 
-            if (NEIController.manager.window instanceof GuiRecipe || !NEIClientConfig.canCheatItem(item)) {
+            if (NEIController.manager.window instanceof GuiRecipe || NEIClientUtils.shiftKey()
+                    || !NEIClientConfig.canCheatItem(item)) {
 
                 if (button == 0) {
                     GuiCraftingRecipe.openRecipeGui("item", item);
@@ -400,4 +396,29 @@ public abstract class PanelWidget extends Widget {
     public boolean contains(int px, int py) {
         return grid.contains(px, py);
     }
+
+    @Override
+    public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
+
+        if (grid.contains(mousex, mousey) && NEIClientUtils.getHeldItem() != null) {
+            if (NEIClientConfig.canPerformAction("delete") && NEIClientConfig.canPerformAction("item")) {
+                currenttip.clear();
+                currenttip.add(EnumChatFormatting.RED + translate("itempanel.deleteItem") + EnumChatFormatting.RESET);
+            }
+        }
+
+        return currenttip;
+    }
+
+    @Override
+    public List<String> handleItemDisplayName(GuiContainer gui, ItemStack itemstack, List<String> currenttip) {
+        return currenttip;
+    }
+
+    @Override
+    public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
+            List<String> currenttip) {
+        return currenttip;
+    }
+
 }

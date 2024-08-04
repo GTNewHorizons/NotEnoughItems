@@ -1,5 +1,7 @@
 package codechicken.nei.api;
 
+import static codechicken.lib.gui.GuiDraw.drawRect;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,20 +23,26 @@ public class DefaultOverlayRenderer implements IRecipeOverlayRenderer {
 
     @Override
     public void renderOverlay(GuiContainerManager gui, Slot slot) {
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(770, 1);
-        GL11.glColor4d(0.6, 0.6, 0.6, 0.7);
 
-        GuiContainerManager.setColouredItemRender(true);
         for (PositionedStack stack : ingreds) {
-            if (stack.relx == slot.xDisplayPosition && stack.rely == slot.yDisplayPosition)
+            if (stack.relx == slot.xDisplayPosition && stack.rely == slot.yDisplayPosition && !slot.getHasStack()) {
                 GuiContainerManager.drawItem(stack.relx, stack.rely, stack.item);
+                drawHover(stack.relx, stack.rely);
+            }
         }
-        GuiContainerManager.setColouredItemRender(false);
 
-        GL11.glColor4f(1, 1, 1, 1);
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glEnable(GL11.GL_LIGHTING);
+        GL11.glPopAttrib();
+    }
+
+    private static void drawHover(int x, int y) {
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        drawRect(x, y, 16, 16, 0x66555555);
+        GL11.glPopAttrib();
     }
 
     final IStackPositioner positioner;

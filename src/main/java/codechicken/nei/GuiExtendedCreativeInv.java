@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.vec.Rectangle4i;
-import codechicken.nei.api.INEIAutoFocusSearchEnable;
+import codechicken.nei.AutoFocusWidget.INEIAutoFocusSearchEnable;
 import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.api.TaggedInventoryArea;
 

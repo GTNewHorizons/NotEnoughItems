@@ -1,7 +1,6 @@
 package codechicken.nei;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -101,9 +100,6 @@ public class NEIClientConfig {
     // Any handler not in the map will be assigned to 0, and negative numbers are fine.
     public static HashMap<String, Integer> handlerOrdering = new HashMap<>();
 
-    // List of prefixes of classes that should enable the autofocus search widget on open.
-    public static ArrayList<String> enableAutoFocusPrefixes = new ArrayList<>();
-
     // Function that extracts the handler ID from a handler, with special logic for
     // TemplateRecipeHandler: prefer using the overlay ID if it exists.
     public static final Function<IRecipeHandler, String> HANDLER_ID_FUNCTION = handler -> Objects
@@ -178,8 +174,8 @@ public class NEIClientConfig {
         tag.getTag("inventory.search.widgetAutofocus")
                 .setComment(
                         "Focus Search Widget on Open, blurs/unfocuses on mouse move unless typing has started first")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.search.widgetAutofocus", true));
+                .getIntValue(0);
+        API.addOption(new OptionCycled("inventory.search.widgetAutofocus", 3, true));
 
         tag.getTag("inventory.search.patternMode").setComment("Search Mode").getIntValue(1);
         API.addOption(new OptionCycled("inventory.search.patternMode", 3, true));
@@ -242,6 +238,74 @@ public class NEIClientConfig {
 
         });
 
+        tag.getTag("inventory.bookmarks.enabled").setComment("Enable/Disable Bookmark Panel").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.bookmarks.enabled", true));
+
+        tag.getTag("inventory.bookmarks.worldSpecific").setComment("Global or world specific bookmarks")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.bookmarks.worldSpecific", true) {
+
+            @Override
+            public boolean onClick(int button) {
+                super.onClick(button);
+                initBookmarkFile(worldPath);
+                return true;
+            }
+        });
+
+        tag.getTag("inventory.bookmarks.animation").setComment("REI Style Animation in Bookmarks")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.bookmarks.animation", true));
+
+        tag.getTag("inventory.bookmarks.recipeTooltipsMode").setComment("Show recipe tooltips in Bookmarks")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.bookmarks.recipeTooltipsMode", 4, true));
+
+        tag.getTag("inventory.bookmarks.showRecipeMarker").setComment("Show Recipe Marker").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.bookmarks.showRecipeMarker", true));
+
+        tag.getTag("inventory.bookmarks.craftingChainDir").getIntValue(1);
+        API.addOption(new OptionCycled("inventory.bookmarks.craftingChainDir", 2, true));
+
+        tag.getTag("inventory.bookmarks.ignorePotionOverlap").setComment("Ignore overlap with potion effect HUD")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.bookmarks.ignorePotionOverlap", true));
+
+        tag.getTag("inventory.guirecipe.jeiStyleTabs").setComment("Enable/disable JEI Style Tabs")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButtonBoubs("inventory.guirecipe.jeiStyleTabs", true));
+
+        tag.getTag("inventory.guirecipe.jeiStyleRecipeCatalyst").setComment("Enable/disable JEI Style Recipe Catalysts")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.jeiStyleRecipeCatalyst", true));
+
+        tag.getTag("inventory.guirecipe.jeiStyleCycledIngredients").setComment("JEI styled cycled ingredients")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.jeiStyleCycledIngredients", true));
+
+        tag.getTag("inventory.guirecipe.cycledIngredientsTooltip").setComment("Show cycled ingredients tooltip")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.cycledIngredientsTooltip", true));
+
+        tag.getTag("inventory.guirecipe.creativeTabStyle").setComment("Creative or JEI style tabs")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.creativeTabStyle", true));
+
+        tag.getTag("inventory.guirecipe.itemPresenceOverlay").setComment("Item presence overlay on ?-hover")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.guirecipe.itemPresenceOverlay", 3, true));
+
+        tag.getTag("inventory.guirecipe.slotHighlightPresent").setComment("Highlight Present Item")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.slotHighlightPresent", true));
+
+        tag.getTag("inventory.guirecipe.shiftOverlayRecipe")
+                .setComment("Require holding shift to move items when overlaying recipe").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.shiftOverlayRecipe", true));
+
+        tag.getTag("inventory.guirecipe.profile").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.profile", true));
+
         tag.getTag("inventory.history.enabled").setComment("Enable/disable History Panel").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.history.enabled", true));
 
@@ -265,6 +329,9 @@ public class NEIClientConfig {
             }
         });
 
+        tag.getTag("inventory.collapsibleItems.customName").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.collapsibleItems.customName", true));
+
         tag.getTag("inventory.collapsibleItems.expandedColor")
                 .setComment("Color of the collapsible item expanded state").getHexValue(0x335555EE);
         API.addOption(new OptionIntegerField("inventory.collapsibleItems.expandedColor"));
@@ -285,6 +352,31 @@ public class NEIClientConfig {
                         return super.onClick(button);
                     }
                 });
+
+        tag.getTag("inventory.itemzoom.enabled").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.itemzoom.enabled", true));
+
+        tag.getTag("inventory.itemzoom.neiOnly")
+                .setComment("Zoom items only from the JEI ingredient and bookmark list overlays.")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.itemzoom.neiOnly", true));
+
+        tag.getTag("inventory.itemzoom.onlySolid").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.itemzoom.onlySolid", true));
+
+        tag.getTag("inventory.itemzoom.helpText")
+                .setComment("Display name \"Item Zoom\" and the hotkey to toggle this mod below the zoomed item.")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.itemzoom.helpText", true));
+
+        tag.getTag("inventory.itemzoom.zoom").getIntValue(500);
+        API.addOption(new OptionIntegerField("inventory.itemzoom.zoom", ItemZoom.MIN_ZOOM, ItemZoom.MAX_ZOOM));
+
+        tag.getTag("inventory.itemzoom.showName").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.itemzoom.showName", true));
+
+        tag.getTag("inventory.itemzoom.nameColor").getHexValue(0xFFFFFFFF);
+        API.addOption(new OptionIntegerField("inventory.itemzoom.nameColor"));
 
         tag.getTag("inventory.itemIDs").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemIDs", 3, true));
@@ -307,9 +399,6 @@ public class NEIClientConfig {
         API.addOption(new OptionOpenGui("world.panels", GuiPanelSettings.class));
 
         API.addOption(new OptionOpenGui("world.presets", GuiPresetList.class));
-
-        tag.getTag("inventory.profileRecipes").getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.profileRecipes", true));
 
         tag.getTag("inventory.disableMouseScrollTransfer").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.disableMouseScrollTransfer", true));
@@ -339,18 +428,6 @@ public class NEIClientConfig {
         tag.getTag("command.heal").setDefaultValue("");
         API.addOption(new OptionTextField("command.heal"));
 
-        tag.getTag("inventory.worldSpecificBookmarks").setComment("Global or world specific bookmarks")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.worldSpecificBookmarks", true) {
-
-            @Override
-            public boolean onClick(int button) {
-                super.onClick(button);
-                initBookmarkFile(worldPath);
-                return true;
-            }
-        });
-
         tag.getTag("inventory.worldSpecificPresets").setComment("Global or world specific presets")
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.worldSpecificPresets", true) {
@@ -363,58 +440,12 @@ public class NEIClientConfig {
             }
         });
 
-        tag.getTag("inventory.bookmarksEnabled").setComment("Enable/disable bookmarks").getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.bookmarksEnabled", true));
-
-        tag.getTag("inventory.bookmarksAnimationEnabled").setComment("REI Style Animation in Bookmarks")
-                .getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.bookmarksAnimationEnabled", true));
-
-        tag.getTag("inventory.recipeTooltipsMode").setComment("Show recipe tooltips in Bookmarks").getIntValue(1);
-        API.addOption(new OptionCycled("inventory.recipeTooltipsMode", 4, true));
-
-        tag.getTag("inventory.showRecipeMarker").setComment("Show Recipe Marker").getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.showRecipeMarker", true));
-
         tag.getTag("inventory.showItemQuantityWidget").setComment("Show Item Quantity Widget").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.showItemQuantityWidget", true));
-
-        tag.getTag("inventory.firstInvCloseClosesInSearch").setComment(
-                "Pressing the open inventory key when the inventory was just opened when the search is focused will close it instead of typing in the search")
-                .getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.firstInvCloseClosesInSearch", true));
-
-        tag.getTag("inventory.jei_style_tabs").setComment("Enable/disable JEI Style Tabs").getBooleanValue(true);
-        API.addOption(new OptionToggleButtonBoubs("inventory.jei_style_tabs", true));
-
-        tag.getTag("inventory.itemPresenceOverlay").setComment("Item presence overlay on ?-hover").getIntValue(1);
-        API.addOption(new OptionCycled("inventory.itemPresenceOverlay", 3, true));
-
-        tag.getTag("inventory.slotHighlightPresent").setComment("Highlight Present Item").getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.slotHighlightPresent", true));
-
-        tag.getTag("inventory.jei_style_recipe_catalyst").setComment("Enable/disable JEI Style Recipe Catalysts")
-                .getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.jei_style_recipe_catalyst", true));
-
-        tag.getTag("inventory.creative_tab_style").setComment("Creative or JEI style tabs").getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.creative_tab_style", true));
-
-        tag.getTag("inventory.ignore_potion_overlap").setComment("Ignore overlap with potion effect HUD")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.ignore_potion_overlap", true));
 
         tag.getTag("inventory.optimize_gui_overlap_computation").setComment("Optimize computation for GUI overlap")
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.optimize_gui_overlap_computation", true));
-
-        tag.getTag("inventory.jei_style_cycled_ingredients").setComment("JEI styled cycled ingredients")
-                .getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.jei_style_cycled_ingredients", true));
-
-        tag.getTag("inventory.shift_overlay_recipe")
-                .setComment("Require holding shift to move items when overlaying recipe").getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.shift_overlay_recipe", true));
 
         tag.getTag("tools.handler_load_from_config").setComment("ADVANCED: Load handlers from config")
                 .getBooleanValue(false);
@@ -484,6 +515,7 @@ public class NEIClientConfig {
         API.addHashBind("gui.search", Keyboard.KEY_F);
         API.addHashBind("gui.bookmark", Keyboard.KEY_A);
         API.addHashBind("gui.bookmark_recipe", Keyboard.KEY_A + NEIClientUtils.SHIFT_HASH);
+        API.addHashBind("gui.remove_recipe", Keyboard.KEY_A + NEIClientUtils.SHIFT_HASH);
         API.addHashBind("gui.bookmark_count", Keyboard.KEY_A + NEIClientUtils.CTRL_HASH);
         API.addHashBind(
                 "gui.bookmark_recipe_count",
@@ -497,6 +529,11 @@ public class NEIClientConfig {
         API.addKeyBind("gui.getprevioussearch", Keyboard.KEY_UP);
         API.addKeyBind("gui.getnextsearch", Keyboard.KEY_DOWN);
         API.addHashBind("gui.next_tooltip", Keyboard.KEY_Z);
+
+        API.addHashBind("gui.itemzoom_toggle", Keyboard.KEY_Z + NEIClientUtils.SHIFT_HASH);
+        API.addHashBind("gui.itemzoom_hold", 0);
+        API.addHashBind("gui.itemzoom_zoom_in", 0);
+        API.addHashBind("gui.itemzoom_zoom_out", 0);
 
         API.addKeyBind("world.chunkoverlay", Keyboard.KEY_F9);
         API.addKeyBind("world.moboverlay", Keyboard.KEY_F7);
@@ -530,9 +567,9 @@ public class NEIClientConfig {
             specificDir.mkdirs();
         }
 
+        world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
         initBookmarkFile(worldPath);
         initPresetsFile(worldPath);
-        world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
         onWorldLoad(newWorld);
     }
 
@@ -668,7 +705,7 @@ public class NEIClientConfig {
 
     private static void initBookmarkFile(String worldPath) {
 
-        if (!global.config.getTag("inventory.worldSpecificBookmarks").getBooleanValue()) {
+        if (!global.config.getTag("inventory.bookmarks.worldSpecific").getBooleanValue()) {
             worldPath = "global";
         }
 
@@ -703,19 +740,19 @@ public class NEIClientConfig {
     }
 
     public static boolean isBookmarkPanelHidden() {
-        return !getBooleanSetting("inventory.bookmarksEnabled");
+        return !getBooleanSetting("inventory.bookmarks.enabled");
     }
 
     public static boolean areBookmarksAnimated() {
-        return getBooleanSetting("inventory.bookmarksAnimationEnabled");
+        return getBooleanSetting("inventory.bookmarks.animation");
     }
 
     public static int getRecipeTooltipsMode() {
-        return getIntSetting("inventory.recipeTooltipsMode");
+        return getIntSetting("inventory.bookmarks.recipeTooltipsMode");
     }
 
     public static boolean showRecipeMarker() {
-        return getBooleanSetting("inventory.showRecipeMarker");
+        return getBooleanSetting("inventory.bookmarks.showRecipeMarker");
     }
 
     public static boolean showItemQuantityWidget() {
@@ -726,36 +763,36 @@ public class NEIClientConfig {
         return getBooleanSetting("inventory.search.widgetPosition");
     }
 
-    public static boolean searchWidgetAutofocus() {
-        return getBooleanSetting("inventory.search.widgetAutofocus");
-    }
-
-    public static boolean isFirstInvCloseClosesInSearch() {
-        return getBooleanSetting("inventory.firstInvCloseClosesInSearch");
+    public static int searchWidgetAutofocus() {
+        return getIntSetting("inventory.search.widgetAutofocus");
     }
 
     public static boolean areJEIStyleTabsVisible() {
-        return getBooleanSetting("inventory.jei_style_tabs");
+        return getBooleanSetting("inventory.guirecipe.jeiStyleTabs");
     }
 
     public static int itemPresenceOverlay() {
-        return getIntSetting("inventory.itemPresenceOverlay");
+        return getIntSetting("inventory.guirecipe.itemPresenceOverlay");
     }
 
     public static boolean isSlotHighlightPresent() {
-        return getBooleanSetting("inventory.slotHighlightPresent");
+        return getBooleanSetting("inventory.guirecipe.slotHighlightPresent");
     }
 
     public static boolean areJEIStyleRecipeCatalystsVisible() {
-        return getBooleanSetting("inventory.jei_style_recipe_catalyst");
+        return getBooleanSetting("inventory.guirecipe.jeiStyleRecipeCatalyst");
     }
 
     public static boolean useCreativeTabStyle() {
-        return getBooleanSetting("inventory.creative_tab_style");
+        return getBooleanSetting("inventory.guirecipe.creativeTabStyle");
     }
 
     public static boolean ignorePotionOverlap() {
-        return getBooleanSetting("inventory.ignore_potion_overlap");
+        return getBooleanSetting("inventory.bookmarks.ignorePotionOverlap");
+    }
+
+    public static int craftingChainDir() {
+        return getIntSetting("inventory.bookmarks.craftingChainDir");
     }
 
     public static boolean optimizeGuiOverlapComputation() {
@@ -763,11 +800,15 @@ public class NEIClientConfig {
     }
 
     public static boolean useJEIStyledCycledIngredients() {
-        return getBooleanSetting("inventory.jei_style_cycled_ingredients");
+        return getBooleanSetting("inventory.guirecipe.jeiStyleCycledIngredients");
+    }
+
+    public static boolean showCycledIngredientsTooltip() {
+        return getBooleanSetting("inventory.guirecipe.cycledIngredientsTooltip");
     }
 
     public static boolean requireShiftForOverlayRecipe() {
-        return getBooleanSetting("inventory.shift_overlay_recipe");
+        return getBooleanSetting("inventory.guirecipe.shiftOverlayRecipe");
     }
 
     public static boolean isEnabled() {
@@ -787,7 +828,7 @@ public class NEIClientConfig {
     }
 
     public static boolean isProfileRecipeEnabled() {
-        return NEIClientConfig.getBooleanSetting("inventory.profileRecipes");
+        return NEIClientConfig.getBooleanSetting("inventory.guirecipe.profile");
     }
 
     public static void setEnabled(boolean flag) {

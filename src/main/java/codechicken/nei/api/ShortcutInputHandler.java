@@ -44,7 +44,7 @@ public abstract class ShortcutInputHandler {
             return ItemPanels.bookmarkPanel.pullBookmarkItems(ItemPanels.bookmarkPanel.getHoveredGroupId(true), true);
         }
 
-        if (stackover == null && NEIClientConfig.isKeyHashDown("gui.bookmark_recipe")) {
+        if (stackover == null && NEIClientConfig.isKeyHashDown("gui.remove_recipe")) {
             final int groupId = ItemPanels.bookmarkPanel.getHoveredGroupId(true);
 
             if (groupId != -1) {

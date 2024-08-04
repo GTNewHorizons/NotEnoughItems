@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -90,7 +91,7 @@ public class ItemList {
 
         @Override
         public boolean matches(ItemStack item) {
-            return pattern.matcher(item.getDisplayName()).find();
+            return pattern.matcher(EnumChatFormatting.getTextWithoutFormattingCodes(item.getDisplayName())).find();
         }
     }
 
@@ -230,7 +231,7 @@ public class ItemList {
 
             ItemSorter.sort(items);
 
-            if (NEIClientConfig.enableCollapsibleItems()) {
+            if (!ItemList.collapsibleItems.isEmpty()) {
                 HashMap<Integer, Integer> groups = new HashMap<>();
                 int orderIndex = 0;
 

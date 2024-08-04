@@ -89,9 +89,9 @@ nei.options.inventory.cheatmode.0=Tarif modu
 nei.options.inventory.cheatmode.1=Yardımcı mod
 nei.options.inventory.cheatmode.2=Hileli mod
 
-nei.options.inventory.profileRecipes=Profil tarifleri
-nei.options.inventory.profileRecipes.true=Yazı
-nei.options.inventory.profileRecipes.false=Şekil
+nei.options.inventory.guirecipe.profile=Profil tarifleri
+nei.options.inventory.guirecipe.profile.true=Yazı
+nei.options.inventory.guirecipe.profile.false=Şekil
 nei.options.inventory.itemsort=Item Panel Sıralaması
 nei.options.inventory.itemIDs=Item IDleri
 nei.options.inventory.itemIDs.0=Gizli

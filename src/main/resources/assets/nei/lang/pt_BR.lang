@@ -90,8 +90,8 @@ nei.options.inventory.cheatmode.1=Modo Utilidade
 nei.options.inventory.cheatmode.2=Modo Cheat
 
 nei.options.inventory.profileRecAtivaripes=Perfilar Receitas
-nei.options.inventory.profileRecipes.true=Verdadeiro
-nei.options.inventory.profileRecipes.false=Falso
+nei.options.inventory.guirecipe.profile.true=Verdadeiro
+nei.options.inventory.guirecipe.profile.false=Falso
 nei.options.inventory.itemsort=Ordenamento do Painel de Itens
 nei.options.inventory.itemIDs=IDs de Itens
 nei.options.inventory.itemIDs.0=Escondido
