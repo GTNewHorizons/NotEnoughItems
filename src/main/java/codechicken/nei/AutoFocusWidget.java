@@ -31,8 +31,8 @@ public class AutoFocusWidget implements IContainerInputHandler {
     protected boolean autofocus = false;
     protected Point mouse;
 
-    static {
-        GuiContainerManager.addInputHandler(instance);
+    public AutoFocusWidget() {
+        GuiContainerManager.addInputHandler(this);
     }
 
     public void load(GuiContainer gui) {

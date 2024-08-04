@@ -1,13 +1,10 @@
 package codechicken.nei;
 
-import static codechicken.nei.NEIClientUtils.translate;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
@@ -219,22 +216,6 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
 
     @Override
     public boolean handleClick(int mousex, int mousey, int button) {
-
-        if (grid.contains(mousex, mousey) && NEIClientUtils.getHeldItem() != null) {
-
-            if (NEIClientConfig.canPerformAction("delete") && NEIClientConfig.canPerformAction("item")) {
-                if (button == 1) {
-                    NEIClientUtils.decreaseSlotStack(-999);
-                } else {
-                    NEIClientUtils.deleteHeldItem();
-                }
-            } else {
-                NEIClientUtils.dropHeldItem();
-            }
-
-            return true;
-        }
-
         if (handleClickExt(mousex, mousey, button)) return true;
 
         ItemPanelSlot hoverSlot = getSlotMouseOver(mousex, mousey);
@@ -399,14 +380,6 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
 
     @Override
     public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
-
-        if (grid.contains(mousex, mousey) && NEIClientUtils.getHeldItem() != null) {
-            if (NEIClientConfig.canPerformAction("delete") && NEIClientConfig.canPerformAction("item")) {
-                currenttip.clear();
-                currenttip.add(EnumChatFormatting.RED + translate("itempanel.deleteItem") + EnumChatFormatting.RESET);
-            }
-        }
-
         return currenttip;
     }
 

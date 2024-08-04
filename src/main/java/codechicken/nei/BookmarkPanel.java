@@ -1408,6 +1408,8 @@ public class BookmarkPanel extends PanelWidget {
 
     public BookmarkPanel() {
         grid = new BookmarkGrid();
+        namespaces.add(new BookmarkGrid());
+        setNamespace(0);
     }
 
     @Override
@@ -1464,8 +1466,6 @@ public class BookmarkPanel extends PanelWidget {
             }
         };
 
-        namespaces.add(new BookmarkGrid());
-        setNamespace(activeNamespaceIndex);
     }
 
     @Override
@@ -1749,7 +1749,7 @@ public class BookmarkPanel extends PanelWidget {
     }
 
     protected void setNamespace(int namespaceIndex) {
-        activeNamespaceIndex = namespaceIndex;
+        activeNamespaceIndex = Math.min(namespaceIndex, namespaces.size() - 1);
         grid = namespaces.get(activeNamespaceIndex);
 
         if (grid.size() == 0 && activeNamespaceIndex > 0) {

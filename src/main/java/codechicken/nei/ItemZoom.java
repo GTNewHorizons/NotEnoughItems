@@ -42,8 +42,10 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
     @Override
     public void draw(int mx, int my) {
 
-        if (this.stack != null && (NEIClientConfig.getBooleanSetting("inventory.itemzoom.enabled")
-                || NEIClientConfig.isKeyHashDown("gui.itemzoom_hold"))) {
+        if (this.stack != null
+                && (NEIClientConfig.getBooleanSetting("inventory.itemzoom.enabled")
+                        || NEIClientConfig.isKeyHashDown("gui.itemzoom_hold"))
+                && GuiContainerManager.shouldShowTooltip(NEIClientUtils.getGuiContainer())) {
             final float inverseScaleFactor = 1.0f / this.scale;
             final float screenScale = getScreenScale();
             final float size = SLOT_SIZE * this.scale;

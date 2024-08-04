@@ -661,6 +661,7 @@ public class NEIClientConfig {
         ItemInfo.load(world);
         GuiInfo.load();
         RecipeInfo.load();
+        HeldItemHandler.load();
         LayoutManager.load();
         NEIController.load();
         BookmarkContainerInfo.load();

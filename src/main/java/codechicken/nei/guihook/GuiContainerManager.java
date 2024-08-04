@@ -545,11 +545,6 @@ public class GuiContainerManager {
     }
 
     public void renderToolTips(int mousex, int mousey) {
-
-        if (!shouldShowTooltip(window)) {
-            return;
-        }
-
         List<String> tooltip = new LinkedList<>();
         Map<String, String> hotkeys = new HashMap<>();
         FontRenderer font = GuiDraw.fontRenderer;
@@ -559,7 +554,7 @@ public class GuiContainerManager {
                 tooltip = handler.handleTooltip(window, mousex, mousey, tooltip);
         }
 
-        if (tooltip.isEmpty()) { // mouseover tip, not holding an item
+        if (tooltip.isEmpty() && shouldShowTooltip(window)) { // mouseover tip, not holding an item
             ItemStack stack = getStackMouseOver(window);
             font = getFontRenderer(stack);
             if (stack != null) {
@@ -659,6 +654,7 @@ public class GuiContainerManager {
     }
 
     public static boolean shouldShowTooltip(GuiContainer window) {
+        if (window == null) return false;
         for (IContainerObjectHandler handler : objectHandlers) if (!handler.shouldShowTooltip(window)) return false;
 
         return window.mc.thePlayer.inventory.getItemStack() == null;
