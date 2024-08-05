@@ -30,6 +30,7 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
     private Boolean previousKeyboardRepeatEnabled = null;
 
     private ItemStack stack = null;
+    private String displayName = "";
     private int availableAreaWidth = 0;
     private float xPosition = 0;
     private float yPosition = 0;
@@ -61,8 +62,7 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
             GL11.glPopMatrix();
 
             if (NEIClientConfig.getBooleanSetting("inventory.itemzoom.showName")) {
-                String dispalyName = NEIClientUtils
-                        .cropText(fontRenderer, this.stack.getDisplayName(), this.availableAreaWidth);
+                String dispalyName = NEIClientUtils.cropText(fontRenderer, this.displayName, this.availableAreaWidth);
                 drawStringC(
                         dispalyName,
                         (int) ((this.xPosition + size / 2) * screenScale),
@@ -114,9 +114,16 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
                 this.xPosition += (gui.guiLeft + gui.xSize) * screenScale;;
             }
 
+            try {
+                this.displayName = stack.getDisplayName();
+            } catch (Throwable ignored) {
+                this.displayName = "Unnamed";
+            }
+
             this.stack = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack), 0);
         } else {
             this.stack = null;
+            this.displayName = "";
         }
     }
 
