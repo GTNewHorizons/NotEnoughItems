@@ -195,12 +195,12 @@ public class BookmarkPanel extends PanelWidget {
     protected static class ItemStackMetadata {
 
         public int factor;
-        public Integer groupId;
+        public int groupId;
         public BookmarkRecipeId recipeId;
         public boolean ingredient = false;
         public boolean fluidDisplay = false;
 
-        public ItemStackMetadata(BookmarkRecipeId recipeId, int factor, boolean ingredient, Integer groupId,
+        public ItemStackMetadata(BookmarkRecipeId recipeId, int factor, boolean ingredient, int groupId,
                 boolean fluidDisplay) {
             this.recipeId = recipeId;
             this.factor = factor;
@@ -209,7 +209,7 @@ public class BookmarkPanel extends PanelWidget {
             this.fluidDisplay = fluidDisplay;
         }
 
-        public ItemStackMetadata(BookmarkRecipeId recipeId, NBTTagCompound nbTag, boolean ingredient, Integer groupId) {
+        public ItemStackMetadata(BookmarkRecipeId recipeId, NBTTagCompound nbTag, boolean ingredient, int groupId) {
             this(recipeId, nbTag.getInteger("Count"), ingredient, groupId, nbTag.hasKey("gtFluidName"));
         }
 
