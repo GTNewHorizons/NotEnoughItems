@@ -39,6 +39,7 @@ import net.minecraftforge.common.IShearable;
 import net.minecraftforge.oredict.OreDictionary;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.mitchej123.hodgepodge.config.TweaksConfig;
 
 import codechicken.core.featurehack.GameDataManipulator;
 import codechicken.nei.InfiniteStackSizeHandler;
@@ -64,6 +65,7 @@ import codechicken.nei.search.ModNameFilter;
 import codechicken.nei.search.OreDictionaryFilter;
 import codechicken.nei.search.TooltipFilter;
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
@@ -211,7 +213,7 @@ public class ItemInfo {
             public String[] dump(Block block, int id, String name) {
                 final Item item = Item.getItemFromBlock(block);
                 return new String[] { name, Integer.toString(id), Boolean.toString(item != null),
-                        ItemInfo.itemOwners.get(block), block.getClass().getCanonicalName(),
+                        ItemInfo.itemOwners.get(item), block.getClass().getCanonicalName(),
                         item != null ? EnumChatFormatting.getTextWithoutFormattingCodes(
                                 GuiContainerManager.itemDisplayNameShort(new ItemStack(item))) : "null" };
             }
@@ -458,8 +460,10 @@ public class ItemInfo {
     }
 
     private static void addSpawnEggs() {
-        addEntityEgg(EntitySnowman.class, 0xEEFFFF, 0xffa221);
-        addEntityEgg(EntityIronGolem.class, 0xC5C2C1, 0xffe1cc);
+        if (!Loader.isModLoaded("hodgepodge") || !TweaksConfig.addModEntityStats) {
+            addEntityEgg(EntitySnowman.class, 0xEEFFFF, 0xffa221);
+            addEntityEgg(EntityIronGolem.class, 0xC5C2C1, 0xffe1cc);
+        }
     }
 
     @SuppressWarnings("unchecked")
