@@ -120,27 +120,7 @@ public class ItemHistoryPanel extends Widget {
 
     @Override
     public boolean handleClick(int mousex, int mousey, int button) {
-
         if (handleClickExt(mousex, mousey, button)) return true;
-
-        if (NEIClientUtils.getHeldItem() != null) {
-
-            if (!grid.contains(mousex, mousey)) {
-                return false;
-            }
-
-            if (NEIClientConfig.canPerformAction("delete") && NEIClientConfig.canPerformAction("item")) {
-                if (button == 1) {
-                    NEIClientUtils.decreaseSlotStack(-999);
-                } else {
-                    NEIClientUtils.deleteHeldItem();
-                }
-            } else {
-                NEIClientUtils.dropHeldItem();
-            }
-
-            return true;
-        }
 
         ItemPanelSlot hoverSlot = getSlotMouseOver(mousex, mousey);
         if (hoverSlot != null) {
@@ -168,7 +148,8 @@ public class ItemHistoryPanel extends Widget {
         if (hoverSlot != null && hoverSlot.slotIndex == mouseDownSlot && ItemPanels.itemPanel.draggedStack == null) {
             ItemStack item = hoverSlot.item.copy();
 
-            if (NEIController.manager.window instanceof GuiRecipe || !NEIClientConfig.canCheatItem(item)) {
+            if (NEIController.manager.window instanceof GuiRecipe || NEIClientUtils.shiftKey()
+                    || !NEIClientConfig.canCheatItem(item)) {
 
                 if (button == 0) {
                     GuiCraftingRecipe.openRecipeGui("item", item);

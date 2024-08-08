@@ -42,6 +42,7 @@ import codechicken.core.GuiModListScroll;
 import codechicken.lib.packet.PacketCustom;
 import codechicken.nei.api.API;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.StackInfo;
 import cpw.mods.fml.client.CustomModLoadingErrorDisplayException;
@@ -243,7 +244,7 @@ public class ClientHandler {
 
         try (FileReader reader = new FileReader(file)) {
             NEIClientConfig.logger.info("Loading enable auto focus from file {}", file);
-            NEIClientConfig.enableAutoFocusPrefixes = IOUtils.readLines(reader).stream()
+            AutoFocusWidget.enableAutoFocusPrefixes = IOUtils.readLines(reader).stream()
                     .filter((line) -> !line.startsWith("#")).collect(Collectors.toCollection(ArrayList::new));
         } catch (IOException e) {
             NEIClientConfig.logger.error("Failed to load enable auto focus from file {}", file, e);
@@ -265,6 +266,7 @@ public class ClientHandler {
 
     public static void postInit() {
         loadHandlerOrdering();
+        GuiContainerManager.registerReloadResourceListener();
     }
 
     public static void loadHandlerOrdering() {

@@ -32,7 +32,9 @@ import static codechicken.nei.NEIClientUtils.toggleRaining;
 import static codechicken.nei.NEIClientUtils.translate;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
 import net.minecraft.client.Minecraft;
@@ -40,7 +42,6 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
-import net.minecraft.client.settings.GameSettings;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -53,7 +54,6 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.KeyManager.IKeyStateTracker;
 import codechicken.nei.api.API;
 import codechicken.nei.api.GuiInfo;
-import codechicken.nei.api.INEIAutoFocusSearchEnable;
 import codechicken.nei.api.IRecipeOverlayRenderer;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.api.LayoutStyle;
@@ -84,13 +84,13 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
      */
     private static TreeSet<Widget> controlWidgets = new TreeSet<>(new WidgetZOrder(true));
 
+    private static List<IContainerTooltipHandler> tooltipWidgets = new LinkedList<>();
+
     public static ItemPanel itemPanel;
     public static BookmarkPanel bookmarkPanel;
     public static SubsetWidget dropDown;
     public static SearchField searchField;
-    public static boolean searchInitFocusedCancellable = false;
-    protected static int mousePriorX;
-    protected static int mousePriorY;
+    public static ItemZoom itemZoom;
 
     public static ButtonCycled options;
     public static ButtonCycled bookmarksButton;
@@ -167,37 +167,9 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         return getSideWidth(gui);
     }
 
-    protected boolean isAllowedGuiAutoSearchFocus(GuiContainer gui) {
-        if (gui instanceof INEIAutoFocusSearchEnable) {
-            return true;
-        }
-        String guiClassName = gui.getClass().getName();
-        for (String prefix : NEIClientConfig.enableAutoFocusPrefixes) {
-            if (guiClassName.startsWith(prefix)) {
-                return true;
-            }
-        }
-        // Maybe make this an option to make it easier to figure out what GPU class to add to the configuration?
-        // NEIClientConfig.logger.info("Checking for autofocus on " + guiClassName + " had no match");
-        return false;
-    }
-
-    protected void searchFocusInitCancelCheck() {
-        if (searchInitFocusedCancellable) {
-            if (searchField.isVisible() && NEIClientConfig.searchWidgetAutofocus()
-                    && getInputFocused() == searchField) {
-                searchField.setFocus(false);
-                setInputFocused(null);
-            }
-            searchInitFocusedCancellable = false;
-        }
-    }
-
     @Override
     public void onMouseClicked(GuiContainer gui, int mousex, int mousey, int button) {
         if (isHidden()) return;
-
-        searchFocusInitCancelCheck();
 
         for (Widget widget : controlWidgets) widget.onGuiClick(mousex, mousey);
     }
@@ -207,8 +179,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (isHidden()) return false;
 
         if (!isEnabled()) return options.contains(mousex, mousey) && options.handleClick(mousex, mousey, button);
-
-        searchFocusInitCancelCheck();
 
         for (Widget widget : controlWidgets) {
             widget.onGuiClick(mousex, mousey);
@@ -230,14 +200,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     public boolean keyTyped(GuiContainer gui, char keyChar, int keyID) {
         if (isEnabled() && !isHidden()) {
-            if (searchInitFocusedCancellable) {
-                searchInitFocusedCancellable = false;
-                if (NEIClientConfig.isFirstInvCloseClosesInSearch()
-                        && GameSettings.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindInventory)) {
-                    searchField.setFocus(false);
-                    setInputFocused(null);
-                }
-            }
             if (inputFocused != null) return inputFocused.handleKeyPress(keyID, keyChar);
 
             for (Widget widget : controlWidgets) if (widget.handleKeyPress(keyID, keyChar)) return true;
@@ -258,7 +220,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         }
 
         if (NEIClientConfig.isKeyHashDown("gui.hide_bookmarks")) {
-            toggleBooleanSetting("inventory.bookmarksEnabled");
+            toggleBooleanSetting("inventory.bookmarks.enabled");
             return true;
         }
 
@@ -276,7 +238,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     public void onMouseUp(GuiContainer gui, int mx, int my, int button) {
         if (!isHidden() && isEnabled()) {
-            searchFocusInitCancelCheck();
             for (Widget widget : controlWidgets) widget.mouseUp(mx, my, button);
         }
     }
@@ -284,7 +245,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public void onMouseDragged(GuiContainer gui, int mx, int my, int button, long heldTime) {
         if (!isHidden() && isEnabled()) {
-            searchFocusInitCancelCheck();
             for (Widget widget : controlWidgets) widget.mouseDragged(mx, my, button, heldTime);
         }
     }
@@ -303,14 +263,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public void renderObjects(GuiContainer gui, int mousex, int mousey) {
         if (!isHidden()) {
             layout(gui);
-            if (mousePriorX == -1) {
-                mousePriorX = mousex;
-                mousePriorY = mousey;
-            } else if (mousePriorX != mousex || mousePriorY != mousey) {
-                searchFocusInitCancelCheck();
-                mousePriorX = mousex;
-                mousePriorY = mousey;
-            }
             if (isEnabled()) {
                 getLayoutStyle().drawBackground(GuiContainerManager.getManager(gui));
                 for (Widget widget : drawWidgets) widget.draw(mousex, mousey);
@@ -342,6 +294,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
         if (!isHidden() && isEnabled() && GuiContainerManager.shouldShowTooltip(gui)) {
             for (Widget widget : drawWidgets) currenttip = widget.handleTooltip(mousex, mousey, currenttip);
+            for (IContainerTooltipHandler tip : tooltipWidgets)
+                currenttip = tip.handleTooltip(gui, mousex, mousey, currenttip);
         }
         return currenttip;
     }
@@ -359,13 +313,35 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             currenttip.set(0, mainname);
         }
 
+        if (!isHidden() && isEnabled() && GuiContainerManager.shouldShowTooltip(gui)) {
+            for (IContainerTooltipHandler tip : tooltipWidgets)
+                currenttip = tip.handleItemDisplayName(gui, stack, currenttip);
+        }
+
         return currenttip;
     }
 
     @Override
     public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
             List<String> currenttip) {
+
+        if (!isHidden() && isEnabled() && GuiContainerManager.shouldShowTooltip(gui)) {
+            for (IContainerTooltipHandler tip : tooltipWidgets)
+                currenttip = tip.handleItemTooltip(gui, itemstack, mousex, mousey, currenttip);
+        }
+
         return currenttip;
+    }
+
+    @Override
+    public Map<String, String> handleHotkeys(GuiContainer gui, int mousex, int mousey, Map<String, String> hotkeys) {
+
+        if (!isHidden() && isEnabled() && GuiContainerManager.shouldShowTooltip(gui)) {
+            for (IContainerTooltipHandler tip : tooltipWidgets)
+                hotkeys = tip.handleHotkeys(gui, mousex, mousey, hotkeys);
+        }
+
+        return hotkeys;
     }
 
     public static void layout(GuiContainer gui) {
@@ -402,6 +378,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
         bookmarkPanel = ItemPanels.bookmarkPanel;
         bookmarkPanel.init();
+
+        itemZoom = new ItemZoom();
 
         dropDown = new SubsetWidget();
         searchField = new SearchField("search");
@@ -470,7 +448,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
             @Override
             public boolean onButtonPress(boolean rightclick) {
-                NEIClientConfig.toggleBooleanSetting("inventory.bookmarksEnabled");
+                NEIClientConfig.toggleBooleanSetting("inventory.bookmarks.enabled");
                 return true;
             }
 
@@ -668,15 +646,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
             getLayoutStyle().init();
             layout(gui);
-            mousePriorX = -1;
-            mousePriorY = -1;
-
-            if (searchField.isVisible() && NEIClientConfig.searchWidgetAutofocus()
-                    && isAllowedGuiAutoSearchFocus(gui)) {
-                searchField.setFocus(true);
-                setInputFocused(searchField);
-                searchInitFocusedCancellable = true;
-            }
+            AutoFocusWidget.instance.load(gui);
         }
 
         NEIController.load(gui);
@@ -703,6 +673,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public static void updateWidgetVisiblities(GuiContainer gui, VisiblityData visiblity) {
         drawWidgets = new TreeSet<>(new WidgetZOrder(false));
         controlWidgets = new TreeSet<>(new WidgetZOrder(true));
+        tooltipWidgets.clear();
 
         if (!visiblity.showNEI) return;
 
@@ -735,6 +706,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             if (canPerformAction("delete")) addWidget(delete);
         }
 
+        addWidget(itemZoom);
+
         if (visiblity.showSubsetDropdown) {
             // Bookmarks or Subset/dropdown
             addWidget(dropDown);
@@ -754,6 +727,10 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public static void addWidget(Widget widget) {
         drawWidgets.add(widget);
         controlWidgets.add(widget);
+
+        if (widget instanceof IContainerTooltipHandler) {
+            tooltipWidgets.add((IContainerTooltipHandler) widget);
+        }
     }
 
     @Override
@@ -768,7 +745,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public boolean mouseScrolled(GuiContainer gui, int mousex, int mousey, int scrolled) {
         if (isHidden() || !isEnabled()) return false;
-        searchFocusInitCancelCheck();
 
         for (Widget widget : drawWidgets) if (widget.onMouseWheel(scrolled, mousex, mousey)) return true;
 
@@ -876,13 +852,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public static void drawItemPresenceOverlay(int slotX, int slotY, boolean isPresent, boolean slotHighlight) {
 
         if (slotHighlight) {
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
             GL11.glDisable(GL11.GL_LIGHTING);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
-            GL11.glTranslatef(0, 0, -150);
             drawRect(slotX, slotY, 16, 16, isPresent ? 0x8000AA00 : 0x80AA0000);
-            GL11.glTranslatef(0, 0, 150);
-            GL11.glEnable(GL11.GL_LIGHTING);
-            GL11.glEnable(GL11.GL_DEPTH_TEST);
+            GL11.glPopAttrib();
         } else {
             Image icon = itemPresenceOverlays[isPresent ? 1 : 0];
             drawIcon(slotX + 16 - icon.width, slotY + 16 - icon.height, icon);

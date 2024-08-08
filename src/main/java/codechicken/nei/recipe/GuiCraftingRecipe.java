@@ -41,7 +41,7 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         } else if ("recipeId".equals(outputId)) {
             recipeId = (BookmarkRecipeId) results[1];
         } else {
-            recipeId = getCurrentRecipe(mc.currentScreen);
+            recipeId = getCurrentRecipeId(mc.currentScreen);
         }
 
         final ArrayList<ICraftingHandler> handlers = getCraftingHandlers(outputId, results);

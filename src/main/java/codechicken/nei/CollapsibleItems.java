@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -18,9 +19,16 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase.NBTPrimitive;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.oredict.OreDictionary;
 
 import org.apache.commons.io.IOUtils;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 import codechicken.nei.ItemList.AllMultiItemFilter;
 import codechicken.nei.ItemList.AnyMultiItemFilter;
@@ -216,15 +224,21 @@ public class CollapsibleItems {
 
     protected static class GroupItem {
 
-        protected static int lastGroupIndex = 0;
-
-        public final int groupIndex;
-        public final ItemFilter filter;
+        public String guid;
+        public ItemFilter filter;
         public boolean expanded = false;
+        public String displayName = "";
 
-        public GroupItem(ItemFilter filter) {
-            this.groupIndex = lastGroupIndex++;
+        public GroupItem() {}
+
+        public void setFilter(String filter) {
+            this.filter = CollapsibleItems.groupParser.getFilter(filter.trim());
+            this.guid = UUID.nameUUIDFromBytes(filter.getBytes()).toString();
+        }
+
+        public void setFilter(ItemFilter filter, String guid) {
             this.filter = filter;
+            this.guid = guid;
         }
 
         public boolean matches(ItemStack stack) {
@@ -232,8 +246,9 @@ public class CollapsibleItems {
         }
     }
 
+    protected File statesFile;
     protected static final GroupTokenParser groupParser = new GroupTokenParser();
-    protected final Map<Integer, GroupItem> groups = new ConcurrentHashMap<>();
+    protected final List<GroupItem> groups = new ArrayList<>();
     protected final Map<ItemStack, Integer> cache = new ConcurrentHashMap<>();
 
     static {
@@ -242,18 +257,24 @@ public class CollapsibleItems {
     }
 
     public void reload() {
-        GroupItem.lastGroupIndex = 0;
         this.groups.clear();
         this.cache.clear();
 
         for (int i = PresetsList.presets.size() - 1; i >= 0; i--) {
             Preset preset = PresetsList.presets.get(i);
             if (preset.enabled && preset.mode == PresetMode.GROUP) {
-                addGroup(preset);
+                GroupItem group = new GroupItem();
+                group.setFilter(preset, UUID.nameUUIDFromBytes(preset.items.toString().getBytes()).toString());
+                group.displayName = preset.name;
+                addGroup(group);
             }
         }
 
-        loadCollapsibleItems();
+        if (NEIClientConfig.enableCollapsibleItems()) {
+            loadCollapsibleItems();
+        }
+
+        loadStates();
 
         if (ItemList.loadFinished) {
             LayoutManager.markItemsDirty();
@@ -277,27 +298,75 @@ public class CollapsibleItems {
 
         try (FileReader reader = new FileReader(file)) {
             NEIClientConfig.logger.info("Loading collapsible items from file {}", file);
-            IOUtils.readLines(reader).stream().filter((line) -> !line.startsWith("#") && !line.trim().isEmpty())
-                    .forEach(this::addGroup);
+            parseFile(IOUtils.readLines(reader));
         } catch (IOException e) {
             NEIClientConfig.logger.error("Failed to load collapsible items from file {}", file, e);
         }
     }
 
-    protected void addGroup(String filterText) {
-        addGroup(CollapsibleItems.groupParser.getFilter(filterText.trim()));
+    public void parseFile(List<String> itemStrings) {
+        final JsonParser parser = new JsonParser();
+        GroupItem group = new GroupItem();
+
+        for (String itemStr : itemStrings) {
+
+            if (itemStr.startsWith("#") || itemStr.trim().isEmpty()) {
+                continue;
+            }
+
+            try {
+
+                if (itemStr.startsWith("; ")) {
+                    JsonObject settings = parser.parse(itemStr.substring(2)).getAsJsonObject();
+
+                    if (settings.get("displayName") != null) {
+                        group.displayName = settings.get("displayName").getAsString();
+                    }
+
+                    if (settings.get("unlocalizedName") != null) {
+                        String displayName = StatCollector
+                                .translateToLocal(settings.get("unlocalizedName").getAsString());
+
+                        if (!displayName.equals(settings.get("unlocalizedName").getAsString())) {
+                            group.displayName = displayName;
+                        }
+                    }
+
+                    if (settings.get("expanded") != null) {
+                        group.expanded = settings.get("expanded").getAsBoolean();
+                    }
+
+                } else {
+                    group.setFilter(itemStr);
+                }
+
+                if (group != null && group.filter != null) {
+                    addGroup(group);
+                    group = new GroupItem();
+                }
+
+            } catch (IllegalArgumentException | JsonSyntaxException | IllegalStateException e) {
+                NEIClientConfig.logger.error("Failed to load collapsible items from json string:\n{}", itemStr);
+            }
+        }
     }
 
-    protected void addGroup(ItemFilter filter) {
-        if (filter == null || filter instanceof EverythingItemFilter || filter instanceof NothingItemFilter) return;
-        GroupItem group = new GroupItem(filter);
-        this.groups.put(group.groupIndex, group);
+    protected void addGroup(GroupItem group) {
+        if (group == null || group.filter == null
+                || group.filter instanceof EverythingItemFilter
+                || group.filter instanceof NothingItemFilter)
+            return;
+        this.groups.add(group);
+    }
+
+    public boolean isEmpty() {
+        return this.groups.isEmpty();
     }
 
     public ItemFilter getItemFilter() {
         AnyMultiItemFilter filter = new AnyMultiItemFilter();
 
-        for (GroupItem group : this.groups.values()) {
+        for (GroupItem group : this.groups) {
             filter.filters.add(group.filter);
         }
 
@@ -310,10 +379,10 @@ public class CollapsibleItems {
         try {
 
             ItemList.forkJoinPool.submit(() -> items.parallelStream().forEach(stack -> {
-                GroupItem group = this.groups.values().stream().filter(g -> g.matches(stack)).findFirst().orElse(null);
+                GroupItem group = this.groups.stream().filter(g -> g.matches(stack)).findFirst().orElse(null);
 
                 if (group != null) {
-                    this.cache.put(stack, group.groupIndex);
+                    this.cache.put(stack, this.groups.indexOf(group));
                 }
             })).get();
 
@@ -332,9 +401,18 @@ public class CollapsibleItems {
         return this.cache.getOrDefault(stack, -1);
     }
 
+    public String getDisplayName(int groupIndex) {
+
+        if (groupIndex < this.groups.size()) {
+            return this.groups.get(groupIndex).displayName;
+        }
+
+        return null;
+    }
+
     public boolean isExpanded(int groupIndex) {
 
-        if (this.groups.containsKey(groupIndex)) {
+        if (groupIndex < this.groups.size()) {
             return this.groups.get(groupIndex).expanded;
         }
 
@@ -343,22 +421,60 @@ public class CollapsibleItems {
 
     public void setExpanded(int groupIndex, boolean expanded) {
 
-        if (this.groups.containsKey(groupIndex)) {
+        if (groupIndex < this.groups.size()) {
             this.groups.get(groupIndex).expanded = expanded;
+            saveStates();
         }
-
     }
 
     public void toggleGroups(Boolean expanded) {
 
         if (expanded == null) {
-            expanded = !this.groups.values().stream().filter(g -> g.expanded).findAny().isPresent();
+            expanded = !this.groups.stream().filter(g -> g.expanded).findAny().isPresent();
         }
 
-        for (GroupItem group : this.groups.values()) {
+        for (GroupItem group : this.groups) {
             group.expanded = expanded;
         }
 
+        saveStates();
+    }
+
+    private void loadStates() {
+
+        try {
+
+            if (NEIClientConfig.world.nbt.hasKey("collapsibleitems")) {
+                NBTTagCompound states = NEIClientConfig.world.nbt.getCompoundTag("collapsibleitems");
+                @SuppressWarnings("unchecked")
+                final Map<String, NBTPrimitive> list = (Map<String, NBTPrimitive>) states.tagMap;
+                final Map<String, GroupItem> mapping = new HashMap<>();
+
+                for (GroupItem group : this.groups) {
+                    mapping.put(group.guid, group);
+                }
+
+                for (Map.Entry<String, NBTPrimitive> nbtEntry : list.entrySet()) {
+                    if (mapping.containsKey(nbtEntry.getKey())) {
+                        mapping.get(nbtEntry.getKey()).expanded = nbtEntry.getValue().func_150290_f() == 1;
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            NEIClientConfig.logger.error("Error loading collapsible items states", e);
+        }
+
+    }
+
+    private void saveStates() {
+        NBTTagCompound list = new NBTTagCompound();
+
+        for (GroupItem group : this.groups) {
+            list.setBoolean(group.guid, group.expanded);
+        }
+
+        NEIClientConfig.world.nbt.setTag("collapsibleitems", list);
     }
 
 }

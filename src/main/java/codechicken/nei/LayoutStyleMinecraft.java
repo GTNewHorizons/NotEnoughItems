@@ -9,6 +9,7 @@ import static codechicken.nei.LayoutManager.gamemode;
 import static codechicken.nei.LayoutManager.heal;
 import static codechicken.nei.LayoutManager.itemPanel;
 import static codechicken.nei.LayoutManager.itemPresenceOverlays;
+import static codechicken.nei.LayoutManager.itemZoom;
 import static codechicken.nei.LayoutManager.magnet;
 import static codechicken.nei.LayoutManager.options;
 import static codechicken.nei.LayoutManager.rain;
@@ -104,6 +105,7 @@ public class LayoutStyleMinecraft extends LayoutStyle {
 
         itemPanel.resize(gui);
         bookmarkPanel.resize(gui);
+        itemZoom.resize(gui);
 
         options.x = isEnabled() ? 0 : 6;
         options.y = isEnabled() ? gui.height - 22 : gui.height - 28;

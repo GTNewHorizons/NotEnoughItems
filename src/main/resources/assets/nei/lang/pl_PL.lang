@@ -89,9 +89,9 @@ nei.options.inventory.cheatmode.0=Tryb recept
 nei.options.inventory.cheatmode.1=Tryb użytku
 nei.options.inventory.cheatmode.2=Tryb oszukiwania
 
-nei.options.inventory.profileRecipes=Profiluj recepty
-nei.options.inventory.profileRecipes.true=Tak
-nei.options.inventory.profileRecipes.false=Nie
+nei.options.inventory.guirecipe.profile=Profiluj recepty
+nei.options.inventory.guirecipe.profile.true=Tak
+nei.options.inventory.guirecipe.profile.false=Nie
 nei.options.inventory.itemsort=Sortowanie paelu przedmiotów
 nei.options.inventory.itemIDs=ID przedmiotów
 nei.options.inventory.itemIDs.0=Ukryte

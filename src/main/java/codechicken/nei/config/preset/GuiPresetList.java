@@ -6,6 +6,7 @@ import java.awt.Rectangle;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.opengl.GL11;
 
@@ -25,25 +26,33 @@ public class GuiPresetList extends GuiOptionPane {
     protected final static int SLOT_HEIGHT = 24;
     protected final static int BUTTON_HEIGHT = 20;
     protected GuiCCButton createButton;
+    protected GuiCCButton toggleButton;
     protected int sortingItemIndex = -1;
 
     public GuiPresetList(Option opt) {
         this.opt = opt;
         this.createButton = new GuiCCButton(0, 2, 0, 16, NEIClientUtils.translate("presets.new"))
                 .setActionCommand("create");
+        this.toggleButton = new GuiCCButton(0, 2, 0, 16, NEIClientUtils.translate("presets.toggle"))
+                .setActionCommand("toggle");
     }
 
     @Override
     public void initGui() {
         super.initGui();
+
         this.createButton.width = getStringWidth(this.createButton.text) + 15;
         this.createButton.x = width - this.createButton.width - 15;
+
+        this.toggleButton.width = getStringWidth(this.toggleButton.text) + 15;
+        this.toggleButton.x = width - this.toggleButton.width - 15 - this.createButton.width - 10;
     }
 
     @Override
     public void addWidgets() {
         super.addWidgets();
         add(this.createButton);
+        add(this.toggleButton);
     }
 
     @Override
@@ -53,11 +62,14 @@ public class GuiPresetList extends GuiOptionPane {
         if (ident.equals("create")) {
             cretePreset();
         }
+
+        if (ident.equals("toggle")) {
+            togglePreset();
+        }
     }
 
     protected void mouseClicked(int x, int y, int button) {
         super.mouseClicked(x, y, button);
-
     }
 
     @Override
@@ -138,6 +150,16 @@ public class GuiPresetList extends GuiOptionPane {
         Minecraft.getMinecraft().displayGuiScreen(new GuiPresetSettings(this, -1));
     }
 
+    protected void togglePreset() {
+        boolean enabled = !PresetsList.presets.stream().filter(g -> g.enabled).findAny().isPresent();
+
+        for (Preset preset : PresetsList.presets) {
+            preset.enabled = enabled;
+        }
+
+        PresetsList.savePresets();
+    }
+
     protected void openPreset(int slot) {
         Minecraft.getMinecraft().displayGuiScreen(new GuiPresetSettings(this, slot));
     }
@@ -186,13 +208,16 @@ public class GuiPresetList extends GuiOptionPane {
 
         switch (preset.mode) {
             case HIDE:
-                modeName = NEIClientUtils.translate("presets.mode.hide.char");
+                modeName = EnumChatFormatting.GOLD + NEIClientUtils.translate("presets.mode.hide.char")
+                        + EnumChatFormatting.RESET;
                 break;
             case REMOVE:
-                modeName = NEIClientUtils.translate("presets.mode.remove.char");
+                modeName = EnumChatFormatting.RED + NEIClientUtils.translate("presets.mode.remove.char")
+                        + EnumChatFormatting.RESET;
                 break;
             case GROUP:
-                modeName = NEIClientUtils.translate("presets.mode.group.char");
+                modeName = EnumChatFormatting.AQUA + NEIClientUtils.translate("presets.mode.group.char")
+                        + EnumChatFormatting.RESET;
                 break;
             default:
                 modeName = "?";
@@ -215,7 +240,7 @@ public class GuiPresetList extends GuiOptionPane {
         LayoutManager.drawButtonBackground(option.x, option.y, option.w, option.h, true, optionState);
         GuiDraw.drawString("⋮⋮", option.x + 4, option.y + 5, optionState == 2 ? 0xFFFFFFA0 : 0xFFE0E0E0);
         GuiDraw.drawString(
-                NEIClientUtils.cropText(this.fontRendererObj, modeName + ":  " + displayName, option.w - 16),
+                NEIClientUtils.cropText(this.fontRendererObj, modeName + " " + displayName, option.w - 16),
                 option.x + 6 + 4,
                 option.y + 6,
                 optionState == 2 ? 0xFFFFFFA0 : 0xFFE0E0E0);

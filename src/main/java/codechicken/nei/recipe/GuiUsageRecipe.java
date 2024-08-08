@@ -27,7 +27,7 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
         if (!handlers.isEmpty()) {
             final Minecraft mc = NEIClientUtils.mc();
-            final BookmarkRecipeId recipeId = getCurrentRecipe(mc.currentScreen);
+            final BookmarkRecipeId recipeId = getCurrentRecipeId(mc.currentScreen);
             final GuiUsageRecipe gui = new GuiUsageRecipe(handlers);
 
             mc.displayGuiScreen(gui);
