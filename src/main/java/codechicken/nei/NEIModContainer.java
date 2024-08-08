@@ -63,6 +63,7 @@ public class NEIModContainer extends DummyModContainer {
     public Set<ArtifactVersion> getRequirements() {
         Set<ArtifactVersion> deps = new HashSet<>();
         deps.add(VersionParser.parseVersionReference("CodeChickenCore@[" + CodeChickenCorePlugin.version + ",)"));
+        deps.add(VersionParser.parseVersionReference("hodgepodge@[2.5.44,)"));
         return deps;
     }
 
