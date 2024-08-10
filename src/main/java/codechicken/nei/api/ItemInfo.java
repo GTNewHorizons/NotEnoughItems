@@ -69,6 +69,7 @@ import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
+import cpw.mods.fml.common.versioning.DefaultArtifactVersion;
 
 /**
  * This is an internal class for storing information about items, to be accessed by the API
@@ -460,10 +461,14 @@ public class ItemInfo {
     }
 
     private static void addSpawnEggs() {
-        if (!Loader.isModLoaded("hodgepodge") || !TweaksConfig.addModEntityStats) {
-            addEntityEgg(EntitySnowman.class, 0xEEFFFF, 0xffa221);
-            addEntityEgg(EntityIronGolem.class, 0xC5C2C1, 0xffe1cc);
+        if (Loader.isModLoaded("hodgepodge")
+                && Loader.instance().getIndexedModList().get("hodgepodge").getProcessedVersion()
+                        .compareTo(new DefaultArtifactVersion("2.5.44")) >= 0
+                && TweaksConfig.addModEntityStats) {
+            return;
         }
+        addEntityEgg(EntitySnowman.class, 0xEEFFFF, 0xffa221);
+        addEntityEgg(EntityIronGolem.class, 0xC5C2C1, 0xffe1cc);
     }
 
     @SuppressWarnings("unchecked")
