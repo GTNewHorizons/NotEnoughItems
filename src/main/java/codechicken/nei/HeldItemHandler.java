@@ -110,7 +110,10 @@ public class HeldItemHandler implements IContainerInputHandler, IContainerToolti
 
         if (contains(mousex, mousey)) {
             currenttip.clear();
-            currenttip.add(EnumChatFormatting.RED + translate("itempanel.deleteItem"));
+
+            if (NEIClientConfig.canPerformAction("delete") && NEIClientConfig.canPerformAction("item")) {
+                currenttip.add(EnumChatFormatting.RED + translate("itempanel.deleteItem"));
+            }
         }
 
         return currenttip;
