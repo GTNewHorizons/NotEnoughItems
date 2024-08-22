@@ -145,10 +145,9 @@ public class RecipeCatalysts {
             File catalystFile = NEIClientConfig.catalystFile;
             if (!catalystFile.exists()) {
                 NEIClientConfig.logger.info("Config file doesn't exist, creating");
-                try {
+                try (FileOutputStream fileOutputStream = new FileOutputStream(catalystFile.getAbsoluteFile())) {
                     assert handlerUrl != null;
                     ReadableByteChannel readableByteChannel = Channels.newChannel(handlerUrl.openStream());
-                    FileOutputStream fileOutputStream = new FileOutputStream(catalystFile.getAbsoluteFile());
                     FileChannel fileChannel = fileOutputStream.getChannel();
                     fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
                 } catch (IOException e) {
