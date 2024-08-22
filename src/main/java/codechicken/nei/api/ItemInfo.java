@@ -211,7 +211,7 @@ public class ItemInfo {
             public String[] dump(Block block, int id, String name) {
                 final Item item = Item.getItemFromBlock(block);
                 return new String[] { name, Integer.toString(id), Boolean.toString(item != null),
-                        ItemInfo.itemOwners.get(block), block.getClass().getCanonicalName(),
+                        ItemInfo.itemOwners.get(item), block.getClass().getCanonicalName(),
                         item != null ? EnumChatFormatting.getTextWithoutFormattingCodes(
                                 GuiContainerManager.itemDisplayNameShort(new ItemStack(item))) : "null" };
             }
