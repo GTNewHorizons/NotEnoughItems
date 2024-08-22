@@ -31,7 +31,7 @@ public class TextHistory {
     }
 
     public Optional<String> get(Direction direction, String currentText) {
-        if (direction == direction.NEXT) {
+        if (direction == Direction.NEXT) {
             return getNext(currentText);
         } else {
             return getPrevious(currentText);
