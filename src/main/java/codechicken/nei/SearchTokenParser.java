@@ -188,7 +188,11 @@ public class SearchTokenParser {
 
             for (ISearchParserProvider _provider : getProviders()) {
                 if (_provider.getSearchMode() == SearchMode.ALWAYS) {
-                    filters.add(_provider.getFilter(token));
+                    ItemFilter filter = _provider.getFilter(token);
+
+                    if (filter != null) {
+                        filters.add(filter);
+                    }
                 }
             }
 

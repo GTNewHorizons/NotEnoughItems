@@ -42,6 +42,7 @@ import codechicken.nei.recipe.IUsageHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
 import codechicken.nei.recipe.RecipeInfo;
 import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.util.ItemStackFilterParser;
 
 /**
  * This is the main class that handles item property configuration. WARNING: DO NOT access this class until the world
@@ -147,6 +148,14 @@ public class API {
     public static void hideItem(ItemStack item) {
         if (!ItemInfo.hiddenItems.contains(item)) {
             ItemInfo.hiddenItems.add(item);
+            LayoutManager.markItemsDirty();
+        }
+    }
+
+    public static void hideItem(String rule) {
+        ItemFilter filter = ItemStackFilterParser.parse(rule);
+        if (filter != null) {
+            ItemInfo.hiddenItemsRules.filters.add(filter);
             LayoutManager.markItemsDirty();
         }
     }

@@ -1764,7 +1764,12 @@ public class BookmarkPanel extends PanelWidget {
         return namespaces.size();
     }
 
-    public void setBookmarkFile(String worldPath) {
+    public void load() {
+        String worldPath = "global";
+
+        if (NEIClientConfig.getBooleanSetting("inventory.bookmarks.worldSpecific")) {
+            worldPath = NEIClientConfig.getWorldPath();
+        }
 
         final File dir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
 
@@ -1782,16 +1787,15 @@ public class BookmarkPanel extends PanelWidget {
             if (defaultBookmarks.exists()) {
 
                 try {
-                    bookmarkFile.createNewFile();
+                    if (bookmarkFile.createNewFile()) {
+                        InputStream src = new FileInputStream(defaultBookmarks);
+                        OutputStream dst = new FileOutputStream(bookmarkFile);
 
-                    InputStream src = new FileInputStream(defaultBookmarks);
-                    OutputStream dst = new FileOutputStream(bookmarkFile);
+                        IOUtils.copy(src, dst);
 
-                    IOUtils.copy(src, dst);
-
-                    src.close();
-                    dst.close();
-
+                        src.close();
+                        dst.close();
+                    }
                 } catch (IOException e) {}
             }
         }

@@ -12,6 +12,7 @@ import static codechicken.nei.NEIClientConfig.invCreativeMode;
 import static codechicken.nei.NEIClientConfig.isBookmarkPanelHidden;
 import static codechicken.nei.NEIClientConfig.isEnabled;
 import static codechicken.nei.NEIClientConfig.isHidden;
+import static codechicken.nei.NEIClientConfig.isLoaded;
 import static codechicken.nei.NEIClientConfig.showIDs;
 import static codechicken.nei.NEIClientConfig.toggleBooleanSetting;
 import static codechicken.nei.NEIClientUtils.cycleGamemode;
@@ -638,12 +639,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (isEnabled()) {
             setInputFocused(null);
 
-            if (!itemsLoaded) {
+            if (!itemsLoaded && isLoaded()) {
                 ItemList.loadItems.restart();
-                itemsLoaded = true;
             }
-            overlayRenderer = null;
 
+            overlayRenderer = null;
             getLayoutStyle().init();
             layout(gui);
             AutoFocusWidget.instance.load(gui);

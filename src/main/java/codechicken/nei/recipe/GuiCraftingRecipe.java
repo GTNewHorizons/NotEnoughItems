@@ -5,7 +5,9 @@ import static codechicken.lib.gui.GuiDraw.getMousePosition;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -24,6 +26,7 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
     public static ArrayList<ICraftingHandler> craftinghandlers = new ArrayList<>();
     public static ArrayList<ICraftingHandler> serialCraftingHandlers = new ArrayList<>();
+    private static Set<String> existingHandlers = new HashSet<>();
 
     public static boolean openRecipeGui(String outputId, Object... results) {
         return createRecipeGui(outputId, true, results) != null;
@@ -155,12 +158,24 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
     public static void registerRecipeHandler(ICraftingHandler handler) {
         final String handlerId = handler.getHandlerId();
 
-        if (craftinghandlers.stream().anyMatch(h -> h.getHandlerId().equals(handlerId))
-                || serialCraftingHandlers.stream().anyMatch(h -> h.getHandlerId().equals(handlerId)))
+        if (existingHandlers.contains(handlerId)) {
             return;
+        }
 
-        if (NEIClientConfig.serialHandlers.contains(handlerId)) serialCraftingHandlers.add(handler);
-        else craftinghandlers.add(handler);
+        synchronized (existingHandlers) {
+            existingHandlers.add(handlerId);
+        }
+
+        if (NEIClientConfig.serialHandlers.contains(handlerId)) {
+            synchronized (serialCraftingHandlers) {
+                serialCraftingHandlers.add(handler);
+            }
+        } else {
+            synchronized (craftinghandlers) {
+                craftinghandlers.add(handler);
+            }
+        }
+
     }
 
     @Override

@@ -1,8 +1,6 @@
 package codechicken.nei.search;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -58,14 +56,13 @@ public class TooltipFilter implements ItemFilter {
     }
 
     public static void populateSearchMap() {
-        /* Create a snapshot of the current keys in the cache */
-        HashSet<ItemStackKey> oldItems = new HashSet<>(itemSearchNames.keySet());
+        new Thread("NEI populate Tooltip Filter") {
 
-        for (ItemStack stack : ItemList.items) {
-            oldItems.remove(new ItemStackKey(stack));
-        }
-
-        itemSearchNames.keySet().removeAll(oldItems);
+            @Override
+            public void run() {
+                ItemList.items.parallelStream().forEach(TooltipFilter::getSearchTooltip);
+            }
+        }.start();
     }
 
     protected static String getSearchTooltip(ItemStack stack) {
@@ -74,14 +71,7 @@ public class TooltipFilter implements ItemFilter {
 
     private static String getTooltip(ItemStack itemstack) {
         final List<String> list = GuiContainerManager.itemDisplayNameMultiline(itemstack, null, true);
-        final StringJoiner sb = new StringJoiner("\n");
-        final int size = list.size();
-
-        for (int i = 1; i < size; i++) {
-            sb.add(list.get(i));
-        }
-
-        return EnumChatFormatting.getTextWithoutFormattingCodes(sb.toString());
+        return EnumChatFormatting.getTextWithoutFormattingCodes(String.join("\n", list.subList(1, list.size())));
     }
 
 }

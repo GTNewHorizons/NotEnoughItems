@@ -28,7 +28,6 @@ import codechicken.nei.PresetsList.Preset;
 import codechicken.nei.SearchField.GuiSearchField;
 import codechicken.nei.TextField;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.api.ItemInfo;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.util.TextHistory;
@@ -55,11 +54,11 @@ public class RightPanel extends GuiWidget {
         }
     }
 
-    protected static abstract class PresetSearchField extends TextField {
+    protected abstract static class PresetSearchField extends TextField {
 
         private static final TextHistory history = new TextHistory();
 
-        public PresetSearchField(String ident) {
+        protected PresetSearchField(String ident) {
             super(ident);
         }
 
@@ -134,9 +133,7 @@ public class RightPanel extends GuiWidget {
 
         @Override
         protected ItemFilter getFilter() {
-            AllMultiItemFilter filter = new AllMultiItemFilter();
-            filter.filters.add(item -> !ItemInfo.hiddenItems.contains(item));
-            filter.filters.add(searchField.getFilter());
+            AllMultiItemFilter filter = new AllMultiItemFilter(searchField.getFilter());
 
             if (enabledPresets.isChecked()) {
                 AllMultiItemFilter andFilter = new AllMultiItemFilter();
@@ -162,7 +159,7 @@ public class RightPanel extends GuiWidget {
         protected boolean isSelected(ItemStack stack) {
 
             if (mouseSelection != null && mouseSelection.items.contains(stack)) {
-                return mouseSelection.append != false;
+                return mouseSelection.append;
             }
 
             return preset.items.contains(Preset.getIdentifier(stack));
@@ -206,6 +203,7 @@ public class RightPanel extends GuiWidget {
         grid.restartFilter();
     }
 
+    @Override
     public void mouseClicked(int x, int y, int button) {
         grid.mouseClicked(x, y, button);
 
@@ -231,6 +229,7 @@ public class RightPanel extends GuiWidget {
 
     protected void onItemsChanges() {}
 
+    @Override
     public void mouseMovedOrUp(int x, int y, int button) {
         searchField.mouseUp(x, y, button);
 
@@ -300,6 +299,7 @@ public class RightPanel extends GuiWidget {
         return null;
     }
 
+    @Override
     public void mouseDragged(int x, int y, int button, long time) {
         searchField.mouseDragged(x, y, button, time);
 
@@ -330,6 +330,7 @@ public class RightPanel extends GuiWidget {
         }
     }
 
+    @Override
     public void update() {
         enabledPresets.w = 20;
         enabledPresets.h = INPUT_HEIGHT;
@@ -345,6 +346,7 @@ public class RightPanel extends GuiWidget {
         grid.refresh(null);
     }
 
+    @Override
     public void draw(int mousex, int mousey, float frame) {
         enabledPresets.draw(mousex, mousey);
         searchField.draw(mousex, mousey);
@@ -372,7 +374,7 @@ public class RightPanel extends GuiWidget {
                 }
             }
 
-            if (tooltip.size() > 0) {
+            if (!tooltip.isEmpty()) {
                 tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE); // add space after 'title'
             }
 
@@ -383,10 +385,12 @@ public class RightPanel extends GuiWidget {
         return tooltip;
     }
 
+    @Override
     public void keyTyped(char c, int keycode) {
         searchField.handleKeyPress(keycode, c);
     }
 
+    @Override
     public void mouseScrolled(int x, int y, int scroll) {
         if (grid.contains(x, y)) {
             grid.shiftPage(-scroll);

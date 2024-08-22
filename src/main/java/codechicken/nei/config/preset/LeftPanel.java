@@ -13,7 +13,6 @@ import org.lwjgl.opengl.GL12;
 import codechicken.core.gui.GuiWidget;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
-import codechicken.nei.ItemList.AllMultiItemFilter;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.ItemsGrid;
 import codechicken.nei.Label;
@@ -22,7 +21,6 @@ import codechicken.nei.PresetsList.Preset;
 import codechicken.nei.PresetsList.PresetMode;
 import codechicken.nei.TextField;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.api.ItemInfo;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerTooltipHandler;
 
@@ -52,9 +50,7 @@ public class LeftPanel extends GuiWidget {
         @Override
         protected ItemFilter getFilter() {
             Set<String> identifiers = preset.items;
-            return new AllMultiItemFilter(
-                    item -> !ItemInfo.hiddenItems.contains(item),
-                    item -> identifiers.contains(Preset.getIdentifier(item)));
+            return item -> identifiers.contains(Preset.getIdentifier(item));
         }
 
         @Override
@@ -146,6 +142,7 @@ public class LeftPanel extends GuiWidget {
         grid.restartFilter();
     }
 
+    @Override
     public void mouseClicked(int x, int y, int button) {
         grid.mouseClicked(x, y, button);
 
@@ -183,6 +180,7 @@ public class LeftPanel extends GuiWidget {
 
     protected void onItemsChanges() {}
 
+    @Override
     public void mouseMovedOrUp(int x, int y, int button) {
         nameField.mouseUp(x, y, button);
 
@@ -203,6 +201,7 @@ public class LeftPanel extends GuiWidget {
         }
     }
 
+    @Override
     public void mouseDragged(int x, int y, int button, long time) {
         nameField.mouseDragged(x, y, button, time);
 
@@ -233,6 +232,7 @@ public class LeftPanel extends GuiWidget {
         }
     }
 
+    @Override
     public void update() {
         int CHECKBOX_WIDTH = (this.width - 12) / 3;
         nameLabel.x = this.x + 2;
@@ -271,6 +271,7 @@ public class LeftPanel extends GuiWidget {
         grid.refresh(null);
     }
 
+    @Override
     public void draw(int mousex, int mousey, float frame) {
         nameLabel.draw(mousex, mousey);
         nameField.draw(mousex, mousey);
@@ -305,7 +306,7 @@ public class LeftPanel extends GuiWidget {
                 }
             }
 
-            if (tooltip.size() > 0) {
+            if (!tooltip.isEmpty()) {
                 tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE); // add space after 'title'
             }
 
@@ -320,6 +321,7 @@ public class LeftPanel extends GuiWidget {
         return tooltip;
     }
 
+    @Override
     public void keyTyped(char c, int keycode) {
         nameField.handleKeyPress(keycode, c);
     }

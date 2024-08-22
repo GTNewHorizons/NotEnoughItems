@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Pattern;
@@ -105,7 +104,7 @@ public class ItemList {
         }
 
         public AllMultiItemFilter(ItemFilter... filters) {
-            this(Arrays.asList(filters));
+            this(new LinkedList<>(Arrays.asList(filters)));
         }
 
         public AllMultiItemFilter() {
@@ -139,7 +138,7 @@ public class ItemList {
         @Override
         public boolean matches(ItemStack item) {
             for (ItemFilter filter : filters) try {
-                if (filter.matches(item)) return true;
+                if (filter != null && filter.matches(item)) return true;
             } catch (Exception e) {
                 NEIClientConfig.logger.error("Exception filtering " + item + " with " + filter, e);
             }
@@ -156,7 +155,7 @@ public class ItemList {
     public static boolean itemMatchesAll(ItemStack item, List<ItemFilter> filters) {
         for (ItemFilter filter : filters) {
             try {
-                if (!filter.matches(item)) return false;
+                if (filter != null && !filter.matches(item)) return false;
             } catch (Exception e) {
                 NEIClientConfig.logger.error("Exception filtering " + item + " with " + filter, e);
             }
@@ -211,17 +210,10 @@ public class ItemList {
             }
         }
 
+        @SuppressWarnings("unchecked")
         private String getTooltip(ItemStack stack) {
             try {
-                @SuppressWarnings("unchecked")
-                final List<String> namelist = stack.getTooltip(Minecraft.getMinecraft().thePlayer, false);
-                final StringJoiner sb = new StringJoiner("\n");
-
-                for (String name : namelist) {
-                    sb.add(name);
-                }
-
-                return sb.toString();
+                return String.join("\n", stack.getTooltip(Minecraft.getMinecraft().thePlayer, false));
             } catch (Throwable ignored) {}
 
             return "";
@@ -262,8 +254,8 @@ public class ItemList {
         @Override
         @SuppressWarnings("unchecked")
         public void execute() {
-            // System.out.println("Executing NEI Item Loading");
             ThreadOperationTimer timer = getTimer(NEIClientConfig.getItemLoadingTimeout());
+            LayoutManager.itemsLoaded = true;
             loadFinished = false;
 
             List<ItemStack> items = new LinkedList<>();
@@ -282,13 +274,20 @@ public class ItemList {
                     permutations.clear();
                     permutations.addAll(ItemInfo.itemOverrides.get(item));
 
-                    if (permutations.isEmpty()) item.getSubItems(item, null, permutations);
+                    if (permutations.isEmpty()) {
+                        item.getSubItems(item, null, permutations);
+                    }
 
-                    if (permutations.isEmpty()) damageSearch(item, permutations);
+                    if (permutations.isEmpty()) {
+                        damageSearch(item, permutations);
+                    }
 
                     permutations.addAll(ItemInfo.itemVariants.get(item));
 
                     timer.reset();
+
+                    permutations = permutations.stream().filter(stack -> !ItemInfo.isHidden(stack))
+                            .collect(Collectors.toCollection(ArrayList::new));
 
                     items.addAll(permutations);
                     itemMap.putAll(item, permutations);

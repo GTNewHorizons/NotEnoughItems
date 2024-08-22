@@ -1,15 +1,8 @@
 package codechicken.nei.recipe;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import net.minecraft.item.ItemStack;
@@ -20,10 +13,8 @@ import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
-import org.apache.commons.io.IOUtils;
-
+import codechicken.nei.ClientHandler;
 import codechicken.nei.ItemStackMap;
-import codechicken.nei.NEIClientConfig;
 import codechicken.nei.api.IStackStringifyHandler;
 import codechicken.nei.recipe.stackinfo.DefaultStackStringifyHandler;
 import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
@@ -187,37 +178,9 @@ public class StackInfo {
     }
 
     public static void loadGuidFilters() {
-
         guidfilters.clear();
 
-        final File guidFlitersFile = new File(NEIClientConfig.configDir, "guidfilters.cfg");
-        List<String> itemStrings = new ArrayList<>();
-
-        if (guidFlitersFile.exists()) {
-
-            try (FileReader reader = new FileReader(guidFlitersFile)) {
-                NEIClientConfig.logger.info("Loading guid filters from file {}", guidFlitersFile);
-                itemStrings = IOUtils.readLines(reader);
-            } catch (IOException e) {
-                NEIClientConfig.logger.error("Failed to load bookmarks from file {}", guidFlitersFile, e);
-                e.printStackTrace();
-            }
-
-        } else {
-            final URL filterUrl = StackInfo.class.getResource("/assets/nei/guidfilters.cfg");
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(filterUrl.openStream()))) {
-                itemStrings = IOUtils.readLines(reader);
-            } catch (IOException e) {
-                NEIClientConfig.logger.info("Error parsing guid filters");
-                e.printStackTrace();
-            } catch (Exception e) {
-                NEIClientConfig.logger.info("Error parsing guid filters");
-                e.printStackTrace();
-            }
-        }
-
-        for (String guidStr : itemStrings) {
+        ClientHandler.loadSettingsFile("guidfilters.cfg", lines -> lines.forEach(guidStr -> {
             final String[] parts = guidStr.split(",");
             final HashMap<String, String[]> rules = new HashMap<>();
 
@@ -226,7 +189,7 @@ public class StackInfo {
             }
 
             guidfilters.put(parts[0], rules);
-        }
+        }));
     }
 
     public static ItemStack getItemStackWithMinimumDamage(ItemStack[] stacks) {
