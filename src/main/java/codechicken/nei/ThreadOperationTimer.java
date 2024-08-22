@@ -6,9 +6,9 @@ import cpw.mods.fml.common.FMLCommonHandler;
 
 public class ThreadOperationTimer extends Thread {
 
-    @SuppressWarnings("serial")
     public static class TimeoutException extends RuntimeException {
 
+        private static final long serialVersionUID = -8621458005263888185L;
         public final Object operation;
 
         public TimeoutException(String msg, Object op) {

@@ -21,6 +21,7 @@ import java.util.stream.Stream;
  */
 final class HideousLinkedList<E> extends LinkedList<E> {
 
+    private static final long serialVersionUID = -8504433551965776915L;
     private final List<E> backing;
 
     HideousLinkedList(List<E> backing) {
