@@ -1,5 +1,6 @@
 package codechicken.nei.util;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -217,7 +218,8 @@ public class NBTJson {
             try {
                 final String className = obj.get("__custom_type").getAsString();
                 return (NBTBase) Class.forName(className).getConstructor().newInstance();
-            } catch (Exception th) {}
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException
+                    | SecurityException | ClassNotFoundException th) {}
         }
 
         return null;
