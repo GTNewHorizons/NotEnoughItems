@@ -213,7 +213,6 @@ public class ItemList {
 
         private String getTooltip(ItemStack stack) {
             try {
-                @SuppressWarnings("unchecked")
                 final List<String> namelist = stack.getTooltip(Minecraft.getMinecraft().thePlayer, false);
                 final StringJoiner sb = new StringJoiner("\n");
 

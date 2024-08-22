@@ -66,7 +66,7 @@ public class ItemMobSpawner extends ItemBlock {
     }
 
     @Override
-    public void addInformation(ItemStack itemstack, EntityPlayer par2EntityPlayer, List list, boolean par4) {
+    public void addInformation(ItemStack itemstack, EntityPlayer par2EntityPlayer, List<String> list, boolean par4) {
         setDefaultTag(itemstack);
         int meta = itemstack.getItemDamage();
         if (meta == 0) {
@@ -106,9 +106,10 @@ public class ItemMobSpawner extends ItemBlock {
     public static void loadSpawners(World world) {
         if (loaded) return;
         loaded = true;
-        HashMap<Class<Entity>, String> classToStringMapping = (HashMap<Class<Entity>, String>) EntityList.classToStringMapping;
-        HashMap<Class<Entity>, Integer> classToIDMapping = (HashMap<Class<Entity>, Integer>) EntityList.classToIDMapping;
-        for (Class<Entity> eclass : classToStringMapping.keySet()) {
+        Map<Class<? extends Entity>, String> classToStringMapping = EntityList.classToStringMapping;
+        @SuppressWarnings("unchecked")
+        Map<Class<? extends Entity>, Integer> classToIDMapping = (Map<Class<? extends Entity>, Integer>) EntityList.classToIDMapping;
+        for (Class<? extends Entity> eclass : classToStringMapping.keySet()) {
             if (!EntityLiving.class.isAssignableFrom(eclass)) continue;
             try {
                 EntityLiving entityliving = (EntityLiving) eclass.getConstructor(new Class[] { World.class })
@@ -131,7 +132,7 @@ public class ItemMobSpawner extends ItemBlock {
     }
 
     @Override
-    public void getSubItems(Item item, CreativeTabs tab, List list) {
+    public void getSubItems(Item item, CreativeTabs tab, List<ItemStack> list) {
         if (!NEIClientConfig.hasSMPCounterPart()) list.add(new ItemStack(item));
         else for (int i : IDtoNameMap.keySet()) list.add(new ItemStack(item, 1, i));
     }

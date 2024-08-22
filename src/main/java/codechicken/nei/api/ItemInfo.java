@@ -462,7 +462,6 @@ public class ItemInfo {
         addEntityEgg(EntityIronGolem.class, 0xC5C2C1, 0xffe1cc);
     }
 
-    @SuppressWarnings("unchecked")
     private static void addEntityEgg(Class<?> entity, int i, int j) {
         int id = (Integer) EntityList.classToIDMapping.get(entity);
         EntityList.entityEggs.put(id, new EntityEggInfo(id, i, j));

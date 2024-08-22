@@ -10,6 +10,7 @@ public abstract class RegistryDumper<T> extends DataDumper {
         super(name);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Iterable<String[]> dump(int mode) {
         LinkedList<String[]> list = new LinkedList<>();

@@ -78,7 +78,6 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
                 if (key > 0) {
                     String helpText = NEIClientUtils
                             .translate("itemzoom.toggle", NEIClientConfig.getKeyName(key, true));
-                    @SuppressWarnings("unchecked")
                     List<String> lines = fontRenderer.listFormattedStringToWidth(helpText, this.availableAreaWidth);
 
                     for (String line : lines) {

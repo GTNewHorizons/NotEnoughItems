@@ -47,7 +47,6 @@ public class SearchTokenParser {
 
         public ItemFilter getFilter(String searchText);
 
-        @SuppressWarnings("unchecked")
         public static List<Language> getAllLanguages() {
             return new ArrayList<>(Minecraft.getMinecraft().getLanguageManager().getLanguages());
         }

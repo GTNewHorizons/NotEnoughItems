@@ -149,7 +149,6 @@ public class GuiContainerManager {
      * @param includeHandlers If true tooltip handlers will add to the item tip
      * @return A list of Strings representing the text to be displayed on each line of the tool tip.
      */
-    @SuppressWarnings("unchecked")
     public static List<String> itemDisplayNameMultiline(ItemStack stack, GuiContainer gui, boolean includeHandlers) {
         List<String> namelist = null;
         try {
@@ -237,7 +236,6 @@ public class GuiContainerManager {
     public static String itemDisplayNameShort(ItemStack itemstack) {
 
         try {
-            @SuppressWarnings("unchecked")
             List<String> namelist = itemstack.getTooltip(Minecraft.getMinecraft().thePlayer, false);
 
             if (!namelist.isEmpty() && !"".equals(namelist.get(0))) {

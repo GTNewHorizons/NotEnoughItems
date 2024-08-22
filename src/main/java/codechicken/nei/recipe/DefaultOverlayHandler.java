@@ -17,10 +17,9 @@ import codechicken.nei.FastTransferManager;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.IOverlayHandler;
 
-@SuppressWarnings("rawtypes, unchecked")
 public class DefaultOverlayHandler implements IOverlayHandler {
 
-    public static Class gtItem;
+    public static Class<?> gtItem;
 
     static {
         try {
@@ -85,7 +84,6 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         if (quantity != 0) moveIngredients(gui, assignedIngredients, quantity);
     }
 
-    @SuppressWarnings("unchecked")
     private boolean clearIngredients(GuiContainer gui, List<PositionedStack> ingreds) {
         for (PositionedStack pstack : ingreds) for (Slot slot : (List<Slot>) gui.inventorySlots.inventorySlots)
             if (slot.xDisplayPosition == pstack.relx + offsetx && slot.yDisplayPosition == pstack.rely + offsety) {
@@ -98,7 +96,6 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     private void moveIngredients(GuiContainer gui, List<IngredientDistribution> assignedIngredients, int quantity) {
         for (IngredientDistribution distrib : assignedIngredients) {
             if (distrib.slots.length == 0) continue;
@@ -245,7 +242,6 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         return assignedIngredients;
     }
 
-    @SuppressWarnings("unchecked")
     private void findInventoryQuantities(GuiContainer gui, List<DistributedIngred> ingredStacks) {
         for (Slot slot : (List<Slot>) gui.inventorySlots.inventorySlots) /* work out how much we have to go round */ {
             if (slot.getHasStack() && canMoveFrom(slot, gui)) {
@@ -272,7 +268,6 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         return slot.inventory instanceof InventoryPlayer;
     }
 
-    @SuppressWarnings("unchecked")
     public Slot[][] mapIngredSlots(GuiContainer gui, List<PositionedStack> ingredients) {
         Slot[][] recipeSlotList = new Slot[ingredients.size()][];
         for (int i = 0; i < ingredients.size(); i++) /* identify slots */ {

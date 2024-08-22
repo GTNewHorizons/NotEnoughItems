@@ -19,7 +19,6 @@ public interface IOverlayHandler {
     default List<Boolean> presenceOverlay(GuiContainer firstGui, IRecipeHandler recipe, int recipeIndex) {
         final List<Boolean> itemPresenceSlots = new ArrayList<>();
         final List<PositionedStack> ingredients = recipe.getIngredientStacks(recipeIndex);
-        @SuppressWarnings("unchecked")
         final List<ItemStack> invStacks = ((List<Slot>) firstGui.inventorySlots.inventorySlots).stream()
                 .filter(
                         s -> s != null && s.getStack() != null

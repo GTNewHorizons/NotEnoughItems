@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.client.event.GuiScreenEvent;
@@ -223,8 +222,7 @@ public class GuiOverlayButton extends GuiNEIButton {
 
     private List<Boolean> presenceOverlay(List<PositionedStack> ingredients) {
         final List<Boolean> itemPresenceSlots = new ArrayList<>();
-        @SuppressWarnings("unchecked")
-        final List<ItemStack> invStacks = ((List<Slot>) this.firstGui.inventorySlots.inventorySlots).stream()
+        final List<ItemStack> invStacks = this.firstGui.inventorySlots.inventorySlots.stream()
                 .filter(
                         s -> s != null && s.getStack() != null
                                 && s.getStack().stackSize > 0
