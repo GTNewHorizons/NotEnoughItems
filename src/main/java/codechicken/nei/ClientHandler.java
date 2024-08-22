@@ -296,7 +296,7 @@ public class ClientHandler {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
             NEIClientConfig.logger.info("Loading handler ordering from file {}", file);
-            CSVParser csvParser = CSVFormat.EXCEL.withCommentMarker('#').parse(reader);
+            CSVParser csvParser = CSVFormat.EXCEL.builder().setCommentMarker('#').build().parse(reader);
             for (CSVRecord record : csvParser) {
                 final String handlerId = record.get(0);
 

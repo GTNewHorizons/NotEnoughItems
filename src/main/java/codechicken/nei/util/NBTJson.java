@@ -216,8 +216,8 @@ public class NBTJson {
         if (obj.has("__custom_type")) {
             try {
                 final String className = obj.get("__custom_type").getAsString();
-                return (NBTBase) Class.forName(className).newInstance();
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException th) {}
+                return (NBTBase) Class.forName(className).getConstructor().newInstance();
+            } catch (Exception th) {}
         }
 
         return null;

@@ -680,7 +680,7 @@ public class NEIClientConfig {
 
                 for (Class<?> clazz : classDiscoverer.classes) {
                     try {
-                        IConfigureNEI config = (IConfigureNEI) clazz.newInstance();
+                        IConfigureNEI config = (IConfigureNEI) clazz.getConstructor().newInstance();
                         config.loadConfig();
                         NEIModContainer.plugins.add(config);
                         logger.debug("Loaded " + clazz.getName());
