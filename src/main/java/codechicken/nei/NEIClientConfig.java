@@ -540,6 +540,7 @@ public class NEIClientConfig {
     }
 
     public static void loadWorld(String worldPath) {
+        unloadWorld();
         NEIClientConfig.worldPath = worldPath;
 
         setInternalEnabled(true);
@@ -554,6 +555,7 @@ public class NEIClientConfig {
 
         world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
         bootNEI(ClientUtils.getWorld());
+        ItemPanels.bookmarkPanel.load();
         onWorldLoad(newWorld);
     }
 
@@ -653,7 +655,6 @@ public class NEIClientConfig {
         LayoutManager.load();
         NEIController.load();
         BookmarkContainerInfo.load();
-        ItemPanels.bookmarkPanel.load();
         mainNEIConfigLoaded = true;
 
         new Thread("NEI Plugin Loader") {
