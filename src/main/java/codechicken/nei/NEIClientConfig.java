@@ -14,7 +14,6 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.storage.SaveFormatComparator;
 import net.minecraftforge.common.MinecraftForge;
@@ -183,60 +182,105 @@ public class NEIClientConfig {
         tag.getTag("inventory.search.quoteDropItemName").setComment("Quote Drop Item Name").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.search.quoteDropItemName", true));
 
-        tag.getTag("inventory.search.modNameSearchMode").setComment("Search mode for Mod Names (prefix: @)")
-                .getIntValue(1);
-        API.addOption(new OptionCycled("inventory.search.modNameSearchMode", 3, true) {
+        String preModName = tag.getTag("inventory.search.modNameSearchPrefix").setComment(
+                "Search prefix for Mod Names (leave empty to always search for Mod Names, enter anything longer than one character to disable)")
+                .getValue("@");
 
-            @Override
-            public String getButtonText() {
-                return translateN(name + "." + value(), EnumChatFormatting.LIGHT_PURPLE + "@");
+        String preTooltip = tag.getTag("inventory.search.tooltipSearchPrefix").setComment(
+                "Search mode for Tooltips (leave empty to always search for Tooltips, enter anything longer than one character to disable)")
+                .getValue("");
+        if (preTooltip.length() == 1 && preTooltip.equals(preModName)) {
+            // conflicting prefix char
+            logger.warn(
+                    "Search prefix inventory.search.tooltipSearchPrefix conflicts with inventory.search.modNameSearchPrefix ({})! Resetting to default.",
+                    preTooltip);
+            preTooltip = "";
+            tag.getTag("inventory.search.tooltipSearchPrefix").setValue(preTooltip);
+        }
+
+        String preIdentifier = tag.getTag("inventory.search.identifierSearchPrefix").setComment(
+                "Search mode for identifier (leave empty to always search for identifier, enter anything longer than one character to disable)")
+                .getValue("");
+        if (preIdentifier.length() == 1) {
+            if (preIdentifier.equals(preModName)) {
+                // conflicting prefix char
+                logger.warn(
+                        "Search prefix inventory.search.identifierSearchPrefix conflicts with inventory.search.modNameSearchPrefix ({})! Resetting to default.",
+                        preIdentifier);
+                preIdentifier = "";
+                tag.getTag("inventory.search.identifierSearchPrefix").setValue(preIdentifier);
+            } else if (preIdentifier.equals(preTooltip)) {
+                // conflicting prefix char
+                logger.warn(
+                        "Search prefix inventory.search.identifierSearchPrefix conflicts with inventory.search.tooltipSearchPrefix ({})! Resetting to default.",
+                        preIdentifier);
+                preIdentifier = "";
+                tag.getTag("inventory.search.identifierSearchPrefix").setValue(preIdentifier);
             }
+        }
 
-        });
-
-        tag.getTag("inventory.search.tooltipSearchMode").setComment("Search mode for Tooltips (prefix: #)")
-                .getIntValue(0);
-        API.addOption(new OptionCycled("inventory.search.tooltipSearchMode", 3, true) {
-
-            @Override
-            public String getButtonText() {
-                return translateN(name + "." + value(), EnumChatFormatting.YELLOW + "#");
+        String preODName = tag.getTag("inventory.search.oreDictSearchPrefix").setComment(
+                "Search mode for Ore Dictionary Tags (leave empty to always search for Ore Dictionary Tags, enter anything longer than one character to disable)")
+                .getValue("");
+        if (preODName.length() == 1) {
+            if (preODName.equals(preModName)) {
+                // conflicting prefix char
+                logger.warn(
+                        "Search prefix inventory.search.oreDictSearchPrefix conflicts with inventory.search.modNameSearchPrefix ({})! Resetting to default.",
+                        preIdentifier);
+                preODName = "";
+                tag.getTag("inventory.search.oreDictSearchPrefix").setValue(preODName);
+            } else if (preODName.equals(preTooltip)) {
+                // conflicting prefix char
+                logger.warn(
+                        "Search prefix inventory.search.oreDictSearchPrefix conflicts with inventory.search.tooltipSearchPrefix ({})! Resetting to default.",
+                        preIdentifier);
+                preODName = "";
+                tag.getTag("inventory.search.oreDictSearchPrefix").setValue(preODName);
+            } else if (preODName.equals(preIdentifier)) {
+                // conflicting prefix char
+                logger.warn(
+                        "Search prefix inventory.search.oreDictSearchPrefix conflicts with inventory.search.identifierSearchPrefix ({})! Resetting to default.",
+                        preIdentifier);
+                preODName = "";
+                tag.getTag("inventory.search.oreDictSearchPrefix").setValue(preODName);
             }
+        }
 
-        });
-
-        tag.getTag("inventory.search.identifierSearchMode").setComment("Search mode for identifier (prefix: &)")
-                .getIntValue(0);
-        API.addOption(new OptionCycled("inventory.search.identifierSearchMode", 3, true) {
-
-            @Override
-            public String getButtonText() {
-                return translateN(name + "." + value(), EnumChatFormatting.GOLD + "&");
+        String preSubset = tag.getTag("inventory.search.subsetsSearchPrefix").setComment(
+                "Search mode for Item Subsets (leave empty to always search for Item Subsets, enter anything longer than one character to disable)")
+                .getValue("DISABLE");
+        if (preSubset.length() == 1) {
+            if (preSubset.equals(preModName)) {
+                // conflicting prefix char
+                logger.warn(
+                        "Search prefix inventory.search.subsetsSearchPrefix conflicts with inventory.search.modNameSearchPrefix ({})! Resetting to default.",
+                        preIdentifier);
+                preSubset = "";
+                tag.getTag("inventory.search.subsetsSearchPrefix").setValue(preSubset);
+            } else if (preSubset.equals(preTooltip)) {
+                // conflicting prefix char
+                logger.warn(
+                        "Search prefix inventory.search.subsetsSearchPrefix conflicts with inventory.search.tooltipSearchPrefix ({})! Resetting to default.",
+                        preIdentifier);
+                preSubset = "";
+                tag.getTag("inventory.search.subsetsSearchPrefix").setValue(preSubset);
+            } else if (preSubset.equals(preIdentifier)) {
+                // conflicting prefix char
+                logger.warn(
+                        "Search prefix inventory.search.subsetsSearchPrefix conflicts with inventory.search.identifierSearchPrefix ({})! Resetting to default.",
+                        preIdentifier);
+                preSubset = "";
+                tag.getTag("inventory.search.subsetsSearchPrefix").setValue(preSubset);
+            } else if (preSubset.equals(preODName)) {
+                // conflicting prefix char
+                logger.warn(
+                        "Search prefix inventory.search.subsetsSearchPrefix conflicts with inventory.search.oreDictSearchPrefix ({})! Resetting to default.",
+                        preIdentifier);
+                preSubset = "";
+                tag.getTag("inventory.search.subsetsSearchPrefix").setValue(preSubset);
             }
-
-        });
-
-        tag.getTag("inventory.search.oreDictSearchMode").setComment("Search mode for Tag Names (prefix: $)")
-                .getIntValue(0);
-        API.addOption(new OptionCycled("inventory.search.oreDictSearchMode", 3, true) {
-
-            @Override
-            public String getButtonText() {
-                return translateN(name + "." + value(), EnumChatFormatting.AQUA + "$");
-            }
-
-        });
-
-        tag.getTag("inventory.search.subsetsSearchMode").setComment("Search mode for Item Subsets (prefix: %)")
-                .getIntValue(2);
-        API.addOption(new OptionCycled("inventory.search.subsetsSearchMode", 3, true) {
-
-            @Override
-            public String getButtonText() {
-                return translateN(name + "." + value(), EnumChatFormatting.DARK_PURPLE + "%");
-            }
-
-        });
+        }
 
         tag.getTag("inventory.bookmarks.enabled").setComment("Enable/Disable Bookmark Panel").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.bookmarks.enabled", true));

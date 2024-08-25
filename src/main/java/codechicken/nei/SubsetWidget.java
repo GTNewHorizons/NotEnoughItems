@@ -381,6 +381,10 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
         }
 
         public char getPrefix() {
+            String prefix = NEIClientConfig.getStringSetting("inventory.search.subsetsSearchPrefix");
+            if (prefix.length() == 1) {
+                return prefix.charAt(0);
+            }
             return '%';
         }
 
@@ -390,7 +394,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
 
         @Override
         public SearchMode getSearchMode() {
-            return SearchMode.fromInt(NEIClientConfig.getIntSetting("inventory.search.subsetsSearchMode"));
+            return SearchMode.fromString(NEIClientConfig.getStringSetting("inventory.search.subsetsSearchPrefix"));
         }
     }
 

@@ -29,17 +29,12 @@ public class SearchTokenParser {
         PREFIX,
         NEVER;
 
-        public static SearchMode fromInt(int value) {
-            switch (value) {
-                case 0:
-                    return ALWAYS;
-                case 1:
-                    return PREFIX;
-                case 2:
-                    return NEVER;
-                default:
-                    return ALWAYS;
-            }
+        public static SearchMode fromString(String value) {
+            return switch (value.length()) {
+                case 0 -> ALWAYS;
+                case 1 -> PREFIX;
+                default -> NEVER;
+            };
         }
     }
 

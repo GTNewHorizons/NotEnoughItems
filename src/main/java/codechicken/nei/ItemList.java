@@ -139,7 +139,7 @@ public class ItemList {
         @Override
         public boolean matches(ItemStack item) {
             for (ItemFilter filter : filters) try {
-                if (filter.matches(item)) return true;
+                if (filter != null && filter.matches(item)) return true;
             } catch (Exception e) {
                 NEIClientConfig.logger.error("Exception filtering " + item + " with " + filter, e);
             }
