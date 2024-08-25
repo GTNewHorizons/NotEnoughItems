@@ -75,10 +75,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
         @Override
         public char getPrefix() {
             String prefix = NEIClientConfig.getStringSetting("inventory.search." + this.name + "SearchPrefix");
-            if (prefix.length() == 1) {
-                return prefix.charAt(0);
-            }
-            return this.defaultPrefix;
+            return prefix.length() == 0 ? this.defaultPrefix : prefix.charAt(0);
         }
 
         @Override
@@ -88,8 +85,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
         @Override
         public SearchMode getSearchMode() {
-            return SearchMode
-                    .fromString(NEIClientConfig.getStringSetting("inventory.search." + this.name + "SearchPrefix"));
+            return SearchMode.fromInt(NEIClientConfig.getIntSetting("inventory.search." + this.name + "SearchMode"));
         }
     }
 

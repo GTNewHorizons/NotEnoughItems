@@ -11,30 +11,10 @@ import codechicken.nei.config.GuiOptionList.OptionScrollSlot;
 
 public class OptionTextField extends Option {
 
-    private TextField textField = new TextField("test") {
-
-        @Override
-        public void onTextChange(String oldText) {
-            if (focused() && isValidValue(text())) if (!defaulting() || !text().equals(getTag().getValue())) // don't
-                                                                                                             // override
-                                                                                                             // global
-                                                                                                             // if text
-                                                                                                             // hasn't
-                                                                                                             // changed
-                getTag().setValue(text());
-        }
-
-        @Override
-        public void setFocus(boolean focus) {
-            if (!focus && !isValidValue(text())) setText(renderTag().getValue());
-
-            super.setFocus(focus);
-        }
-    };
+    protected final TextField textField = createTextField();
 
     public OptionTextField(String name) {
         super(name);
-        textField.h = 20;
     }
 
     @Override
@@ -91,5 +71,31 @@ public class OptionTextField extends Option {
 
     public boolean isValidValue(String s) {
         return true;
+    }
+
+    protected TextField createTextField() {
+        return new DefaultOptionTextField();
+    }
+
+    protected class DefaultOptionTextField extends TextField {
+
+        public DefaultOptionTextField() {
+            super("test");
+            this.h = 20;
+        }
+
+        @Override
+        public void onTextChange(String oldText) {
+            // don't override global if text hasn't changed
+            if (focused() && isValidValue(text()) && (!defaulting() || !text().equals(getTag().getValue()))) {
+                getTag().setValue(text());
+            }
+        }
+
+        @Override
+        public void setFocus(boolean focus) {
+            if (!focus && !isValidValue(text())) setText(renderTag().getValue());
+            super.setFocus(focus);
+        }
     }
 }

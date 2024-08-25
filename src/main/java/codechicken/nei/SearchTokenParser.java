@@ -29,8 +29,8 @@ public class SearchTokenParser {
         PREFIX,
         NEVER;
 
-        public static SearchMode fromString(String value) {
-            return switch (value.length()) {
+        public static SearchMode fromInt(int value) {
+            return switch (value) {
                 case 0 -> ALWAYS;
                 case 1 -> PREFIX;
                 default -> NEVER;

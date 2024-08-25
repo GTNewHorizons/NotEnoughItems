@@ -72,7 +72,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
                 if (slot < sorted.size()) {
                     SubsetTag tag = sorted.get(slot);
                     if (NEIClientUtils.shiftKey()) {
-                        codechicken.nei.LayoutManager.searchField.setText("%" + tag.fullname);
+                        LayoutManager.searchField.setText("%" + tag.fullname);
                     } else if (button == 0 && count >= 2) {
                         SubsetWidget.showOnly(tag);
                     } else {
@@ -94,7 +94,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
                 Rectangle4i r = new Rectangle4i(x, y, w, getSlotHeight(slot));
                 if (slot < sorted.size()) {
                     SubsetTag tag = sorted.get(slot);
-                    codechicken.nei.LayoutManager.getLayoutStyle()
+                    LayoutManager.getLayoutStyle()
                             .drawSubsetTag(tag.displayName(), x, y, r.w, r.h, tag.state.state, r.contains(mx, my));
                 } else {
                     ItemStack stack = state.items.get(slot - sorted.size());
@@ -103,8 +103,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
                     int itemx = w / 2 - 8;
                     int itemy = 1;
 
-                    codechicken.nei.LayoutManager.getLayoutStyle()
-                            .drawSubsetTag(null, x, y, r.w, r.h, hidden ? 0 : 2, false);
+                    LayoutManager.getLayoutStyle().drawSubsetTag(null, x, y, r.w, r.h, hidden ? 0 : 2, false);
 
                     GuiContainerManager.drawItem(x + itemx, y + itemy, stack);
                     if (new Rectangle4i(itemx, itemy, 16, 16).contains(mx, my)) SubsetWidget.hoverStack = stack;
@@ -382,10 +381,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
 
         public char getPrefix() {
             String prefix = NEIClientConfig.getStringSetting("inventory.search.subsetsSearchPrefix");
-            if (prefix.length() == 1) {
-                return prefix.charAt(0);
-            }
-            return '%';
+            return prefix.length() == 0 ? '%' : prefix.charAt(0);
         }
 
         public EnumChatFormatting getHighlightedColor() {
@@ -394,7 +390,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
 
         @Override
         public SearchMode getSearchMode() {
-            return SearchMode.fromString(NEIClientConfig.getStringSetting("inventory.search.subsetsSearchPrefix"));
+            return SearchMode.fromInt(NEIClientConfig.getIntSetting("inventory.search.subsetsSearchMode"));
         }
     }
 
