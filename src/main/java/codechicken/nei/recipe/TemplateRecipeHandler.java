@@ -432,7 +432,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
     public static ItemFilter getItemFilter() {
         return new AllMultiItemFilter(
-                item -> !ItemInfo.hiddenItems.contains(item),
+                item -> !ItemInfo.isHidden(item),
                 PresetsList.getItemFilter(),
                 GuiRecipe.searchField != null ? GuiRecipe.searchField.getFilter() : null);
     }

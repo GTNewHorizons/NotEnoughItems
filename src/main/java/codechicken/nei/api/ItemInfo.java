@@ -44,12 +44,14 @@ import codechicken.core.featurehack.GameDataManipulator;
 import codechicken.nei.InfiniteStackSizeHandler;
 import codechicken.nei.InfiniteToolHandler;
 import codechicken.nei.ItemList;
+import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.PatternItemFilter;
 import codechicken.nei.ItemMobSpawner;
 import codechicken.nei.ItemStackMap;
 import codechicken.nei.ItemStackSet;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.PopupInputHandler;
+import codechicken.nei.PresetsList;
 import codechicken.nei.SearchField.SearchParserProvider;
 import codechicken.nei.SearchTokenParser.SearchMode;
 import codechicken.nei.config.ArrayDumper;
@@ -82,6 +84,7 @@ public class ItemInfo {
     public static final ArrayListMultimap<Layout, IHighlightHandler> highlightHandlers = ArrayListMultimap.create();
     public static final ItemStackMap<String> nameOverrides = new ItemStackMap<>();
     public static final ItemStackSet hiddenItems = new ItemStackSet();
+    public static final AnyMultiItemFilter hiddenItemsRules = new AnyMultiItemFilter();
     public static final ItemStackSet finiteItems = new ItemStackSet();
     public static final ArrayListMultimap<Item, ItemStack> itemOverrides = ArrayListMultimap.create();
     public static final ArrayListMultimap<Item, ItemStack> itemVariants = ArrayListMultimap.create();
@@ -93,9 +96,10 @@ public class ItemInfo {
     public static final HashMap<Item, String> itemOwners = new HashMap<>();
 
     public static boolean isHidden(ItemStack stack) {
-        return hiddenItems.contains(stack);
+        return hiddenItems.contains(stack) || hiddenItemsRules.matches(stack);
     }
 
+    @Deprecated
     public static boolean isHidden(Item item) {
         return hiddenItems.containsAll(item);
     }
@@ -130,13 +134,10 @@ public class ItemInfo {
         addInfiniteHandlers();
         addInputHandlers();
         addIDDumps();
-        addHiddenItemFilter();
         addSearchProviders();
+        PresetsList.load();
+        ItemList.collapsibleItems.load();
         ItemList.loadCallbacks.add(TooltipFilter::populateSearchMap);
-    }
-
-    private static void addHiddenItemFilter() {
-        API.addItemFilter(() -> item -> !hiddenItems.contains(item));
     }
 
     private static void addSearchProviders() {

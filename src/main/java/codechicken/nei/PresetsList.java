@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -145,62 +143,20 @@ public class PresetsList {
     }
 
     public static final List<Preset> presets = new ArrayList<>();
-
-    protected static File presetsFile;
     protected static RecipesFilter recipeFilter = new RecipesFilter();
     protected static ItemPanelFilter itemFilter = new ItemPanelFilter();
 
     static {
         API.addItemFilter(itemFilter);
         API.addRecipeFilter(recipeFilter);
-        ItemList.loadCallbacks.add(PresetsList::itemsLoaded);
     }
 
     public static ItemFilter getItemFilter() {
         return itemFilter.getFilter();
     }
 
-    public static void itemsLoaded() {
-        recipeFilter.cache = null;
-        itemFilter.cache = null;
-        ItemList.collapsibleItems.reload();
-    }
-
-    public static void setPresetsFile(String worldPath) {
-        final File dir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
-
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-
-        presetsFile = new File(dir, "presets.ini");
-
-        if (!presetsFile.exists()) {
-            final File globalPresets = new File(CommonUtils.getMinecraftDir(), "saves/NEI/global/presets.ini");
-            final File configPresets = new File(NEIClientConfig.configDir, "presets.ini");
-            final File defaultBookmarks = configPresets.exists() ? configPresets : globalPresets;
-
-            if (defaultBookmarks.exists()) {
-
-                try {
-                    presetsFile.createNewFile();
-
-                    InputStream src = new FileInputStream(defaultBookmarks);
-                    OutputStream dst = new FileOutputStream(presetsFile);
-
-                    IOUtils.copy(src, dst);
-
-                    src.close();
-                    dst.close();
-
-                } catch (IOException e) {}
-            }
-        }
-
-        loadPresets();
-    }
-
-    protected static void loadPresets() {
+    public static void load() {
+        final File presetsFile = new File(CommonUtils.getMinecraftDir(), "saves/NEI/global/presets.ini");
 
         if (presetsFile == null || !presetsFile.exists()) {
             return;
@@ -236,15 +192,15 @@ public class PresetsList {
                         preset = new Preset();
                     }
 
-                    if (settings.get("name") != null) {
+                    if (settings.has("name")) {
                         preset.name = settings.get("name").getAsString();
                     }
 
-                    if (settings.get("enabled") != null) {
+                    if (settings.has("enabled")) {
                         preset.enabled = settings.get("enabled").getAsBoolean();
                     }
 
-                    if (settings.get("mode") != null) {
+                    if (settings.has("mode")) {
                         preset.mode = PresetMode.valueOf(settings.get("mode").getAsString());
                     }
 
@@ -260,17 +216,11 @@ public class PresetsList {
         if (!preset.items.isEmpty()) {
             presets.add(preset);
         }
-
-        itemsLoaded();
     }
 
     public static void savePresets() {
-
-        if (presetsFile == null) {
-            return;
-        }
-
-        List<String> strings = new ArrayList<>();
+        final File presetsFile = new File(CommonUtils.getMinecraftDir(), "saves/NEI/global/presets.ini");
+        final List<String> strings = new ArrayList<>();
 
         for (Preset preset : presets) {
             JsonObject settings = new JsonObject();
@@ -289,7 +239,10 @@ public class PresetsList {
             NEIClientConfig.logger.error("Filed to save presets list to file {}", presetsFile, e);
         }
 
-        itemsLoaded();
+        recipeFilter.cache = null;
+        itemFilter.cache = null;
+        ItemList.collapsibleItems.reloadGroups();
+        LayoutManager.markItemsDirty();
     }
 
 }

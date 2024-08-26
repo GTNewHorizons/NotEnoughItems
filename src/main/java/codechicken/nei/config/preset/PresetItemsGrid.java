@@ -56,7 +56,7 @@ public abstract class PresetItemsGrid extends ItemsGrid {
         }
     };
 
-    public PresetItemsGrid() {
+    protected PresetItemsGrid() {
 
         pageLabel = new Label("0/0", true);
 

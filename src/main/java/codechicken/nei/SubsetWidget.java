@@ -1,5 +1,6 @@
 package codechicken.nei;
 
+import static codechicken.nei.LayoutManager.searchField;
 import static codechicken.nei.NEIClientUtils.translate;
 
 import java.awt.Point;
@@ -33,7 +34,6 @@ import codechicken.nei.SearchTokenParser.SearchMode;
 import codechicken.nei.api.API;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
-import codechicken.nei.api.ItemInfo;
 import codechicken.nei.guihook.GuiContainerManager;
 
 public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoadedCallback {
@@ -72,7 +72,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
                 if (slot < sorted.size()) {
                     SubsetTag tag = sorted.get(slot);
                     if (NEIClientUtils.shiftKey()) {
-                        LayoutManager.searchField.setText("%" + tag.fullname);
+                        searchField.setText("%" + tag.fullname.replace(" ", ""));
                     } else if (button == 0 && count >= 2) {
                         SubsetWidget.showOnly(tag);
                     } else {
@@ -642,7 +642,6 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
             if (reallocate) {
                 for (ItemStack item : ItemList.items) {
                     if (interrupted()) return;
-                    if (ItemInfo.isHidden(item)) continue;
                     for (SubsetTag tag : tags) if (tag.filter.matches(item)) state.get(tag.fullname).items.add(item);
                 }
             }

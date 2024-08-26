@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -28,7 +29,6 @@ import org.lwjgl.input.Keyboard;
 import com.google.common.base.Objects;
 
 import codechicken.core.CCUpdateChecker;
-import codechicken.core.ClassDiscoverer;
 import codechicken.core.ClientUtils;
 import codechicken.core.CommonUtils;
 import codechicken.lib.config.ConfigFile;
@@ -77,12 +77,6 @@ public class NEIClientConfig {
     public static ConfigSet world;
     public static final File handlerFile = new File(configDir, "handlers.csv");
     public static final File catalystFile = new File(configDir, "catalysts.csv");
-    public static final File serialHandlersFile = new File(configDir, "serialhandlers.cfg");
-    public static final File heightHackHandlersFile = new File(configDir, "heighthackhandlers.cfg");
-    public static final File handlerOrderingFile = new File(configDir, "handlerordering.csv");
-    public static final File hiddenHandlersFile = new File(configDir, "hiddenhandlers.csv");
-    public static final File enableAutoFocusFile = new File(configDir, "enableautofocus.cfg");
-    public static final File collapsibleItemsFile = new File(configDir, "collapsibleitems.cfg");
 
     @Deprecated
     public static File bookmarkFile;
@@ -101,6 +95,8 @@ public class NEIClientConfig {
     // Handlers will be sorted in ascending order, so smaller numbers show up earlier.
     // Any handler not in the map will be assigned to 0, and negative numbers are fine.
     public static HashMap<String, Integer> handlerOrdering = new HashMap<>();
+
+    public static final Set<Class<?>> pluginsList = new HashSet<>();
 
     // Function that extracts the handler ID from a handler, with special logic for
     // TemplateRecipeHandler: prefer using the overlay ID if it exists.
@@ -502,7 +498,7 @@ public class NEIClientConfig {
             @Override
             public boolean onClick(int button) {
                 super.onClick(button);
-                initBookmarkFile(worldPath);
+                ItemPanels.bookmarkPanel.load();
                 return true;
             }
         });
@@ -578,8 +574,10 @@ public class NEIClientConfig {
 
             @Override
             public boolean onClick(int button) {
+                super.onClick(button);
+                ItemList.collapsibleItems.reloadGroups();
                 LayoutManager.markItemsDirty();
-                return super.onClick(button);
+                return true;
             }
         });
 
@@ -681,18 +679,6 @@ public class NEIClientConfig {
         API.addOption(new OptionTextField("command.rain"));
         tag.getTag("command.heal").setDefaultValue("");
         API.addOption(new OptionTextField("command.heal"));
-
-        tag.getTag("inventory.worldSpecificPresets").setComment("Global or world specific presets")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.worldSpecificPresets", true) {
-
-            @Override
-            public boolean onClick(int button) {
-                super.onClick(button);
-                initPresetsFile(worldPath);
-                return true;
-            }
-        });
 
         tag.getTag("inventory.showItemQuantityWidget").setComment("Show Item Quantity Widget").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.showItemQuantityWidget", true));
@@ -812,7 +798,6 @@ public class NEIClientConfig {
 
         setInternalEnabled(true);
         logger.debug("Loading " + (Minecraft.getMinecraft().isSingleplayer() ? "Local" : "Remote") + " World");
-        bootNEI(ClientUtils.getWorld());
 
         final File specificDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
         final boolean newWorld = !specificDir.exists();
@@ -822,9 +807,12 @@ public class NEIClientConfig {
         }
 
         world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
-        initBookmarkFile(worldPath);
-        initPresetsFile(worldPath);
+        bootNEI(ClientUtils.getWorld());
         onWorldLoad(newWorld);
+    }
+
+    public static String getWorldPath() {
+        return NEIClientConfig.worldPath;
     }
 
     private static void onWorldLoad(boolean newWorld) {
@@ -919,31 +907,27 @@ public class NEIClientConfig {
         LayoutManager.load();
         NEIController.load();
         BookmarkContainerInfo.load();
+        ItemPanels.bookmarkPanel.load();
         mainNEIConfigLoaded = true;
 
         new Thread("NEI Plugin Loader") {
 
             @Override
             public void run() {
-                logger.debug("Started NEI plugin loading");
-                ClassDiscoverer classDiscoverer = new ClassDiscoverer(
-                        test -> test.startsWith("NEI") && test.endsWith("Config.class"),
-                        IConfigureNEI.class);
 
-                classDiscoverer.findClasses();
-
-                for (Class<?> clazz : classDiscoverer.classes) {
+                NEIClientConfig.pluginsList.parallelStream().forEach(clazz -> {
                     try {
                         IConfigureNEI config = (IConfigureNEI) clazz.newInstance();
                         config.loadConfig();
                         NEIModContainer.plugins.add(config);
-                        logger.debug("Loaded " + clazz.getName());
+                        logger.debug("Loaded {}", clazz.getName());
                     } catch (Exception e) {
-                        logger.error("Failed to Load " + clazz.getName(), e);
+                        logger.error("Failed to Load {}", clazz.getName(), e);
                     }
-                }
+                });
 
                 RecipeCatalysts.loadCatalystInfo();
+                ItemSorter.loadConfig();
 
                 // Set pluginNEIConfigLoaded here before posting the NEIConfigsLoadedEvent. This used to be the other
                 // way around, but apparently if your modpack includes 800 mods the event poster might not return in
@@ -951,29 +935,11 @@ public class NEIClientConfig {
                 // cause issues in case one of the event handler calls the (non-thread-safe) NEI API. I don't expect any
                 // handler to do this, but who knows what modders have come up with...
                 pluginNEIConfigLoaded = true;
-                logger.debug("NEI plugin loading finished");
                 MinecraftForge.EVENT_BUS.post(new NEIConfigsLoadedEvent());
+
+                ItemList.loadItems.restart();
             }
         }.start();
-        ItemSorter.loadConfig();
-    }
-
-    private static void initBookmarkFile(String worldPath) {
-
-        if (!global.config.getTag("inventory.bookmarks.worldSpecific").getBooleanValue()) {
-            worldPath = "global";
-        }
-
-        ItemPanels.bookmarkPanel.setBookmarkFile(worldPath);
-    }
-
-    private static void initPresetsFile(String worldPath) {
-
-        if (!global.config.getTag("inventory.worldSpecificPresets").getBooleanValue()) {
-            worldPath = "global";
-        }
-
-        PresetsList.setPresetsFile(worldPath);
     }
 
     public static boolean isWorldSpecific(String setting) {

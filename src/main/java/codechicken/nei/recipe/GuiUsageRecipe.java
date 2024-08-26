@@ -2,6 +2,8 @@ package codechicken.nei.recipe;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
@@ -14,6 +16,7 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
     public static ArrayList<IUsageHandler> usagehandlers = new ArrayList<>();
     public static ArrayList<IUsageHandler> serialUsageHandlers = new ArrayList<>();
+    private static Set<String> existingHandlers = new HashSet<>();
 
     public static boolean openRecipeGui(String inputId, Object... ingredients) {
 
@@ -65,12 +68,25 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
     public static void registerUsageHandler(IUsageHandler handler) {
         final String handlerId = handler.getHandlerId();
-        if (usagehandlers.stream().anyMatch(h -> h.getHandlerId().equals(handlerId))
-                || serialUsageHandlers.stream().anyMatch(h -> h.getHandlerId().equals(handlerId)))
-            return;
 
-        if (NEIClientConfig.serialHandlers.contains(handlerId)) serialUsageHandlers.add(handler);
-        else usagehandlers.add(handler);
+        if (existingHandlers.contains(handlerId)) {
+            return;
+        }
+
+        synchronized (existingHandlers) {
+            existingHandlers.add(handlerId);
+        }
+
+        if (NEIClientConfig.serialHandlers.contains(handlerId)) {
+            synchronized (serialUsageHandlers) {
+                serialUsageHandlers.add(handler);
+            }
+        } else {
+            synchronized (usagehandlers) {
+                usagehandlers.add(handler);
+            }
+        }
+
     }
 
     private static IUsageHandler getUsageOrCatalystHandler(IUsageHandler handler, String inputId,

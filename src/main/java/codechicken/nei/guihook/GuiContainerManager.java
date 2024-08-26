@@ -156,13 +156,15 @@ public class GuiContainerManager {
             namelist = stack.getTooltip(
                     Minecraft.getMinecraft().thePlayer,
                     includeHandlers && Minecraft.getMinecraft().gameSettings.advancedItemTooltips);
-        } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {
+            namelist = new ArrayList<>();
+        }
 
-        if (namelist == null) namelist = new ArrayList<>();
-
-        if (namelist.size() == 0) namelist.add("Unnamed");
-
-        if (namelist.get(0) == null || namelist.get(0).equals("")) namelist.set(0, "Unnamed");
+        if (namelist.isEmpty()) {
+            namelist.add("Unnamed");
+        } else if (namelist.get(0) == null || namelist.get(0).isEmpty()) {
+            namelist.set(0, "Unnamed");
+        }
 
         if (includeHandlers) {
             for (IContainerTooltipHandler handler : tooltipHandlers) {
