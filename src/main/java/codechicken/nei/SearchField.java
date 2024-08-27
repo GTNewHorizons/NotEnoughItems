@@ -44,12 +44,12 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
         protected final Function<Pattern, ItemFilter> createFilter;
         protected final String name;
-        protected final char defaultPrefix;
+        protected final char prefix;
         protected final EnumChatFormatting highlightedColor;
 
-        public SearchParserProvider(char defaultPrefix, String name, EnumChatFormatting highlightedColor,
+        public SearchParserProvider(char prefix, String name, EnumChatFormatting highlightedColor,
                 Function<Pattern, ItemFilter> createFilter) {
-            this.defaultPrefix = defaultPrefix;
+            this.prefix = prefix;
             this.name = name;
             this.highlightedColor = highlightedColor;
             this.createFilter = createFilter;
@@ -74,8 +74,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
         @Override
         public char getPrefix() {
-            String prefix = NEIClientConfig.getStringSetting("inventory.search." + this.name + "SearchPrefix");
-            return prefix.length() == 0 ? this.defaultPrefix : prefix.charAt(0);
+            return this.prefix;
         }
 
         @Override
