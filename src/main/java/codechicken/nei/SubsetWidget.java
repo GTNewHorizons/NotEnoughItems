@@ -380,8 +380,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
         }
 
         public char getPrefix() {
-            String prefix = NEIClientConfig.getStringSetting("inventory.search.subsetsSearchPrefix");
-            return prefix.length() == 0 ? '%' : prefix.charAt(0);
+            return '%';
         }
 
         public EnumChatFormatting getHighlightedColor() {

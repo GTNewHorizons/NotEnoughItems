@@ -145,11 +145,6 @@ public class ItemInfo {
                 new SearchParserProvider('\0', "default", EnumChatFormatting.RESET, PatternItemFilter::new) {
 
                     @Override
-                    public char getPrefix() {
-                        return defaultPrefix;
-                    }
-
-                    @Override
                     public SearchMode getSearchMode() {
                         return SearchMode.ALWAYS;
                     }
