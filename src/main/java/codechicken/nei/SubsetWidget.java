@@ -1,6 +1,5 @@
 package codechicken.nei;
 
-import static codechicken.nei.LayoutManager.searchField;
 import static codechicken.nei.NEIClientUtils.translate;
 
 import java.awt.Point;
@@ -72,7 +71,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
                 if (slot < sorted.size()) {
                     SubsetTag tag = sorted.get(slot);
                     if (NEIClientUtils.shiftKey()) {
-                        searchField.setText("%" + tag.fullname.replace(" ", ""));
+                        LayoutManager.searchField.setText("%" + tag.fullname);
                     } else if (button == 0 && count >= 2) {
                         SubsetWidget.showOnly(tag);
                     } else {
@@ -94,7 +93,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
                 Rectangle4i r = new Rectangle4i(x, y, w, getSlotHeight(slot));
                 if (slot < sorted.size()) {
                     SubsetTag tag = sorted.get(slot);
-                    codechicken.nei.LayoutManager.getLayoutStyle()
+                    LayoutManager.getLayoutStyle()
                             .drawSubsetTag(tag.displayName(), x, y, r.w, r.h, tag.state.state, r.contains(mx, my));
                 } else {
                     ItemStack stack = state.items.get(slot - sorted.size());
@@ -103,8 +102,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
                     int itemx = w / 2 - 8;
                     int itemy = 1;
 
-                    codechicken.nei.LayoutManager.getLayoutStyle()
-                            .drawSubsetTag(null, x, y, r.w, r.h, hidden ? 0 : 2, false);
+                    LayoutManager.getLayoutStyle().drawSubsetTag(null, x, y, r.w, r.h, hidden ? 0 : 2, false);
 
                     GuiContainerManager.drawItem(x + itemx, y + itemy, stack);
                     if (new Rectangle4i(itemx, itemy, 16, 16).contains(mx, my)) SubsetWidget.hoverStack = stack;

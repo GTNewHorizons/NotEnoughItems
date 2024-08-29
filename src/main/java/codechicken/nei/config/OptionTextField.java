@@ -11,30 +11,29 @@ import codechicken.nei.config.GuiOptionList.OptionScrollSlot;
 
 public class OptionTextField extends Option {
 
-    private TextField textField = new TextField("test") {
+    protected final TextField textField = new TextField("test") {
+
+        {
+            this.h = 20;
+        }
 
         @Override
         public void onTextChange(String oldText) {
-            if (focused() && isValidValue(text())) if (!defaulting() || !text().equals(getTag().getValue())) // don't
-                                                                                                             // override
-                                                                                                             // global
-                                                                                                             // if text
-                                                                                                             // hasn't
-                                                                                                             // changed
+            // don't override global if text hasn't changed
+            if (focused() && isValidValue(text()) && (!defaulting() || !text().equals(getTag().getValue()))) {
                 getTag().setValue(text());
+            }
         }
 
         @Override
         public void setFocus(boolean focus) {
             if (!focus && !isValidValue(text())) setText(renderTag().getValue());
-
             super.setFocus(focus);
         }
     };
 
     public OptionTextField(String name) {
         super(name);
-        textField.h = 20;
     }
 
     @Override

@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -20,6 +19,8 @@ import codechicken.nei.ItemList.EverythingItemFilter;
 import codechicken.nei.ItemList.NegatedItemFilter;
 import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.api.ItemFilter;
+import gnu.trove.map.TCharCharMap;
+import gnu.trove.map.hash.TCharCharHashMap;
 
 public class SearchTokenParser {
 
@@ -30,16 +31,11 @@ public class SearchTokenParser {
         NEVER;
 
         public static SearchMode fromInt(int value) {
-            switch (value) {
-                case 0:
-                    return ALWAYS;
-                case 1:
-                    return PREFIX;
-                case 2:
-                    return NEVER;
-                default:
-                    return ALWAYS;
-            }
+            return switch (value) {
+                case 0 -> ALWAYS;
+                case 1 -> PREFIX;
+                default -> NEVER;
+            };
         }
     }
 
@@ -76,6 +72,7 @@ public class SearchTokenParser {
 
     protected final List<ISearchParserProvider> searchProviders;
     protected final ProvidersCache providersCache = new ProvidersCache();
+    protected final TCharCharMap prefixRedefinitions = new TCharCharHashMap();
 
     public SearchTokenParser(List<ISearchParserProvider> searchProviders) {
         this.searchProviders = searchProviders;
@@ -114,7 +111,9 @@ public class SearchTokenParser {
 
     public ISearchParserProvider getProvider(char ch) {
         return getProviders().stream()
-                .filter(provider -> provider.getSearchMode() == SearchMode.PREFIX && provider.getPrefix() == ch)
+                .filter(
+                        provider -> provider.getSearchMode() == SearchMode.PREFIX
+                                && getRedefinedPrefix(provider.getPrefix()) == ch)
                 .findFirst().orElse(null);
     }
 
@@ -133,16 +132,22 @@ public class SearchTokenParser {
     }
 
     public Pattern getSplitPattern() {
-        StringJoiner prefixes = new StringJoiner("");
-        prefixes.add(String.valueOf('\0'));
+        StringBuilder prefixes = new StringBuilder().append('\0');
 
         for (ISearchParserProvider provider : getProviders()) {
             if (provider.getSearchMode() == SearchMode.PREFIX) {
-                prefixes.add(String.valueOf(provider.getPrefix()));
+                prefixes.append(getRedefinedPrefix(provider.getPrefix()));
             }
         }
 
         return Pattern.compile("((-*)([" + Pattern.quote(prefixes.toString()) + "]*)(\\\".*?(?:\\\"|$)|\\S+))");
+    }
+
+    private char getRedefinedPrefix(char prefix) {
+        if (this.prefixRedefinitions.containsKey(prefix)) {
+            return this.prefixRedefinitions.get(prefix);
+        }
+        return prefix;
     }
 
     private ItemFilter parseSearchText(String filterText) {

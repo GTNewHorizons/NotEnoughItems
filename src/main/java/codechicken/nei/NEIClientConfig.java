@@ -25,6 +25,9 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;
 
 import com.google.common.base.Objects;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 
 import codechicken.core.CCUpdateChecker;
 import codechicken.core.ClientUtils;
@@ -233,6 +236,20 @@ public class NEIClientConfig {
             }
 
         });
+
+        String prefixRedefinitions = tag.getTag("inventory.search.prefixRedefinitions").setComment(
+                "Redefine search prefixes by providing a char-to-char map (JSON). The keys are the original prefixes, the values the new ones. Example: { \"$\": \"€\", \"#\": \"+\", \"@\": \"°\", \"%\": \"!\" }")
+                .getValue("{}");
+        try {
+            TypeToken<Map<Character, Character>> typeToken = new TypeToken<Map<Character, Character>>() {
+
+                private static final long serialVersionUID = 1L;
+            };
+            Map<Character, Character> charMap = new Gson().fromJson(prefixRedefinitions, typeToken.getType());
+            SearchField.searchParser.prefixRedefinitions.putAll(charMap);
+        } catch (JsonParseException e) {
+            logger.warn("Failed to convert prefix redefinitions from JSON to CharToCharMap:", e);
+        }
 
         tag.getTag("inventory.bookmarks.enabled").setComment("Enable/Disable Bookmark Panel").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.bookmarks.enabled", true));

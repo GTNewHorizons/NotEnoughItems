@@ -142,11 +142,7 @@ public class ItemInfo {
 
     private static void addSearchProviders() {
         API.addSearchProvider(
-                new SearchParserProvider(
-                        '\0',
-                        "default",
-                        EnumChatFormatting.RESET,
-                        (pattern) -> new PatternItemFilter(pattern)) {
+                new SearchParserProvider('\0', "default", EnumChatFormatting.RESET, PatternItemFilter::new) {
 
                     @Override
                     public SearchMode getSearchMode() {
@@ -155,29 +151,12 @@ public class ItemInfo {
 
                 });
         API.addSearchProvider(
-                new SearchParserProvider(
-                        '@',
-                        "modName",
-                        EnumChatFormatting.LIGHT_PURPLE,
-                        (pattern) -> new ModNameFilter(pattern)));
+                new SearchParserProvider('@', "modName", EnumChatFormatting.LIGHT_PURPLE, ModNameFilter::new));
         API.addSearchProvider(
-                new SearchParserProvider(
-                        '$',
-                        "oreDict",
-                        EnumChatFormatting.AQUA,
-                        (pattern) -> new OreDictionaryFilter(pattern)));
+                new SearchParserProvider('$', "oreDict", EnumChatFormatting.AQUA, OreDictionaryFilter::new));
+        API.addSearchProvider(new SearchParserProvider('#', "tooltip", EnumChatFormatting.YELLOW, TooltipFilter::new));
         API.addSearchProvider(
-                new SearchParserProvider(
-                        '#',
-                        "tooltip",
-                        EnumChatFormatting.YELLOW,
-                        (pattern) -> new TooltipFilter(pattern)));
-        API.addSearchProvider(
-                new SearchParserProvider(
-                        '&',
-                        "identifier",
-                        EnumChatFormatting.GOLD,
-                        (pattern) -> new IdentifierFilter(pattern)));
+                new SearchParserProvider('&', "identifier", EnumChatFormatting.GOLD, IdentifierFilter::new));
     }
 
     private static void addIDDumps() {
