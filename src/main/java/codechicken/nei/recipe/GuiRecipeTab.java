@@ -213,10 +213,9 @@ public abstract class GuiRecipeTab extends Widget {
             File handlerFile = NEIClientConfig.handlerFile;
             if (!handlerFile.exists()) {
                 NEIClientConfig.logger.info("Config file doesn't exist, creating");
-                try {
+                try (FileOutputStream fileOutputStream = new FileOutputStream(handlerFile.getAbsoluteFile())) {
                     assert handlerUrl != null;
                     ReadableByteChannel readableByteChannel = Channels.newChannel(handlerUrl.openStream());
-                    FileOutputStream fileOutputStream = new FileOutputStream(handlerFile.getAbsoluteFile());
                     FileChannel fileChannel = fileOutputStream.getChannel();
                     fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
                 } catch (IOException e) {
@@ -233,7 +232,7 @@ public abstract class GuiRecipeTab extends Widget {
             }
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
-            CSVParser csvParser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(reader);
+            CSVParser csvParser = CSVFormat.EXCEL.builder().setHeader().setSkipHeaderRecord(true).build().parse(reader);
             for (CSVRecord record : csvParser) {
                 final String handler = record.get("handler");
                 final String modName = record.get("modName");

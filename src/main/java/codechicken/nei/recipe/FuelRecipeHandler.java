@@ -51,7 +51,6 @@ public class FuelRecipeHandler extends FurnaceRecipeHandler {
         return NEIClientUtils.translate("recipe.fuel");
     }
 
-    @SuppressWarnings("unchecked")
     private void loadAllSmelting() {
         // Note: Not safe as written for parallelStream
         final Map<ItemStack, ItemStack> smeltingRecipes = (Map<ItemStack, ItemStack>) FurnaceRecipes.smelting()

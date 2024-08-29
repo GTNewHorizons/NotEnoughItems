@@ -89,9 +89,8 @@ public class NEIServerUtils {
         else return player.inventory.getStackInSlot(slot);
     }
 
-    @SuppressWarnings("unchecked")
     public static void deleteAllItems(EntityPlayerMP player) {
-        for (Slot slot : (List<Slot>) player.openContainer.inventorySlots) slot.putStack(null);
+        for (Slot slot : player.openContainer.inventorySlots) slot.putStack(null);
 
         player.sendContainerAndContentsToPlayer(player.openContainer, player.openContainer.getInventory());
     }

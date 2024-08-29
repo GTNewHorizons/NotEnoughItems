@@ -1294,8 +1294,7 @@ public class BookmarkPanel extends PanelWidget {
                 RenderHelper.enableGUIStandardItemLighting();
                 GL11.glEnable(GL12.GL_RESCALE_NORMAL);
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
-                @SuppressWarnings("unchecked")
-                List<Slot> slots = (List<Slot>) this.gui.slotcontainer.inventorySlots;
+                List<Slot> slots = this.gui.slotcontainer.inventorySlots;
 
                 for (Slot slot : slots) {
                     if (slot != null && slot.getStack() != null) {

@@ -681,7 +681,7 @@ public class NEIClientConfig {
 
                 NEIClientConfig.pluginsList.parallelStream().forEach(clazz -> {
                     try {
-                        IConfigureNEI config = (IConfigureNEI) clazz.newInstance();
+                        IConfigureNEI config = (IConfigureNEI) clazz.getConstructor().newInstance();
                         config.loadConfig();
                         NEIModContainer.plugins.add(config);
                         logger.debug("Loaded {}", clazz.getName());

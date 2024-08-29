@@ -594,7 +594,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
             // available
             // This will ideally have been pre-cached elsewhere and will be a NOOP
             findFuelsOnce();
-            return getClass().newInstance();
+            return getClass().getConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

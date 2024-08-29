@@ -64,7 +64,6 @@ public class SpawnerRenderer implements IItemRenderer {
         BossStatus.hasColorModifier = bossHasColorModifier;
     }
 
-    @SuppressWarnings("incomplete-switch")
     @Override
     public void renderItem(ItemRenderType type, ItemStack item, Object... data) {
         switch (type) {
@@ -74,6 +73,8 @@ public class SpawnerRenderer implements IItemRenderer {
             case INVENTORY:
             case ENTITY:
                 renderInventoryItem((RenderBlocks) data[0], item);
+                break;
+            default:
                 break;
         }
     }

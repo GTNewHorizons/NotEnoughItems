@@ -145,10 +145,9 @@ public class RecipeCatalysts {
             File catalystFile = NEIClientConfig.catalystFile;
             if (!catalystFile.exists()) {
                 NEIClientConfig.logger.info("Config file doesn't exist, creating");
-                try {
+                try (FileOutputStream fileOutputStream = new FileOutputStream(catalystFile.getAbsoluteFile())) {
                     assert handlerUrl != null;
                     ReadableByteChannel readableByteChannel = Channels.newChannel(handlerUrl.openStream());
-                    FileOutputStream fileOutputStream = new FileOutputStream(catalystFile.getAbsoluteFile());
                     FileChannel fileChannel = fileOutputStream.getChannel();
                     fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
                 } catch (IOException e) {
@@ -165,7 +164,7 @@ public class RecipeCatalysts {
             }
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
-            CSVParser csvParser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(reader);
+            CSVParser csvParser = CSVFormat.EXCEL.builder().setHeader().setSkipHeaderRecord(true).build().parse(reader);
             for (CSVRecord record : csvParser) {
                 final String handler = record.get("handler");
                 final String modId = record.get("modId");
@@ -194,7 +193,7 @@ public class RecipeCatalysts {
                 try {
                     // gently handling copy&paste from handlers.csv
                     Class<?> clazz = Class.forName(handler);
-                    Object object = clazz.newInstance();
+                    Object object = clazz.getConstructor().newInstance();
                     if (object instanceof IRecipeHandler) {
                         if (forceClassName) {
                             forceClassNameList.add(handler);

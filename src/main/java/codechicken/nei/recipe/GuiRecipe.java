@@ -402,7 +402,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void initGui() {
         xSize = 176;
         ySize = Math.min(Math.max(height - 68, 166), 370);
@@ -478,7 +477,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         refreshPage();
     }
 
-    @SuppressWarnings("unchecked")
     private void updateOverlayButtons() {
         final List<Integer> indices = getRecipeIndices();
 

@@ -24,7 +24,9 @@ public class StackInfo {
     public static final ArrayList<IStackStringifyHandler> stackStringifyHandlers = new ArrayList<>();
     private static final HashMap<String, HashMap<String, String[]>> guidfilters = new HashMap<>();
     private static final ItemStackMap<String> guidcache = new ItemStackMap<>();
-    private static final LinkedHashMap<ItemStack, FluidStack> fluidcache = new LinkedHashMap<ItemStack, FluidStack>() {
+    private static final LinkedHashMap<ItemStack, FluidStack> fluidcache = new LinkedHashMap<>() {
+
+        private static final long serialVersionUID = 1042213947848622164L;
 
         @Override
         protected boolean removeEldestEntry(Map.Entry<ItemStack, FluidStack> eldest) {

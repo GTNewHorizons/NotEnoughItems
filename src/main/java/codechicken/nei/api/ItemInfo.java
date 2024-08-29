@@ -191,7 +191,7 @@ public class ItemInfo {
             public String[] dump(Block block, int id, String name) {
                 final Item item = Item.getItemFromBlock(block);
                 return new String[] { name, Integer.toString(id), Boolean.toString(item != null),
-                        ItemInfo.itemOwners.get(block), block.getClass().getCanonicalName(),
+                        ItemInfo.itemOwners.get(item), block.getClass().getCanonicalName(),
                         item != null ? EnumChatFormatting.getTextWithoutFormattingCodes(
                                 GuiContainerManager.itemDisplayNameShort(new ItemStack(item))) : "null" };
             }
@@ -442,7 +442,6 @@ public class ItemInfo {
         addEntityEgg(EntityIronGolem.class, 0xC5C2C1, 0xffe1cc);
     }
 
-    @SuppressWarnings("unchecked")
     private static void addEntityEgg(Class<?> entity, int i, int j) {
         int id = (Integer) EntityList.classToIDMapping.get(entity);
         EntityList.entityEggs.put(id, new EntityEggInfo(id, i, j));

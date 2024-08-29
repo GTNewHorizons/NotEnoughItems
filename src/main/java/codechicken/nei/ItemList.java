@@ -210,7 +210,6 @@ public class ItemList {
             }
         }
 
-        @SuppressWarnings("unchecked")
         private String getTooltip(ItemStack stack) {
             try {
                 return String.join("\n", stack.getTooltip(Minecraft.getMinecraft().thePlayer, false));

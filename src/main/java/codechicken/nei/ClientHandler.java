@@ -358,8 +358,9 @@ public class ClientHandler {
             }
         };
 
-        @SuppressWarnings("serial")
         CustomModLoadingErrorDisplayException e = new CustomModLoadingErrorDisplayException() {
+
+            private static final long serialVersionUID = -5593387489666663375L;
 
             @Override
             public void initGui(GuiErrorScreen errorScreen, FontRenderer fontRenderer) {

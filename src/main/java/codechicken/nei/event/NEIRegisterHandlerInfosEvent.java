@@ -17,7 +17,6 @@ import cpw.mods.fml.common.eventhandler.Event;
  * <br>
  * This event is fired on the {@link MinecraftForge#EVENT_BUS}.
  */
-@SuppressWarnings("unused")
 public class NEIRegisterHandlerInfosEvent extends Event {
 
     public void registerHandlerInfo(HandlerInfo info) {

@@ -70,12 +70,12 @@ class ItemsHistoryHandler implements ICraftingHandler, IUsageHandler {
     }
 
     @Override
-    public boolean keyTyped(GuiRecipe gui, char keyChar, int keyCode, int recipe) {
+    public boolean keyTyped(GuiRecipe<?> gui, char keyChar, int keyCode, int recipe) {
         return false;
     }
 
     @Override
-    public boolean mouseClicked(GuiRecipe gui, int button, int recipe) {
+    public boolean mouseClicked(GuiRecipe<?> gui, int button, int recipe) {
         return true;
     }
 
