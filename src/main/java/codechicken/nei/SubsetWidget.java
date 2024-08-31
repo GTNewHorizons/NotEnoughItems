@@ -71,7 +71,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
                 if (slot < sorted.size()) {
                     SubsetTag tag = sorted.get(slot);
                     if (NEIClientUtils.shiftKey()) {
-                        LayoutManager.searchField.setText("%" + tag.fullname);
+                        LayoutManager.searchField.setText("%" + tag.fullname.replaceAll("\\s+", ""));
                     } else if (button == 0 && count >= 2) {
                         SubsetWidget.showOnly(tag);
                     } else {
@@ -175,7 +175,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
         private SubsetTag getTag(String name) {
             int idx = name.indexOf('.');
             String childname = idx > 0 ? name.substring(0, idx) : name;
-            SubsetTag child = children.get(childname.replaceAll(" ", "").toLowerCase());
+            SubsetTag child = children.get(childname.replaceAll("\\s+", "").toLowerCase());
             if (child == null) return null;
 
             return idx > 0 ? child.getTag(name.substring(idx + 1)) : child;
@@ -192,7 +192,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
             int idx = name.indexOf('.');
 
             if (idx < 0) { // add or replace tag
-                SubsetTag prev = children.put(name.replaceAll(" ", "").toLowerCase(), tag);
+                SubsetTag prev = children.put(name.replaceAll("\\s+", "").toLowerCase(), tag);
                 if (prev != null) { // replaced, load children
                     tag.children = prev.children;
                     tag.sorted = prev.sorted;
@@ -200,10 +200,10 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
                 recacheChildren();
             } else {
                 String childname = name.substring(0, idx);
-                SubsetTag child = children.get(childname.replaceAll(" ", "").toLowerCase());
+                SubsetTag child = children.get(childname.replaceAll("\\s+", "").toLowerCase());
                 if (child == null) {
                     children.put(
-                            childname.replaceAll(" ", "").toLowerCase(),
+                            childname.replaceAll("\\s+", "").toLowerCase(),
                             child = new SubsetTag(fullname == null ? childname : fullname + '.' + childname));
                 }
                 recacheChildren();

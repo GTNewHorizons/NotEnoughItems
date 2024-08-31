@@ -227,7 +227,7 @@ public class NEIClientConfig {
         });
 
         tag.getTag("inventory.search.subsetsSearchMode").setComment("Search mode for Item Subsets (prefix: %)")
-                .getIntValue(2);
+                .getIntValue(1);
         API.addOption(new OptionCycled("inventory.search.subsetsSearchMode", 3, true) {
 
             @Override
