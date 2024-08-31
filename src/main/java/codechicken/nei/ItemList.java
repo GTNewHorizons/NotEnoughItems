@@ -91,7 +91,19 @@ public class ItemList {
         @Override
         public boolean matches(ItemStack item) {
             String displayName = EnumChatFormatting.getTextWithoutFormattingCodes(item.getDisplayName());
-            return !displayName.isEmpty() && pattern.matcher(displayName).find();
+
+            if (!displayName.isEmpty() && pattern.matcher(displayName).find()) {
+                return true;
+            }
+
+            if (item.hasDisplayName()) {
+                displayName = EnumChatFormatting
+                        .getTextWithoutFormattingCodes(item.getItem().getItemStackDisplayName(item));
+
+                return !displayName.isEmpty() && pattern.matcher(displayName).find();
+            }
+
+            return false;
         }
     }
 
