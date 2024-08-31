@@ -1107,6 +1107,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                                     handlerInfo.getHeight() - fontRendererObj.FONT_HEIGHT,
                                     0xffffff);
                         }
+
+                        overlayButton.drawItemPresenceOverlay();
                     }
                 }
 
