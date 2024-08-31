@@ -243,18 +243,18 @@ public class SearchField extends TextField implements ItemFilterProvider {
                     search = search.substring(2, search.length() - 1);
                 } else {
                     final Matcher matcher = Pattern.compile("(\\?|\\*)").matcher(search);
-                    String cleanedString = "";
+                    StringBuilder cleanedString = new StringBuilder();
                     int lastEndIndex = 0;
 
                     while (matcher.find()) {
-                        cleanedString += Pattern.quote(search.substring(lastEndIndex, matcher.start()));
+                        cleanedString.append(Pattern.quote(search.substring(lastEndIndex, matcher.start())));
 
                         switch (matcher.group(0).charAt(0)) {
                             case '?':
-                                cleanedString += ".";
+                                cleanedString.append(".");
                                 break;
                             case '*':
-                                cleanedString += ".+?";
+                                cleanedString.append(".+?");
                                 break;
                             default:
                                 break;
@@ -265,6 +265,8 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
                     search = cleanedString + Pattern.quote(search.substring(lastEndIndex, search.length()));
                 }
+                break;
+            default:
                 break;
         }
 
@@ -299,6 +301,8 @@ public class SearchField extends TextField implements ItemFilterProvider {
                 break;
             case 2:
                 text = text.replaceAll("[{}()\\[\\].+*?^$\\\\|]", "\\\\$0");
+                break;
+            default:
                 break;
         }
 
