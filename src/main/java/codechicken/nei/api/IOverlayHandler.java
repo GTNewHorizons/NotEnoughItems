@@ -6,20 +6,20 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
 import codechicken.nei.PositionedStack;
+import codechicken.nei.recipe.GuiOverlayButton.ItemOverlayState;
 import codechicken.nei.recipe.IRecipeHandler;
 
 public interface IOverlayHandler {
 
     void overlayRecipe(GuiContainer firstGui, IRecipeHandler recipe, int recipeIndex, boolean shift);
 
-    default List<Boolean> presenceOverlay(GuiContainer firstGui, IRecipeHandler recipe, int recipeIndex) {
-        final List<Boolean> itemPresenceSlots = new ArrayList<>();
+    default List<ItemOverlayState> presenceOverlay(GuiContainer firstGui, IRecipeHandler recipe, int recipeIndex) {
+        final List<ItemOverlayState> itemPresenceSlots = new ArrayList<>();
         final List<PositionedStack> ingredients = recipe.getIngredientStacks(recipeIndex);
-        final List<ItemStack> invStacks = ((List<Slot>) firstGui.inventorySlots.inventorySlots).stream()
+        final List<ItemStack> invStacks = firstGui.inventorySlots.inventorySlots.stream()
                 .filter(
                         s -> s != null && s.getStack() != null
                                 && s.getStack().stackSize > 0
@@ -29,9 +29,9 @@ public interface IOverlayHandler {
 
         for (PositionedStack stack : ingredients) {
             Optional<ItemStack> used = invStacks.stream().filter(is -> is.stackSize > 0 && stack.contains(is))
-                    .findFirst();
+                    .findAny();
 
-            itemPresenceSlots.add(used.isPresent());
+            itemPresenceSlots.add(new ItemOverlayState(stack, used.isPresent()));
 
             if (used.isPresent()) {
                 ItemStack is = used.get();

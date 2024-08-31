@@ -62,7 +62,39 @@ public class GuiOverlayButton extends GuiNEIButton {
         }
     }
 
-    private final static int OVERLAY_BUTTON_ID_START = 4;
+    public enum ItemOverlayFormat {
+        BACKGROUND,
+        ICON
+    }
+
+    public static class ItemOverlayState {
+
+        protected PositionedStack slot;
+        protected boolean isPresent;
+
+        public ItemOverlayState(PositionedStack slot, boolean isPresent) {
+            this.slot = slot;
+            this.isPresent = isPresent;
+        }
+
+        public boolean isPresent() {
+            return this.isPresent;
+        }
+
+        public PositionedStack getSlot() {
+            return this.slot;
+        }
+
+        public void draw(ItemOverlayFormat format) {
+            LayoutManager.drawItemPresenceOverlay(
+                    this.slot.relx,
+                    this.slot.rely,
+                    this.isPresent,
+                    format == ItemOverlayFormat.BACKGROUND);
+        }
+    }
+
+    private static final int OVERLAY_BUTTON_ID_START = 4;
 
     public final GuiContainer firstGui;
     public final IRecipeHandler handler;
@@ -71,7 +103,7 @@ public class GuiOverlayButton extends GuiNEIButton {
     protected ItemsTooltipLineHandler missedMaterialsTooltipLineHandler;
 
     protected final IOverlayHandler overlayHandler;
-    protected final List<Boolean> itemPresenceCache = new ArrayList<>();
+    protected final List<ItemOverlayState> itemPresenceCache = new ArrayList<>();
     protected boolean requireShiftForOverlayRecipe = true;
     protected boolean useOverlayRenderer = false;
     protected boolean hasOverlay = false;
@@ -151,20 +183,16 @@ public class GuiOverlayButton extends GuiNEIButton {
     public void drawItemPresenceOverlay() {
         final int presenceOverlay = NEIClientConfig.itemPresenceOverlay();
         final boolean highlightPresentItem = NEIClientConfig.isSlotHighlightPresent();
-        final List<PositionedStack> ingredients = this.handler.getIngredientStacks(recipeIndex);
-        final List<Boolean> itemPresenceCache = ingredientsOverlay();
+        final ItemOverlayFormat format = presenceOverlay == 2 ? ItemOverlayFormat.BACKGROUND : ItemOverlayFormat.ICON;
 
-        for (int j = 0; j < ingredients.size(); j++) {
-            PositionedStack stack = ingredients.get(j);
-            Boolean isPresent = j < itemPresenceCache.size() ? itemPresenceCache.get(j) : null;
-
-            if (isPresent != null && (highlightPresentItem || !isPresent)) {
-                LayoutManager.drawItemPresenceOverlay(stack.relx, stack.rely, isPresent, presenceOverlay == 2);
+        for (ItemOverlayState overlay : ingredientsOverlay()) {
+            if (highlightPresentItem || !overlay.isPresent()) {
+                overlay.draw(format);
             }
         }
     }
 
-    protected List<Boolean> ingredientsOverlay() {
+    protected List<ItemOverlayState> ingredientsOverlay() {
         List<PositionedStack> ingredients = this.handler.getIngredientStacks(recipeIndex);
 
         if (this.itemPresenceCache.size() != ingredients.size()) {
@@ -177,13 +205,8 @@ public class GuiOverlayButton extends GuiNEIButton {
                 this.itemPresenceCache.addAll(presenceOverlay(ingredients));
             }
 
-            List<ItemStack> items = new ArrayList<>();
-
-            for (int j = 0; j < ingredients.size(); j++) {
-                if (j >= this.itemPresenceCache.size() || !this.itemPresenceCache.get(j)) {
-                    items.add(ingredients.get(j).item);
-                }
-            }
+            List<ItemStack> items = this.itemPresenceCache.stream().filter(state -> !state.isPresent())
+                    .map(state -> state.getSlot().item).collect(Collectors.toCollection(ArrayList::new));
 
             if (!items.isEmpty()) {
                 this.missedMaterialsTooltipLineHandler = new ItemsTooltipLineHandler(
@@ -220,8 +243,8 @@ public class GuiOverlayButton extends GuiNEIButton {
         return this.hasOverlay;
     }
 
-    private List<Boolean> presenceOverlay(List<PositionedStack> ingredients) {
-        final List<Boolean> itemPresenceSlots = new ArrayList<>();
+    private List<ItemOverlayState> presenceOverlay(List<PositionedStack> ingredients) {
+        final List<ItemOverlayState> itemPresenceSlots = new ArrayList<>();
         final List<ItemStack> invStacks = this.firstGui.inventorySlots.inventorySlots.stream()
                 .filter(
                         s -> s != null && s.getStack() != null
@@ -232,9 +255,9 @@ public class GuiOverlayButton extends GuiNEIButton {
 
         for (PositionedStack stack : ingredients) {
             Optional<ItemStack> used = invStacks.stream().filter(is -> is.stackSize > 0 && stack.contains(is))
-                    .findFirst();
+                    .findAny();
 
-            itemPresenceSlots.add(used.isPresent());
+            itemPresenceSlots.add(new ItemOverlayState(stack, used.isPresent()));
 
             if (used.isPresent()) {
                 ItemStack is = used.get();
