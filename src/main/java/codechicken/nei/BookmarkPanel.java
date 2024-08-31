@@ -2500,20 +2500,19 @@ public class BookmarkPanel extends PanelWidget {
                     translate("bookmark.group.toggle_crafting_chain.key"),
                     translate("bookmark.group.toggle_crafting_chain"));
 
-            String keyName = NEIClientConfig.getKeyName(NEIClientConfig.getKeyBinding("gui.remove_recipe"), true);
+            String keyName = NEIClientConfig.getKeyName("gui.remove_recipe");
             if (keyName != null) {
                 hotkeys.put(keyName, translate("bookmark.group.remove_recipe"));
             }
 
             if (BookmarkContainerInfo.getBookmarkContainerHandler(gui) != null) {
 
-                keyName = NEIClientConfig.getKeyName(NEIClientConfig.getKeyBinding("gui.bookmark_pull_items"), true);
+                keyName = NEIClientConfig.getKeyName("gui.bookmark_pull_items");
                 if (keyName != null) {
                     hotkeys.put(keyName, translate("bookmark.group.pull_items"));
                 }
 
-                keyName = NEIClientConfig
-                        .getKeyName(NEIClientConfig.getKeyBinding("gui.bookmark_pull_items_ingredients"), true);
+                keyName = NEIClientConfig.getKeyName("gui.bookmark_pull_items_ingredients");
                 if (keyName != null) {
                     hotkeys.put(keyName, translate("bookmark.group.pull_items_ingredients"));
                 }
@@ -2536,20 +2535,19 @@ public class BookmarkPanel extends PanelWidget {
                 hotkeys.put(translate("bookmark.group.sorting.key"), translate("bookmark.group.sorting"));
             }
 
-            String keyName = NEIClientConfig.getKeyName(NEIClientConfig.getKeyBinding("gui.remove_recipe"), true);
+            String keyName = NEIClientConfig.getKeyName("gui.remove_recipe");
             if (keyName != null) {
                 hotkeys.put(keyName, translate("bookmark.group.remove_recipe"));
             }
 
             if (BookmarkContainerInfo.getBookmarkContainerHandler(gui) != null) {
-                keyName = NEIClientConfig.getKeyName(NEIClientConfig.getKeyBinding("gui.bookmark_pull_items"), true);
+                keyName = NEIClientConfig.getKeyName("gui.bookmark_pull_items");
 
                 if (keyName != null) {
                     hotkeys.put(keyName, translate("bookmark.group.pull_items"));
                 }
 
-                keyName = NEIClientConfig
-                        .getKeyName(NEIClientConfig.getKeyBinding("gui.bookmark_pull_items_ingredients"), true);
+                keyName = NEIClientConfig.getKeyName("gui.bookmark_pull_items_ingredients");
                 if (keyName != null) {
                     hotkeys.put(keyName, translate("bookmark.group.pull_items_ingredients"));
                 }

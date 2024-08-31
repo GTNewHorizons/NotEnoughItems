@@ -631,34 +631,14 @@ public class NEIClientConfig {
         return hash != Keyboard.CHAR_NONE && hash == NEIClientUtils.getKeyHash();
     }
 
-    public static String getKeyName(int keyBind, boolean useHash) {
-        return getKeyName(keyBind, useHash, false);
-    }
+    public static String getKeyName(String keyBind) {
+        final int hash = getKeyBinding(keyBind);
 
-    public static String getKeyName(int keyBind, boolean useHash, boolean showOnlyHash) {
-        String keyText = "";
-
-        if (useHash) {
-            final String DELIMITER = " + ";
-            if ((keyBind & NEIClientUtils.CTRL_HASH) != 0) {
-                keyText += NEIClientUtils.translate(Minecraft.isRunningOnMac ? "key.ctrl.mac" : "key.ctrl") + DELIMITER;
-            }
-            if ((keyBind & NEIClientUtils.SHIFT_HASH) != 0) {
-                keyText += "SHIFT" + DELIMITER;
-            }
-            if ((keyBind & NEIClientUtils.ALT_HASH) != 0) {
-                keyText += "ALT" + DELIMITER;
-            }
+        if (NEIClientUtils.unHashKey(hash) == Keyboard.CHAR_NONE) {
+            return null;
         }
 
-        if (!showOnlyHash) {
-            keyText += Keyboard.getKeyName(unHashKey(keyBind));
-        }
-        return keyText;
-    }
-
-    public static int unHashKey(int keyBind) {
-        return keyBind & ~(NEIClientUtils.CTRL_HASH | NEIClientUtils.SHIFT_HASH | NEIClientUtils.ALT_HASH);
+        return NEIClientUtils.getKeyName(hash);
     }
 
     public static void bootNEI(World world) {

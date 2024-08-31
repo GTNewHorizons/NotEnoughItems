@@ -1098,8 +1098,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                             .filter(b -> b.recipeIndex == recipeIndex).findAny().orElse(null);
 
                     if (overlayButton != null && overlayButton.enabled) {
-                        final String overlayKeyName = NEIClientConfig
-                                .getKeyName(NEIClientConfig.getKeyBinding("gui.overlay_use"), true);
+                        final String overlayKeyName = NEIClientConfig.getKeyName("gui.overlay_use");
 
                         if (overlayKeyName != null) {
                             fontRendererObj.drawStringWithShadow(

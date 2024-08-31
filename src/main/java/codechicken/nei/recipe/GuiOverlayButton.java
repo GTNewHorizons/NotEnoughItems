@@ -113,26 +113,26 @@ public class GuiOverlayButton extends GuiNEIButton {
 
     public Map<String, String> handleHotkeys(GuiContainer gui, int mousex, int mousey, Map<String, String> hotkeys) {
 
-        if (this.requireShiftForOverlayRecipe) {
+        if (this.requireShiftForOverlayRecipe && this.useOverlayRenderer) {
             hotkeys.put(translate("recipe.overlay.fillCraftingGrid.key"), translate("recipe.overlay.fillCraftingGrid"));
         }
 
-        String keyName = NEIClientConfig.getKeyName(NEIClientConfig.getKeyBinding("gui.bookmark"), true);
+        String keyName = NEIClientConfig.getKeyName("gui.bookmark");
         if (keyName != null) {
             hotkeys.put(keyName, translate("recipe.overlay.bookmark"));
         }
 
-        keyName = NEIClientConfig.getKeyName(NEIClientConfig.getKeyBinding("gui.bookmark_recipe"), true);
+        keyName = NEIClientConfig.getKeyName("gui.bookmark_recipe");
         if (keyName != null) {
             hotkeys.put(keyName, translate("recipe.overlay.bookmarkRecipe"));
         }
 
-        keyName = NEIClientConfig.getKeyName(NEIClientConfig.getKeyBinding("gui.bookmark_count"), true);
+        keyName = NEIClientConfig.getKeyName("gui.bookmark_count");
         if (keyName != null) {
             hotkeys.put(keyName, translate("recipe.overlay.bookmarkAmount"));
         }
 
-        keyName = NEIClientConfig.getKeyName(NEIClientConfig.getKeyBinding("gui.bookmark_recipe_count"), true);
+        keyName = NEIClientConfig.getKeyName("gui.bookmark_recipe_count");
         if (keyName != null) {
             hotkeys.put(keyName, translate("recipe.overlay.bookmarkRecipeAndAmount"));
         }

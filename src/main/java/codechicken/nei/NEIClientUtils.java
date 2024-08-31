@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
@@ -448,6 +449,32 @@ public class NEIClientUtils extends NEIServerUtils {
         }
 
         return Keyboard.CHAR_NONE;
+    }
+
+    public static String getKeyHashName(int keyBind) {
+        StringJoiner keyText = new StringJoiner(" + ");
+
+        if ((keyBind & NEIClientUtils.CTRL_HASH) != 0) {
+            keyText.add(NEIClientUtils.translate(Minecraft.isRunningOnMac ? "key.ctrl.mac" : "key.ctrl"));
+        }
+
+        if ((keyBind & NEIClientUtils.SHIFT_HASH) != 0) {
+            keyText.add(NEIClientUtils.translate("key.shift"));
+        }
+
+        if ((keyBind & NEIClientUtils.ALT_HASH) != 0) {
+            keyText.add(NEIClientUtils.translate("key.alt"));
+        }
+
+        return keyText.add("").toString();
+    }
+
+    public static String getKeyName(int keyBind) {
+        return NEIClientUtils.getKeyHashName(keyBind) + Keyboard.getKeyName(NEIClientUtils.unHashKey(keyBind));
+    }
+
+    public static int unHashKey(int keyBind) {
+        return keyBind & ~(NEIClientUtils.CTRL_HASH | NEIClientUtils.SHIFT_HASH | NEIClientUtils.ALT_HASH);
     }
 
     public static void playClickSound() {

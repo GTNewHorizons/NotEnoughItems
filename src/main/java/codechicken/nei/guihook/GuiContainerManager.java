@@ -568,7 +568,7 @@ public class GuiContainerManager {
             }
         }
 
-        if (tooltip.size() > 0) tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE); // add space after 'title'
+        if (!tooltip.isEmpty()) tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE); // add space after 'title'
 
         synchronized (instanceTooltipHandlers) {
             for (IContainerTooltipHandler handler : instanceTooltipHandlers) {
@@ -577,25 +577,27 @@ public class GuiContainerManager {
         }
 
         if (!hotkeys.isEmpty()) {
+            List<String> hotkeystips = new ArrayList<>();
 
             if (!NEIClientUtils.altKey()) {
-                tooltip.add(
-                        1,
-                        EnumChatFormatting.GRAY + translate(
-                                "showHotkeys",
-                                "" + EnumChatFormatting.GOLD + "ALT" + EnumChatFormatting.GRAY));
+                hotkeystips.add(
+                        EnumChatFormatting.GRAY
+                                + translate("showHotkeys", EnumChatFormatting.GOLD + "ALT" + EnumChatFormatting.GRAY));
             } else {
-                List<String> hotkeystips = new LinkedList<>();
 
-                for (String key : hotkeys.keySet()) {
-                    hotkeystips.add(getHotkeyTip(key, hotkeys.get(key)));
+                for (Map.Entry<String, String> entry : hotkeys.entrySet()) {
+                    hotkeystips.add(getHotkeyTip(entry.getKey(), entry.getValue()));
                 }
 
                 hotkeystips.sort((a, b) -> Integer.compare(a.indexOf(" - "), b.indexOf(" - ")));
                 hotkeystips.set(
                         hotkeystips.size() - 1,
                         hotkeystips.get(hotkeystips.size() - 1) + GuiDraw.TOOLTIP_LINESPACE);
+            }
 
+            if (tooltip.isEmpty()) {
+                tooltip.addAll(hotkeystips);
+            } else {
                 tooltip.addAll(1, hotkeystips);
             }
         }
@@ -623,7 +625,7 @@ public class GuiContainerManager {
                             "inventory.tooltip.page",
                             tooltipPage + 1,
                             tooltips.size(),
-                            NEIClientConfig.getKeyName(NEIClientConfig.getKeyBinding("gui.next_tooltip"), true)));
+                            NEIClientConfig.getKeyName("gui.next_tooltip")));
         }
         drawMultilineTip(font, x, y, tooltips.get(tooltipPage));
     }

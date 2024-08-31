@@ -73,11 +73,10 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
 
             if (NEIClientConfig.getBooleanSetting("inventory.itemzoom.enabled")
                     && NEIClientConfig.getBooleanSetting("inventory.itemzoom.helpText")) {
-                int key = NEIClientConfig.getKeyBinding("gui.itemzoom_toggle");
+                String keyName = NEIClientConfig.getKeyName("gui.itemzoom_toggle");
 
-                if (key > 0) {
-                    String helpText = NEIClientUtils
-                            .translate("itemzoom.toggle", NEIClientConfig.getKeyName(key, true));
+                if (keyName != null) {
+                    String helpText = NEIClientUtils.translate("itemzoom.toggle", keyName);
                     List<String> lines = fontRenderer.listFormattedStringToWidth(helpText, this.availableAreaWidth);
 
                     for (String line : lines) {

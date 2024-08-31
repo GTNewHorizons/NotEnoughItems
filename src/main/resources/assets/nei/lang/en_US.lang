@@ -3,6 +3,8 @@ nei.save=Save
 
 # PC/Linux Control Key
 nei.key.ctrl=CTRL
+nei.key.shift=SHIFT
+nei.key.alt=ALT
 # Mac Command Key
 nei.key.ctrl.mac=CMD
 nei.showHotkeys=Hold %s for hotkeys
