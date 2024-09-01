@@ -454,16 +454,16 @@ public class NEIClientUtils extends NEIServerUtils {
     public static String getKeyHashName(int keyBind) {
         StringJoiner keyText = new StringJoiner(" + ");
 
-        if ((keyBind & NEIClientUtils.CTRL_HASH) != 0) {
-            keyText.add(NEIClientUtils.translate(Minecraft.isRunningOnMac ? "key.ctrl.mac" : "key.ctrl"));
+        if ((keyBind & CTRL_HASH) != 0) {
+            keyText.add(translate(Minecraft.isRunningOnMac ? "key.ctrl.mac" : "key.ctrl"));
         }
 
-        if ((keyBind & NEIClientUtils.SHIFT_HASH) != 0) {
-            keyText.add(NEIClientUtils.translate("key.shift"));
+        if ((keyBind & SHIFT_HASH) != 0) {
+            keyText.add(translate("key.shift"));
         }
 
-        if ((keyBind & NEIClientUtils.ALT_HASH) != 0) {
-            keyText.add(NEIClientUtils.translate("key.alt"));
+        if ((keyBind & ALT_HASH) != 0) {
+            keyText.add(translate("key.alt"));
         }
 
         return keyText.toString();
@@ -471,8 +471,8 @@ public class NEIClientUtils extends NEIServerUtils {
 
     public static String getKeyName(int keyBind) {
         StringJoiner keyText = new StringJoiner(" + ");
-        String hashText = NEIClientUtils.getKeyHashName(keyBind);
-        int keyID = NEIClientUtils.unHashKey(keyBind);
+        String hashText = getKeyHashName(keyBind);
+        int keyID = unHashKey(keyBind);
 
         if (!hashText.isEmpty()) {
             keyText.add(hashText);
@@ -486,7 +486,7 @@ public class NEIClientUtils extends NEIServerUtils {
     }
 
     public static int unHashKey(int keyBind) {
-        return keyBind & ~(NEIClientUtils.CTRL_HASH | NEIClientUtils.SHIFT_HASH | NEIClientUtils.ALT_HASH);
+        return keyBind & ~(CTRL_HASH | SHIFT_HASH | ALT_HASH);
     }
 
     public static void playClickSound() {
