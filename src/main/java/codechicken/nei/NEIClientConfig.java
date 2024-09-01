@@ -634,7 +634,7 @@ public class NEIClientConfig {
     public static String getKeyName(String keyBind) {
         final int hash = getKeyBinding(keyBind);
 
-        if (NEIClientUtils.unHashKey(hash) == Keyboard.CHAR_NONE) {
+        if (hash == Keyboard.CHAR_NONE) {
             return null;
         }
 
@@ -665,7 +665,7 @@ public class NEIClientConfig {
                         config.loadConfig();
                         NEIModContainer.plugins.add(config);
                         logger.debug("Loaded {}", clazz.getName());
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         logger.error("Failed to Load {}", clazz.getName(), e);
                     }
                 });

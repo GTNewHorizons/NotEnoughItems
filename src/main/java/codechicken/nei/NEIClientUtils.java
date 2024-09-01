@@ -466,11 +466,23 @@ public class NEIClientUtils extends NEIServerUtils {
             keyText.add(NEIClientUtils.translate("key.alt"));
         }
 
-        return keyText.add("").toString();
+        return keyText.toString();
     }
 
     public static String getKeyName(int keyBind) {
-        return NEIClientUtils.getKeyHashName(keyBind) + Keyboard.getKeyName(NEIClientUtils.unHashKey(keyBind));
+        StringJoiner keyText = new StringJoiner(" + ");
+        String hashText = NEIClientUtils.getKeyHashName(keyBind);
+        int keyID = NEIClientUtils.unHashKey(keyBind);
+
+        if (!hashText.isEmpty()) {
+            keyText.add(hashText);
+        }
+
+        if (keyID != Keyboard.CHAR_NONE || hashText.isEmpty()) {
+            keyText.add(Keyboard.getKeyName(keyID));
+        }
+
+        return keyText.toString();
     }
 
     public static int unHashKey(int keyBind) {

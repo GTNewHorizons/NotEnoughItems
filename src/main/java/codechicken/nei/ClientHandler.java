@@ -235,7 +235,6 @@ public class ClientHandler {
 
     public static void postInit() {
         loadHandlerOrdering();
-        loadPluginsList();
         GuiContainerManager.registerReloadResourceListener();
     }
 

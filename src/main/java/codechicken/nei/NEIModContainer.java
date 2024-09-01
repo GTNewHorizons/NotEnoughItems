@@ -127,6 +127,7 @@ public class NEIModContainer extends DummyModContainer {
     public void loadComplete(FMLLoadCompleteEvent event) {
         if (CommonUtils.isClient()) {
             GuiRecipeTab.loadHandlerInfo();
+            ClientHandler.loadPluginsList();
         }
     }
 
