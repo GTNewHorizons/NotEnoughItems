@@ -63,8 +63,13 @@ public class GuiOverlayButton extends GuiNEIButton {
     }
 
     public enum ItemOverlayFormat {
+
         BACKGROUND,
-        ICON
+        ICON;
+
+        public static ItemOverlayFormat from(int overlay) {
+            return overlay == 2 ? ItemOverlayFormat.BACKGROUND : ItemOverlayFormat.ICON;
+        }
     }
 
     public static class ItemOverlayState {
@@ -183,7 +188,7 @@ public class GuiOverlayButton extends GuiNEIButton {
     public void drawItemPresenceOverlay() {
         final int presenceOverlay = NEIClientConfig.itemPresenceOverlay();
         final boolean highlightPresentItem = NEIClientConfig.isSlotHighlightPresent();
-        final ItemOverlayFormat format = presenceOverlay == 2 ? ItemOverlayFormat.BACKGROUND : ItemOverlayFormat.ICON;
+        final ItemOverlayFormat format = ItemOverlayFormat.from(presenceOverlay);
 
         for (ItemOverlayState overlay : ingredientsOverlay()) {
             if (highlightPresentItem || !overlay.isPresent()) {
