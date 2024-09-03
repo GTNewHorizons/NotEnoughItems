@@ -59,10 +59,25 @@ public class NEIClientUtils extends NEIServerUtils {
 
     /** Formats a number with group separator and at most 2 fraction digits. */
     private static final Map<Locale, DecimalFormat> decimalFormatters = new HashMap<>();
+    private static final Map<Integer, Integer> keyHashMap = new HashMap<>();
 
     public static final int ALT_HASH = 1 << 27;
     public static final int SHIFT_HASH = 1 << 26;
     public static final int CTRL_HASH = 1 << 25;
+
+    static {
+        keyHashMap.put(Keyboard.KEY_LSHIFT, SHIFT_HASH);
+        keyHashMap.put(Keyboard.KEY_RSHIFT, SHIFT_HASH);
+
+        keyHashMap.put(Keyboard.KEY_LCONTROL, CTRL_HASH);
+        keyHashMap.put(Keyboard.KEY_LCONTROL, CTRL_HASH);
+
+        keyHashMap.put(Keyboard.KEY_LMETA, CTRL_HASH);
+        keyHashMap.put(Keyboard.KEY_RMETA, CTRL_HASH);
+
+        keyHashMap.put(Keyboard.KEY_LMENU, ALT_HASH);
+        keyHashMap.put(Keyboard.KEY_LMENU, ALT_HASH);
+    }
 
     public static Minecraft mc() {
         return Minecraft.getMinecraft();
@@ -439,11 +454,7 @@ public class NEIClientUtils extends NEIServerUtils {
         if (Keyboard.getEventKeyState()) {
             final int keycode = Keyboard.getEventKey();
 
-            if (keycode != Keyboard.KEY_LSHIFT && keycode != Keyboard.KEY_RSHIFT
-                    && keycode != Keyboard.KEY_LCONTROL
-                    && keycode != Keyboard.KEY_RCONTROL
-                    && keycode != Keyboard.KEY_LMENU
-                    && keycode != Keyboard.KEY_RMENU) {
+            if (!keyHashMap.containsKey(keycode)) {
                 return getMetaHash() + keycode;
             }
         }
@@ -470,6 +481,7 @@ public class NEIClientUtils extends NEIServerUtils {
     }
 
     public static String getKeyName(int keyBind) {
+        keyBind = keyHashMap.getOrDefault(keyBind, keyBind);
         StringJoiner keyText = new StringJoiner(" + ");
         String hashText = getKeyHashName(keyBind);
         int keyID = unHashKey(keyBind);

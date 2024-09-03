@@ -11,22 +11,27 @@ import net.minecraftforge.fluids.FluidStack;
 
 import codechicken.nei.api.IStackStringifyHandler;
 import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
 
-    protected static Class<?> GTDisplayFluid = null;
+    protected static Class<?> itemFluidDisplay = null;
     protected static Method getFluidDisplayStack = null;
     protected static Method getFluidFromDisplayStack = null;
     public static boolean replaceAE2FCFluidDrop = false;
 
     static {
         try {
-            final Class<?> gtUtility = Class.forName("gregtech.api.util.GT_Utility");
+            final ClassLoader loader = GTFluidStackStringifyHandler.class.getClassLoader();
+            final Class<?> gtUtility = ReflectionHelper
+                    .getClass(loader, "gregtech.api.util.GTUtility", "gregtech.api.util.GT_Utility");
 
-            GTDisplayFluid = Class.forName("gregtech.common.items.GT_FluidDisplayItem");
+            itemFluidDisplay = ReflectionHelper.getClass(
+                    loader,
+                    "gregtech.common.items.ItemFluidDisplay",
+                    "gregtech.common.items.GT_FluidDisplayItem");
             getFluidFromDisplayStack = gtUtility.getMethod("getFluidFromDisplayStack", ItemStack.class);
             getFluidDisplayStack = gtUtility.getMethod("getFluidDisplayStack", FluidStack.class, boolean.class);
-
         } catch (Exception ignored) {
             /* Do nothing */
         }
@@ -72,7 +77,7 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
         final Item item = stack.getItem();
 
         try {
-            if (getFluidFromDisplayStack != null && GTDisplayFluid != null && GTDisplayFluid.isInstance(item)) {
+            if (getFluidFromDisplayStack != null && itemFluidDisplay != null && itemFluidDisplay.isInstance(item)) {
                 final Object obj = getFluidFromDisplayStack.invoke(null, stack);
 
                 if (obj != null) {

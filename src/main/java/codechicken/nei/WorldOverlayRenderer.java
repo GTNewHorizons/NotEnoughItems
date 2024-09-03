@@ -17,6 +17,7 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.math.MathHelper;
 import codechicken.nei.KeyManager.IKeyStateTracker;
+import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class WorldOverlayRenderer implements IKeyStateTracker {
 
@@ -26,12 +27,11 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     private static byte[] mobSpawnCache;
     private static long mobOverlayUpdateTime;
     private static String oregenPatternName;
-    private static boolean hasOregenPatternBeenSet = false;
 
     public static void reset() {
         mobOverlay = 0;
         chunkOverlay = 0;
-        hasOregenPatternBeenSet = false;
+        oregenPatternName = null;
     }
 
     @Override
@@ -288,18 +288,9 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
                         GL11.glVertex3d(x2, y2, z1 + h);
                     }
                 } else if (chunkOverlay == 3) {
-                    if (!hasOregenPatternBeenSet) {
-                        try {
-                            oregenPatternName = ((Enum<?>) Class.forName("gregtech.common.GT_Worldgenerator")
-                                    .getDeclaredField("oregenPattern").get(null)).name();
-                        } catch (Exception ignored) {
-                            oregenPatternName = "AXISSYMMETRICAL";
-                        }
-                        hasOregenPatternBeenSet = true;
-                    }
                     int gx1;
                     int gz1;
-                    if (oregenPatternName.equals("EQUAL_SPACING")) {
+                    if (getOregenPatternName().equals("EQUAL_SPACING")) {
                         // gt oregen uses new regular pattern
                         gx1 = ((Math.floorDiv(entity.chunkCoordX, 3) * 3) << 4) - intOffsetX;
                         gz1 = ((Math.floorDiv(entity.chunkCoordZ, 3) * 3) << 4) - intOffsetZ;
@@ -366,6 +357,22 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_BLEND);
+    }
+
+    private static String getOregenPatternName() {
+
+        if (oregenPatternName == null) {
+            try {
+                final ClassLoader loader = WorldOverlayRenderer.class.getClassLoader();
+                final Class<?> gtWorldGenerator = ReflectionHelper
+                        .getClass(loader, "gregtech.common.GTWorldgenerator", "gregtech.common.GT_Worldgenerator");
+                oregenPatternName = ((Enum<?>) gtWorldGenerator.getDeclaredField("oregenPattern").get(null)).name();
+            } catch (Exception ignored) {
+                oregenPatternName = "AXISSYMMETRICAL";
+            }
+        }
+
+        return oregenPatternName;
     }
 
     public static void load() {
