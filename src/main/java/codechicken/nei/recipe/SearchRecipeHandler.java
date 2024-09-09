@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 import codechicken.nei.ItemList;
 import codechicken.nei.api.IRecipeFilter;
 
-class SearchRecipeHandler<H extends IRecipeHandler> {
+public class SearchRecipeHandler<H extends IRecipeHandler> {
 
     public H original;
 

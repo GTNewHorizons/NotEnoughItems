@@ -475,7 +475,7 @@ public class NEIServerUtils {
         out.close();
     }
 
-    public static int divideCeil(int numerator, int denominator) {
-        return (int) Math.ceil((float) numerator / denominator);
+    public static int divideCeil(int num, int divisor) {
+        return num / divisor + (num % divisor == 0 ? 0 : 1);
     }
 }

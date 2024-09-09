@@ -130,11 +130,16 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
     protected static BookmarkRecipeId getRecipeId(GuiScreen gui, ItemStack stackover) {
 
         if (gui instanceof GuiRecipe) {
-            final List<PositionedStack> ingredients = ((GuiRecipe<?>) gui).getFocusedRecipeIngredients();
-            final String handlerName = ((GuiRecipe<?>) gui).getHandlerName();
+            GuiRecipe<?> guiRecipe = (GuiRecipe<?>) gui;
+            final Integer focusedRecipeIndex = guiRecipe.getFocusedRecipeIndex();
+            if (focusedRecipeIndex != null) {
+                final List<PositionedStack> ingredients = guiRecipe.getHandler()
+                        .getIngredientStacks(focusedRecipeIndex);
+                final String handlerName = guiRecipe.getHandlerName();
 
-            if (ingredients != null && !ingredients.isEmpty()) {
-                return new BookmarkRecipeId(handlerName, ingredients);
+                if (ingredients != null && !ingredients.isEmpty()) {
+                    return new BookmarkRecipeId(handlerName, ingredients);
+                }
             }
         }
 

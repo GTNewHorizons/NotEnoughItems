@@ -198,6 +198,9 @@ public class NEIClientConfig {
         tag.getTag("inventory.bookmarks.craftingChainDir").getIntValue(1);
         API.addOption(new OptionCycled("inventory.bookmarks.craftingChainDir", 2, true));
 
+        tag.getTag("inventory.bookmarks.allowNegativeRequests").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.bookmarks.allowNegativeRequests", true));
+
         tag.getTag("inventory.bookmarks.ignorePotionOverlap").setComment("Ignore overlap with potion effect HUD")
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.bookmarks.ignorePotionOverlap", true));
@@ -917,6 +920,10 @@ public class NEIClientConfig {
 
     public static boolean showRecipeMarker() {
         return getBooleanSetting("inventory.bookmarks.showRecipeMarker");
+    }
+
+    public static boolean allowNegativeRequests() {
+        return getBooleanSetting("inventory.bookmarks.allowNegativeRequests");
     }
 
     public static boolean showItemQuantityWidget() {

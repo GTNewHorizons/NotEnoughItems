@@ -10,6 +10,7 @@ nei.showHotkeys=Удерживайте %s для отображения горя
 nei.bookmark.toggle=Закладки
 nei.bookmark.toggle.tip=Переключить видимость панели закладок
 nei.bookmark.pullBookmarkedItems.tip=Переместить все отмеченные предметы из хранилища в инвентарь
+nei.bookmark.conflictingRecipe.tip=Этот результат данного рецепта конфликтует с другими рецептами
 
 nei.bookmark.group=Группа закладок
 nei.bookmark.group.include_group=Создать/Включить группу
@@ -170,6 +171,9 @@ nei.options.inventory.bookmarks=Панель закладок
 nei.options.inventory.bookmarks.enabled=Видимость панели закладок
 nei.options.inventory.bookmarks.enabled.true=Видимая
 nei.options.inventory.bookmarks.enabled.false=Скрытая
+nei.options.inventory.bookmarks.allowNegativeRequests=Разрешить отрицательные запросы в цепочке крафта
+nei.options.inventory.bookmarks.allowNegativeRequests.true=Да
+nei.options.inventory.bookmarks.allowNegativeRequests.false=Нет
 nei.options.inventory.bookmarks.animation=Анимация в стиле REI в закладках
 nei.options.inventory.bookmarks.animation.true=Да
 nei.options.inventory.bookmarks.animation.false=Нет

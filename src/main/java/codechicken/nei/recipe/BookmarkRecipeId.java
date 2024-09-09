@@ -2,6 +2,7 @@ package codechicken.nei.recipe;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -143,6 +144,11 @@ public class BookmarkRecipeId {
         }
 
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(handlerName, ingredients);
     }
 
     public BookmarkRecipeId copy() {

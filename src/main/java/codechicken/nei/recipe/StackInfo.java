@@ -1,5 +1,6 @@
 package codechicken.nei.recipe;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.stackinfo.DefaultStackStringifyHandler;
 import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 import codechicken.nei.util.ItemStackKey;
+import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class StackInfo {
 
@@ -31,9 +33,23 @@ public class StackInfo {
     private static final ItemStackMap<String> guidcache = new ItemStackMap<>();
     private static final LRUCache<ItemStackKey, FluidStack> fluidcache = new LRUCache<>(200);
 
+    private static Method getContainersFromFluid = null;
+    private static Method getFluidDisplayStack = null;
+    private static Class<?> itemCell = null;
+
     static {
         stackStringifyHandlers.add(new DefaultStackStringifyHandler());
         stackStringifyHandlers.add(new GTFluidStackStringifyHandler());
+        try {
+            final ClassLoader loader = StackInfo.class.getClassLoader();
+            final Class<?> gtUtility = ReflectionHelper
+                    .getClass(loader, "gregtech.api.util.GTUtility", "gregtech.api.util.GT_Utility");
+            getContainersFromFluid = gtUtility.getMethod("getContainersFromFluid", FluidStack.class);
+            getFluidDisplayStack = gtUtility.getMethod("getFluidDisplayStack", FluidStack.class, boolean.class);
+            itemCell = ReflectionHelper.getClass(loader, "ic2.core.item.resources.ItemCell");
+        } catch (Exception e) {
+            // do nothing
+        }
     }
 
     public static NBTTagCompound itemStackToNBT(ItemStack stack) {
@@ -115,6 +131,35 @@ public class StackInfo {
         }
 
         return fluid == NULL_FLUID ? null : fluid;
+    }
+
+    public static Integer getFluidCellSize(ItemStack stack) {
+        FluidStack fluid = getFluid(stack);
+        if (fluid == null || getContainersFromFluid == null) {
+            return null;
+        }
+        try {
+            Object obj = getContainersFromFluid.invoke(null, fluid);
+            List<ItemStack> containers = (List<ItemStack>) obj;
+            Integer cellCapacity = null;
+            int fallbackCapacity = 0;
+
+            for (ItemStack container : containers) {
+                if (itemCell != null && itemCell.isInstance(container.getItem())) {
+                    cellCapacity = FluidContainerRegistry.getContainerCapacity(fluid, container);
+                } else {
+                    fallbackCapacity = Math
+                            .max(fallbackCapacity, FluidContainerRegistry.getContainerCapacity(fluid, container));
+                }
+            }
+            if (cellCapacity != null) {
+                return cellCapacity;
+            } else {
+                return fallbackCapacity == 0 ? null : fallbackCapacity;
+            }
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static boolean isFluidContainer(ItemStack stack) {
@@ -218,5 +263,18 @@ public class StackInfo {
         }
 
         return result.copy();
+    }
+
+    public static ItemStack getFluidDisplayStack(FluidStack fluid) {
+        if (getFluidDisplayStack == null || fluid == null) {
+            return null;
+        }
+
+        try {
+            Object itemStack = getFluidDisplayStack.invoke(null, fluid, false);
+            return (ItemStack) itemStack;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
