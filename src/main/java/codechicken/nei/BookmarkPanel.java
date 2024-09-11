@@ -2109,6 +2109,9 @@ public class BookmarkPanel extends PanelWidget {
 
     @Override
     public void mouseDragged(int mousex, int mousey, int button, long heldTime) {
+        if (mouseDownSlot >= grid.realItems.size()) {
+            mouseDownSlot = -1;
+        }
 
         if (this.groupingItem != null) {
             final int overRowIndex = (mousey - grid.marginTop) / BookmarkGrid.SLOT_SIZE;
@@ -2241,8 +2244,7 @@ public class BookmarkPanel extends PanelWidget {
         if (button == 0 && NEIClientUtils.shiftKey() && mouseDownSlot >= 0 && this.sortableItem == null) {
             ItemPanelSlot mouseOverSlot = getSlotMouseOver(mousex, mousey);
 
-            if (grid.getItem(mouseDownSlot) != null
-                    && (mouseOverSlot == null || mouseOverSlot.slotIndex != mouseDownSlot || heldTime > 250)) {
+            if (mouseOverSlot == null || mouseOverSlot.slotIndex != mouseDownSlot || heldTime > 250) {
                 final BookmarkGrid BGrid = (BookmarkGrid) grid;
                 final ItemStackMetadata meta = BGrid.getMetadata(mouseDownSlot);
                 final List<ItemStack> items = new ArrayList<>();
