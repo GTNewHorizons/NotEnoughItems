@@ -38,7 +38,6 @@ import net.minecraftforge.fluids.FluidStack;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemStackSet;
@@ -270,93 +269,59 @@ public class GuiContainerManager {
         return EnumChatFormatting.getTextWithoutFormattingCodes(sb.toString());
     }
 
-    public static void drawItem(int i, int j, ItemStack itemstack) {
-        drawItem(i, j, itemstack, false);
+    public static void drawItem(int offsetX, int offsetY, ItemStack itemstack) {
+        drawItem(offsetX, offsetY, itemstack, false);
     }
 
-    public static void drawItem(int i, int j, ItemStack itemstack, boolean smallAmount) {
-        drawItem(i, j, itemstack, smallAmount, null);
+    public static void drawItem(int offsetX, int offsetY, ItemStack itemstack, boolean smallAmount) {
+        drawItem(offsetX, offsetY, itemstack, smallAmount, null);
     }
 
-    public static void drawItem(int i, int j, ItemStack itemstack, boolean smallAmount, String stackSize) {
-        drawItem(i, j, itemstack, getFontRenderer(itemstack), smallAmount, stackSize);
+    public static void drawItem(int offsetX, int offsetY, ItemStack itemstack, boolean smallAmount, String quantity) {
+        drawItem(offsetX, offsetY, itemstack, getFontRenderer(itemstack), smallAmount, quantity);
     }
 
-    public static void drawItem(int i, int j, ItemStack itemstack, FontRenderer fontRenderer) {
-        drawItem(i, j, itemstack, fontRenderer, false, null);
+    public static void drawItem(int offsetX, int offsetY, ItemStack itemstack, FontRenderer fontRenderer) {
+        drawItem(offsetX, offsetY, itemstack, fontRenderer, false, null);
     }
 
     private static int modelviewDepth = -1;
     private static final HashSet<String> stackTraces = new HashSet<>();
     private static final ItemStackSet renderingErrorItems = new ItemStackSet();
 
-    public static void drawItem(int i, int j, ItemStack itemstack, FontRenderer fontRenderer, boolean smallAmount,
-            String stackSize) {
-        enable3DRender();
-        // for lighting correction
-        boolean glRescale = GL11.glGetBoolean(GL12.GL_RESCALE_NORMAL);
-        float zLevel = drawItems.zLevel += 100F;
+    public static void drawItem(int offsetX, int offsetY, ItemStack itemstack, FontRenderer fontRenderer,
+            boolean smallAmount, String quantity) {
 
-        if (!renderingErrorItems.contains(itemstack)) {
+        safeItemRenderContext(itemstack, offsetX, offsetY, fontRenderer, () -> {
             float scale = smallAmount ? 0.5f : 1f;
+            String stackSize = quantity;
 
-            try {
-                drawItems.renderItemAndEffectIntoGUI(fontRenderer, renderEngine, itemstack, i, j);
+            if (stackSize == null) {
+                if (itemstack.stackSize > 1) {
+                    stackSize = ReadableNumberConverter.INSTANCE.toWideReadableForm(itemstack.stackSize);
 
-                if (stackSize == null) {
-                    if (itemstack.stackSize > 1) {
-                        stackSize = ReadableNumberConverter.INSTANCE.toWideReadableForm(itemstack.stackSize);
-
-                        if (stackSize.length() == 3) {
-                            scale = 0.8f;
-                        } else if (stackSize.length() == 4) {
-                            scale = 0.6f;
-                        } else if (stackSize.length() > 4) {
-                            scale = 0.5f;
-                        }
-
-                    } else {
-                        stackSize = "";
+                    if (stackSize.length() == 3) {
+                        scale = 0.8f;
+                    } else if (stackSize.length() == 4) {
+                        scale = 0.6f;
+                    } else if (stackSize.length() > 4) {
+                        scale = 0.5f;
                     }
 
-                }
-
-                if (scale != 1f) {
-
-                    if (!stackSize.isEmpty()) {
-                        drawBigStackSize(i, j, stackSize, scale);
-                    }
-
-                    // stackSize = "". it needed for correct draw item with alpha and blend
-                    drawItems.renderItemOverlayIntoGUI(fontRenderer, renderEngine, itemstack, i, j, "");
                 } else {
-                    drawItems.renderItemOverlayIntoGUI(fontRenderer, renderEngine, itemstack, i, j, stackSize);
+                    stackSize = "";
                 }
-
-                if (!checkMatrixStack()) throw new IllegalStateException("Modelview matrix stack too deep");
-                if (Tessellator.instance.isDrawing) throw new IllegalStateException("Still drawing");
-            } catch (Exception e) {
-                NEIClientUtils.reportErrorBuffered(e, stackTraces, itemstack);
-
-                restoreMatrixStack();
-                if (Tessellator.instance.isDrawing) Tessellator.instance.draw();
-
-                drawItems.zLevel = zLevel;
-                drawItems.renderItemIntoGUI(fontRenderer, renderEngine, new ItemStack(Blocks.fire), i, j);
-                renderingErrorItems.add(itemstack);
             }
-        } else {
-            drawItems.renderItemIntoGUI(fontRenderer, renderEngine, new ItemStack(Blocks.fire), i, j);
-        }
 
-        if (glRescale) {
-            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-        } else {
-            GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-        }
+            drawItems.renderItemAndEffectIntoGUI(fontRenderer, renderEngine, itemstack, offsetX, offsetY);
 
-        enable2DRender();
-        drawItems.zLevel = zLevel - 100;
+            if (scale != 1f && !stackSize.isEmpty()) {
+                drawBigStackSize(offsetX, offsetY, stackSize, scale);
+                stackSize = "";
+            }
+
+            drawItems.renderItemOverlayIntoGUI(fontRenderer, renderEngine, itemstack, offsetX, offsetY, stackSize);
+        });
     }
 
     // copy from appeng.client.render.AppEngRenderItem
@@ -366,13 +331,42 @@ public class GuiContainerManager {
         enable2DRender();
         GL11.glScaled(scale, scale, scale);
 
-        final int X = (int) (((float) offsetX + 16.0f - fontRenderer.getStringWidth(stackSize) * scale)
-                * inverseScaleFactor);
-        final int Y = (int) (((float) offsetY + 16.0f - 7.0f * scale) * inverseScaleFactor);
+        final int X = (int) ((offsetX + 16.0f - fontRenderer.getStringWidth(stackSize) * scale) * inverseScaleFactor);
+        final int Y = (int) ((offsetY + 16.0f - 7.0f * scale) * inverseScaleFactor);
         fontRenderer.drawStringWithShadow(stackSize, X, Y, 16777215);
 
         GL11.glScaled(inverseScaleFactor, inverseScaleFactor, inverseScaleFactor);
         enable3DRender();
+    }
+
+    private static void safeItemRenderContext(ItemStack stack, int x, int y, FontRenderer fontRenderer,
+            Runnable callback) {
+        float zLevel = drawItems.zLevel += 100F;
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        enable3DRender();
+
+        if (!renderingErrorItems.contains(stack)) {
+            try {
+                callback.run();
+
+                if (!checkMatrixStack()) throw new IllegalStateException("Modelview matrix stack too deep");
+                if (Tessellator.instance.isDrawing) throw new IllegalStateException("Still drawing");
+            } catch (Exception e) {
+                NEIClientUtils.reportErrorBuffered(e, stackTraces, stack);
+
+                restoreMatrixStack();
+                if (Tessellator.instance.isDrawing) Tessellator.instance.draw();
+
+                drawItems.zLevel = zLevel;
+                drawItems.renderItemIntoGUI(fontRenderer, renderEngine, new ItemStack(Blocks.fire), x, y);
+                renderingErrorItems.add(stack);
+            }
+        } else {
+            drawItems.renderItemIntoGUI(fontRenderer, renderEngine, new ItemStack(Blocks.fire), x, y);
+        }
+
+        GL11.glPopAttrib();
+        drawItems.zLevel = zLevel - 100;
     }
 
     public static void registerReloadResourceListener() {
@@ -738,43 +732,17 @@ public class GuiContainerManager {
      * Delegate for changing item rendering for certain slots. Eg. Shrinking text for large itemstacks
      */
     public void drawSlotItem(Slot slot, ItemStack stack, int x, int y, String quantity) {
-        // for lighting correction
-        boolean glRescale = GL11.glGetBoolean(GL12.GL_RESCALE_NORMAL);
-        float zLevel = drawItems.zLevel += 100F;
 
-        if (!renderingErrorItems.contains(stack)) {
-            try {
-                if (window instanceof IGuiSlotDraw) {
-                    ((IGuiSlotDraw) window).drawSlotItem(slot, stack, x, y, quantity);
-                } else {
-
-                    if (quantity == null) {
-                        quantity = stack != null && stack.stackSize > 1 ? String.valueOf(stack.stackSize) : "";
-                    }
-
-                    drawItems.renderItemAndEffectIntoGUI(fontRenderer, renderEngine, stack, x, y);
-                    drawItems.renderItemOverlayIntoGUI(fontRenderer, renderEngine, stack, x, y, quantity);
-                }
-            } catch (Exception e) {
-                NEIClientUtils.reportErrorBuffered(e, stackTraces, stack);
-
-                restoreMatrixStack();
-                if (Tessellator.instance.isDrawing) Tessellator.instance.draw();
-
-                drawItems.zLevel = zLevel;
-                drawItems.renderItemIntoGUI(fontRenderer, renderEngine, new ItemStack(Blocks.fire), x, y);
-                renderingErrorItems.add(stack);
-            }
-        } else {
-            drawItems.renderItemIntoGUI(fontRenderer, renderEngine, new ItemStack(Blocks.fire), x, y);
+        if (window instanceof IGuiSlotDraw) {
+            safeItemRenderContext(
+                    stack,
+                    x,
+                    y,
+                    fontRenderer,
+                    () -> ((IGuiSlotDraw) window).drawSlotItem(slot, stack, x, y, quantity));
+        } else if (stack != null) {
+            drawItem(x, y, stack, false, quantity);
         }
-
-        if (glRescale) {
-            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-        } else {
-            GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-        }
-        drawItems.zLevel = zLevel - 100;
     }
 
     /**
