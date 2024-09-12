@@ -200,6 +200,10 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
 
     @Override
     public void mouseDragged(int mousex, int mousey, int button, long heldTime) {
+        if (mouseDownSlot >= grid.realItems.size()) {
+            mouseDownSlot = -1;
+        }
+
         if (mouseDownSlot >= 0 && draggedStack == null
                 && NEIClientUtils.getHeldItem() == null
                 && NEIClientConfig.hasSMPCounterPart()) {
