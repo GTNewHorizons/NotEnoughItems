@@ -32,7 +32,7 @@ import codechicken.nei.util.NBTJson;
 
 public class PresetsList {
 
-    public static enum PresetMode {
+    public enum PresetMode {
         HIDE,
         REMOVE,
         GROUP;

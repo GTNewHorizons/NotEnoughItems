@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.Language;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.nei.ItemList.AllMultiItemFilter;
@@ -69,6 +70,22 @@ public class SearchTokenParser {
         }
     }
 
+    private static class IsRegisteredItemFilter implements ItemFilter {
+
+        public ItemFilter filter;
+
+        public IsRegisteredItemFilter(ItemFilter filter) {
+            this.filter = filter;
+        }
+
+        @Override
+        public boolean matches(ItemStack item) {
+            return item != null && item.getItem() != null
+                    && item.getItem().delegate.name() != null
+                    && this.filter.matches(item);
+        }
+    }
+
     protected final List<ISearchParserProvider> searchProviders;
     protected final ProvidersCache providersCache = new ProvidersCache();
     protected final TCharCharMap prefixRedefinitions = new TCharCharHashMap();
@@ -118,15 +135,15 @@ public class SearchTokenParser {
 
     public ItemFilter getFilter(String filterText) {
         final String[] parts = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase().split("\\|");
-        final List<ItemFilter> searchTokens = Arrays.stream(parts).map(s -> parseSearchText(s)).filter(s -> s != null)
+        final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText).filter(s -> s != null)
                 .collect(Collectors.toCollection(ArrayList::new));
 
         if (searchTokens.isEmpty()) {
             return new EverythingItemFilter();
         } else if (searchTokens.size() == 1) {
-            return searchTokens.get(0);
+            return new IsRegisteredItemFilter(searchTokens.get(0));
         } else {
-            return new AnyMultiItemFilter(searchTokens);
+            return new IsRegisteredItemFilter(new AnyMultiItemFilter(searchTokens));
         }
     }
 

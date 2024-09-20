@@ -61,6 +61,9 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
 
             GL11.glPopMatrix();
 
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+            GuiContainerManager.enable2DRender();
+
             if (NEIClientConfig.getBooleanSetting("inventory.itemzoom.showName")) {
                 String dispalyName = NEIClientUtils.cropText(fontRenderer, this.displayName, this.availableAreaWidth);
                 drawStringC(
@@ -90,6 +93,7 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
                 }
             }
 
+            GL11.glPopAttrib();
         }
     }
 
