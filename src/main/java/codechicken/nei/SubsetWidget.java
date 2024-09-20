@@ -22,6 +22,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 
+import org.lwjgl.opengl.GL11;
+
 import codechicken.core.gui.GuiScrollSlot;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
@@ -711,9 +713,14 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
 
         hoverStack = null;
         if (root.isVisible()) {
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+            GuiContainerManager.enable2DRender();
+
             root.resize(area.x, 0, area.y);
             root.cacheState();
             root.draw(mx, my);
+
+            GL11.glPopAttrib();
         }
     }
 
