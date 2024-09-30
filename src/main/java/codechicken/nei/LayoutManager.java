@@ -406,7 +406,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             @Override
             public boolean onButtonPress(boolean rightclick) {
                 if (!rightclick) {
-                    if (Keyboard.getEventKeyState() && getIsAccessibleControlEventKey()) {
+                    if (Keyboard.getEventKeyState() && getIsAccessibleControlEventKey()
+                            && NEIClientConfig.canChangeCheatMode()) {
                         NEIClientConfig.cycleSetting("inventory.cheatmode", 3);
                     } else {
                         if (Keyboard.getEventKeyState() && (Keyboard.getEventKey() == Keyboard.KEY_LSHIFT
@@ -430,7 +431,10 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 else if (cheatMode == 2) modeColor = EnumChatFormatting.RED.toString();
                 String controlKeyLocalization = translate(Minecraft.isRunningOnMac ? "key.ctrl.mac" : "key.ctrl");
                 tooltip.add(modeColor + translate("inventory.options.tip.cheatmode." + cheatMode));
-                tooltip.add(modeColor + translate("inventory.options.tip.cheatmode.disable", controlKeyLocalization));
+                if (NEIClientConfig.canChangeCheatMode()) {
+                    tooltip.add(
+                            modeColor + translate("inventory.options.tip.cheatmode.disable", controlKeyLocalization));
+                }
             }
 
             @Override

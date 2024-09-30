@@ -157,7 +157,7 @@ public class NEIClientConfig {
                 return getLockedMode() == -1 || getLockedMode() == index && NEIInfo.isValidMode(index);
             }
         });
-        checkCheatMode();
+        canChangeCheatMode();
 
         tag.getTag("inventory.utilities").setDefaultValue("delete, magnet");
         API.addOption(new OptionUtilities("inventory.utilities"));
@@ -808,8 +808,13 @@ public class NEIClientConfig {
         return getIntSetting("inventory.cheatmode");
     }
 
-    private static void checkCheatMode() {
-        if (getLockedMode() != -1) setIntSetting("inventory.cheatmode", getLockedMode());
+    public static boolean canChangeCheatMode() {
+        if (getLockedMode() != -1) {
+            setIntSetting("inventory.cheatmode", getLockedMode());
+            return false;
+        }
+
+        return true;
     }
 
     public static int getLockedMode() {
