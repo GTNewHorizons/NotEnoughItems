@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -322,14 +323,24 @@ public class ItemList {
         }
     };
 
-    public static ForkJoinPool getPool(int poolSize) {
+    public static ForkJoinPool forkJoinPool;
+
+    static {
+        final ForkJoinPool.ForkJoinWorkerThreadFactory factory = new ForkJoinPool.ForkJoinWorkerThreadFactory() {
+
+            private int workerId;
+
+            @Override
+            public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+                final ForkJoinWorkerThread worker = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+                worker.setName("NEI-worker-thread-" + workerId++);
+                return worker;
+            }
+        };
+        int poolSize = Runtime.getRuntime().availableProcessors() * 2 / 3;
         if (poolSize < 1) poolSize = 1;
-
-        return new ForkJoinPool(poolSize);
+        forkJoinPool = new ForkJoinPool(poolSize, factory, null, false);
     }
-
-    public static final int numProcessors = Runtime.getRuntime().availableProcessors();
-    public static ForkJoinPool forkJoinPool = getPool(numProcessors * 2 / 3);
 
     public static final RestartableTask updateFilter = new RestartableTask("NEI Item Filtering") {
 
