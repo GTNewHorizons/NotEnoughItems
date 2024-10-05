@@ -982,7 +982,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     public void refreshPage() {
-        RecipeCatalysts.updatePosition(ySize - BG_TOP_HEIGHT - (GuiRecipeCatalyst.fullBorder * 2));
         changePage(0);
         refreshSlots();
         final int recipesPerPage = getRecipesPerPage();
@@ -996,6 +995,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         checkYShift();
 
         if (!limitToOneRecipe) {
+            RecipeCatalysts.updatePosition(ySize - BG_TOP_HEIGHT - (GuiRecipeCatalyst.fullBorder * 2));
             toggleSearch.w = toggleSearch.h = 12;
             toggleSearch.x = borderPadding + buttonWidth;
             toggleSearch.y = 17;
