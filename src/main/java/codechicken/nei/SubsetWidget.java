@@ -73,7 +73,8 @@ public class SubsetWidget extends Button implements ItemFilterProvider, ItemsLoa
                 if (slot < sorted.size()) {
                     SubsetTag tag = sorted.get(slot);
                     if (NEIClientUtils.shiftKey()) {
-                        LayoutManager.searchField.setText("%" + tag.fullname.replaceAll("\\s+", ""));
+                        LayoutManager.searchField.setText(
+                                SearchField.searchParser.getRedefinedPrefix('%') + tag.fullname.replaceAll("\\s+", ""));
                     } else if (button == 0 && count >= 2) {
                         SubsetWidget.showOnly(tag);
                     } else {

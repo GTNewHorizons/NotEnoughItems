@@ -159,7 +159,7 @@ public class SearchTokenParser {
         return Pattern.compile("((-*)([" + Pattern.quote(prefixes.toString()) + "]*)(\\\".*?(?:\\\"|$)|\\S+))");
     }
 
-    private char getRedefinedPrefix(char prefix) {
+    public char getRedefinedPrefix(char prefix) {
         if (this.prefixRedefinitions.containsKey(prefix)) {
             return this.prefixRedefinitions.get(prefix);
         }

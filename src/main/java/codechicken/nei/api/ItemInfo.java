@@ -499,6 +499,6 @@ public class ItemInfo {
 
     @Deprecated
     public static String getSearchName(ItemStack stack) {
-        return GuiContainerManager.concatenatedDisplayName(stack, true);
+        return GuiContainerManager.concatenatedDisplayName(stack, true).toLowerCase();
     }
 }
