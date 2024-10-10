@@ -166,90 +166,7 @@ public class NEIClientConfig {
         API.addOption(new OptionGamemodes("inventory.gamemodes"));
 
         ItemSorter.initConfig(tag);
-
-        tag.getTag("inventory.search.widgetPosition").setComment("Widget Position").getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.search.widgetPosition", true));
-
-        tag.getTag("inventory.search.widgetAutofocus")
-                .setComment(
-                        "Focus Search Widget on Open, blurs/unfocuses on mouse move unless typing has started first")
-                .getIntValue(0);
-        API.addOption(new OptionCycled("inventory.search.widgetAutofocus", 3, true));
-
-        tag.getTag("inventory.search.patternMode").setComment("Search Mode").getIntValue(1);
-        API.addOption(new OptionCycled("inventory.search.patternMode", 3, true));
-
-        tag.getTag("inventory.search.quoteDropItemName").setComment("Quote Drop Item Name").getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.search.quoteDropItemName", true));
-
-        tag.getTag("inventory.search.modNameSearchMode").setComment("Search mode for Mod Names (prefix: @)")
-                .getIntValue(1);
-        API.addOption(new OptionCycled("inventory.search.modNameSearchMode", 3, true) {
-
-            @Override
-            public String getButtonText() {
-                return translateN(name + "." + value(), EnumChatFormatting.LIGHT_PURPLE + "@");
-            }
-
-        });
-
-        tag.getTag("inventory.search.tooltipSearchMode").setComment("Search mode for Tooltips (prefix: #)")
-                .getIntValue(0);
-        API.addOption(new OptionCycled("inventory.search.tooltipSearchMode", 3, true) {
-
-            @Override
-            public String getButtonText() {
-                return translateN(name + "." + value(), EnumChatFormatting.YELLOW + "#");
-            }
-
-        });
-
-        tag.getTag("inventory.search.identifierSearchMode").setComment("Search mode for identifier (prefix: &)")
-                .getIntValue(0);
-        API.addOption(new OptionCycled("inventory.search.identifierSearchMode", 3, true) {
-
-            @Override
-            public String getButtonText() {
-                return translateN(name + "." + value(), EnumChatFormatting.GOLD + "&");
-            }
-
-        });
-
-        tag.getTag("inventory.search.oreDictSearchMode").setComment("Search mode for Tag Names (prefix: $)")
-                .getIntValue(0);
-        API.addOption(new OptionCycled("inventory.search.oreDictSearchMode", 3, true) {
-
-            @Override
-            public String getButtonText() {
-                return translateN(name + "." + value(), EnumChatFormatting.AQUA + "$");
-            }
-
-        });
-
-        tag.getTag("inventory.search.subsetsSearchMode").setComment("Search mode for Item Subsets (prefix: %)")
-                .getIntValue(1);
-        API.addOption(new OptionCycled("inventory.search.subsetsSearchMode", 3, true) {
-
-            @Override
-            public String getButtonText() {
-                return translateN(name + "." + value(), EnumChatFormatting.DARK_PURPLE + "%");
-            }
-
-        });
-
-        String prefixRedefinitions = tag.getTag("inventory.search.prefixRedefinitions").setComment(
-                "Redefine search prefixes by providing a char-to-char map (JSON). The keys are the original prefixes, the values the new ones. Example: { \"$\": \"€\", \"#\": \"+\", \"@\": \"°\", \"%\": \"!\" }")
-                .getValue("{}");
-        try {
-            TypeToken<Map<Character, Character>> typeToken = new TypeToken<Map<Character, Character>>() {
-
-                private static final long serialVersionUID = 1L;
-            };
-            Map<Character, Character> charMap = new Gson().fromJson(prefixRedefinitions, typeToken.getType());
-            SearchField.searchParser.prefixRedefinitions.putAll(charMap);
-        } catch (JsonParseException e) {
-            logger.warn("Failed to convert prefix redefinitions from JSON to CharToCharMap:", e);
-        }
+        setInventorySearchDefaults(tag);
 
         tag.getTag("inventory.bookmarks.enabled").setComment("Enable/Disable Bookmark Panel").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.bookmarks.enabled", true));
@@ -500,6 +417,167 @@ public class NEIClientConfig {
                 return new GuiNEIOptionList(parent, list, world);
             }
         });
+    }
+
+    private static void setInventorySearchDefaults(ConfigTagParent tag) {
+
+        tag.getTag("inventory.search.widgetPosition").setComment("Widget Position").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.search.widgetPosition", true));
+
+        tag.getTag("inventory.search.widgetAutofocus")
+                .setComment(
+                        "Focus Search Widget on Open, blurs/unfocuses on mouse move unless typing has started first")
+                .getIntValue(0);
+        API.addOption(new OptionCycled("inventory.search.widgetAutofocus", 3, true));
+
+        tag.getTag("inventory.search.patternMode").setComment("Search Mode").getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.patternMode", 3, true));
+
+        tag.getTag("inventory.search.quoteDropItemName").setComment("Quote Drop Item Name").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.search.quoteDropItemName", true));
+
+        tag.getTag("inventory.search.format").setComment("Search Format (true: old format, false: custom format)")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.search.format", true) {
+
+            @Override
+            public boolean onClick(int button) {
+
+                if (!super.onClick(button)) {
+                    return false;
+                }
+
+                if (state()) {
+                    NEIClientConfig.setIntSetting("inventory.search.modNameSearchMode", 0);
+                    NEIClientConfig.setIntSetting("inventory.search.tooltipSearchMode", 0);
+                    NEIClientConfig.setIntSetting("inventory.search.identifierSearchMode", 0);
+                    NEIClientConfig.setIntSetting("inventory.search.oreDictSearchMode", 0);
+                    NEIClientConfig.setIntSetting("inventory.search.subsetsSearchMode", 1);
+                    tag.getTag("inventory.search.prefixRedefinitions").setValue("{\"%\": \"@\", \"@\": \"%\"}");
+                    SearchField.searchParser.prefixRedefinitions.clear();
+                    SearchField.searchParser.prefixRedefinitions.put('%', '@');
+                    SearchField.searchParser.prefixRedefinitions.put('@', '%');
+                } else {
+                    NEIClientConfig.setIntSetting("inventory.search.modNameSearchMode", 1);
+                    NEIClientConfig.setIntSetting("inventory.search.tooltipSearchMode", 0);
+                    NEIClientConfig.setIntSetting("inventory.search.identifierSearchMode", 0);
+                    NEIClientConfig.setIntSetting("inventory.search.oreDictSearchMode", 0);
+                    NEIClientConfig.setIntSetting("inventory.search.subsetsSearchMode", 1);
+                    tag.getTag("inventory.search.prefixRedefinitions").setValue("{}");
+                    SearchField.searchParser.prefixRedefinitions.clear();
+                }
+
+                return true;
+            }
+
+        });
+
+        tag.getTag("inventory.search.modNameSearchMode").setComment("Search mode for Mod Names (prefix: @)")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.modNameSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(
+                        name + "." + value(),
+                        EnumChatFormatting.LIGHT_PURPLE
+                                + String.valueOf(SearchField.searchParser.getRedefinedPrefix('@')));
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return !tag.getTag("inventory.search.format").getBooleanValue();
+            }
+
+        });
+
+        tag.getTag("inventory.search.tooltipSearchMode").setComment("Search mode for Tooltips (prefix: #)")
+                .getIntValue(0);
+        API.addOption(new OptionCycled("inventory.search.tooltipSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(
+                        name + "." + value(),
+                        EnumChatFormatting.YELLOW + String.valueOf(SearchField.searchParser.getRedefinedPrefix('#')));
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return !tag.getTag("inventory.search.format").getBooleanValue();
+            }
+
+        });
+
+        tag.getTag("inventory.search.identifierSearchMode").setComment("Search mode for identifier (prefix: &)")
+                .getIntValue(0);
+        API.addOption(new OptionCycled("inventory.search.identifierSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(
+                        name + "." + value(),
+                        EnumChatFormatting.GOLD + String.valueOf(SearchField.searchParser.getRedefinedPrefix('&')));
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return !tag.getTag("inventory.search.format").getBooleanValue();
+            }
+
+        });
+
+        tag.getTag("inventory.search.oreDictSearchMode").setComment("Search mode for Tag Names (prefix: $)")
+                .getIntValue(0);
+        API.addOption(new OptionCycled("inventory.search.oreDictSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(
+                        name + "." + value(),
+                        EnumChatFormatting.AQUA + String.valueOf(SearchField.searchParser.getRedefinedPrefix('$')));
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return !tag.getTag("inventory.search.format").getBooleanValue();
+            }
+
+        });
+
+        tag.getTag("inventory.search.subsetsSearchMode").setComment("Search mode for Item Subsets (prefix: %)")
+                .getIntValue(1);
+        API.addOption(new OptionCycled("inventory.search.subsetsSearchMode", 3, true) {
+
+            @Override
+            public String getButtonText() {
+                return translateN(
+                        name + "." + value(),
+                        EnumChatFormatting.DARK_PURPLE
+                                + String.valueOf(SearchField.searchParser.getRedefinedPrefix('%')));
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return !tag.getTag("inventory.search.format").getBooleanValue();
+            }
+
+        });
+
+        String prefixRedefinitions = tag.getTag("inventory.search.prefixRedefinitions").setComment(
+                "Redefine search prefixes by providing a char-to-char map (JSON). The keys are the original prefixes, the values the new ones. Example: { \"$\": \"€\", \"#\": \"+\", \"@\": \"°\", \"%\": \"!\" }")
+                .getValue("{}");
+        try {
+            TypeToken<Map<Character, Character>> typeToken = new TypeToken<Map<Character, Character>>() {
+
+                private static final long serialVersionUID = 1L;
+            };
+            Map<Character, Character> charMap = new Gson().fromJson(prefixRedefinitions, typeToken.getType());
+            SearchField.searchParser.prefixRedefinitions.putAll(charMap);
+        } catch (JsonParseException e) {
+            logger.warn("Failed to convert prefix redefinitions from JSON to CharToCharMap:", e);
+        }
+
     }
 
     private static void setDefaultKeyBindings() {
