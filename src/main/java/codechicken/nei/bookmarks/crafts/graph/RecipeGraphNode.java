@@ -27,6 +27,7 @@ public class RecipeGraphNode implements CraftingGraphNode {
     private int crafts = 0;
     private final Map<String, Integer> remainders = new HashMap<>();
     private final Map<String, Integer> chainInputs = new HashMap<>();
+    private final Map<String, Integer> chainOutputs = new HashMap<>();
 
     public RecipeGraphNode(BookmarkRecipe recipe, List<ItemStackWithMetadata> pinnedInputs,
             List<ItemStackWithMetadata> pinnedOutputs) {
@@ -118,6 +119,18 @@ public class RecipeGraphNode implements CraftingGraphNode {
             if (result == 0) return null;
             return result;
         });
+    }
+
+    public Map<String, Integer> getChainOutputs() {
+        return chainOutputs;
+    }
+
+    public int getChainOutput(String itemKey) {
+        return chainOutputs.getOrDefault(itemKey, 0);
+    }
+
+    public void setChainOutputs(String itemKey, int size) {
+        chainOutputs.put(itemKey, size);
     }
 
     public Map<String, Integer> getChainInputs() {

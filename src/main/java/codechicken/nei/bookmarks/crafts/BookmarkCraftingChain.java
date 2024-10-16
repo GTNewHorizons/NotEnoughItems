@@ -6,14 +6,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 
 import codechicken.nei.BookmarkPanel;
 import codechicken.nei.bookmarks.crafts.graph.CraftingGraph;
 import codechicken.nei.bookmarks.crafts.graph.ItemGraphNode;
 import codechicken.nei.bookmarks.crafts.graph.RecipeGraphNode;
 import codechicken.nei.recipe.BookmarkRecipeId;
+import codechicken.nei.recipe.StackInfo;
 
 public class BookmarkCraftingChain {
 
@@ -59,11 +62,27 @@ public class BookmarkCraftingChain {
                         itemsWithoutRecipe.addAll(outputs);
                     } else {
                         BookmarkPanel.BookmarkRecipe recipe = recipes.get(entry.getKey());
-                        if (recipe != null) {
-                            RecipeGraphNode node = new RecipeGraphNode(recipe, inputs, outputs);
-                            for (ItemStackWithMetadata output : outputs) {
-                                graph.addNode(output, node);
-                            }
+                        // Fallback to pinned items
+                        if (recipe == null) {
+                            recipe = new BookmarkPanel.BookmarkRecipe();
+                            recipe.ingredients = inputs.stream().map(it -> {
+                                NBTTagCompound tagCompound = StackInfo.itemStackToNBT(it.getStack());
+                                return StackInfo.loadFromNBT(tagCompound, it.getMeta().factor);
+                            }).collect(Collectors.toList());
+
+                            recipe.allIngredients = recipe.ingredients.stream().map(Collections::singletonList)
+                                    .collect(Collectors.toList());
+
+                            recipe.result = outputs.stream().map(it -> {
+                                NBTTagCompound tagCompound = StackInfo.itemStackToNBT(it.getStack());
+                                return StackInfo.loadFromNBT(tagCompound, it.getMeta().factor);
+                            }).collect(Collectors.toList());
+                            recipe.recipeId = entry.getKey();
+                        }
+
+                        RecipeGraphNode node = new RecipeGraphNode(recipe, inputs, outputs);
+                        for (ItemStackWithMetadata output : outputs) {
+                            graph.addNode(output, node);
                         }
                     }
                 }

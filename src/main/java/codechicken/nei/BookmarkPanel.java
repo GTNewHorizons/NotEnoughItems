@@ -1549,6 +1549,8 @@ public class BookmarkPanel extends PanelWidget {
             if (idx != -1) {
                 BGrid.removeRecipe(idx, saveIngredients);
             } else if (saveIngredients && recipe != null) {
+                recipe.result = new ArrayList<>();
+                recipe.result.add(stackover);
                 addRecipe(recipe, saveSize);
             } else {
                 final NBTTagCompound nbTag = StackInfo.itemStackToNBT(stackover);
@@ -1615,8 +1617,8 @@ public class BookmarkPanel extends PanelWidget {
                 final NBTTagCompound nbTag = uniqueIngredients.get(GUID);
                 final ItemStack normalized = StackInfo.loadFromNBT(nbTag, saveSize ? nbTag.getInteger("Count") : 0);
                 final ItemStackMetadata metadata = new ItemStackMetadata(recipeId.copy(), nbTag, true, groupId);
-                BGrid.addItem(normalized, metadata);
                 metadata.fullRecipe = recipe;
+                BGrid.addItem(normalized, metadata);
             }
         }
 
@@ -1626,8 +1628,8 @@ public class BookmarkPanel extends PanelWidget {
             final NBTTagCompound nbTag = uniqueResults.get(GUID);
             final ItemStack normalized = StackInfo.loadFromNBT(nbTag, saveSize ? nbTag.getInteger("Count") : 0);
             final ItemStackMetadata metadata = new ItemStackMetadata(recipeId, nbTag, false, groupId);
-            BGrid.addItem(normalized, metadata);
             metadata.fullRecipe = recipe;
+            BGrid.addItem(normalized, metadata);
         }
 
         fixCountOfNamespaces();

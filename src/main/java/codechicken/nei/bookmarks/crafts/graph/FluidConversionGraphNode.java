@@ -84,23 +84,24 @@ public class FluidConversionGraphNode implements CraftingGraphNode {
         return conversionInputs.entrySet().stream().findFirst().get().getKey();
     }
 
-    public int processResults(String outputKey, String inputKey, int outputItemRequested, int inputItemReturned) {
+    public int processResults(String outputKey, String inputKey, int inputItemReturned) {
         int outputFluidSize = conversionOutputs.get(outputKey);
         int inputFluidSize = conversionInputs.get(inputKey);
-        int fluidRequested = outputItemRequested * outputFluidSize;
         int fluidReturned = inputItemReturned * inputFluidSize;
-        this.fluidRemainder += fluidRequested - fluidReturned;
+        int outputItemReturned = fluidReturned / outputFluidSize;
+
+        this.fluidRemainder += Math.max(0, fluidReturned - outputItemReturned * outputFluidSize);
 
         if (keyToEmptyContainer.containsKey(outputKey)) {
             String containerKey = keyToEmptyContainer.get(outputKey);
-            consumedEmptyContainers.compute(containerKey, (k, v) -> (v == null ? 0 : v) + outputItemRequested);
+            consumedEmptyContainers.compute(containerKey, (k, v) -> (v == null ? 0 : v) + outputItemReturned);
         }
 
         if (keyToEmptyContainer.containsKey(inputKey)) {
             String containerKey = keyToEmptyContainer.get(inputKey);
             producedEmptyContainers.compute(containerKey, (k, v) -> (v == null ? 0 : v) + inputItemReturned);
         }
-        return fluidReturned / outputFluidSize;
+        return outputItemReturned;
     }
 
     public Map<String, Integer> getConsumedEmptyContainers() {
