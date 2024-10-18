@@ -117,11 +117,13 @@ public class RecipeCatalysts {
     }
 
     public static int getColumnCount(int availableHeight, int catalystsSize) {
+        if (availableHeight == 0) return 1;
         int maxItemsPerColumn = availableHeight / GuiRecipeCatalyst.ingredientSize;
         return NEIServerUtils.divideCeil(catalystsSize, maxItemsPerColumn);
     }
 
     public static int getRowCount(int availableHeight, int catalystsSize) {
+        if (availableHeight == 0) return 1;
         int columnCount = getColumnCount(availableHeight, catalystsSize);
         return NEIServerUtils.divideCeil(catalystsSize, columnCount);
     }
