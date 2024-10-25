@@ -73,35 +73,36 @@ public class FluidConversionGraphNode implements CraftingGraphNode {
         return Collections.singletonMap(displayStackGUID, fluidRemainder);
     }
 
-    public int calculateAmountToRequest(String requestedKey, int requestedAmount, String inputKey) {
-        int outputFluidSize = conversionOutputs.get(requestedKey);
-        int inputFluidSize = conversionInputs.get(inputKey);
-        int fluidAmountToRequest = requestedAmount * outputFluidSize - fluidRemainder;
-        return NEIServerUtils.divideCeil(fluidAmountToRequest, inputFluidSize);
+    public int calculateAmountToRequest(String rightKey, int rightRequestedAmount, String leftKey) {
+        int rightFluidSize = conversionOutputs.get(rightKey);
+        int leftFluidSize = conversionInputs.get(leftKey);
+        int fluidAmountToRequest = rightRequestedAmount * rightFluidSize - fluidRemainder;
+        return NEIServerUtils.divideCeil(fluidAmountToRequest, leftFluidSize);
     }
 
     public String getInputKey() {
         return conversionInputs.entrySet().stream().findFirst().get().getKey();
     }
 
-    public int processResults(String outputKey, String inputKey, int inputItemReturned) {
-        int outputFluidSize = conversionOutputs.get(outputKey);
-        int inputFluidSize = conversionInputs.get(inputKey);
-        int fluidReturned = inputItemReturned * inputFluidSize;
-        int outputItemReturned = fluidReturned / outputFluidSize;
+    public int processResults(String rightKey, int rightAmount, String leftKey, int leftAmount) {
+        int rightFluidSize = conversionOutputs.get(rightKey);
+        int leftFluidSize = conversionInputs.get(leftKey);
+        int leftFluidReturned = leftAmount * leftFluidSize;
+        int rightFluidRequested = rightFluidSize * rightAmount;
+        int rightAmountReturned = leftFluidReturned / rightFluidSize;
 
-        this.fluidRemainder += Math.max(0, fluidReturned - outputItemReturned * outputFluidSize);
+        this.fluidRemainder += Math.max(0, leftFluidReturned - rightFluidRequested);
 
-        if (keyToEmptyContainer.containsKey(outputKey)) {
-            String containerKey = keyToEmptyContainer.get(outputKey);
-            consumedEmptyContainers.compute(containerKey, (k, v) -> (v == null ? 0 : v) + outputItemReturned);
+        if (keyToEmptyContainer.containsKey(rightKey)) {
+            String containerKey = keyToEmptyContainer.get(rightKey);
+            consumedEmptyContainers.compute(containerKey, (k, v) -> (v == null ? 0 : v) + rightAmountReturned);
         }
 
-        if (keyToEmptyContainer.containsKey(inputKey)) {
-            String containerKey = keyToEmptyContainer.get(inputKey);
-            producedEmptyContainers.compute(containerKey, (k, v) -> (v == null ? 0 : v) + inputItemReturned);
+        if (keyToEmptyContainer.containsKey(leftKey)) {
+            String containerKey = keyToEmptyContainer.get(leftKey);
+            producedEmptyContainers.compute(containerKey, (k, v) -> (v == null ? 0 : v) + leftAmount);
         }
-        return outputItemReturned;
+        return rightAmountReturned;
     }
 
     public Map<String, Integer> getConsumedEmptyContainers() {

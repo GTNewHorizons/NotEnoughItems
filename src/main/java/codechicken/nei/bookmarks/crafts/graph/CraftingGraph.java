@@ -170,12 +170,12 @@ public class CraftingGraph {
 
         // Handle fluid conversion
         if (node instanceof FluidConversionGraphNode fluidNode) {
-            String keyToRequest = fluidNode.getInputKey();
-            int itemAmountToRequest = fluidNode.calculateAmountToRequest(requestedKey, requestedAmount, keyToRequest);
+            String leftKey = fluidNode.getInputKey();
+            int leftAmountToRequest = fluidNode.calculateAmountToRequest(requestedKey, requestedAmount, leftKey);
 
-            int returnedItemAmount = dfs(keyToRequest, itemAmountToRequest, history);
+            int returnedLeftAmount = dfs(leftKey, leftAmountToRequest, history);
 
-            return fluidNode.processResults(requestedKey, keyToRequest, returnedItemAmount);
+            return fluidNode.processResults(requestedKey, requestedAmount, leftKey, returnedLeftAmount);
         }
 
         if (!(node instanceof RecipeGraphNode recipeNode)) {
