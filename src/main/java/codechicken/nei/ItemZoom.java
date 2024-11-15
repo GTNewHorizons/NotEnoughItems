@@ -1,9 +1,5 @@
 package codechicken.nei;
 
-import static codechicken.lib.gui.GuiDraw.drawStringC;
-import static codechicken.lib.gui.GuiDraw.fontRenderer;
-import static codechicken.lib.gui.GuiDraw.getMousePosition;
-
 import java.awt.Point;
 import java.util.List;
 
@@ -15,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.recipe.StackInfo;
@@ -65,13 +62,14 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
             GuiContainerManager.enable2DRender();
 
             if (NEIClientConfig.getBooleanSetting("inventory.itemzoom.showName")) {
-                String dispalyName = NEIClientUtils.cropText(fontRenderer, this.displayName, this.availableAreaWidth);
-                drawStringC(
+                String dispalyName = NEIClientUtils
+                        .cropText(GuiDraw.fontRenderer, this.displayName, this.availableAreaWidth);
+                GuiDraw.drawStringC(
                         dispalyName,
                         (int) ((this.xPosition + size / 2) * screenScale),
                         (int) ((this.yPosition + size) * screenScale) + shiftText,
                         NEIClientConfig.getSetting("inventory.itemzoom.nameColor").getHexValue());
-                shiftText += fontRenderer.FONT_HEIGHT;
+                shiftText += GuiDraw.fontRenderer.FONT_HEIGHT;
             }
 
             if (NEIClientConfig.getBooleanSetting("inventory.itemzoom.enabled")
@@ -80,15 +78,16 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
 
                 if (keyName != null) {
                     String helpText = NEIClientUtils.translate("itemzoom.toggle", keyName);
-                    List<String> lines = fontRenderer.listFormattedStringToWidth(helpText, this.availableAreaWidth);
+                    List<String> lines = GuiDraw.fontRenderer
+                            .listFormattedStringToWidth(helpText, this.availableAreaWidth);
 
                     for (String line : lines) {
-                        drawStringC(
+                        GuiDraw.drawStringC(
                                 line,
                                 (int) ((this.xPosition + size / 2) * screenScale),
                                 (int) ((this.yPosition + size) * screenScale) + 10 + shiftText,
                                 0x66555555);
-                        shiftText += fontRenderer.FONT_HEIGHT;
+                        shiftText += GuiDraw.fontRenderer.FONT_HEIGHT;
                     }
                 }
             }
@@ -103,17 +102,17 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
         if (stack != null && (!NEIClientConfig.getBooleanSetting("inventory.itemzoom.onlySolid")
                 || Block.getBlockFromItem(stack.getItem()).getMaterial().isSolid())) {
             final float screenScale = 1.0f / getScreenScale();
-            final float availableAreaWidth = (gui.width - (gui.xSize + gui.width) / 2) * screenScale;
+            final float availableAreaWidth = (gui.width - gui.xSize) / 2 * screenScale;
             final float availableAreaHeight = gui.height * screenScale;
-            final Point mouse = getMousePosition();
+            final Point mouse = GuiDraw.getMousePosition();
 
             this.scale = Math.round(getZoomAmount(gui) * getPointSize(gui) / SLOT_SIZE);
             this.yPosition = (availableAreaHeight - this.scale * SLOT_SIZE) / 2;
             this.xPosition = (availableAreaWidth - this.scale * SLOT_SIZE) / 2;
             this.availableAreaWidth = (int) (availableAreaWidth / screenScale);
 
-            if (ItemPanels.bookmarkPanel.contains(mouse.x, mouse.y)) {
-                this.xPosition += (gui.guiLeft + gui.xSize) * screenScale;;
+            if (availableAreaWidth / screenScale >= mouse.x) {
+                this.xPosition = gui.width * screenScale - availableAreaWidth;
             }
 
             try {
@@ -166,7 +165,7 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
     private ItemStack getStackMouseOver(GuiContainer gui) {
 
         if (NEIClientConfig.getBooleanSetting("inventory.itemzoom.neiOnly")) {
-            final Point mouse = getMousePosition();
+            final Point mouse = GuiDraw.getMousePosition();
             ItemStack stack = ItemPanels.itemPanel.getStackMouseOver(mouse.x, mouse.y);
 
             if (stack == null) {
