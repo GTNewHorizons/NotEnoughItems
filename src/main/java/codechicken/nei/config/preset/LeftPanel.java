@@ -326,4 +326,11 @@ public class LeftPanel extends GuiWidget {
         nameField.handleKeyPress(keycode, c);
     }
 
+    @Override
+    public void mouseScrolled(int x, int y, int scroll) {
+        if (grid.contains(x, y)) {
+            grid.shiftPage(-scroll);
+        }
+    }
+
 }

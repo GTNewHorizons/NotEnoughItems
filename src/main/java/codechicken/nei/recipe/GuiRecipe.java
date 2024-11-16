@@ -237,7 +237,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                         guiRecipe.changePage(0);
                     } else {
                         final IRecipeFilter filter = new ItemRecipeFilter(GuiRecipe.searchField.getFilter());
-                        ArrayList<Integer> filtered = searchHandler.getSearchResult(filter);
+                        List<Integer> filtered = searchHandler.getSearchResult(filter);
 
                         if (filtered == null) {
                             stop();

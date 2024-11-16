@@ -23,7 +23,9 @@ public interface IContainerTooltipHandler {
      * @param currenttip A list of strings, representing each line of the current tooltip as modified by other handlers
      * @return The modified list. NOTE: Do not return null
      */
-    public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip);
+    default List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
+        return currenttip;
+    }
 
     /**
      * Use this for modifying the multiline display name of an item which may not necessarily be under the mouse.
@@ -35,7 +37,9 @@ public interface IContainerTooltipHandler {
      * @param currenttip A list of strings, representing each line of the current tooltip as modified by other handlers
      * @return The modified list. NOTE: Do not return null
      */
-    public List<String> handleItemDisplayName(GuiContainer gui, ItemStack itemstack, List<String> currenttip);
+    default List<String> handleItemDisplayName(GuiContainer gui, ItemStack itemstack, List<String> currenttip) {
+        return currenttip;
+    }
 
     /**
      * Use this for modifying the tooltips of items that are under the mouse. GuiContainerManager.shouldShowTooltip is
@@ -46,8 +50,10 @@ public interface IContainerTooltipHandler {
      * @param currenttip A list of strings, representing each line of the current tooltip as modified by other handlers
      * @return The modified list. NOTE: Do not return null
      */
-    public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
-            List<String> currenttip);
+    default List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
+            List<String> currenttip) {
+        return currenttip;
+    }
 
     /**
      * Use this to specify a list of hotkeys that will work when hovering over an element that is under the mouse

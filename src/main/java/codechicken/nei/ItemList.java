@@ -93,7 +93,7 @@ public class ItemList {
         public boolean matches(ItemStack item) {
             String displayName = EnumChatFormatting.getTextWithoutFormattingCodes(item.getDisplayName());
 
-            if (!displayName.isEmpty() && pattern.matcher(displayName).find()) {
+            if (displayName != null && !displayName.isEmpty() && pattern.matcher(displayName).find()) {
                 return true;
             }
 
@@ -101,7 +101,7 @@ public class ItemList {
                 displayName = EnumChatFormatting
                         .getTextWithoutFormattingCodes(item.getItem().getItemStackDisplayName(item));
 
-                return !displayName.isEmpty() && pattern.matcher(displayName).find();
+                return displayName != null && !displayName.isEmpty() && pattern.matcher(displayName).find();
             }
 
             return false;
@@ -129,7 +129,8 @@ public class ItemList {
             for (ItemFilter filter : filters) try {
                 if (filter != null && !filter.matches(item)) return false;
             } catch (Exception e) {
-                NEIClientConfig.logger.error("Exception filtering " + item + " with " + filter, e);
+                NEIClientConfig.logger
+                        .error("Exception filtering " + item + " with " + filter + " (" + e.getMessage() + ")", e);
             }
 
             return true;
@@ -153,7 +154,8 @@ public class ItemList {
             for (ItemFilter filter : filters) try {
                 if (filter != null && filter.matches(item)) return true;
             } catch (Exception e) {
-                NEIClientConfig.logger.error("Exception filtering " + item + " with " + filter, e);
+                NEIClientConfig.logger
+                        .error("Exception filtering " + item + " with " + filter + " (" + e.getMessage() + ")", e);
             }
 
             return false;
@@ -170,7 +172,8 @@ public class ItemList {
             try {
                 if (filter != null && !filter.matches(item)) return false;
             } catch (Exception e) {
-                NEIClientConfig.logger.error("Exception filtering " + item + " with " + filter, e);
+                NEIClientConfig.logger
+                        .error("Exception filtering " + item + " with " + filter + " (" + e.getMessage() + ")", e);
             }
         }
 

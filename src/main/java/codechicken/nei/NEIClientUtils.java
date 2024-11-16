@@ -37,8 +37,6 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
@@ -512,16 +510,9 @@ public class NEIClientUtils extends NEIServerUtils {
         String stackTrace = cause + sw;
         if (buffer.contains(stackTrace)) return;
 
-        System.err.println("Error while rendering: " + cause);
+        System.err.println("Error while rendering: " + cause + " (" + e.getMessage() + ")");
         e.printStackTrace();
         buffer.add(stackTrace);
-
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        if (player != null) {
-            IChatComponent chat = new ChatComponentTranslation("nei.chat.render.error");
-            chat.getChatStyle().setColor(EnumChatFormatting.RED);
-            player.addChatComponentMessage(chat);
-        }
     }
 
     public static void reportErrorBuffered(Throwable e, Set<String> buffer, ItemStack cause) {

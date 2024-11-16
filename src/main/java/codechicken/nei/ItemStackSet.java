@@ -1,7 +1,5 @@
 package codechicken.nei;
 
-import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -29,7 +27,7 @@ public class ItemStackSet extends ItemStackMap<ItemStack> implements ItemFilter 
         put(item, item);
     }
 
-    public ItemStackSet addAll(List<ItemStack> items) {
+    public ItemStackSet addAll(Iterable<ItemStack> items) {
         for (ItemStack item : items) add(item);
         return this;
     }

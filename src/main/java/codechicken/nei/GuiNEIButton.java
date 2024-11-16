@@ -15,14 +15,13 @@ public class GuiNEIButton extends GuiButton {
         super(i, j, k, l, i1, s);
     }
 
-    public void drawButton(Minecraft minecraft, int i, int j) {
+    public void drawButton(Minecraft minecraft, int x, int y) {
         if (!visible) return;
 
-        FontRenderer fontrenderer = minecraft.fontRenderer;
         minecraft.renderEngine.bindTexture(guiTex);
         GL11.glColor4f(1, 1, 1, 1);
-        boolean flag = i >= xPosition && j >= yPosition && i < xPosition + width && j < yPosition + height;
-        int k = getHoverState(flag);
+        boolean mouseOver = x >= xPosition && y >= yPosition && x < xPosition + width && y < yPosition + height;
+        int k = getHoverState(mouseOver);
         drawTexturedModalRect(xPosition, yPosition, 0, 46 + k * 20, width / 2, height / 2); // top left
         drawTexturedModalRect(xPosition + width / 2, yPosition, 200 - width / 2, 46 + k * 20, width / 2, height / 2); // top
                                                                                                                       // right
@@ -40,25 +39,27 @@ public class GuiNEIButton extends GuiButton {
                 46 + k * 20 + 20 - height / 2,
                 width / 2,
                 height / 2); // bottom right
-        mouseDragged(minecraft, i, j);
+        mouseDragged(minecraft, x, y);
 
-        if (!enabled) drawCenteredString(
-                fontrenderer,
-                displayString,
-                xPosition + width / 2,
-                yPosition + (height - 8) / 2,
-                0xffa0a0a0);
-        else if (flag) drawCenteredString(
-                fontrenderer,
-                displayString,
-                xPosition + width / 2,
-                yPosition + (height - 8) / 2,
-                0xffffa0);
-        else drawCenteredString(
-                fontrenderer,
-                displayString,
-                xPosition + width / 2,
-                yPosition + (height - 8) / 2,
-                0xe0e0e0);
+        drawContent(minecraft, x, y, mouseOver);
+    }
+
+    protected int getTextColour(boolean mouseOver) {
+        int color = 0xe0e0e0;
+
+        if (!enabled) {
+            color = 0xffa0a0a0;
+        } else if (mouseOver) {
+            color = 0xffffa0;
+        }
+
+        return color;
+    }
+
+    protected void drawContent(Minecraft minecraft, int y, int x, boolean mouseOver) {
+        FontRenderer fontrenderer = minecraft.fontRenderer;
+        int color = getTextColour(mouseOver);
+
+        drawCenteredString(fontrenderer, displayString, xPosition + width / 2, yPosition + (height - 8) / 2, color);
     }
 }

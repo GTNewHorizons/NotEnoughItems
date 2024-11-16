@@ -44,6 +44,7 @@ public class ItemQuantityField extends TextField {
 
         if (!focused() && intValue() == 0) {
             field.setText(translate("itempanel.quantity.default"));
+            field.setCursorPositionZero();
             field.setEnabled(false);
             super.draw(mousex, mousey);
             field.setEnabled(true);

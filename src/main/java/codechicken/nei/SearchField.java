@@ -243,7 +243,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
                     search = search.substring(2, search.length() - 1);
                 } else {
                     final Matcher matcher = Pattern.compile("(\\?|\\*)").matcher(search);
-                    StringBuilder cleanedString = new StringBuilder();
+                    final StringBuilder cleanedString = new StringBuilder();
                     int lastEndIndex = 0;
 
                     while (matcher.find()) {

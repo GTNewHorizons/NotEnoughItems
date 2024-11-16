@@ -35,8 +35,6 @@ public class CollapsibleItems {
         public boolean expanded = false;
         public String displayName = "";
 
-        public GroupItem() {}
-
         public void setFilter(String filter) {
             this.filter = ItemStackFilterParser.parse(filter.trim());
             this.guid = this.filter != null ? UUID.nameUUIDFromBytes(filter.getBytes()).toString() : "";

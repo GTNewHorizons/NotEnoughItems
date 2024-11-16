@@ -23,8 +23,8 @@ import codechicken.nei.config.Option;
 public class GuiPresetList extends GuiOptionPane {
 
     private final Option opt;
-    protected final static int SLOT_HEIGHT = 24;
-    protected final static int BUTTON_HEIGHT = 20;
+    protected static final int SLOT_HEIGHT = 24;
+    protected static final int BUTTON_HEIGHT = 20;
     protected GuiCCButton createButton;
     protected GuiCCButton toggleButton;
     protected int sortingItemIndex = -1;
@@ -66,10 +66,6 @@ public class GuiPresetList extends GuiOptionPane {
         if (ident.equals("toggle")) {
             togglePreset();
         }
-    }
-
-    protected void mouseClicked(int x, int y, int button) {
-        super.mouseClicked(x, y, button);
     }
 
     @Override
@@ -151,7 +147,7 @@ public class GuiPresetList extends GuiOptionPane {
     }
 
     protected void togglePreset() {
-        boolean enabled = !PresetsList.presets.stream().filter(g -> g.enabled).findAny().isPresent();
+        boolean enabled = PresetsList.presets.stream().noneMatch(g -> g.enabled);
 
         for (Preset preset : PresetsList.presets) {
             preset.enabled = enabled;
