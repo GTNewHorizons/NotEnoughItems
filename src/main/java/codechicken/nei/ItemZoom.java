@@ -112,7 +112,7 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
             this.availableAreaWidth = (int) (availableAreaWidth / screenScale);
 
             if (availableAreaWidth / screenScale >= mouse.x) {
-                this.xPosition = gui.width * screenScale - availableAreaWidth;
+                this.xPosition += gui.width * screenScale - availableAreaWidth;
             }
 
             try {
