@@ -250,7 +250,7 @@ public class ClientHandler {
             } catch (IOException e) {}
         }, lines -> lines.map(line -> line.split(COMMA_DELIMITER)).filter(parts -> parts.length == 2).forEach(parts -> {
             String handlerId = parts[0];
-            int ordering = Integer.getInteger(parts[1], 0);
+            int ordering = Integer.parseInt(parts[1]);
             NEIClientConfig.handlerOrdering.put(handlerId, ordering);
         }));
     }
