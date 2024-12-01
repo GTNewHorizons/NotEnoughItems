@@ -54,15 +54,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class ClientHandler {
 
-    private static String[] defaultHandlerOrdering = {
-            "# Each line in this file should either be a comment (starts with '#') or an ordering.",
-            "# Ordering lines are <handler ID>,<ordering number>.",
-            "# Handlers will be sorted in order of number ascending, so smaller numbers first.",
-            "# Any handlers that are missing from this file will be assigned to 0.", "# Negative numbers are fine.",
-            "# If you delete this file, it will be regenerated with all registered handler IDs.", };
     private static ClientHandler instance;
-
-    private ArrayList<EntityItem> SMPmagneticItems = new ArrayList<>();
+    private final ArrayList<EntityItem> SMPmagneticItems = new ArrayList<>();
     private World lastworld;
     private GuiScreen lastGui;
 
@@ -234,17 +227,22 @@ public class ClientHandler {
     }
 
     public static void postInit() {
-        loadHandlerOrdering();
         GuiContainerManager.registerReloadResourceListener();
     }
 
     public static void loadHandlerOrdering() {
         final String COMMA_DELIMITER = ",";
+        final String[] defaultHandlerOrdering = {
+                "# Each line in this file should either be a comment (starts with '#') or an ordering.",
+                "# Ordering lines are <handler ID>,<ordering number>.",
+                "# Handlers will be sorted in order of number ascending, so smaller numbers first.",
+                "# Any handlers that are missing from this file will be assigned to 0.", "# Negative numbers are fine.",
+                "# If you delete this file, it will be regenerated with all registered handler IDs.", };
 
         loadSettingsFile("handlerordering.csv", (file, writer) -> {
             List<String> toWrite = Lists.newArrayList(defaultHandlerOrdering);
             GuiRecipeTab.handlerMap.keySet().stream().sorted()
-                    .forEach(handlerId -> toWrite.add(String.format("%s,0", handlerId)));
+                    .forEach(handlerId -> toWrite.add(String.format("%s" + COMMA_DELIMITER + "0", handlerId)));
             try {
                 IOUtils.writeLines(toWrite, "\n", writer);
             } catch (IOException e) {}
