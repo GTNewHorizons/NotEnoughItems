@@ -128,6 +128,7 @@ public class NEIModContainer extends DummyModContainer {
         if (CommonUtils.isClient()) {
             GuiRecipeTab.loadHandlerInfo();
             ClientHandler.loadPluginsList();
+            ClientHandler.loadHandlerOrdering();
         }
     }
 

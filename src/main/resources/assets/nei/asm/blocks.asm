@@ -7,13 +7,6 @@ ILOAD 4
 PUTSTATIC codechicken/nei/ItemMobSpawner.placedZ:I
 RETURN
 
-list d_spawnerWorld
-ACONST_NULL
-
-list spawnerWorld
-ALOAD 0
-INVOKEVIRTUAL net/minecraft/tileentity/MobSpawnerBaseLogic.func_98271_a()Lnet/minecraft/world/World;
-
 list n_commaFix
 LDC *
 INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
