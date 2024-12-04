@@ -41,7 +41,6 @@ public class ItemList {
      */
     public static final List<ItemFilterProvider> itemFilterers = new LinkedList<>();
     public static final List<ItemsLoadedCallback> loadCallbacks = new LinkedList<>();
-    public static final CollapsibleItems collapsibleItems = new CollapsibleItems();
 
     private static final HashSet<Item> erroredItems = new HashSet<>();
     private static final HashSet<String> stackTraces = new HashSet<>();
@@ -239,12 +238,12 @@ public class ItemList {
 
             ItemSorter.sort(items);
 
-            if (!ItemList.collapsibleItems.isEmpty()) {
+            if (!CollapsibleItems.isEmpty()) {
                 HashMap<Integer, Integer> groups = new HashMap<>();
                 int orderIndex = 0;
 
                 for (ItemStack stack : items) {
-                    final int groupIndex = ItemList.collapsibleItems.getGroupIndex(stack);
+                    final int groupIndex = CollapsibleItems.getGroupIndex(stack);
 
                     if (groupIndex == -1) {
                         ItemList.ordering.put(stack, orderIndex++);
@@ -318,7 +317,7 @@ public class ItemList {
             for (ItemsLoadedCallback callback : loadCallbacks) callback.itemsLoaded();
 
             if (interrupted()) return;
-            ItemList.collapsibleItems.updateCache(items);
+            CollapsibleItems.updateCache(items);
             updateOrdering(items);
 
             loadFinished = true;

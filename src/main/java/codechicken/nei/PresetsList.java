@@ -241,7 +241,8 @@ public class PresetsList {
 
         recipeFilter.cache = null;
         itemFilter.cache = null;
-        ItemList.collapsibleItems.reloadGroups();
+        CollapsibleItems.saveStates();
+        CollapsibleItems.load();
         LayoutManager.markItemsDirty();
     }
 

@@ -52,40 +52,15 @@ public class CollapsibleItems {
 
     private static final String STATE_KEY = "collapsibleitems";
 
-    protected File statesFile;
-    protected final List<GroupItem> groups = new ArrayList<>();
-    protected final Map<ItemStack, Integer> cache = new ConcurrentHashMap<>();
+    protected static File statesFile;
+    protected static final List<GroupItem> groups = new ArrayList<>();
+    protected static final Map<ItemStack, Integer> cache = new ConcurrentHashMap<>();
 
-    public void load() {
-        try {
+    private CollapsibleItems() {}
 
-            if (NEIClientConfig.world.nbt.hasKey(STATE_KEY)) {
-                NBTTagCompound states = NEIClientConfig.world.nbt.getCompoundTag(STATE_KEY);
-                @SuppressWarnings("unchecked")
-                final Map<String, NBTPrimitive> list = (Map<String, NBTPrimitive>) states.tagMap;
-                final Map<String, GroupItem> mapping = new HashMap<>();
-
-                for (GroupItem group : this.groups) {
-                    mapping.put(group.guid, group);
-                }
-
-                for (Map.Entry<String, NBTPrimitive> nbtEntry : list.entrySet()) {
-                    if (mapping.containsKey(nbtEntry.getKey())) {
-                        mapping.get(nbtEntry.getKey()).expanded = nbtEntry.getValue().func_150290_f() == 1;
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            NEIClientConfig.logger.error("Error loading collapsible items states", e);
-        }
-
-        reloadGroups();
-    }
-
-    public void reloadGroups() {
-        this.groups.clear();
-        this.cache.clear();
+    public static void load() {
+        CollapsibleItems.groups.clear();
+        CollapsibleItems.cache.clear();
 
         for (int i = PresetsList.presets.size() - 1; i >= 0; i--) {
             Preset preset = PresetsList.presets.get(i);
@@ -102,9 +77,11 @@ public class CollapsibleItems {
                     "collapsibleitems.cfg",
                     lines -> parseFile(lines.collect(Collectors.toCollection(ArrayList::new))));
         }
+
+        loadStates();
     }
 
-    private void parseFile(List<String> itemStrings) {
+    private static void parseFile(List<String> itemStrings) {
         final JsonParser parser = new JsonParser();
         GroupItem group = new GroupItem();
 
@@ -146,38 +123,39 @@ public class CollapsibleItems {
         }
     }
 
-    protected void addGroup(GroupItem group) {
+    private static void addGroup(GroupItem group) {
         if (group == null || group.filter == null
                 || group.filter instanceof EverythingItemFilter
                 || group.filter instanceof NothingItemFilter)
             return;
-        this.groups.add(group);
+        CollapsibleItems.groups.add(group);
     }
 
-    public boolean isEmpty() {
-        return this.groups.isEmpty();
+    public static boolean isEmpty() {
+        return CollapsibleItems.groups.isEmpty();
     }
 
-    public ItemFilter getItemFilter() {
+    public static ItemFilter getItemFilter() {
         AnyMultiItemFilter filter = new AnyMultiItemFilter();
 
-        for (GroupItem group : this.groups) {
+        for (GroupItem group : CollapsibleItems.groups) {
             filter.filters.add(group.filter);
         }
 
         return filter;
     }
 
-    public void updateCache(final List<ItemStack> items) {
-        this.cache.clear();
+    public static void updateCache(final List<ItemStack> items) {
+        CollapsibleItems.cache.clear();
 
         try {
 
             ItemList.forkJoinPool.submit(() -> items.parallelStream().forEach(stack -> {
-                GroupItem group = this.groups.stream().filter(g -> g.matches(stack)).findFirst().orElse(null);
+                GroupItem group = CollapsibleItems.groups.stream().filter(g -> g.matches(stack)).findFirst()
+                        .orElse(null);
 
                 if (group != null) {
-                    this.cache.put(stack, this.groups.indexOf(group));
+                    CollapsibleItems.cache.put(stack, CollapsibleItems.groups.indexOf(group));
                 }
             })).get();
 
@@ -187,62 +165,89 @@ public class CollapsibleItems {
 
     }
 
-    public int getGroupIndex(ItemStack stack) {
+    public static int getGroupIndex(ItemStack stack) {
 
         if (stack == null) {
             return -1;
         }
 
-        return this.cache.getOrDefault(stack, -1);
+        return CollapsibleItems.cache.getOrDefault(stack, -1);
     }
 
-    public String getDisplayName(int groupIndex) {
+    public static String getDisplayName(int groupIndex) {
 
-        if (groupIndex < this.groups.size()) {
-            return this.groups.get(groupIndex).displayName;
+        if (groupIndex < CollapsibleItems.groups.size()) {
+            return CollapsibleItems.groups.get(groupIndex).displayName;
         }
 
         return null;
     }
 
-    public boolean isExpanded(int groupIndex) {
+    public static boolean isExpanded(int groupIndex) {
 
-        if (groupIndex < this.groups.size()) {
-            return this.groups.get(groupIndex).expanded;
+        if (groupIndex < CollapsibleItems.groups.size()) {
+            return CollapsibleItems.groups.get(groupIndex).expanded;
         }
 
         return true;
     }
 
-    public void setExpanded(int groupIndex, boolean expanded) {
+    public static void setExpanded(int groupIndex, boolean expanded) {
 
-        if (groupIndex < this.groups.size()) {
-            this.groups.get(groupIndex).expanded = expanded;
-            saveStates();
+        if (groupIndex < CollapsibleItems.groups.size()) {
+            CollapsibleItems.groups.get(groupIndex).expanded = expanded;
         }
     }
 
-    public void toggleGroups(Boolean expanded) {
+    public static void toggleGroups(Boolean expanded) {
 
         if (expanded == null) {
-            expanded = this.groups.stream().noneMatch(g -> g.expanded);
+            expanded = CollapsibleItems.groups.stream().noneMatch(g -> g.expanded);
         }
 
-        for (GroupItem group : this.groups) {
+        for (GroupItem group : CollapsibleItems.groups) {
             group.expanded = expanded;
         }
 
-        saveStates();
     }
 
-    private void saveStates() {
+    public static void saveStates() {
         NBTTagCompound list = new NBTTagCompound();
 
-        for (GroupItem group : this.groups) {
+        for (GroupItem group : CollapsibleItems.groups) {
             list.setBoolean(group.guid, group.expanded);
         }
 
-        NEIClientConfig.world.nbt.setTag(STATE_KEY, list);
+        if (NEIClientConfig.world != null) {
+            NEIClientConfig.world.nbt.setTag(STATE_KEY, list);
+        }
+    }
+
+    private static void loadStates() {
+
+        try {
+
+            if (NEIClientConfig.world.nbt.hasKey(STATE_KEY)) {
+                NBTTagCompound states = NEIClientConfig.world.nbt.getCompoundTag(STATE_KEY);
+                @SuppressWarnings("unchecked")
+                final Map<String, NBTPrimitive> list = (Map<String, NBTPrimitive>) states.tagMap;
+                final Map<String, GroupItem> mapping = new HashMap<>();
+
+                for (GroupItem group : CollapsibleItems.groups) {
+                    mapping.put(group.guid, group);
+                }
+
+                for (Map.Entry<String, NBTPrimitive> nbtEntry : list.entrySet()) {
+                    if (mapping.containsKey(nbtEntry.getKey())) {
+                        mapping.get(nbtEntry.getKey()).expanded = nbtEntry.getValue().func_150290_f() == 1;
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            NEIClientConfig.logger.error("Error loading collapsible items states", e);
+        }
+
     }
 
 }

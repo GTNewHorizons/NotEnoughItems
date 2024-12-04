@@ -15,7 +15,7 @@ import org.lwjgl.opengl.GL12;
 import codechicken.core.gui.GuiWidget;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
-import codechicken.nei.ItemList;
+import codechicken.nei.CollapsibleItems;
 import codechicken.nei.ItemList.AllMultiItemFilter;
 import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.NegatedItemFilter;
@@ -142,7 +142,7 @@ public class RightPanel extends GuiWidget {
                         .collect(Collectors.toSet());
 
                 andFilter.filters.add(item -> !identifiers.contains(Preset.getIdentifier(item)));
-                andFilter.filters.add(new NegatedItemFilter(ItemList.collapsibleItems.getItemFilter()));
+                andFilter.filters.add(new NegatedItemFilter(CollapsibleItems.getItemFilter()));
 
                 if (slotIndex != -1) {
                     orFilter.filters.add(PresetsList.presets.get(slotIndex));

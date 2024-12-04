@@ -98,7 +98,7 @@ public class ItemPanel extends PanelWidget {
                 this.groupItems.clear();
                 this.forceExpand = false;
 
-                if (!ItemList.collapsibleItems.isEmpty() && !this.newItems.isEmpty()) {
+                if (!CollapsibleItems.isEmpty() && !this.newItems.isEmpty()) {
                     final Set<Integer> groups = new HashSet<>();
                     boolean outsideGroup = false;
 
@@ -106,14 +106,14 @@ public class ItemPanel extends PanelWidget {
                     this.rawItems = new ArrayList<>(this.newItems);
 
                     for (ItemStack stack : this.newItems) {
-                        final int groupIndex = ItemList.collapsibleItems.getGroupIndex(stack);
+                        final int groupIndex = CollapsibleItems.getGroupIndex(stack);
 
                         if (groupIndex == -1) {
                             this.realItems.add(stack);
                             outsideGroup = true;
                         } else {
 
-                            if (!groups.contains(groupIndex) || ItemList.collapsibleItems.isExpanded(groupIndex)) {
+                            if (!groups.contains(groupIndex) || CollapsibleItems.isExpanded(groupIndex)) {
                                 this.realItems.add(stack);
                                 groups.add(groupIndex);
                             }
@@ -175,7 +175,7 @@ public class ItemPanel extends PanelWidget {
                 }
 
                 int idx = mask.get(slotIndex);
-                maskGroup.put(idx, ItemList.collapsibleItems.getGroupIndex(getItem(idx)));
+                maskGroup.put(idx, CollapsibleItems.getGroupIndex(getItem(idx)));
             }
 
             for (int slotIndex = 0; slotIndex < mask.size(); slotIndex++) {
@@ -197,8 +197,8 @@ public class ItemPanel extends PanelWidget {
                 MaskMetadata metadata = new MaskMetadata();
 
                 metadata.groupIndex = groupIndex;
-                metadata.displayName = ItemList.collapsibleItems.getDisplayName(groupIndex);
-                metadata.extended = this.forceExpand || ItemList.collapsibleItems.isExpanded(groupIndex);
+                metadata.displayName = CollapsibleItems.getDisplayName(groupIndex);
+                metadata.extended = this.forceExpand || CollapsibleItems.isExpanded(groupIndex);
                 metadata.bgColor = metadata.extended ? expandedColor : collapsedColor;
                 metadata.color = darkerColor(metadata.bgColor);
                 metadata.left = column == 0 || idx == 0
@@ -339,7 +339,7 @@ public class ItemPanel extends PanelWidget {
 
             @Override
             public boolean onButtonPress(boolean rightclick) {
-                ItemList.collapsibleItems.toggleGroups(rightclick ? false : null);
+                CollapsibleItems.toggleGroups(rightclick ? false : null);
                 ItemList.updateFilter.restart();
                 return true;
             }
@@ -482,7 +482,7 @@ public class ItemPanel extends PanelWidget {
                 LayoutManager.addWidget(quantity);
             }
 
-            if (!ItemList.collapsibleItems.isEmpty()) {
+            if (!CollapsibleItems.isEmpty()) {
                 LayoutManager.addWidget(toggleGroups);
             }
 
@@ -560,7 +560,7 @@ public class ItemPanel extends PanelWidget {
                 final MaskMetadata metadata = panelGrid.maskMetadata.get(hoverSlot.slotIndex);
 
                 if (metadata != null) {
-                    ItemList.collapsibleItems.setExpanded(metadata.groupIndex, !metadata.extended);
+                    CollapsibleItems.setExpanded(metadata.groupIndex, !metadata.extended);
                     panelGrid.setItems(panelGrid.rawItems);
                     return true;
                 }

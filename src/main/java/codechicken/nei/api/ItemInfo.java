@@ -136,7 +136,6 @@ public class ItemInfo {
         addIDDumps();
         addSearchProviders();
         PresetsList.load();
-        ItemList.collapsibleItems.load();
         ItemList.loadCallbacks.add(TooltipFilter::populateSearchMap);
     }
 

@@ -255,7 +255,8 @@ public class NEIClientConfig {
             @Override
             public boolean onClick(int button) {
                 super.onClick(button);
-                ItemList.collapsibleItems.reloadGroups();
+                CollapsibleItems.saveStates();
+                CollapsibleItems.load();
                 LayoutManager.markItemsDirty();
                 return true;
             }
@@ -650,6 +651,7 @@ public class NEIClientConfig {
 
         world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
         bootNEI(ClientUtils.getWorld());
+        CollapsibleItems.load();
         ItemPanels.bookmarkPanel.load();
         onWorldLoad(newWorld);
     }
@@ -688,6 +690,8 @@ public class NEIClientConfig {
             ItemPanels.bookmarkPanel.saveBookmarks();
         }
 
+        CollapsibleItems.saveStates();
+
         if (world != null) {
             world.saveNBT();
         }
@@ -720,48 +724,50 @@ public class NEIClientConfig {
     }
 
     public static void bootNEI(World world) {
-        if (mainNEIConfigLoaded) return;
+        if (!mainNEIConfigLoaded) {
+            // main NEI config loading
+            ItemInfo.load(world);
+            GuiInfo.load();
+            RecipeInfo.load();
+            HeldItemHandler.load();
+            LayoutManager.load();
+            NEIController.load();
+            BookmarkContainerInfo.load();
+            mainNEIConfigLoaded = true;
 
-        // main NEI config loading
-        ItemInfo.load(world);
-        GuiInfo.load();
-        RecipeInfo.load();
-        HeldItemHandler.load();
-        LayoutManager.load();
-        NEIController.load();
-        BookmarkContainerInfo.load();
-        mainNEIConfigLoaded = true;
+            new Thread("NEI Plugin Loader") {
 
-        new Thread("NEI Plugin Loader") {
+                @Override
+                public void run() {
 
-            @Override
-            public void run() {
+                    NEIClientConfig.pluginsList.parallelStream().forEach(clazz -> {
+                        try {
+                            IConfigureNEI config = (IConfigureNEI) clazz.getConstructor().newInstance();
+                            config.loadConfig();
+                            NEIModContainer.plugins.add(config);
+                            logger.debug("Loaded {}", clazz.getName());
+                        } catch (Throwable e) {
+                            logger.error("Failed to Load {}", clazz.getName(), e);
+                        }
+                    });
 
-                NEIClientConfig.pluginsList.parallelStream().forEach(clazz -> {
-                    try {
-                        IConfigureNEI config = (IConfigureNEI) clazz.getConstructor().newInstance();
-                        config.loadConfig();
-                        NEIModContainer.plugins.add(config);
-                        logger.debug("Loaded {}", clazz.getName());
-                    } catch (Throwable e) {
-                        logger.error("Failed to Load {}", clazz.getName(), e);
-                    }
-                });
+                    RecipeCatalysts.loadCatalystInfo();
+                    ItemSorter.loadConfig();
 
-                RecipeCatalysts.loadCatalystInfo();
-                ItemSorter.loadConfig();
+                    // Set pluginNEIConfigLoaded here before posting the NEIConfigsLoadedEvent. This used to be the
+                    // other way around, but apparently if your modpack includes 800 mods the event poster might not
+                    // return in time and cause issues when loading a world for a second time as configLoaded is still
+                    // false. This may cause issues in case one of the event handler calls the (non-thread-safe) NEI
+                    // API. I don't expect any handler to do this, but who knows what modders have come up with...
+                    pluginNEIConfigLoaded = true;
+                    MinecraftForge.EVENT_BUS.post(new NEIConfigsLoadedEvent());
 
-                // Set pluginNEIConfigLoaded here before posting the NEIConfigsLoadedEvent. This used to be the other
-                // way around, but apparently if your modpack includes 800 mods the event poster might not return in
-                // time and cause issues when loading a world for a second time as configLoaded is still false. This may
-                // cause issues in case one of the event handler calls the (non-thread-safe) NEI API. I don't expect any
-                // handler to do this, but who knows what modders have come up with...
-                pluginNEIConfigLoaded = true;
-                MinecraftForge.EVENT_BUS.post(new NEIConfigsLoadedEvent());
-
-                ItemList.loadItems.restart();
-            }
-        }.start();
+                    ItemList.loadItems.restart();
+                }
+            }.start();
+        } else {
+            ItemList.loadItems.restart();
+        }
     }
 
     public static boolean isWorldSpecific(String setting) {
