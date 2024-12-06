@@ -1,48 +1,21 @@
 package codechicken.nei.search;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.nei.ItemList;
+import codechicken.nei.ItemStackMap;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.guihook.GuiContainerManager;
 
 public class TooltipFilter implements ItemFilter {
 
-    // lookup optimisation
-    private static final ConcurrentHashMap<ItemStackKey, String> itemSearchNames = new ConcurrentHashMap<>();
-
-    private static class ItemStackKey {
-
-        public final ItemStack stack;
-
-        public ItemStackKey(ItemStack stack) {
-            this.stack = stack;
-        }
-
-        @Override
-        public int hashCode() {
-            if (this.stack == null) return 1;
-            int hashCode = 1;
-            hashCode = 31 * hashCode + stack.stackSize;
-            hashCode = 31 * hashCode + Item.getIdFromItem(stack.getItem());
-            hashCode = 31 * hashCode + stack.getItemDamage();
-            hashCode = 31 * hashCode + (!stack.hasTagCompound() ? 0 : stack.getTagCompound().hashCode());
-            return hashCode;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == this) return true;
-            if (!(o instanceof ItemStackKey)) return false;
-            return ItemStack.areItemStacksEqual(this.stack, ((ItemStackKey) o).stack);
-        }
-    }
+    private static final ItemStackMap<String> itemSearchNames = new ItemStackMap<>();
+    private static final ReentrantLock lock = new ReentrantLock();
 
     private final Pattern pattern;
 
@@ -56,17 +29,30 @@ public class TooltipFilter implements ItemFilter {
     }
 
     public static void populateSearchMap() {
-        new Thread("NEI populate Tooltip Filter") {
-
-            @Override
-            public void run() {
-                ItemList.items.parallelStream().forEach(TooltipFilter::getSearchTooltip);
-            }
-        }.start();
+        itemSearchNames.clear();
+        new Thread(
+                () -> ItemList.items.parallelStream().forEach(TooltipFilter::getSearchTooltip),
+                "NEI populate Tooltip Filter").start();
     }
 
     protected static String getSearchTooltip(ItemStack stack) {
-        return itemSearchNames.computeIfAbsent(new ItemStackKey(stack), key -> getTooltip(key.stack));
+        lock.lock();
+
+        try {
+            String tooltip = itemSearchNames.get(stack);
+
+            if (tooltip == null) {
+                tooltip = getTooltip(stack.copy());
+                itemSearchNames.put(stack, tooltip);
+            }
+
+            return tooltip;
+        } catch (Throwable th) {
+            th.printStackTrace();
+            return "";
+        } finally {
+            lock.unlock();
+        }
     }
 
     private static String getTooltip(ItemStack itemstack) {

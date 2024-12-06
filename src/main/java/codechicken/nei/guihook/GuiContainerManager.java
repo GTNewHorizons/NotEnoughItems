@@ -44,6 +44,7 @@ import codechicken.nei.ItemStackSet;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.search.TooltipFilter;
 import codechicken.nei.util.ReadableNumberConverter;
 
 public class GuiContainerManager {
@@ -53,6 +54,7 @@ public class GuiContainerManager {
         @Override
         public void onResourceManagerReload(IResourceManager p_110549_1_) {
             renderingErrorItems.clear();
+            TooltipFilter.populateSearchMap();
         }
     }
 
