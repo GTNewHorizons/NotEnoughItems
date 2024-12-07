@@ -8,13 +8,14 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -311,7 +312,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
     public static class RecipeTransferRectHandler implements IContainerInputHandler, IContainerTooltipHandler {
 
-        private static final HashMap<Class<? extends GuiContainer>, HashSet<RecipeTransferRect>> guiMap = new HashMap<>();
+        private static final Map<Class<? extends GuiContainer>, HashSet<RecipeTransferRect>> guiMap = new ConcurrentHashMap<>();
 
         public static void registerRectsToGuis(List<Class<? extends GuiContainer>> classes,
                 List<RecipeTransferRect> rects) {
