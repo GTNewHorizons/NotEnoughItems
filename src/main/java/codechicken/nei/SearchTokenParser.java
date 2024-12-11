@@ -119,7 +119,7 @@ public class SearchTokenParser {
         }
     }
 
-    private static final LinkedHashMap<String, ItemFilter> filtersCache = new LinkedHashMap<>() {
+    private final LinkedHashMap<String, ItemFilter> filtersCache = new LinkedHashMap<>() {
 
         private static final long serialVersionUID = 1042213947848622164L;
 
@@ -144,6 +144,11 @@ public class SearchTokenParser {
     public void addProvider(ISearchParserProvider provider) {
         this.searchProviders.add(provider);
         this.providersCache.clear();
+        this.filtersCache.clear();
+    }
+
+    public void clearCache() {
+        this.filtersCache.clear();
     }
 
     protected List<ISearchParserProvider> getProviders() {
@@ -176,27 +181,24 @@ public class SearchTokenParser {
                 .findFirst().orElse(null);
     }
 
-    public ItemFilter getFilter(String filterText) {
+    public synchronized ItemFilter getFilter(String filterText) {
+        filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
 
-        if (!filtersCache.containsKey(filterText)) {
-            final String[] parts = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase()
-                    .split("\\|");
+        return this.filtersCache.computeIfAbsent(filterText, text -> {
+            final String[] parts = text.split("\\|");
             final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText).filter(s -> s != null)
                     .collect(Collectors.toCollection(ArrayList::new));
 
             if (searchTokens.isEmpty()) {
-                filtersCache.put(filterText, new EverythingItemFilter());
+                return new EverythingItemFilter();
             } else if (searchTokens.size() == 1) {
-                filtersCache.put(filterText, new IsRegisteredItemFilter(new ItemFilterCache(searchTokens.get(0))));
+                return new IsRegisteredItemFilter(new ItemFilterCache(searchTokens.get(0)));
             } else {
-                filtersCache.put(
-                        filterText,
-                        new IsRegisteredItemFilter(new ItemFilterCache(new AnyMultiItemFilter(searchTokens))));
+                return new IsRegisteredItemFilter(new ItemFilterCache(new AnyMultiItemFilter(searchTokens)));
             }
 
-        }
+        });
 
-        return filtersCache.get(filterText);
     }
 
     public Pattern getSplitPattern() {
