@@ -181,27 +181,24 @@ public class SearchTokenParser {
                 .findFirst().orElse(null);
     }
 
-    public ItemFilter getFilter(String filterText) {
+    public synchronized ItemFilter getFilter(String filterText) {
         filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
 
-        if (!this.filtersCache.containsKey(filterText)) {
-            final String[] parts = filterText.split("\\|");
+        return this.filtersCache.computeIfAbsent(filterText, text -> {
+            final String[] parts = text.split("\\|");
             final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText).filter(s -> s != null)
                     .collect(Collectors.toCollection(ArrayList::new));
 
             if (searchTokens.isEmpty()) {
-                this.filtersCache.put(filterText, new EverythingItemFilter());
+                return new EverythingItemFilter();
             } else if (searchTokens.size() == 1) {
-                this.filtersCache.put(filterText, new IsRegisteredItemFilter(new ItemFilterCache(searchTokens.get(0))));
+                return new IsRegisteredItemFilter(new ItemFilterCache(searchTokens.get(0)));
             } else {
-                this.filtersCache.put(
-                        filterText,
-                        new IsRegisteredItemFilter(new ItemFilterCache(new AnyMultiItemFilter(searchTokens))));
+                return new IsRegisteredItemFilter(new ItemFilterCache(new AnyMultiItemFilter(searchTokens)));
             }
 
-        }
+        });
 
-        return this.filtersCache.get(filterText);
     }
 
     public Pattern getSplitPattern() {
