@@ -2,10 +2,12 @@ package codechicken.nei;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -90,32 +92,17 @@ public class SearchTokenParser {
 
     private static class ItemFilterCache implements ItemFilter {
 
+        private final Map<ItemStack, Boolean> states;
         public ItemFilter filter;
-        private final ItemStackMap<Boolean> states = new ItemStackMap<>();
-        private final ReentrantLock lock = new ReentrantLock();
 
         public ItemFilterCache(ItemFilter filter) {
+            this.states = Collections.synchronizedMap(new WeakHashMap<>());
             this.filter = filter;
         }
 
         @Override
         public boolean matches(ItemStack item) {
-            lock.lock();
-
-            try {
-                Boolean match = states.get(item);
-
-                if (match == null) {
-                    states.put(item, match = this.filter.matches(item));
-                }
-
-                return match;
-            } catch (Throwable th) {
-                th.printStackTrace();
-                return false;
-            } finally {
-                lock.unlock();
-            }
+            return states.computeIfAbsent(item, stack -> this.filter.matches(stack));
         }
     }
 
