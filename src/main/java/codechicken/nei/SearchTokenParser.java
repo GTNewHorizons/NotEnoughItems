@@ -89,22 +89,6 @@ public class SearchTokenParser {
         }
     }
 
-    private static class ItemFilterCache implements ItemFilter {
-
-        private final Map<ItemStack, Boolean> states;
-        public ItemFilter filter;
-
-        public ItemFilterCache(ItemFilter filter) {
-            this.states = Collections.synchronizedMap(new WeakHashMap<>());
-            this.filter = filter;
-        }
-
-        @Override
-        public boolean matches(ItemStack item) {
-            return states.computeIfAbsent(item, stack -> this.filter.matches(stack));
-        }
-    }
-
     private final LinkedHashMap<String, ItemFilter> filtersCache = new LinkedHashMap<>() {
 
         private static final long serialVersionUID = 1042213947848622164L;
@@ -178,9 +162,9 @@ public class SearchTokenParser {
             if (searchTokens.isEmpty()) {
                 return new EverythingItemFilter();
             } else if (searchTokens.size() == 1) {
-                return new IsRegisteredItemFilter(new ItemFilterCache(searchTokens.get(0)));
+                return new IsRegisteredItemFilter(searchTokens.get(0));
             } else {
-                return new IsRegisteredItemFilter(new ItemFilterCache(new AnyMultiItemFilter(searchTokens)));
+                return new IsRegisteredItemFilter(new AnyMultiItemFilter(searchTokens));
             }
 
         });

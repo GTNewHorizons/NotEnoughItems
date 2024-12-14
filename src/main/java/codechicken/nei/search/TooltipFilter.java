@@ -1,7 +1,6 @@
 package codechicken.nei.search;
 
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
 import net.minecraft.item.ItemStack;
@@ -9,13 +8,12 @@ import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.nei.ItemList;
 import codechicken.nei.ItemStackMap;
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.guihook.GuiContainerManager;
 
 public class TooltipFilter implements ItemFilter {
 
     private static final ItemStackMap<String> itemSearchNames = new ItemStackMap<>();
-    private static final ReentrantLock lock = new ReentrantLock();
 
     private final Pattern pattern;
 
@@ -36,28 +34,32 @@ public class TooltipFilter implements ItemFilter {
     }
 
     protected static String getSearchTooltip(ItemStack stack) {
-        lock.lock();
+        String tooltip = itemSearchNames.get(stack);
 
-        try {
-            String tooltip = itemSearchNames.get(stack);
+        if (tooltip == null) {
+            tooltip = getTooltip(stack.copy());
 
-            if (tooltip == null) {
-                tooltip = getTooltip(stack.copy());
+            synchronized (itemSearchNames) {
                 itemSearchNames.put(stack, tooltip);
             }
-
-            return tooltip;
-        } catch (Throwable th) {
-            th.printStackTrace();
-            return "";
-        } finally {
-            lock.unlock();
         }
+
+        return tooltip;
     }
 
     private static String getTooltip(ItemStack itemstack) {
-        final List<String> list = GuiContainerManager.itemDisplayNameMultiline(itemstack, null, true);
-        return EnumChatFormatting.getTextWithoutFormattingCodes(String.join("\n", list.subList(1, list.size())));
+
+        try {
+            List<String> namelist = itemstack.getTooltip(NEIClientUtils.mc().thePlayer, false);
+
+            if (namelist.size() > 1) {
+                return EnumChatFormatting
+                        .getTextWithoutFormattingCodes(String.join("\n", namelist.subList(1, namelist.size())));
+            }
+
+        } catch (Throwable ignored) {}
+
+        return "";
     }
 
 }
