@@ -2,6 +2,7 @@ package codechicken.nei;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -21,8 +22,6 @@ import codechicken.nei.ItemList.EverythingItemFilter;
 import codechicken.nei.ItemList.NegatedItemFilter;
 import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.api.ItemFilter;
-import gnu.trove.map.TCharCharMap;
-import gnu.trove.map.hash.TCharCharHashMap;
 
 public class SearchTokenParser {
 
@@ -39,6 +38,20 @@ public class SearchTokenParser {
                 default -> NEVER;
             };
         }
+    }
+
+    public static class SearchToken {
+
+        public boolean ignore = false;
+        public boolean quotes = false;
+        public Character firstChar = null;
+
+        public String[] words;
+
+        public String rawText = "";
+        public int start = 0;
+        public int end = 0;
+
     }
 
     public static interface ISearchParserProvider {
@@ -99,7 +112,7 @@ public class SearchTokenParser {
 
     protected final List<ISearchParserProvider> searchProviders;
     protected final ProvidersCache providersCache = new ProvidersCache();
-    protected final TCharCharMap prefixRedefinitions = new TCharCharHashMap();
+    protected final Map<Character, Character> prefixRedefinitions = new HashMap<>();
 
     public SearchTokenParser(List<ISearchParserProvider> searchProviders) {
         this.searchProviders = searchProviders;
@@ -169,7 +182,64 @@ public class SearchTokenParser {
 
     }
 
-    public Pattern getSplitPattern() {
+    public List<SearchToken> splitSearchText(String filterText) {
+
+        if (filterText.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        final List<SearchToken> tokens = new ArrayList<>();
+        final String prefixes = getPrefixes();
+        final int spaceMode = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+        // The regular expression first tries to match a string that starts with a space or the beginning of the string,
+        // followed by a sequence of characters that do not contain special characters -"@#$%&, and ends with a space
+        // and the characters -"@#$%& or the end of the string.
+        final String patternPart1 = "(?<tokenA>(^|\\s+)(?:[^" + Pattern.quote(" -\"" + prefixes)
+                + "]).+?(?=\\s+["
+                + Pattern.quote("-\"" + prefixes)
+                + "]|$))";
+        // If the first condition is not met, it tries to match a sequence of - characters, followed by @#$%&
+        // characters, then either a quoted string or non-space characters.
+        final String patternPart2 = "((?<ignore>-*)(?<firstChar>[" + Pattern.quote(prefixes)
+                + "]*)(?<tokenB>\\\".*?(?:\\\"|$)|\\S+\\s*))";
+        final Pattern pattern = Pattern.compile(spaceMode == 0 ? patternPart2 : (patternPart1 + "|" + patternPart2));
+        final Matcher filterMatcher = pattern.matcher(filterText);
+
+        while (filterMatcher.find()) {
+            String firstChar = filterMatcher.group("firstChar");
+            SearchToken token = new SearchToken();
+            token.start = filterMatcher.start();
+            token.end = filterMatcher.end();
+            token.ignore = "-".equals(filterMatcher.group("ignore"));
+            token.rawText = spaceMode == 0 ? null : filterMatcher.group("tokenA");
+
+            if (firstChar != null && !firstChar.isEmpty()) {
+                token.firstChar = firstChar.charAt(0);
+            }
+
+            if (token.rawText == null) { // spaceMode == 0
+                token.rawText = filterMatcher.group("tokenB");
+                token.quotes = token.rawText.length() > 1 && token.rawText.startsWith("\"")
+                        && token.rawText.endsWith("\"");
+
+                if (token.quotes) {
+                    token.rawText = token.rawText.substring(1, token.rawText.length() - 1);
+                }
+
+                token.words = new String[] { token.rawText.trim() };
+            } else if (spaceMode == 2) {
+                token.words = token.rawText.trim().split("\\s+");
+            } else {
+                token.words = new String[] { token.rawText.trim() };
+            }
+
+            tokens.add(token);
+        }
+
+        return tokens;
+    }
+
+    private String getPrefixes() {
         StringBuilder prefixes = new StringBuilder().append('\0');
 
         for (ISearchParserProvider provider : getProviders()) {
@@ -178,14 +248,11 @@ public class SearchTokenParser {
             }
         }
 
-        return Pattern.compile("((-*)([" + Pattern.quote(prefixes.toString()) + "]*)(\\\".*?(?:\\\"|$)|\\S+))");
+        return prefixes.toString();
     }
 
     public char getRedefinedPrefix(char prefix) {
-        if (this.prefixRedefinitions.containsKey(prefix)) {
-            return this.prefixRedefinitions.get(prefix);
-        }
-        return prefix;
+        return this.prefixRedefinitions.getOrDefault(prefix, prefix);
     }
 
     private ItemFilter parseSearchText(String filterText) {
@@ -194,28 +261,19 @@ public class SearchTokenParser {
             return null;
         }
 
-        final Matcher filterMatcher = getSplitPattern().matcher(filterText);
         final AllMultiItemFilter searchTokens = new AllMultiItemFilter();
+        final List<SearchToken> tokens = splitSearchText(filterText);
 
-        while (filterMatcher.find()) {
-            boolean ignore = "-".equals(filterMatcher.group(2));
-            String firstChar = filterMatcher.group(3);
-            String token = filterMatcher.group(4);
-            boolean quotes = token.length() > 1 && token.startsWith("\"") && token.endsWith("\"");
+        for (SearchToken token : tokens) {
+            if (!token.rawText.isEmpty()) {
+                ItemFilter result = parseToken(token);
 
-            if (quotes) {
-                token = token.substring(1, token.length() - 1);
-            }
-
-            if (!token.isEmpty()) {
-                ItemFilter result = parseToken(firstChar, token);
-
-                if (ignore) {
+                if (token.ignore) {
                     searchTokens.filters.add(new NegatedItemFilter(result));
                 } else {
                     searchTokens.filters.add(result);
                 }
-            } else if (!ignore) {
+            } else if (!token.ignore) {
                 searchTokens.filters.add(new NothingItemFilter());
             }
         }
@@ -223,17 +281,17 @@ public class SearchTokenParser {
         return searchTokens;
     }
 
-    private ItemFilter parseToken(String firstChar, String token) {
-        final ISearchParserProvider provider = firstChar.isEmpty() ? null : this.getProvider(firstChar.charAt(0));
+    private ItemFilter parseToken(SearchToken token) {
+        final ISearchParserProvider provider = token.firstChar == null ? null : this.getProvider(token.firstChar);
 
         if (provider == null || provider.getSearchMode() == SearchMode.NEVER) {
             final List<ItemFilter> filters = new ArrayList<>();
 
             for (ISearchParserProvider _provider : getProviders()) {
                 if (_provider.getSearchMode() == SearchMode.ALWAYS) {
-                    ItemFilter filter = _provider.getFilter(token);
+                    AllMultiItemFilter filter = generateFilters(_provider, token.words);
 
-                    if (filter != null) {
+                    if (!filter.filters.isEmpty()) {
                         filters.add(filter);
                     }
                 }
@@ -241,7 +299,21 @@ public class SearchTokenParser {
 
             return filters.isEmpty() ? new NothingItemFilter() : new AnyMultiItemFilter(filters);
         } else {
-            return provider.getFilter(token);
+            return generateFilters(provider, token.words);
         }
+    }
+
+    private AllMultiItemFilter generateFilters(ISearchParserProvider provider, String[] words) {
+        final AllMultiItemFilter filters = new AllMultiItemFilter();
+
+        for (String work : words) {
+            final ItemFilter filter = provider.getFilter(work);
+
+            if (filter != null) {
+                filters.filters.add(filter);
+            }
+        }
+
+        return filters;
     }
 }

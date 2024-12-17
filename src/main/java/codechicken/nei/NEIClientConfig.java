@@ -457,6 +457,7 @@ public class NEIClientConfig {
                 }
 
                 if (state()) {
+                    NEIClientConfig.setIntSetting("inventory.search.spaceMode", 1);
                     NEIClientConfig.setIntSetting("inventory.search.modNameSearchMode", 0);
                     NEIClientConfig.setIntSetting("inventory.search.tooltipSearchMode", 0);
                     NEIClientConfig.setIntSetting("inventory.search.identifierSearchMode", 0);
@@ -468,6 +469,7 @@ public class NEIClientConfig {
                     SearchField.searchParser.prefixRedefinitions.put('@', '%');
                     SearchField.searchParser.clearCache();
                 } else {
+                    NEIClientConfig.setIntSetting("inventory.search.spaceMode", 0);
                     NEIClientConfig.setIntSetting("inventory.search.modNameSearchMode", 1);
                     NEIClientConfig.setIntSetting("inventory.search.tooltipSearchMode", 0);
                     NEIClientConfig.setIntSetting("inventory.search.identifierSearchMode", 0);
@@ -479,6 +481,22 @@ public class NEIClientConfig {
                 }
 
                 return true;
+            }
+
+        });
+
+        tag.getTag("inventory.search.spaceMode").setComment("Search Space Rules").getIntValue(0);
+        API.addOption(new OptionCycled("inventory.search.spaceMode", 3, true) {
+
+            @Override
+            public boolean onClick(int button) {
+                // SearchField.searchParser.clearCache();
+                return super.onClick(button);
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return !tag.getTag("inventory.search.format").getBooleanValue();
             }
 
         });
