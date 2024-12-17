@@ -1,12 +1,11 @@
 package codechicken.nei;
 
-import static codechicken.lib.gui.GuiDraw.drawRect;
-
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
 import org.lwjgl.opengl.GL11;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
@@ -22,10 +21,14 @@ public class ItemHistoryPanel extends Widget {
         grid = new ItemsGrid();
     }
 
+    public boolean isEmpty() {
+        return grid.isEmpty();
+    }
+
     public void draw(int mousex, int mousey) {
 
         if (NEIClientConfig.getIntSetting("inventory.history.splittingMode") == 0) {
-            drawRect(x, y, w, h, NEIClientConfig.getSetting("inventory.history.historyColor").getHexValue());
+            GuiDraw.drawRect(x, y, w, h, NEIClientConfig.getSetting("inventory.history.historyColor").getHexValue());
         } else {
             drawSplittingArea(x, y, w, h, NEIClientConfig.getSetting("inventory.history.historyColor").getHexValue());
         }
@@ -44,8 +47,8 @@ public class ItemHistoryPanel extends Widget {
             grid.realItems.removeIf(historyStack -> StackInfo.equalItemAndNBT(historyStack, stack, true));
             grid.realItems.add(0, is);
 
-            if (grid.realItems.size() > (grid.rows * grid.columns)) {
-                grid.realItems.remove(grid.rows * grid.columns);
+            if (grid.realItems.size() > Math.max(50, grid.rows * grid.columns)) {
+                grid.realItems.remove(grid.realItems.size() - 1);
             }
 
             grid.onItemsChanged();
