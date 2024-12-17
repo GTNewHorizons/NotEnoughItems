@@ -29,6 +29,7 @@ import org.lwjgl.opengl.GL11;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.Button;
 import codechicken.nei.GuiNEIButton;
+import codechicken.nei.ItemStackSet;
 import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEICPH;
@@ -135,7 +136,13 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 items = Arrays.asList(pStack.items);
             }
 
-            return new PermutationTooltipLineHandler(pStack, items);
+            items = new ItemStackSet().addAll(items).keys();
+
+            if (items.size() > 1) {
+                return new PermutationTooltipLineHandler(pStack, items);
+            }
+
+            return null;
         }
 
     }
@@ -869,41 +876,40 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
             List<String> currenttip) {
 
-        try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
-            List<Integer> indices = getRecipeIndices();
+        List<Integer> indices = getRecipeIndices();
 
+        try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
             for (int recipeIndex : indices) {
                 currenttip = handler.original.handleItemTooltip(this, itemstack, currenttip, recipeIndex);
             }
+        }
 
-            if (NEIClientConfig.showCycledIngredientsTooltip()) {
-                PositionedStack focused = null;
+        if (NEIClientConfig.showCycledIngredientsTooltip()) {
+            PositionedStack focused = null;
 
-                for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
-                    final int recipeIndex = indices.get(refIndex);
+            for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
+                final int recipeIndex = indices.get(refIndex);
 
-                    if (itemstack != null && focused == null) {
-                        final List<PositionedStack> stacks = handler.original.getIngredientStacks(recipeIndex);
+                if (itemstack != null && focused == null) {
+                    final List<PositionedStack> stacks = handler.original.getIngredientStacks(recipeIndex);
 
-                        for (PositionedStack pStack : stacks) {
-                            if (isMouseOver(pStack, refIndex)) {
-                                focused = pStack;
-                                break;
-                            }
+                    for (PositionedStack pStack : stacks) {
+                        if (isMouseOver(pStack, refIndex)) {
+                            focused = pStack;
+                            break;
                         }
                     }
                 }
-
-                if (focused == null || focused.items.length <= 1) {
-                    this.permutationTooltipLineHandler = null;
-                } else if (this.permutationTooltipLineHandler == null
-                        || this.permutationTooltipLineHandler.pStack != focused) {
-                            this.permutationTooltipLineHandler = PermutationTooltipLineHandler.getInstance(focused);
-                        }
-            } else if (this.permutationTooltipLineHandler != null) {
-                this.permutationTooltipLineHandler = null;
             }
 
+            if (focused == null || focused.items.length <= 1) {
+                this.permutationTooltipLineHandler = null;
+            } else if (this.permutationTooltipLineHandler == null
+                    || this.permutationTooltipLineHandler.pStack != focused) {
+                        this.permutationTooltipLineHandler = PermutationTooltipLineHandler.getInstance(focused);
+                    }
+        } else if (this.permutationTooltipLineHandler != null) {
+            this.permutationTooltipLineHandler = null;
         }
 
         if (this.permutationTooltipLineHandler != null) {
