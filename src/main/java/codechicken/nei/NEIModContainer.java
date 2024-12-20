@@ -1,6 +1,7 @@
 package codechicken.nei;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -38,6 +39,7 @@ public class NEIModContainer extends DummyModContainer {
     public static LinkedList<IConfigureNEI> plugins = new LinkedList<>();
 
     private static boolean gregTech5Loaded;
+    private static boolean gtnhLibLoaded;
 
     public NEIModContainer() {
         super(getModMetadata());
@@ -59,16 +61,23 @@ public class NEIModContainer extends DummyModContainer {
         return gregTech5Loaded;
     }
 
+    public static boolean isGTNHLibLoaded() {
+        return gtnhLibLoaded;
+    }
+
     @Override
     public Set<ArtifactVersion> getRequirements() {
         Set<ArtifactVersion> deps = new HashSet<>();
-        deps.add(VersionParser.parseVersionReference("CodeChickenCore@[" + CodeChickenCorePlugin.version + ",)"));
+        deps.add(VersionParser.parseVersionReference("CodeChickenCore@[" + codechicken.core.asm.Tags.VERSION + ",)"));
         return deps;
     }
 
     @Override
     public List<ArtifactVersion> getDependencies() {
-        return new LinkedList<>(getRequirements());
+        List<ArtifactVersion> deps = new ArrayList<>();
+        deps.add(VersionParser.parseVersionReference("CodeChickenCore@[" + codechicken.core.asm.Tags.VERSION + ",)"));
+        deps.add(VersionParser.parseVersionReference("gtnhlib@[0.6.0,)"));
+        return deps;
     }
 
     private String description;
@@ -106,6 +115,7 @@ public class NEIModContainer extends DummyModContainer {
     @Subscribe
     public void preInit(FMLPreInitializationEvent event) {
         gregTech5Loaded = Loader.isModLoaded("gregtech") && !Loader.isModLoaded("gregapi_post");
+        gtnhLibLoaded = Loader.isModLoaded("gtnhlib");
         if (CommonUtils.isClient()) ClientHandler.preInit();
     }
 
