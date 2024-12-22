@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -88,38 +87,7 @@ public class SearchTokenParser {
         }
     }
 
-    private static class ItemFilterCache implements ItemFilter {
-
-        public ItemFilter filter;
-        private final ItemStackMap<Boolean> states = new ItemStackMap<>();
-        private final ReentrantLock lock = new ReentrantLock();
-
-        public ItemFilterCache(ItemFilter filter) {
-            this.filter = filter;
-        }
-
-        @Override
-        public boolean matches(ItemStack item) {
-            lock.lock();
-
-            try {
-                Boolean match = states.get(item);
-
-                if (match == null) {
-                    states.put(item, match = this.filter.matches(item));
-                }
-
-                return match;
-            } catch (Throwable th) {
-                th.printStackTrace();
-                return false;
-            } finally {
-                lock.unlock();
-            }
-        }
-    }
-
-    private static final LinkedHashMap<String, ItemFilter> filtersCache = new LinkedHashMap<>() {
+    private final LinkedHashMap<String, ItemFilter> filtersCache = new LinkedHashMap<>() {
 
         private static final long serialVersionUID = 1042213947848622164L;
 
@@ -144,6 +112,11 @@ public class SearchTokenParser {
     public void addProvider(ISearchParserProvider provider) {
         this.searchProviders.add(provider);
         this.providersCache.clear();
+        this.filtersCache.clear();
+    }
+
+    public void clearCache() {
+        this.filtersCache.clear();
     }
 
     protected List<ISearchParserProvider> getProviders() {
@@ -176,27 +149,24 @@ public class SearchTokenParser {
                 .findFirst().orElse(null);
     }
 
-    public ItemFilter getFilter(String filterText) {
+    public synchronized ItemFilter getFilter(String filterText) {
+        filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
 
-        if (!filtersCache.containsKey(filterText)) {
-            final String[] parts = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase()
-                    .split("\\|");
+        return this.filtersCache.computeIfAbsent(filterText, text -> {
+            final String[] parts = text.split("\\|");
             final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText).filter(s -> s != null)
                     .collect(Collectors.toCollection(ArrayList::new));
 
             if (searchTokens.isEmpty()) {
-                filtersCache.put(filterText, new EverythingItemFilter());
+                return new EverythingItemFilter();
             } else if (searchTokens.size() == 1) {
-                filtersCache.put(filterText, new IsRegisteredItemFilter(new ItemFilterCache(searchTokens.get(0))));
+                return new IsRegisteredItemFilter(searchTokens.get(0));
             } else {
-                filtersCache.put(
-                        filterText,
-                        new IsRegisteredItemFilter(new ItemFilterCache(new AnyMultiItemFilter(searchTokens))));
+                return new IsRegisteredItemFilter(new AnyMultiItemFilter(searchTokens));
             }
 
-        }
+        });
 
-        return filtersCache.get(filterText);
     }
 
     public Pattern getSplitPattern() {
