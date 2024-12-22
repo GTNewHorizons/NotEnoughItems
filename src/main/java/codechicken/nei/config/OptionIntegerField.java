@@ -1,11 +1,15 @@
 package codechicken.nei.config;
 
+import codechicken.lib.gui.GuiDraw;
+
 public class OptionIntegerField extends OptionTextField {
 
-    public final int min;
-    public final int max;
+    public static final long UNSIGNED_INT_MAX = 0xFFFFFFFFL;
 
-    public OptionIntegerField(String name, int min, int max) {
+    public final long min;
+    public final long max;
+
+    public OptionIntegerField(String name, long min, long max) {
         super(name);
         this.min = min;
         this.max = max;
@@ -16,12 +20,22 @@ public class OptionIntegerField extends OptionTextField {
     }
 
     @Override
+    protected int getMaxInputWidth() {
+
+        if (renderTag().getValue().startsWith("0x")) {
+            return GuiDraw.getStringWidth("0x" + Long.toHexString(this.max).toUpperCase()) + 32;
+        }
+
+        return GuiDraw.getStringWidth(String.valueOf(this.max)) + 32;
+    }
+
+    @Override
     public boolean isValidInput(String s) {
-        if (s.length() == 0) return true;
+        if (s.isEmpty()) return true;
 
         try {
             if (s.startsWith("0x")) {
-                Long.parseLong(s.substring(2), 16);
+                Long.parseUnsignedLong(s.substring(2), 16);
             } else {
                 Integer.parseInt(s);
             }
@@ -33,15 +47,15 @@ public class OptionIntegerField extends OptionTextField {
 
     @Override
     public boolean isValidValue(String s) {
-        if (s.length() == 0 || !isValidInput(s)) return false;
-        int i = 0;
+        if (s.isEmpty() || !isValidInput(s)) return false;
+        long i = 0;
 
         if (s.startsWith("0x")) {
-            i = (int) Long.parseLong(s.substring(2), 16);
+            i = Long.parseUnsignedLong(s.substring(2), 16);
         } else {
             i = Integer.parseInt(s);
         }
 
-        return i >= min && i <= max;
+        return i >= this.min && i <= this.max;
     }
 }
