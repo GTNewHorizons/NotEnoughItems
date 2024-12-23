@@ -41,13 +41,13 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
 
         if (replaceAE2FCFluidDrop || stack.getItem() != GameRegistry.findItem("ae2fc", "fluid_drop")) {
             final FluidStack fluidStack = getFluid(stack);
-
             if (fluidStack != null) {
                 final NBTTagCompound nbTag = new NBTTagCompound();
                 nbTag.setString("gtFluidName", fluidStack.getFluid().getName());
                 nbTag.setInteger("Count", saveStackSize ? fluidStack.amount : 144);
                 return nbTag;
             }
+            return null;
         }
 
         return null;
@@ -104,4 +104,5 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
 
         return null;
     }
+
 }
