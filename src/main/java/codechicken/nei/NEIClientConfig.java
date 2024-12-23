@@ -432,7 +432,15 @@ public class NEIClientConfig {
         API.addOption(new OptionCycled("inventory.search.widgetAutofocus", 3, true));
 
         tag.getTag("inventory.search.patternMode").setComment("Search Mode").getIntValue(1);
-        API.addOption(new OptionCycled("inventory.search.patternMode", 3, true));
+        API.addOption(new OptionCycled("inventory.search.patternMode", 3, true) {
+
+            @Override
+            public boolean onClick(int button) {
+                SearchField.searchParser.clearCache();
+                return super.onClick(button);
+            }
+
+        });
 
         tag.getTag("inventory.search.quoteDropItemName").setComment("Quote Drop Item Name").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.search.quoteDropItemName", true));
@@ -459,6 +467,7 @@ public class NEIClientConfig {
                     SearchField.searchParser.prefixRedefinitions.clear();
                     SearchField.searchParser.prefixRedefinitions.put('%', '@');
                     SearchField.searchParser.prefixRedefinitions.put('@', '%');
+                    SearchField.searchParser.clearCache();
                 } else {
                     NEIClientConfig.setIntSetting("inventory.search.spaceMode", 0);
                     NEIClientConfig.setIntSetting("inventory.search.modNameSearchMode", 1);
@@ -468,6 +477,7 @@ public class NEIClientConfig {
                     NEIClientConfig.setIntSetting("inventory.search.subsetsSearchMode", 1);
                     tag.getTag("inventory.search.prefixRedefinitions").setValue("{}");
                     SearchField.searchParser.prefixRedefinitions.clear();
+                    SearchField.searchParser.clearCache();
                 }
 
                 return true;
@@ -496,6 +506,12 @@ public class NEIClientConfig {
         API.addOption(new OptionCycled("inventory.search.modNameSearchMode", 3, true) {
 
             @Override
+            public boolean onClick(int button) {
+                SearchField.searchParser.clearCache();
+                return super.onClick(button);
+            }
+
+            @Override
             public String getButtonText() {
                 return translateN(
                         name + "." + value(),
@@ -513,6 +529,12 @@ public class NEIClientConfig {
         tag.getTag("inventory.search.tooltipSearchMode").setComment("Search mode for Tooltips (prefix: #)")
                 .getIntValue(0);
         API.addOption(new OptionCycled("inventory.search.tooltipSearchMode", 3, true) {
+
+            @Override
+            public boolean onClick(int button) {
+                SearchField.searchParser.clearCache();
+                return super.onClick(button);
+            }
 
             @Override
             public String getButtonText() {
@@ -533,6 +555,12 @@ public class NEIClientConfig {
         API.addOption(new OptionCycled("inventory.search.identifierSearchMode", 3, true) {
 
             @Override
+            public boolean onClick(int button) {
+                SearchField.searchParser.clearCache();
+                return super.onClick(button);
+            }
+
+            @Override
             public String getButtonText() {
                 return translateN(
                         name + "." + value(),
@@ -551,6 +579,12 @@ public class NEIClientConfig {
         API.addOption(new OptionCycled("inventory.search.oreDictSearchMode", 3, true) {
 
             @Override
+            public boolean onClick(int button) {
+                SearchField.searchParser.clearCache();
+                return super.onClick(button);
+            }
+
+            @Override
             public String getButtonText() {
                 return translateN(
                         name + "." + value(),
@@ -567,6 +601,12 @@ public class NEIClientConfig {
         tag.getTag("inventory.search.subsetsSearchMode").setComment("Search mode for Item Subsets (prefix: %)")
                 .getIntValue(1);
         API.addOption(new OptionCycled("inventory.search.subsetsSearchMode", 3, true) {
+
+            @Override
+            public boolean onClick(int button) {
+                SearchField.searchParser.clearCache();
+                return super.onClick(button);
+            }
 
             @Override
             public String getButtonText() {
