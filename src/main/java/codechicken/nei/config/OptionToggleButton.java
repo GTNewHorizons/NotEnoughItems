@@ -17,6 +17,7 @@ public class OptionToggleButton extends OptionButton {
         return renderTag().getBooleanValue();
     }
 
+    @Override
     public String getButtonText() {
         return translateN(name + (state() ? ".true" : ".false"));
     }

@@ -322,7 +322,7 @@ public class NEIClientUtils extends NEIServerUtils {
     }
 
     public static void sendCommand(String command, Object... args) {
-        if (command.length() == 0) return;
+        if (command.isEmpty()) return;
 
         NumberFormat numberformat = NumberFormat.getIntegerInstance();
         numberformat.setGroupingUsed(false);
