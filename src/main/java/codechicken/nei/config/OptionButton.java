@@ -75,26 +75,25 @@ public abstract class OptionButton extends Option {
     }
 
     public String getTooltip() {
-        String tip = null;
 
         if (tooltip != null) {
             String s = translateN(tooltip);
 
             if (!s.equals(namespaced(tooltip))) {
-                tip = s;
+                return s;
             }
         }
 
-        if (tip == null && getPrefix() != null) {
+        if (getPrefix() != null) {
             final int width = getStringWidth(getPrefix());
             final Rectangle b = buttonSize();
 
             if (width >= b.x) {
-                tip = translateN(name);
+                return translateN(name);
             }
         }
 
-        return tip;
+        return null;
     }
 
     public void drawPrefix() {
