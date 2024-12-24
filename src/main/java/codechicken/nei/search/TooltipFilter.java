@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
-import codechicken.nei.ItemList;
 import codechicken.nei.ItemStackMap;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.api.ItemFilter;
@@ -26,14 +25,18 @@ public class TooltipFilter implements ItemFilter {
         return pattern.matcher(getSearchTooltip(itemStack)).find();
     }
 
-    public static void populateSearchMap() {
+    public static void clearCache() {
         itemSearchNames.clear();
-        new Thread(
-                () -> ItemList.items.parallelStream().forEach(TooltipFilter::getSearchTooltip),
-                "NEI populate Tooltip Filter").start();
     }
 
-    protected static String getSearchTooltip(ItemStack stack) {
+    public static void putItem(ItemStack stack) {
+        String tooltip = getTooltip(stack.copy());
+        synchronized (itemSearchNames) {
+            itemSearchNames.put(stack, tooltip);
+        }
+    }
+
+    public static String getSearchTooltip(ItemStack stack) {
         String tooltip = itemSearchNames.get(stack);
 
         if (tooltip == null) {
