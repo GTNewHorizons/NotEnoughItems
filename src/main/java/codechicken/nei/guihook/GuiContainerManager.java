@@ -40,12 +40,11 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.ItemList;
 import codechicken.nei.ItemStackSet;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
-import codechicken.nei.SearchField;
 import codechicken.nei.recipe.StackInfo;
-import codechicken.nei.search.TooltipFilter;
 import codechicken.nei.util.ReadableNumberConverter;
 
 public class GuiContainerManager {
@@ -55,8 +54,7 @@ public class GuiContainerManager {
         @Override
         public void onResourceManagerReload(IResourceManager p_110549_1_) {
             renderingErrorItems.clear();
-            TooltipFilter.populateSearchMap();
-            SearchField.searchParser.clearCache();
+            ItemList.loadItems.restart();
         }
     }
 
@@ -417,9 +415,9 @@ public class GuiContainerManager {
 
     public GuiContainerManager(GuiContainer screen) {
         window = screen;
-        if (screen instanceof IContainerTooltipHandler) {
+        if (screen instanceof IContainerTooltipHandler tooltipHandler) {
             instanceTooltipHandlers = Collections.synchronizedList(new LinkedList<>());
-            instanceTooltipHandlers.add((IContainerTooltipHandler) screen);
+            instanceTooltipHandlers.add(tooltipHandler);
             instanceTooltipHandlers.addAll(tooltipHandlers);
         } else instanceTooltipHandlers = tooltipHandlers;
     }

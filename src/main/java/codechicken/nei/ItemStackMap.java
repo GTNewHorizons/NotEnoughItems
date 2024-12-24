@@ -1,10 +1,10 @@
 package codechicken.nei;
 
-import static codechicken.lib.inventory.InventoryUtils.actualDamage;
 import static codechicken.lib.inventory.InventoryUtils.newItemStack;
 import static net.minecraftforge.oredict.OreDictionary.WILDCARD_VALUE;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -24,18 +24,23 @@ public class ItemStackMap<T> {
 
         public final int damage;
         public final NBTTagCompound tag;
+        private final int hashCode;
 
         public StackMetaKey(int damage, NBTTagCompound tag) {
+            if (tag != null && tag.hasNoTags()) {
+                tag = null;
+            }
+            this.hashCode = Objects.hashCode(damage, tag);
             this.damage = damage;
             this.tag = tag;
         }
 
         public StackMetaKey(ItemStack key) {
-            this(actualDamage(key), key.stackTagCompound);
+            this(key.getItemDamage(), key.stackTagCompound);
         }
 
         public int hashCode() {
-            return Objects.hashCode(damage, tag);
+            return this.hashCode;
         }
 
         public boolean equals(Object o) {
@@ -69,7 +74,7 @@ public class ItemStackMap<T> {
             if (wildcard != null) return wildcard;
 
             if (damageMap != null) {
-                final T ret = damageMap.get(actualDamage(key));
+                final T ret = damageMap.get(key.getItemDamage());
                 if (ret != null) return ret;
             }
             if (tagMap != null) {
@@ -83,7 +88,7 @@ public class ItemStackMap<T> {
 
         public T put(ItemStack key, T value) {
             try {
-                switch (getKeyType(actualDamage(key), key.stackTagCompound)) {
+                switch (getKeyType(key.getItemDamage(), key.stackTagCompound)) {
                     case 0:
                         if (metaMap == null) metaMap = new HashMap<>();
                         return metaMap.put(new StackMetaKey(key), value);
@@ -92,7 +97,7 @@ public class ItemStackMap<T> {
                         return tagMap.put(key.stackTagCompound, value);
                     case 2:
                         if (damageMap == null) damageMap = new HashMap<>();
-                        return damageMap.put(actualDamage(key), value);
+                        return damageMap.put(key.getItemDamage(), value);
                     case 3:
                         T ret = wildcard;
                         wildcard = value;
@@ -107,13 +112,13 @@ public class ItemStackMap<T> {
 
         public T remove(ItemStack key) {
             try {
-                switch (getKeyType(actualDamage(key), key.stackTagCompound)) {
+                switch (getKeyType(key.getItemDamage(), key.stackTagCompound)) {
                     case 0:
                         return metaMap != null ? metaMap.remove(new StackMetaKey(key)) : null;
                     case 1:
                         return tagMap != null ? tagMap.remove(key.stackTagCompound) : null;
                     case 2:
-                        return damageMap != null ? damageMap.remove(actualDamage(key)) : null;
+                        return damageMap != null ? damageMap.remove(key.getItemDamage()) : null;
                     case 3:
                         T ret = wildcard;
                         wildcard = null;
@@ -191,7 +196,7 @@ public class ItemStackMap<T> {
         WILDCARD_TAG.setBoolean("*", true);
     }
 
-    private final HashMap<Item, DetailMap> itemMap = new HashMap<>();
+    private final Map<Item, DetailMap> itemMap = new LinkedHashMap<>();
     private int size;
 
     public T get(ItemStack key) {
@@ -218,6 +223,7 @@ public class ItemStackMap<T> {
 
     public void clear() {
         itemMap.clear();
+        size = 0;
     }
 
     public T remove(ItemStack key) {

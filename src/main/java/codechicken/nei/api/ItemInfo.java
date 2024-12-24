@@ -43,7 +43,6 @@ import com.google.common.collect.ArrayListMultimap;
 import codechicken.core.featurehack.GameDataManipulator;
 import codechicken.nei.InfiniteStackSizeHandler;
 import codechicken.nei.InfiniteToolHandler;
-import codechicken.nei.ItemList;
 import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.PatternItemFilter;
 import codechicken.nei.ItemMobSpawner;
@@ -136,7 +135,6 @@ public class ItemInfo {
         addIDDumps();
         addSearchProviders();
         PresetsList.load();
-        ItemList.loadCallbacks.add(TooltipFilter::populateSearchMap);
     }
 
     private static void addSearchProviders() {
