@@ -2586,6 +2586,21 @@ public class BookmarkPanel extends PanelWidget {
     }
 
     @Override
+    public boolean contains(int px, int py) {
+
+        if (new Rectangle4i(pagePrev.x + pagePrev.w, pagePrev.y, pageNext.x - (pagePrev.x + pagePrev.w), pagePrev.h)
+                .contains(px, py)) {
+            return true;
+        }
+
+        if (((BookmarkGrid) grid).getHoveredRowIndex(true) != -1) {
+            return true;
+        }
+
+        return super.contains(px, py);
+    }
+
+    @Override
     public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
             List<String> currenttip) {
 

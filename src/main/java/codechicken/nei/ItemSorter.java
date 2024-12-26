@@ -4,19 +4,19 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 
 import codechicken.lib.config.ConfigTagParent;
-import codechicken.nei.ItemList.ItemsLoadedCallback;
 import codechicken.nei.api.API;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.config.GuiItemSorter;
 import codechicken.nei.config.OptionOpenGui;
 
-public class ItemSorter implements Comparator<ItemStack>, ItemsLoadedCallback {
+public class ItemSorter implements Comparator<ItemStack> {
 
     public static class SortEntry {
 
@@ -44,12 +44,10 @@ public class ItemSorter implements Comparator<ItemStack>, ItemsLoadedCallback {
     public static final ItemSorter instance = new ItemSorter();
 
     // optimisations
-    public HashMap<ItemStack, Integer> ordering = null;
+    public Map<ItemStack, Integer> ordering = new HashMap<>();
 
     public static void sort(List<ItemStack> items) {
         try {
-            // items = (ArrayList<ItemStack>)
-            // items.parallelStream().sorted(instance).collect(Collectors.toList());
             items.sort(instance);
         } catch (Exception e) {
             NEIClientConfig.logger.error("Exception sorting item list", e);
@@ -63,14 +61,6 @@ public class ItemSorter implements Comparator<ItemStack>, ItemsLoadedCallback {
             if (c != 0) return c;
         }
         return 0;
-    }
-
-    @Override
-    public void itemsLoaded() {
-        HashMap<ItemStack, Integer> newMap = new HashMap<>();
-        int i = 0;
-        for (ItemStack stack : ItemList.items) newMap.put(stack, i++);
-        ordering = newMap;
     }
 
     public static SortEntry find(String name) {
@@ -136,7 +126,6 @@ public class ItemSorter implements Comparator<ItemStack>, ItemsLoadedCallback {
                 list = fromSaveString(activeTag().getValue());
             }
         });
-        ItemList.loadCallbacks.add(instance);
     }
 
     public static String getSaveString(List<SortEntry> list) {

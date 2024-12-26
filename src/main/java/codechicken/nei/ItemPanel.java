@@ -41,9 +41,6 @@ public class ItemPanel extends PanelWidget {
         return super.getStackMouseOver(mousex, mousey);
     }
 
-    public Button more;
-    public Button less;
-    public ItemQuantityField quantity;
     public ItemHistoryPanel historyPanel;
     public Button toggleGroups;
 
@@ -345,42 +342,6 @@ public class ItemPanel extends PanelWidget {
             }
         };
 
-        more = new Button("+") {
-
-            @Override
-            public boolean onButtonPress(boolean rightclick) {
-                if (rightclick) return false;
-
-                int modifier = NEIClientUtils.controlKey() ? 64 : NEIClientUtils.shiftKey() ? 10 : 1;
-                int quantity = NEIClientConfig.getItemQuantity() + modifier;
-
-                if (quantity < 0) {
-                    quantity = 0;
-                }
-
-                ItemPanels.itemPanel.quantity.setText(Integer.toString(quantity));
-                return true;
-            }
-        };
-        less = new Button("-") {
-
-            @Override
-            public boolean onButtonPress(boolean rightclick) {
-                if (rightclick) return false;
-
-                int modifier = NEIClientUtils.controlKey() ? -64 : NEIClientUtils.shiftKey() ? -10 : -1;
-                int quantity = NEIClientConfig.getItemQuantity() + modifier;
-
-                if (quantity < 0) {
-                    quantity = 0;
-                }
-
-                ItemPanels.itemPanel.quantity.setText(Integer.toString(quantity));
-                return true;
-            }
-        };
-
-        quantity = new ItemQuantityField("quantity");
         historyPanel = new ItemHistoryPanel();
     }
 
@@ -431,44 +392,21 @@ public class ItemPanel extends PanelWidget {
             return 0;
         }
 
-        final int BUTTON_SIZE = 20;
-        more.w = less.w = BUTTON_SIZE;
-        quantity.h = BUTTON_SIZE;
-
-        if (NEIClientConfig.isSearchWidgetCentered()) {
-            more.h = less.h = BUTTON_SIZE;
-            more.x = x + w - BUTTON_SIZE;
-            more.y = less.y = quantity.y = y + h - BUTTON_SIZE;
-            less.x = x;
-            quantity.x = x + BUTTON_SIZE + 2;
-            quantity.w = more.x - quantity.x - 2;
-        } else {
-            quantity.x = (int) (x + (w * 0.7)) + 3;
-            quantity.y = y + h - BUTTON_SIZE;
-            quantity.w = (int) ((w * 0.3) - BUTTON_SIZE - 1);
-
-            more.h = less.h = BUTTON_SIZE / 2;
-            more.y = y + h - (more.h * 2);
-
-            less.x = more.x = quantity.x + quantity.w;
-            less.y = more.y + more.h;
-        }
-
         if (NEIClientConfig.showHistoryPanelWidget()) {
             historyPanel.x = x;
             historyPanel.w = w;
             historyPanel.h = ItemsGrid.SLOT_SIZE * NEIClientConfig.getIntSetting("inventory.history.useRows");
 
             if (NEIClientConfig.showItemQuantityWidget() || !NEIClientConfig.isSearchWidgetCentered()) {
-                historyPanel.y = quantity.y - historyPanel.h - PanelWidget.PADDING;
-                return quantity.h + historyPanel.h + PanelWidget.PADDING * 2;
+                historyPanel.y = LayoutManager.quantity.y - historyPanel.h - PanelWidget.PADDING;
+                return LayoutManager.quantity.h + historyPanel.h + PanelWidget.PADDING * 2;
             } else {
                 historyPanel.y = y + h - historyPanel.h;
                 return historyPanel.h + PanelWidget.PADDING;
             }
         }
 
-        return quantity.h + PanelWidget.PADDING;
+        return LayoutManager.quantity.h + PanelWidget.PADDING;
     }
 
     @Override
