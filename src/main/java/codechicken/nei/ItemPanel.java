@@ -1,5 +1,9 @@
 package codechicken.nei;
 
+import static codechicken.nei.LayoutManager.less;
+import static codechicken.nei.LayoutManager.more;
+import static codechicken.nei.LayoutManager.quantity;
+
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -398,15 +402,15 @@ public class ItemPanel extends PanelWidget {
             historyPanel.h = ItemsGrid.SLOT_SIZE * NEIClientConfig.getIntSetting("inventory.history.useRows");
 
             if (NEIClientConfig.showItemQuantityWidget() || !NEIClientConfig.isSearchWidgetCentered()) {
-                historyPanel.y = LayoutManager.quantity.y - historyPanel.h - PanelWidget.PADDING;
-                return LayoutManager.quantity.h + historyPanel.h + PanelWidget.PADDING * 2;
+                historyPanel.y = quantity.y - historyPanel.h - PanelWidget.PADDING;
+                return quantity.h + historyPanel.h + PanelWidget.PADDING * 2;
             } else {
                 historyPanel.y = y + h - historyPanel.h;
                 return historyPanel.h + PanelWidget.PADDING;
             }
         }
 
-        return LayoutManager.quantity.h + PanelWidget.PADDING;
+        return quantity.h + PanelWidget.PADDING;
     }
 
     @Override
