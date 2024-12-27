@@ -47,6 +47,7 @@ import codechicken.nei.ItemList;
 import codechicken.nei.ItemStackSet;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.NEIModContainer;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.ReadableNumberConverter;
 import codechicken.nei.util.RenderTooltipEventHelper;
