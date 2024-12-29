@@ -197,7 +197,7 @@ public class NEIServerConfig {
             FileReader r = new FileReader(file);
             int line = 0;
             for (String s : IOUtils.readLines(r)) {
-                if (s.charAt(0) == '#' || s.trim().length() == 0) continue;
+                if (s.charAt(0) == '#' || s.trim().isEmpty()) continue;
                 int delim = s.lastIndexOf('=');
                 if (delim < 0) {
                     logger.error("line " + line + ": Missing =");
