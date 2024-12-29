@@ -30,6 +30,18 @@ public class OptionCycled extends OptionButton {
     }
 
     @Override
+    public String getTooltip() {
+        String tooltip = name + "." + value() + ".tip";
+        String s = translateN(tooltip);
+
+        if (!s.equals(namespaced(tooltip))) {
+            return s;
+        }
+
+        return super.getTooltip();
+    }
+
+    @Override
     public boolean onClick(int button) {
         return cycle();
     }
