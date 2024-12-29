@@ -1,13 +1,10 @@
 package codechicken.nei.config;
 
-import static codechicken.lib.gui.GuiDraw.drawString;
-import static codechicken.lib.gui.GuiDraw.getStringWidth;
-
 import java.util.List;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.TextField;
-import codechicken.nei.config.GuiOptionList.OptionScrollSlot;
 
 public class OptionTextField extends Option {
 
@@ -37,11 +34,6 @@ public class OptionTextField extends Option {
     }
 
     @Override
-    public void onAdded(OptionScrollSlot slot) {
-        super.onAdded(slot);
-    }
-
-    @Override
     public void update() {
         textField.update();
         if (!textField.focused()) textField.setText(renderTag().getValue());
@@ -51,11 +43,16 @@ public class OptionTextField extends Option {
         return translateN(name);
     }
 
+    protected int getMaxInputWidth() {
+        return slot.slotWidth();
+    }
+
     @Override
     public void draw(int mousex, int mousey, float frame) {
-        drawString(getPrefix(), 10, 6, -1);
+        GuiDraw.drawString(getPrefix(), 10, 6, -1);
 
-        textField.w = slot.slotWidth() - getStringWidth(getPrefix()) - 16;
+        textField.w = Math
+                .max(60, Math.min(getMaxInputWidth(), slot.slotWidth() - GuiDraw.getStringWidth(getPrefix())) - 16);
         textField.x = slot.slotWidth() - textField.w;
         textField.draw(mousex, mousey);
     }

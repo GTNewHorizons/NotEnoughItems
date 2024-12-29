@@ -247,7 +247,7 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.history.historyColor").setComment("Color of the history area display")
                 .getHexValue(0xee555555);
-        API.addOption(new OptionIntegerField("inventory.history.historyColor"));
+        API.addOption(new OptionIntegerField("inventory.history.historyColor", 0, OptionIntegerField.UNSIGNED_INT_MAX));
 
         tag.getTag("inventory.history.useRows").setComment("Rows used in historical areas").getIntValue(2);
         API.addOption(new OptionIntegerField("inventory.history.useRows", 1, 5));
@@ -273,11 +273,19 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.collapsibleItems.expandedColor")
                 .setComment("Color of the collapsible item expanded state").getHexValue(0x335555EE);
-        API.addOption(new OptionIntegerField("inventory.collapsibleItems.expandedColor"));
+        API.addOption(
+                new OptionIntegerField(
+                        "inventory.collapsibleItems.expandedColor",
+                        0,
+                        OptionIntegerField.UNSIGNED_INT_MAX));
 
         tag.getTag("inventory.collapsibleItems.collapsedColor")
                 .setComment("Color of the collapsible item collapsed state").getHexValue(0x335555EE);
-        API.addOption(new OptionIntegerField("inventory.collapsibleItems.collapsedColor"));
+        API.addOption(
+                new OptionIntegerField(
+                        "inventory.collapsibleItems.collapsedColor",
+                        0,
+                        OptionIntegerField.UNSIGNED_INT_MAX));
 
         API.addOption(
                 new OptionButton(
@@ -315,7 +323,7 @@ public class NEIClientConfig {
         API.addOption(new OptionToggleButton("inventory.itemzoom.showName", true));
 
         tag.getTag("inventory.itemzoom.nameColor").getHexValue(0xFFFFFFFF);
-        API.addOption(new OptionIntegerField("inventory.itemzoom.nameColor"));
+        API.addOption(new OptionIntegerField("inventory.itemzoom.nameColor", 0, OptionIntegerField.UNSIGNED_INT_MAX));
 
         tag.getTag("inventory.itemIDs").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemIDs", 3, true));

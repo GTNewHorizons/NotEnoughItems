@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
@@ -24,6 +25,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.resources.IResourceManager;
@@ -38,14 +40,17 @@ import net.minecraftforge.fluids.FluidStack;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemList;
 import codechicken.nei.ItemStackSet;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.NEIModContainer;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.ReadableNumberConverter;
+import codechicken.nei.util.RenderTooltipEventHelper;
 
 public class GuiContainerManager {
 
@@ -550,8 +555,8 @@ public class GuiContainerManager {
                 tooltip = handler.handleTooltip(window, mousex, mousey, tooltip);
         }
 
+        ItemStack stack = getStackMouseOver(window);
         if (tooltip.isEmpty() && shouldShowTooltip(window)) { // mouseover tip, not holding an item
-            ItemStack stack = getStackMouseOver(window);
             font = getFontRenderer(stack);
             if (stack != null) {
                 tooltip = itemDisplayNameMultiline(stack, window, true);
@@ -598,7 +603,32 @@ public class GuiContainerManager {
             }
         }
 
-        drawPagedTooltip(font, mousex + 12, mousey - 12, tooltip);
+        if (NEIModContainer.isGTNHLibLoaded() && !tooltip.isEmpty()) {
+            if (RenderTooltipEventHelper.post(stack, this.window, mousex, mousey, font)) {
+                return;
+            }
+            Consumer<List<String>> alternativeRenderer = RenderTooltipEventHelper.getAlternativeRenderer();
+            if (alternativeRenderer == null) {
+                drawPagedTooltip(
+                        RenderTooltipEventHelper.getFont(),
+                        RenderTooltipEventHelper.getX() + 12,
+                        RenderTooltipEventHelper.getY() - 12,
+                        tooltip);
+            } else {
+                GL11.glDisable(GL12.GL_RESCALE_NORMAL);
+                RenderHelper.disableStandardItemLighting();
+                GL11.glDisable(GL11.GL_DEPTH_TEST);
+                GuiDraw.gui.incZLevel(300.0f);
+                alternativeRenderer.accept(tooltip);
+                GuiDraw.gui.incZLevel(-300.0f);
+                GL11.glEnable(GL11.GL_DEPTH_TEST);
+                RenderHelper.enableStandardItemLighting();
+                GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+            }
+            RenderTooltipEventHelper.flush();
+        } else {
+            drawPagedTooltip(font, mousex + 12, mousey - 12, tooltip);
+        }
 
         for (IContainerDrawHandler drawHandler : drawHandlers) {
             drawHandler.postRenderTooltips(window, mousex, mousey, tooltip);
@@ -622,6 +652,18 @@ public class GuiContainerManager {
                             tooltipPage + 1,
                             tooltips.size(),
                             NEIClientConfig.getKeyName("gui.next_tooltip")));
+        }
+        if (NEIModContainer.isGTNHLibLoaded()) {
+            drawMultilineTip(
+                    font,
+                    x,
+                    y,
+                    tooltips.get(tooltipPage),
+                    RenderTooltipEventHelper.getBackgroundStart(),
+                    RenderTooltipEventHelper.getBackgroundEnd(),
+                    RenderTooltipEventHelper.getBorderStart(),
+                    RenderTooltipEventHelper.getBorderEnd());
+            return;
         }
         drawMultilineTip(font, x, y, tooltips.get(tooltipPage));
     }
@@ -711,7 +753,7 @@ public class GuiContainerManager {
         if (Keyboard.getEventKeyState() || (k == 0 && Character.isDefined(c))) {
             try {
                 keyTyped(c, k);
-            } catch (java.lang.IndexOutOfBoundsException e) {
+            } catch (IndexOutOfBoundsException e) {
                 System.err.println("Caught out of bounds exception pressing " + c + " " + k);
                 e.printStackTrace();
             }
