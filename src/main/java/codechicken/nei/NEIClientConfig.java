@@ -233,6 +233,12 @@ public class NEIClientConfig {
                 .setComment("Require holding shift to move items when overlaying recipe").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.guirecipe.shiftOverlayRecipe", true));
 
+        tag.getTag("inventory.subsets.enabled").setComment("Enable/disable Subsets Dropdown").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.subsets.enabled", true));
+
+        tag.getTag("inventory.subsets.widgetPosition").setComment("Subsets Widget Position").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.subsets.widgetPosition", true));
+
         tag.getTag("inventory.guirecipe.profile").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.guirecipe.profile", true));
 
@@ -727,16 +733,11 @@ public class NEIClientConfig {
             final File specificDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
             final boolean newWorld = !specificDir.exists();
 
-            if (newWorld) {
-                specificDir.mkdirs();
-            }
-
-            world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
-            bootNEI(ClientUtils.getWorld());
-            onWorldLoad(newWorld);
-            ItemPanels.bookmarkPanel.load();
+        world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
+        bootNEI(ClientUtils.getWorld());
+        onWorldLoad(newWorld);
+        ItemPanels.bookmarkPanel.load();      
         }
-    }
 
     public static String getWorldPath() {
         return NEIClientConfig.worldPath;
@@ -749,10 +750,12 @@ public class NEIClientConfig {
         setWorldDefaults();
         creativeInv = new ItemStack[54];
         LayoutManager.searchField.setText(getSearchExpression());
-        ItemPanels.itemPanel.quantity.setText(Integer.toString(getItemQuantity()));
+        LayoutManager.quantity.setText(Integer.toString(getItemQuantity()));
 
-        if (newWorld && Minecraft.getMinecraft().isSingleplayer()) world.config.getTag("inventory.cheatmode")
-                .setIntValue(NEIClientUtils.mc().playerController.isInCreativeMode() ? 2 : 0);
+        if (newWorld && Minecraft.getMinecraft().isSingleplayer()) {
+            world.config.getTag("inventory.cheatmode")
+                    .setIntValue(NEIClientUtils.mc().playerController.isInCreativeMode() ? 2 : 0);
+        }
 
         NEIInfo.load(ClientUtils.getWorld());
     }
@@ -771,6 +774,7 @@ public class NEIClientConfig {
             ItemPanels.bookmarkPanel.saveBookmarks();
         }
 
+        SubsetWidget.saveHidden();
         CollapsibleItems.saveStates();
 
         if (world != null) {
@@ -848,6 +852,10 @@ public class NEIClientConfig {
                     ItemList.loadItems.restart();
                 }
             }.start();
+        } else {
+            ItemPanels.bookmarkPanel.load();
+            SubsetWidget.loadHidden();
+            ItemList.loadItems.restart();
         }
     }
 
@@ -895,6 +903,14 @@ public class NEIClientConfig {
 
     public static boolean isSearchWidgetCentered() {
         return getBooleanSetting("inventory.search.widgetPosition");
+    }
+
+    public static boolean showSubsetWidget() {
+        return getBooleanSetting("inventory.subsets.enabled");
+    }
+
+    public static boolean subsetWidgetOnTop() {
+        return getBooleanSetting("inventory.subsets.widgetPosition");
     }
 
     public static int searchWidgetAutofocus() {
