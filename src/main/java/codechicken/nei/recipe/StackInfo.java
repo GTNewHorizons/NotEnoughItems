@@ -93,8 +93,12 @@ public class StackInfo {
             for (int i = stackStringifyHandlers.size() - 1; i >= 0 && fluid == null; i--) {
                 fluid = stackStringifyHandlers.get(i).getFluid(stack);
             }
-
+            if (fluid == null) {
+                fluidcache.put(stack, NULL_FLUID);
+                return null;
+            }
             fluidcache.put(stack, fluid);
+            return fluid;
         }
 
         if (fluid == NULL_FLUID) {
