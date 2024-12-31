@@ -703,23 +703,25 @@ public class NEIClientConfig {
 
     public static void loadWorld(String worldPath) {
         unloadWorld();
-        NEIClientConfig.worldPath = worldPath;
-
         setInternalEnabled(true);
-        logger.debug("Loading " + (Minecraft.getMinecraft().isSingleplayer() ? "Local" : "Remote") + " World");
 
-        final File specificDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
-        final boolean newWorld = !specificDir.exists();
+        if (!worldPath.equals(NEIClientConfig.worldPath)) {
+            NEIClientConfig.worldPath = worldPath;
 
-        if (newWorld) {
-            specificDir.mkdirs();
+            logger.debug("Loading " + (Minecraft.getMinecraft().isSingleplayer() ? "Local" : "Remote") + " World");
+
+            final File specificDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
+            final boolean newWorld = !specificDir.exists();
+
+            if (newWorld) {
+                specificDir.mkdirs();
+            }
+
+            world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
+            bootNEI(ClientUtils.getWorld());
+            onWorldLoad(newWorld);
+            ItemPanels.bookmarkPanel.load();
         }
-
-        world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
-        bootNEI(ClientUtils.getWorld());
-        CollapsibleItems.load();
-        ItemPanels.bookmarkPanel.load();
-        onWorldLoad(newWorld);
     }
 
     public static String getWorldPath() {
@@ -734,7 +736,6 @@ public class NEIClientConfig {
         creativeInv = new ItemStack[54];
         LayoutManager.searchField.setText(getSearchExpression());
         ItemPanels.itemPanel.quantity.setText(Integer.toString(getItemQuantity()));
-        SubsetWidget.loadHidden();
 
         if (newWorld && Minecraft.getMinecraft().isSingleplayer()) world.config.getTag("inventory.cheatmode")
                 .setIntValue(NEIClientUtils.mc().playerController.isInCreativeMode() ? 2 : 0);
@@ -818,6 +819,8 @@ public class NEIClientConfig {
                     });
 
                     RecipeCatalysts.loadCatalystInfo();
+                    CollapsibleItems.load();
+                    SubsetWidget.loadHidden();
                     ItemSorter.loadConfig();
 
                     // Set pluginNEIConfigLoaded here before posting the NEIConfigsLoadedEvent. This used to be the
@@ -831,8 +834,6 @@ public class NEIClientConfig {
                     ItemList.loadItems.restart();
                 }
             }.start();
-        } else {
-            ItemList.loadItems.restart();
         }
     }
 
