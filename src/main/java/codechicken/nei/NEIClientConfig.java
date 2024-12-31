@@ -723,21 +723,22 @@ public class NEIClientConfig {
 
     public static void loadWorld(String worldPath) {
         unloadWorld();
+        NEIClientConfig.worldPath = worldPath;
+
         setInternalEnabled(true);
+        logger.debug("Loading " + (Minecraft.getMinecraft().isSingleplayer() ? "Local" : "Remote") + " World");
 
-        if (!worldPath.equals(NEIClientConfig.worldPath)) {
-            NEIClientConfig.worldPath = worldPath;
+        final File specificDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
+        final boolean newWorld = !specificDir.exists();
 
-            logger.debug("Loading " + (Minecraft.getMinecraft().isSingleplayer() ? "Local" : "Remote") + " World");
-
-            final File specificDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
-            final boolean newWorld = !specificDir.exists();
+        if (newWorld) {
+            specificDir.mkdirs();
+        }
 
         world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
         bootNEI(ClientUtils.getWorld());
         onWorldLoad(newWorld);
-        ItemPanels.bookmarkPanel.load();      
-        }
+    }
 
     public static String getWorldPath() {
         return NEIClientConfig.worldPath;
@@ -837,8 +838,9 @@ public class NEIClientConfig {
                     });
 
                     RecipeCatalysts.loadCatalystInfo();
-                    CollapsibleItems.load();
+                    ItemPanels.bookmarkPanel.load();
                     SubsetWidget.loadHidden();
+                    CollapsibleItems.load();
                     ItemSorter.loadConfig();
 
                     // Set pluginNEIConfigLoaded here before posting the NEIConfigsLoadedEvent. This used to be the
