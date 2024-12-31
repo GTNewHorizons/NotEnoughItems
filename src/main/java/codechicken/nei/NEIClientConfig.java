@@ -723,21 +723,25 @@ public class NEIClientConfig {
 
     public static void loadWorld(String worldPath) {
         unloadWorld();
-        NEIClientConfig.worldPath = worldPath;
-
         setInternalEnabled(true);
-        logger.debug("Loading " + (Minecraft.getMinecraft().isSingleplayer() ? "Local" : "Remote") + " World");
 
-        final File specificDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
-        final boolean newWorld = !specificDir.exists();
+        if (!worldPath.equals(NEIClientConfig.worldPath)) {
+            NEIClientConfig.worldPath = worldPath;
 
-        if (newWorld) {
-            specificDir.mkdirs();
+            logger.debug("Loading " + (Minecraft.getMinecraft().isSingleplayer() ? "Local" : "Remote") + " World");
+
+            final File specificDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
+            final boolean newWorld = !specificDir.exists();
+
+            if (newWorld) {
+                specificDir.mkdirs();
+            }
+
+            world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
+            bootNEI(ClientUtils.getWorld());
+            onWorldLoad(newWorld);
+            ItemPanels.bookmarkPanel.load();
         }
-
-        world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
-        bootNEI(ClientUtils.getWorld());
-        onWorldLoad(newWorld);
     }
 
     public static String getWorldPath() {
@@ -838,9 +842,8 @@ public class NEIClientConfig {
                     });
 
                     RecipeCatalysts.loadCatalystInfo();
-                    ItemPanels.bookmarkPanel.load();
-                    SubsetWidget.loadHidden();
                     CollapsibleItems.load();
+                    SubsetWidget.loadHidden();
                     ItemSorter.loadConfig();
 
                     // Set pluginNEIConfigLoaded here before posting the NEIConfigsLoadedEvent. This used to be the
@@ -854,10 +857,6 @@ public class NEIClientConfig {
                     ItemList.loadItems.restart();
                 }
             }.start();
-        } else {
-            ItemPanels.bookmarkPanel.load();
-            SubsetWidget.loadHidden();
-            ItemList.loadItems.restart();
         }
     }
 
