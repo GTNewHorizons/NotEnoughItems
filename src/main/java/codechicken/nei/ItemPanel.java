@@ -414,7 +414,7 @@ public class ItemPanel extends PanelWidget {
         super.setVisible();
 
         if (grid.getPerPage() > 0) {
-            if (!CollapsibleItems.isEmpty() && !grid.isEmpty()){
+            if (!CollapsibleItems.isEmpty() && !grid.isEmpty()) {
                 LayoutManager.addWidget(toggleGroups);
             }
 
