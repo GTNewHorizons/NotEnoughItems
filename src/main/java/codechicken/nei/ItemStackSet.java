@@ -32,6 +32,11 @@ public class ItemStackSet extends ItemStackMap<ItemStack> implements ItemFilter 
         return this;
     }
 
+    public ItemStackSet removeAll(Iterable<ItemStack> items) {
+        for (ItemStack item : items) remove(item);
+        return this;
+    }
+
     public boolean contains(ItemStack item) {
         return get(item) != null;
     }
