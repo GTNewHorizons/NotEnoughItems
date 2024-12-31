@@ -144,7 +144,8 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
     @Override
     public int getTextColour() {
-        if (ItemPanels.itemPanel.getItems().isEmpty()) {
+        if (ItemPanels.itemPanel.getItems().isEmpty()
+                && (!this.field.getText().isEmpty() || !NEIClientConfig.hideItemsUntilSearching())) {
             return focused() ? 0xFFcc3300 : 0xFF993300;
         } else {
             return focused() ? 0xFFE0E0E0 : 0xFF909090;
@@ -315,6 +316,11 @@ public class SearchField extends TextField implements ItemFilterProvider {
 
     @Override
     public ItemFilter getFilter() {
+
+        if (field.getText().isEmpty() && NEIClientConfig.hideItemsUntilSearching()) {
+            return new NothingItemFilter();
+        }
+
         return ((GuiSearchField) field).getFilter();
     }
 

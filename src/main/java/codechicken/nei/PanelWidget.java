@@ -171,7 +171,7 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
     protected abstract int resizeFooter(GuiContainer gui);
 
     public void setVisible() {
-        if (grid.getPerPage() > 0) {
+        if (grid.getPerPage() > 0 && !grid.isEmpty()) {
             LayoutManager.addWidget(pagePrev);
             LayoutManager.addWidget(pageNext);
             LayoutManager.addWidget(pageLabel);
