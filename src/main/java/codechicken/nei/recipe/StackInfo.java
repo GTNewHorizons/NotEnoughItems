@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
@@ -21,6 +22,7 @@ import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 
 public class StackInfo {
 
+    private static final FluidStack NULL_FLUID = new FluidStack(FluidRegistry.WATER, 0);
     public static final ArrayList<IStackStringifyHandler> stackStringifyHandlers = new ArrayList<>();
     private static final HashMap<String, HashMap<String, String[]>> guidfilters = new HashMap<>();
     private static final ItemStackMap<String> guidcache = new ItemStackMap<>();
@@ -30,7 +32,7 @@ public class StackInfo {
 
         @Override
         protected boolean removeEldestEntry(Map.Entry<ItemStack, FluidStack> eldest) {
-            return size() > 20;
+            return size() > 200;
         }
     };
 
@@ -92,7 +94,7 @@ public class StackInfo {
         return true;
     }
 
-    public static FluidStack getFluid(ItemStack stack) {
+    public static synchronized FluidStack getFluid(ItemStack stack) {
         FluidStack fluid = fluidcache.get(stack);
 
         if (fluid == null && !fluidcache.containsKey(stack)) {
@@ -101,10 +103,10 @@ public class StackInfo {
                 fluid = stackStringifyHandlers.get(i).getFluid(stack);
             }
 
-            fluidcache.put(stack, fluid);
+            fluidcache.put(stack, fluid == null ? NULL_FLUID : fluid);
         }
 
-        return fluid;
+        return fluid == NULL_FLUID ? null : fluid;
     }
 
     public static boolean isFluidContainer(ItemStack stack) {
