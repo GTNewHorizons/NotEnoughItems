@@ -482,11 +482,11 @@ public class ItemPanel extends PanelWidget {
                 LayoutManager.addWidget(quantity);
             }
 
-            if (!CollapsibleItems.isEmpty()) {
+            if (!CollapsibleItems.isEmpty() && !grid.isEmpty()) {
                 LayoutManager.addWidget(toggleGroups);
             }
 
-            if (NEIClientConfig.showHistoryPanelWidget()) {
+            if (NEIClientConfig.showHistoryPanelWidget() && (!grid.isEmpty() || !historyPanel.isEmpty())) {
                 LayoutManager.addWidget(historyPanel);
             }
         }

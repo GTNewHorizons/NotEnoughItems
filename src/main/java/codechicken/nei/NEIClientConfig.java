@@ -433,6 +433,18 @@ public class NEIClientConfig {
         tag.getTag("inventory.search.widgetPosition").setComment("Widget Position").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.search.widgetPosition", true));
 
+        tag.getTag("inventory.search.hideUntilSearching").setComment("Hide Items Until Searching")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.search.hideUntilSearching", true) {
+
+            @Override
+            public boolean onClick(int button) {
+                super.onClick(button);
+                ItemList.updateFilter.restart();
+                return true;
+            }
+        });
+
         tag.getTag("inventory.search.widgetAutofocus")
                 .setComment(
                         "Focus Search Widget on Open, blurs/unfocuses on mouse move unless typing has started first")
@@ -873,6 +885,10 @@ public class NEIClientConfig {
 
     public static boolean showItemQuantityWidget() {
         return getBooleanSetting("inventory.showItemQuantityWidget");
+    }
+
+    public static boolean hideItemsUntilSearching() {
+        return getBooleanSetting("inventory.search.hideUntilSearching");
     }
 
     public static boolean isSearchWidgetCentered() {
