@@ -2060,7 +2060,7 @@ public class BookmarkPanel extends PanelWidget {
     public void setVisible() {
         super.setVisible();
 
-        if (grid.getPerPage() > 0) {
+        if (grid.getPerPage() > 0 && getNamespaceSize() > 1) {
             LayoutManager.addWidget(namespacePrev);
             LayoutManager.addWidget(namespaceNext);
             LayoutManager.addWidget(namespaceLabel);

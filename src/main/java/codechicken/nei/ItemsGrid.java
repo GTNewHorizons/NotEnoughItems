@@ -175,6 +175,10 @@ public class ItemsGrid {
         return realItems.size();
     }
 
+    public boolean isEmpty() {
+        return realItems.isEmpty();
+    }
+
     public int indexOf(ItemStack stackA, boolean useNBT) {
 
         for (int idx = 0; idx < realItems.size(); idx++) {
