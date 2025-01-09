@@ -2,6 +2,7 @@ package codechicken.nei;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -44,7 +45,7 @@ public class ItemList {
 
     private static final HashSet<Item> erroredItems = new HashSet<>();
     private static final HashSet<String> stackTraces = new HashSet<>();
-    private static final HashMap<ItemStack, Integer> ordering = new HashMap<>();
+    private static HashMap<ItemStack, Integer> ordering = new HashMap<>();
     /**
      * Unlike {@link LayoutManager#itemsLoaded}, this indicates whether item loading is actually finished or not.
      */
@@ -234,9 +235,9 @@ public class ItemList {
         }
 
         private void updateOrdering(List<ItemStack> items) {
-            ItemList.ordering.clear();
-
             ItemSorter.sort(items);
+
+            HashMap<ItemStack, Integer> newOrdering = new HashMap<>();
 
             if (!CollapsibleItems.isEmpty()) {
                 HashMap<Integer, Integer> groups = new HashMap<>();
@@ -246,23 +247,25 @@ public class ItemList {
                     final int groupIndex = CollapsibleItems.getGroupIndex(stack);
 
                     if (groupIndex == -1) {
-                        ItemList.ordering.put(stack, orderIndex++);
+                        newOrdering.put(stack, orderIndex++);
                     } else {
 
                         if (!groups.containsKey(groupIndex)) {
                             groups.put(groupIndex, orderIndex++);
                         }
 
-                        ItemList.ordering.put(stack, groups.get(groupIndex));
+                        newOrdering.put(stack, groups.get(groupIndex));
                     }
                 }
             } else {
                 int orderIndex = 0;
 
                 for (ItemStack stack : items) {
-                    ItemList.ordering.put(stack, orderIndex++);
+                    newOrdering.put(stack, orderIndex++);
                 }
             }
+
+            ItemList.ordering = newOrdering;
         }
 
         @Override
@@ -346,12 +349,9 @@ public class ItemList {
 
     public static final RestartableTask updateFilter = new RestartableTask("NEI Item Filtering") {
 
-        private int compare(ItemStack o1, ItemStack o2) {
-            return Integer.compare(ItemList.ordering.get(o1), ItemList.ordering.get(o2));
-        }
-
         @Override
         public void execute() {
+
             if (!loadFinished) return;
             ItemFilter filter = getItemListFilter();
             ArrayList<ItemStack> filtered;
@@ -368,8 +368,12 @@ public class ItemList {
             }
 
             if (interrupted()) return;
-            filtered.sort(this::compare);
+
+            Comparator<ItemStack> comparator = Comparator.comparingInt(ItemList.ordering::get);
+            filtered.sort(comparator::compare);
+
             if (interrupted()) return;
+
             ItemPanel.updateItemList(filtered);
         }
     };
