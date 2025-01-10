@@ -325,9 +325,8 @@ public class ClientHandler {
 
                 if (!Minecraft.getMinecraft().isSingleplayer()) // wait for server to initiate in singleplayer
                     NEIClientConfig.loadWorld("remote/" + ClientUtils.getServerIP().replace(':', '~'));
-
-                ItemMobSpawner.clearEntityReferences(world);
             }
+            ItemMobSpawner.clearEntityReferences(world);
 
             lastworld = world;
         }
