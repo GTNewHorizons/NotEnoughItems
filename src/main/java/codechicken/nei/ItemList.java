@@ -12,6 +12,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
@@ -26,6 +27,7 @@ import codechicken.nei.ThreadOperationTimer.TimeoutException;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.search.TooltipFilter;
 
 public class ItemList {
 
@@ -268,49 +270,83 @@ public class ItemList {
             ItemList.ordering = newOrdering;
         }
 
+        private List<ItemStack> getPermutations(Item item) {
+            final List<ItemStack> permutations = new LinkedList<>(ItemInfo.itemOverrides.get(item));
+
+            if (permutations.isEmpty()) {
+                item.getSubItems(item, null, permutations);
+            }
+
+            if (permutations.isEmpty()) {
+                damageSearch(item, permutations);
+            }
+
+            permutations.addAll(ItemInfo.itemVariants.get(item));
+
+            return permutations.stream()
+                    .filter(
+                            stack -> stack.getItem() != null && stack.getItem().delegate.name() != null
+                                    && !ItemInfo.isHidden(stack))
+                    .collect(Collectors.toCollection(ArrayList::new));
+        }
+
+        // For optimization it generate itemslist, permutations, orders & collapsibleitems
         @Override
         @SuppressWarnings("unchecked")
         public void execute() {
+            if (!NEIClientConfig.isEnabled()) return;
+
             ThreadOperationTimer timer = getTimer(NEIClientConfig.getItemLoadingTimeout());
             LayoutManager.itemsLoaded = true;
             loadFinished = false;
 
-            List<ItemStack> items = new LinkedList<>();
-            List<ItemStack> permutations = new LinkedList<>();
+            SearchField.searchParser.clearCache();
+            ItemSorter.instance.ordering.clear();
+            CollapsibleItems.clearCache();
+            TooltipFilter.clearCache();
+
+            List<ItemStack> items = new ArrayList<>();
             ListMultimap<Item, ItemStack> itemMap = ArrayListMultimap.create();
+            ItemStackSet unique = new ItemStackSet();
 
             timer.setLimit(NEIClientConfig.getItemLoadingTimeout());
-            for (Item item : (Iterable<Item>) Item.itemRegistry) {
-                if (interrupted()) return;
-
-                if (item == null || erroredItems.contains(item)) continue;
+            StreamSupport.stream(((Iterable<Item>) Item.itemRegistry).spliterator(), true).forEach(item -> {
+                if (item == null || item.delegate.name() == null || erroredItems.contains(item)) return;
 
                 try {
                     timer.reset(item);
-
-                    permutations.clear();
-                    permutations.addAll(ItemInfo.itemOverrides.get(item));
-
-                    if (permutations.isEmpty()) {
-                        item.getSubItems(item, null, permutations);
-                    }
-
-                    if (permutations.isEmpty()) {
-                        damageSearch(item, permutations);
-                    }
-
-                    permutations.addAll(ItemInfo.itemVariants.get(item));
-
+                    List<ItemStack> permutations = getPermutations(item);
                     timer.reset();
 
-                    permutations = permutations.stream().filter(stack -> !ItemInfo.isHidden(stack))
-                            .collect(Collectors.toCollection(ArrayList::new));
+                    for (ItemStack stack : permutations) {
+                        if (!unique.contains(stack)) {
 
-                    items.addAll(permutations);
-                    itemMap.putAll(item, permutations);
+                            synchronized (unique) {
+                                unique.add(stack);
+                            }
+
+                            synchronized (items) {
+                                items.add(stack);
+                            }
+
+                            CollapsibleItems.putItem(stack);
+                        }
+                    }
+
+                    synchronized (itemMap) {
+                        itemMap.putAll(item, permutations);
+                    }
                 } catch (Throwable t) {
-                    NEIServerConfig.logger.error("Removing item: " + item + " from list.", t);
+                    NEIServerConfig.logger.error("Removing item: {} from list.", item, t);
                     erroredItems.add(item);
+                }
+
+            });
+
+            int index = 0;
+            for (Item item : (Iterable<Item>) Item.itemRegistry) {
+                for (ItemStack stack : itemMap.get(item)) {
+                    ItemSorter.instance.ordering.put(stack, index++);
                 }
             }
 
@@ -320,10 +356,15 @@ public class ItemList {
             for (ItemsLoadedCallback callback : loadCallbacks) callback.itemsLoaded();
 
             if (interrupted()) return;
-            CollapsibleItems.updateCache(items);
-            updateOrdering(items);
+            updateOrdering(ItemList.items);
+
+            new Thread(
+                    () -> ItemList.items.parallelStream().forEach(TooltipFilter::getSearchTooltip),
+                    "NEI Tooltip Filter Loader").start();
 
             loadFinished = true;
+
+            SubsetWidget.updateHiddenItems();
             updateFilter.restart();
         }
     };

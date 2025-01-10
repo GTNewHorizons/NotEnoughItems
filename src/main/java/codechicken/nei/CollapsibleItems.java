@@ -145,24 +145,16 @@ public class CollapsibleItems {
         return filter;
     }
 
-    public static void updateCache(final List<ItemStack> items) {
+    public static void clearCache() {
         CollapsibleItems.cache.clear();
+    }
 
-        try {
+    public static void putItem(ItemStack stack) {
+        final GroupItem group = CollapsibleItems.groups.stream().filter(g -> g.matches(stack)).findFirst().orElse(null);
 
-            ItemList.forkJoinPool.submit(() -> items.parallelStream().forEach(stack -> {
-                GroupItem group = CollapsibleItems.groups.stream().filter(g -> g.matches(stack)).findFirst()
-                        .orElse(null);
-
-                if (group != null) {
-                    CollapsibleItems.cache.put(stack, CollapsibleItems.groups.indexOf(group));
-                }
-            })).get();
-
-        } catch (Exception e) {
-            NEIClientConfig.logger.error("Error create collapsible items groups", e);
+        if (group != null) {
+            CollapsibleItems.cache.put(stack, CollapsibleItems.groups.indexOf(group));
         }
-
     }
 
     public static int getGroupIndex(ItemStack stack) {
