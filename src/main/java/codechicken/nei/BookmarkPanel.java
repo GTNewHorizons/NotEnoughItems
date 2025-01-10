@@ -957,7 +957,7 @@ public class BookmarkPanel extends PanelWidget {
             this.realItems.add(stackA);
             this.metadata.add(meta);
 
-            if (animate && !NEIClientConfig.shouldCacheItemRendering() && NEIClientConfig.areBookmarksAnimated()) {
+            if (animate && NEIClientConfig.getGridRenderingCacheMode() == 0 && NEIClientConfig.areBookmarksAnimated()) {
                 this.animation.put(stackA, 0f);
             }
 
@@ -1040,8 +1040,9 @@ public class BookmarkPanel extends PanelWidget {
             }
         }
 
-        protected boolean shouldCacheItemRendering() {
-            return NEIClientConfig.shouldCacheItemRendering() && this.focusedGroupId == -1;
+        @Override
+        protected int getGridRenderingCacheMode() {
+            return this.focusedGroupId == -1 ? NEIClientConfig.getGridRenderingCacheMode() : 0;
         }
 
         @Override

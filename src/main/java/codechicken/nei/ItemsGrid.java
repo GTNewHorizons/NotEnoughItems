@@ -17,6 +17,7 @@ import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.item.ItemStack;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
@@ -25,6 +26,117 @@ import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.StackInfo;
 
 public class ItemsGrid {
+
+    private static class ScreenCapture {
+
+        private long nextCacheRefresh = 0;
+        private Framebuffer framebuffer;
+
+        public ScreenCapture() {
+            this.framebuffer = new Framebuffer(1, 1, true);
+            this.framebuffer.setFramebufferColor(0.0F, 0.0F, 0.0F, 0.0F);
+            Minecraft.getMinecraft().getFramebuffer().bindFramebuffer(false);
+        }
+
+        protected int getGridRenderingCacheFPS(int mode) {
+            return mode == 1 ? NEIClientConfig.getIntSetting("inventory.gridRenderingCacheFPS") : 0;
+        }
+
+        public boolean needRefresh(int mode) {
+            return this.nextCacheRefresh == 0
+                    || getGridRenderingCacheFPS(mode) > 0 && this.nextCacheRefresh < System.currentTimeMillis();
+        }
+
+        public void refreshBuffer() {
+            this.nextCacheRefresh = 0;
+        }
+
+        public void captureScreen(Runnable callback, int mode) {
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+
+            resetFramebuffer();
+            this.framebuffer.bindFramebuffer(false);
+
+            /* Set up some rendering state needed for items to work correctly */
+            GL11.glDisable(GL11.GL_BLEND);
+            GL11.glDepthMask(true);
+            OpenGlHelper.glBlendFunc(
+                    GL11.GL_SRC_ALPHA,
+                    GL11.GL_ONE_MINUS_SRC_ALPHA,
+                    GL11.GL_SRC_ALPHA,
+                    GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
+            callback.run();
+
+            GL11.glPopAttrib();
+
+            Minecraft.getMinecraft().getFramebuffer().bindFramebuffer(false);
+            this.nextCacheRefresh = System.currentTimeMillis() + (1000 / Math.max(1, getGridRenderingCacheFPS(mode)));
+        }
+
+        private void resetFramebuffer() {
+            final Minecraft minecraft = Minecraft.getMinecraft();
+
+            if (this.framebuffer.framebufferWidth != minecraft.displayWidth
+                    || framebuffer.framebufferHeight != minecraft.displayHeight) {
+                this.framebuffer.createBindFramebuffer(minecraft.displayWidth, minecraft.displayHeight);
+                this.framebuffer.setFramebufferFilter(GL11.GL_NEAREST);
+            } else {
+                this.framebuffer.framebufferClear();
+            }
+
+            // copy depth buffer from MC (fix Angelica)
+            OpenGlHelper.func_153171_g(GL30.GL_READ_FRAMEBUFFER, minecraft.getFramebuffer().framebufferObject);
+            OpenGlHelper.func_153171_g(GL30.GL_DRAW_FRAMEBUFFER, this.framebuffer.framebufferObject);
+            GL30.glBlitFramebuffer(
+                    0,
+                    0,
+                    minecraft.displayWidth,
+                    minecraft.displayHeight,
+                    0,
+                    0,
+                    minecraft.displayWidth,
+                    minecraft.displayHeight,
+                    GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT,
+                    GL11.GL_NEAREST);
+        }
+
+        public void renderCapturedScreen() {
+            this.framebuffer.bindFramebufferTexture();
+
+            final Tessellator tessellator = Tessellator.instance;
+            final Minecraft minecraft = Minecraft.getMinecraft();
+            final ScaledResolution scaledresolution = new ScaledResolution(
+                    minecraft,
+                    minecraft.displayWidth,
+                    minecraft.displayHeight);
+
+            /* Set up some rendering state needed for items to work correctly */
+            GL11.glEnable(GL11.GL_BLEND);
+            OpenGlHelper
+                    .glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+
+            tessellator.startDrawingQuads();
+
+            tessellator.addVertexWithUV(0, scaledresolution.getScaledHeight_double(), 0.0, 0, 0);
+            tessellator.addVertexWithUV(
+                    scaledresolution.getScaledWidth_double(),
+                    scaledresolution.getScaledHeight_double(),
+                    0.0,
+                    1,
+                    0);
+            tessellator.addVertexWithUV(scaledresolution.getScaledWidth_double(), 0, 0.0, 1, 1);
+            tessellator.addVertexWithUV(0, 0, 0, 0, 1);
+
+            tessellator.draw();
+
+            this.framebuffer.unbindFramebufferTexture();
+        }
+
+    }
 
     public static final int SLOT_SIZE = 18;
 
@@ -49,10 +161,7 @@ public class ItemsGrid {
 
     protected Label messageLabel = new Label(getMessageOnEmpty(), true);
 
-    @Nullable
-    private Framebuffer framebuffer = null;
-
-    protected boolean refreshBuffer = true;
+    protected ScreenCapture screenCapture = null;
 
     public ArrayList<ItemStack> getItems() {
         return realItems;
@@ -156,7 +265,9 @@ public class ItemsGrid {
     }
 
     protected void onGridChanged() {
-        refreshBuffer = true;
+        if (this.screenCapture != null) {
+            this.screenCapture.refreshBuffer();
+        }
         this.gridMask = null;
     }
 
@@ -284,34 +395,6 @@ public class ItemsGrid {
 
     protected void afterDrawSlot(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {}
 
-    private void blitExistingBuffer() {
-        Minecraft minecraft = Minecraft.getMinecraft();
-        GL11.glEnable(GL11.GL_BLEND);
-        OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        getFrameBuffer().bindFramebufferTexture();
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        ScaledResolution res = new ScaledResolution(minecraft, minecraft.displayWidth, minecraft.displayHeight);
-        Tessellator tessellator = Tessellator.instance;
-        tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(0, res.getScaledHeight_double(), 0.0, 0, 0);
-        tessellator.addVertexWithUV(res.getScaledWidth_double(), res.getScaledHeight_double(), 0.0, 1, 0);
-        tessellator.addVertexWithUV(res.getScaledWidth_double(), 0, 0.0, 1, 1);
-        tessellator.addVertexWithUV(0, 0, 0, 0, 1);
-        tessellator.draw();
-        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
-    }
-
-    private Framebuffer getFrameBuffer() {
-
-        if (framebuffer == null) {
-            framebuffer = new Framebuffer(1, 1, true);
-            framebuffer.setFramebufferColor(0.0F, 0.0F, 0.0F, 0.0F);
-        }
-
-        return framebuffer;
-    }
-
     private void drawItems() {
         GuiContainerManager.enableMatrixStackLogging();
 
@@ -325,8 +408,8 @@ public class ItemsGrid {
         GuiContainerManager.disableMatrixStackLogging();
     }
 
-    protected boolean shouldCacheItemRendering() {
-        return NEIClientConfig.shouldCacheItemRendering();
+    protected int getGridRenderingCacheMode() {
+        return NEIClientConfig.getGridRenderingCacheMode();
     }
 
     public void draw(int mousex, int mousey) {
@@ -335,36 +418,22 @@ public class ItemsGrid {
         }
 
         final ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
+        final int gridRenderingCacheMode = getGridRenderingCacheMode();
 
-        if (shouldCacheItemRendering()) {
+        beforeDrawItems(mousex, mousey, focused);
 
-            if (refreshBuffer) {
-                Minecraft minecraft = Minecraft.getMinecraft();
-                Framebuffer framebuffer = getFrameBuffer();
-                framebuffer.createBindFramebuffer(minecraft.displayWidth, minecraft.displayHeight);
-                framebuffer.framebufferClear();
-                framebuffer.bindFramebuffer(false);
+        if (gridRenderingCacheMode > 0) {
 
-                /* Set up some rendering state needed for items to work correctly */
-                GL11.glDisable(GL11.GL_BLEND);
-                GL11.glDepthMask(true);
-                OpenGlHelper.glBlendFunc(
-                        GL11.GL_SRC_ALPHA,
-                        GL11.GL_ONE_MINUS_SRC_ALPHA,
-                        GL11.GL_SRC_ALPHA,
-                        GL11.GL_ONE_MINUS_SRC_ALPHA);
-                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-
-                drawItems();
-
-                Minecraft.getMinecraft().getFramebuffer().bindFramebuffer(false);
-                refreshBuffer = false;
+            if (this.screenCapture == null) {
+                this.screenCapture = new ScreenCapture();
             }
 
-            beforeDrawItems(mousex, mousey, focused);
-            blitExistingBuffer();
+            if (this.screenCapture.needRefresh(gridRenderingCacheMode)) {
+                this.screenCapture.captureScreen(this::drawItems, gridRenderingCacheMode);
+            }
+
+            this.screenCapture.renderCapturedScreen();
         } else {
-            beforeDrawItems(mousex, mousey, focused);
             drawItems();
         }
 
@@ -386,8 +455,8 @@ public class ItemsGrid {
             return null;
         }
 
-        final int overRow = (int) ((mousey - marginTop) / SLOT_SIZE);
-        final int overColumn = (int) ((mousex - marginLeft - paddingLeft) / SLOT_SIZE);
+        final int overRow = (mousey - marginTop) / SLOT_SIZE;
+        final int overColumn = (mousex - marginLeft - paddingLeft) / SLOT_SIZE;
         final int slt = columns * overRow + overColumn;
 
         if (overRow >= rows || overColumn >= columns) {
@@ -416,8 +485,8 @@ public class ItemsGrid {
             return false;
         }
 
-        final int r = (int) ((py - marginTop) / SLOT_SIZE);
-        final int c = (int) ((px - marginLeft - paddingLeft) / SLOT_SIZE);
+        final int r = (py - marginTop) / SLOT_SIZE;
+        final int c = (px - marginLeft - paddingLeft) / SLOT_SIZE;
 
         return !isInvalidSlot(columns * r + c);
     }
