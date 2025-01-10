@@ -123,6 +123,8 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
 
         for (ItemStack stack : items) {
             final NBTTagCompound nbTag = StackInfo.itemStackToNBT(stack, true);
+            if (nbTag == null) continue;
+
             final String GUID = StackInfo.getItemStackGUID(stack);
 
             if (!unique.containsKey(GUID)) {
