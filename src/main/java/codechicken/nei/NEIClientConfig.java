@@ -359,8 +359,10 @@ public class NEIClientConfig {
             }
         });
 
-        tag.getTag("inventory.cacheItemRendering").getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.cacheItemRendering", true));
+        tag.getTag("inventory.gridRenderingCacheFPS").getIntValue(8);
+
+        tag.getTag("inventory.gridRenderingCacheMode").getIntValue(0);
+        API.addOption(new OptionCycled("inventory.gridRenderingCacheMode", 3, true));
 
         tag.getTag("itemLoadingTimeout").getIntValue(500);
 
@@ -1061,8 +1063,8 @@ public class NEIClientConfig {
         return getBooleanSetting("inventory.history.enabled");
     }
 
-    public static boolean shouldCacheItemRendering() {
-        return getBooleanSetting("inventory.cacheItemRendering") && OpenGlHelper.framebufferSupported;
+    public static int getGridRenderingCacheMode() {
+        return OpenGlHelper.framebufferSupported ? getIntSetting("inventory.gridRenderingCacheMode") : 0;
     }
 
     public static boolean enableCollapsibleItems() {
