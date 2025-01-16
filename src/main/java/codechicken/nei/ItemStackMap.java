@@ -1,5 +1,6 @@
 package codechicken.nei;
 
+import static codechicken.lib.inventory.InventoryUtils.actualDamage;
 import static codechicken.lib.inventory.InventoryUtils.newItemStack;
 import static net.minecraftforge.oredict.OreDictionary.WILDCARD_VALUE;
 
@@ -36,7 +37,7 @@ public class ItemStackMap<T> {
         }
 
         public StackMetaKey(ItemStack key) {
-            this(key.getItemDamage(), key.stackTagCompound);
+            this(actualDamage(key), key.stackTagCompound);
         }
 
         public int hashCode() {
@@ -74,7 +75,7 @@ public class ItemStackMap<T> {
             if (wildcard != null) return wildcard;
 
             if (damageMap != null) {
-                final T ret = damageMap.get(key.getItemDamage());
+                final T ret = damageMap.get(actualDamage(key));
                 if (ret != null) return ret;
             }
             if (tagMap != null) {
@@ -88,7 +89,7 @@ public class ItemStackMap<T> {
 
         public T put(ItemStack key, T value) {
             try {
-                switch (getKeyType(key.getItemDamage(), key.stackTagCompound)) {
+                switch (getKeyType(actualDamage(key), key.stackTagCompound)) {
                     case 0:
                         if (metaMap == null) metaMap = new HashMap<>();
                         return metaMap.put(new StackMetaKey(key), value);
@@ -97,7 +98,7 @@ public class ItemStackMap<T> {
                         return tagMap.put(key.stackTagCompound, value);
                     case 2:
                         if (damageMap == null) damageMap = new HashMap<>();
-                        return damageMap.put(key.getItemDamage(), value);
+                        return damageMap.put(actualDamage(key), value);
                     case 3:
                         T ret = wildcard;
                         wildcard = value;
@@ -112,13 +113,13 @@ public class ItemStackMap<T> {
 
         public T remove(ItemStack key) {
             try {
-                switch (getKeyType(key.getItemDamage(), key.stackTagCompound)) {
+                switch (getKeyType(actualDamage(key), key.stackTagCompound)) {
                     case 0:
                         return metaMap != null ? metaMap.remove(new StackMetaKey(key)) : null;
                     case 1:
                         return tagMap != null ? tagMap.remove(key.stackTagCompound) : null;
                     case 2:
-                        return damageMap != null ? damageMap.remove(key.getItemDamage()) : null;
+                        return damageMap != null ? damageMap.remove(actualDamage(key)) : null;
                     case 3:
                         T ret = wildcard;
                         wildcard = null;
