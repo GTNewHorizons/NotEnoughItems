@@ -43,7 +43,9 @@ public class ItemsGrid {
         }
 
         public boolean needRefresh(int mode) {
-            return this.nextCacheRefresh == 0
+            final Minecraft minecraft = Minecraft.getMinecraft();
+            return this.nextCacheRefresh == 0 || this.framebuffer.framebufferWidth != minecraft.displayWidth
+                    || framebuffer.framebufferHeight != minecraft.displayHeight
                     || getGridRenderingCacheFPS(mode) > 0 && this.nextCacheRefresh < System.currentTimeMillis();
         }
 
