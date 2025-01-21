@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
@@ -18,19 +19,21 @@ import codechicken.nei.ItemStackMap;
 import codechicken.nei.api.IStackStringifyHandler;
 import codechicken.nei.recipe.stackinfo.DefaultStackStringifyHandler;
 import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
+import codechicken.nei.util.ItemStackKey;
 
 public class StackInfo {
 
+    private static final FluidStack NULL_FLUID = new FluidStack(FluidRegistry.WATER, 0);
     public static final ArrayList<IStackStringifyHandler> stackStringifyHandlers = new ArrayList<>();
     private static final HashMap<String, HashMap<String, String[]>> guidfilters = new HashMap<>();
     private static final ItemStackMap<String> guidcache = new ItemStackMap<>();
-    private static final LinkedHashMap<ItemStack, FluidStack> fluidcache = new LinkedHashMap<>() {
+    private static final LinkedHashMap<ItemStackKey, FluidStack> fluidcache = new LinkedHashMap<>() {
 
         private static final long serialVersionUID = 1042213947848622164L;
 
         @Override
-        protected boolean removeEldestEntry(Map.Entry<ItemStack, FluidStack> eldest) {
-            return size() > 20;
+        protected boolean removeEldestEntry(Map.Entry<ItemStackKey, FluidStack> eldest) {
+            return size() > 200;
         }
     };
 
@@ -92,19 +95,20 @@ public class StackInfo {
         return true;
     }
 
-    public static FluidStack getFluid(ItemStack stack) {
-        FluidStack fluid = fluidcache.get(stack);
+    public static synchronized FluidStack getFluid(ItemStack stack) {
+        ItemStackKey key = new ItemStackKey(stack);
+        FluidStack fluid = fluidcache.get(key);
 
-        if (fluid == null && !fluidcache.containsKey(stack)) {
+        if (fluid == null) {
 
             for (int i = stackStringifyHandlers.size() - 1; i >= 0 && fluid == null; i--) {
                 fluid = stackStringifyHandlers.get(i).getFluid(stack);
             }
 
-            fluidcache.put(stack, fluid);
+            fluidcache.put(key, fluid == null ? NULL_FLUID : fluid);
         }
 
-        return fluid;
+        return fluid == NULL_FLUID ? null : fluid;
     }
 
     public static boolean isFluidContainer(ItemStack stack) {
