@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -220,6 +221,19 @@ public class ItemStackMap<T> {
         DetailMap map = itemMap.get(key.getItem());
         if (map == null) itemMap.put(key.getItem(), map = new DetailMap());
         map.put(key, value);
+    }
+
+    public T computeIfAbsent(ItemStack key, Function<ItemStack, ? extends T> mappingFunction) {
+        T value;
+        if ((value = get(key)) == null) {
+            T newValue;
+            if ((newValue = mappingFunction.apply(key)) != null) {
+                put(key, newValue);
+                return newValue;
+            }
+        }
+
+        return value;
     }
 
     public void clear() {

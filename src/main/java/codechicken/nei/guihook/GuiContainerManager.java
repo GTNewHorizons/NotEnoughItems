@@ -18,6 +18,7 @@ import java.util.StringJoiner;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -377,9 +378,7 @@ public class GuiContainerManager {
     }
 
     public static void registerReloadResourceListener() {
-        if (Minecraft.getMinecraft().getResourceManager() instanceof SimpleReloadableResourceManager) {
-            SimpleReloadableResourceManager manager = (SimpleReloadableResourceManager) Minecraft.getMinecraft()
-                    .getResourceManager();
+        if (Minecraft.getMinecraft().getResourceManager() instanceof SimpleReloadableResourceManager manager) {
             manager.registerReloadListener(new ResourcePackReloaded());
         }
     }
@@ -547,7 +546,6 @@ public class GuiContainerManager {
 
     public void renderToolTips(int mousex, int mousey) {
         List<String> tooltip = new LinkedList<>();
-        Map<String, String> hotkeys = new HashMap<>();
         FontRenderer font = GuiDraw.fontRenderer;
 
         synchronized (instanceTooltipHandlers) {
@@ -571,35 +569,16 @@ public class GuiContainerManager {
 
         if (!tooltip.isEmpty()) tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE); // add space after 'title'
 
-        synchronized (instanceTooltipHandlers) {
-            for (IContainerTooltipHandler handler : instanceTooltipHandlers) {
-                hotkeys = handler.handleHotkeys(window, mousex, mousey, hotkeys);
-            }
-        }
+        if (shouldShowTooltip(window)) {
+            List<String> hotkeystips = collectHotkeyTips(mousex, mousey);
 
-        if (!hotkeys.isEmpty()) {
-            List<String> hotkeystips = new ArrayList<>();
+            if (!hotkeystips.isEmpty()) {
 
-            if (!NEIClientUtils.altKey()) {
-                hotkeystips.add(
-                        EnumChatFormatting.GRAY
-                                + translate("showHotkeys", EnumChatFormatting.GOLD + "ALT" + EnumChatFormatting.GRAY));
-            } else {
-
-                for (Map.Entry<String, String> entry : hotkeys.entrySet()) {
-                    hotkeystips.add(getHotkeyTip(entry.getKey(), entry.getValue()));
+                if (tooltip.isEmpty()) {
+                    tooltip.addAll(hotkeystips);
+                } else {
+                    tooltip.addAll(1, hotkeystips);
                 }
-
-                hotkeystips.sort((a, b) -> Integer.compare(a.indexOf(" - "), b.indexOf(" - ")));
-                hotkeystips.set(
-                        hotkeystips.size() - 1,
-                        hotkeystips.get(hotkeystips.size() - 1) + GuiDraw.TOOLTIP_LINESPACE);
-            }
-
-            if (tooltip.isEmpty()) {
-                tooltip.addAll(hotkeystips);
-            } else {
-                tooltip.addAll(1, hotkeystips);
             }
         }
 
@@ -635,8 +614,71 @@ public class GuiContainerManager {
         }
     }
 
-    private String getHotkeyTip(String key, String message) {
-        return EnumChatFormatting.GOLD + key + EnumChatFormatting.GRAY + " - " + message + EnumChatFormatting.RESET;
+    private List<String> collectHotkeyTips(int mousex, int mousey) {
+        Map<String, String> hotkeys = new HashMap<>();
+
+        synchronized (instanceTooltipHandlers) {
+            for (IContainerTooltipHandler handler : instanceTooltipHandlers) {
+                hotkeys = handler.handleHotkeys(window, mousex, mousey, hotkeys);
+            }
+        }
+
+        if (!hotkeys.isEmpty()) {
+            List<String> hotkeystips = new ArrayList<>();
+
+            if (!NEIClientUtils.altKey()) {
+                hotkeystips.add(
+                        EnumChatFormatting.GRAY + translate(
+                                "showHotkeys",
+                                EnumChatFormatting.GOLD + translate("key.alt") + EnumChatFormatting.GRAY));
+            } else {
+                Map<String, List<String>> messages = new HashMap<>();
+                hotkeys.remove(null);
+                hotkeys.remove("");
+
+                for (Map.Entry<String, String> entry : hotkeys.entrySet()) {
+                    messages.computeIfAbsent(entry.getValue(), m -> new ArrayList<>()).add(entry.getKey());
+                }
+
+                for (List<String> keys : messages.values()) {
+                    Collections.sort(keys, (a, b) -> {
+                        if (a.length() != b.length()) {
+                            return Integer.compare(a.length(), b.length());
+                        }
+                        return a.compareTo(b);
+                    });
+                }
+
+                messages.entrySet().stream().sorted((a, b) -> {
+                    String sa = String.join("/", a.getValue());
+                    String sb = String.join("/", b.getValue());
+
+                    if (sa.length() != sb.length()) {
+                        return Integer.compare(sa.length(), sb.length());
+                    }
+
+                    return sa.compareTo(sb);
+                }).map(entry -> getHotkeyTip(entry.getValue(), entry.getKey()))
+                        .collect(Collectors.toCollection(() -> hotkeystips));
+
+                hotkeystips.set(
+                        hotkeystips.size() - 1,
+                        hotkeystips.get(hotkeystips.size() - 1) + GuiDraw.TOOLTIP_LINESPACE);
+            }
+
+            return hotkeystips;
+        }
+
+        return Collections.emptyList();
+    }
+
+    private String getHotkeyTip(List<String> keys, String message) {
+        return EnumChatFormatting.GOLD
+                + String.join(EnumChatFormatting.DARK_GRAY + " / " + EnumChatFormatting.GOLD, keys)
+                + EnumChatFormatting.GRAY
+                + " - "
+                + message
+                + EnumChatFormatting.RESET;
     }
 
     private static int tooltipPage;

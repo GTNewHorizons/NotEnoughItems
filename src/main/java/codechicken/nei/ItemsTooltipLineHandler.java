@@ -3,15 +3,10 @@ package codechicken.nei;
 import static codechicken.lib.gui.GuiDraw.fontRenderer;
 
 import java.awt.Dimension;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.opengl.GL11;
@@ -24,8 +19,8 @@ import codechicken.nei.util.ReadableNumberConverter;
 
 public class ItemsTooltipLineHandler implements ITooltipLineHandler {
 
-    protected static int MAX_COLUMNS = 11;
-    protected static int MARGIN_TOP = 2;
+    protected static final int MAX_COLUMNS = 11;
+    protected static final int MARGIN_TOP = 2;
 
     protected String label;
     protected EnumChatFormatting labelColor = EnumChatFormatting.GRAY;
@@ -37,7 +32,7 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
     protected int rows = 0;
     protected int length = 0;
 
-    public ItemsTooltipLineHandler(String label, List<ItemStack> items, boolean saveStackSize) {
+    public ItemsTooltipLineHandler(String label, List<ItemStack> items) {
         this(label, items, true, 5);
     }
 
@@ -59,7 +54,12 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
                     this.length,
                     Math.min(
                             this.columns * this.rows,
-                            this.length > MAX_COLUMNS * maxRows ? (MAX_COLUMNS * maxRows - 1) : Integer.MAX_VALUE));
+                            this.length > MAX_COLUMNS * maxRows ? (MAX_COLUMNS * maxRows) : Integer.MAX_VALUE));
+
+            if (this.items.size() > this.count) {
+                String text = "+" + (this.items.size() - this.count);
+                this.count -= (int) Math.ceil((float) (fontRenderer.getStringWidth(text) - 2) / ItemsGrid.SLOT_SIZE);
+            }
         }
 
     }
@@ -85,6 +85,7 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
 
         fontRenderer.drawStringWithShadow(this.labelColor + this.label + ":", x, y, 0);
 
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glPushMatrix();
         RenderHelper.enableGUIStandardItemLighting();
 
@@ -100,49 +101,35 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
             String stackSize = !this.saveStackSize || drawStack.stackSize == 0 ? ""
                     : ReadableNumberConverter.INSTANCE.toWideReadableForm(drawStack.stackSize);
 
-            GuiContainerManager
-                    .drawItem(col * ItemsGrid.SLOT_SIZE, row * ItemsGrid.SLOT_SIZE, drawStack, true, stackSize);
+            drawItem(col * ItemsGrid.SLOT_SIZE, row * ItemsGrid.SLOT_SIZE, drawStack, stackSize);
         }
 
         if (this.count < this.items.size()) {
+            String text = "+" + (this.items.size() - this.count);
+
             fontRenderer.drawStringWithShadow(
-                    "+" + (this.items.size() - this.count),
-                    (this.columns - 1) * ItemsGrid.SLOT_SIZE,
-                    (this.rows - 1) * ItemsGrid.SLOT_SIZE + (ItemsGrid.SLOT_SIZE - fontRenderer.FONT_HEIGHT) / 2 - 1,
+                    text,
+                    MAX_COLUMNS * ItemsGrid.SLOT_SIZE - fontRenderer.getStringWidth(text) - 2,
+                    (this.rows - 1) * ItemsGrid.SLOT_SIZE + (ItemsGrid.SLOT_SIZE - fontRenderer.FONT_HEIGHT) / 2,
                     0xee555555);
+
         }
 
-        GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPopMatrix();
+        GL11.glPopAttrib();
+    }
+
+    protected void drawItem(int x, int y, ItemStack drawStack, String stackSize) {
+        GuiContainerManager.drawItem(x, y, drawStack, true, stackSize);
     }
 
     private List<ItemStack> groupingItemStacks(List<ItemStack> items) {
-        final Map<String, Integer> count = new HashMap<>();
-        final Map<String, NBTTagCompound> unique = new LinkedHashMap<>();
-        final List<ItemStack> result = new ArrayList<>();
+        final List<ItemStack> result = ItemStackAmount.of(items).values();
 
-        for (ItemStack stack : items) {
-            final NBTTagCompound nbTag = StackInfo.itemStackToNBT(stack, true);
-            if (nbTag == null) continue;
-
-            final String GUID = StackInfo.getItemStackGUID(stack);
-
-            if (!unique.containsKey(GUID)) {
-                count.put(GUID, nbTag.getInteger("Count"));
-                unique.put(GUID, nbTag);
-            } else {
-                count.put(GUID, count.get(GUID) + nbTag.getInteger("Count"));
-            }
-        }
-
-        for (String GUID : unique.keySet()) {
-            ItemStack stack = StackInfo.loadFromNBT(unique.get(GUID), count.get(GUID));
-
-            if (unique.get(GUID).hasKey("gtFluidName")) {
+        for (ItemStack stack : result) {
+            if (StackInfo.itemStackToNBT(stack).hasKey("gtFluidName")) {
                 stack.stackSize = 0;
             }
-
-            result.add(stack);
         }
 
         return result;

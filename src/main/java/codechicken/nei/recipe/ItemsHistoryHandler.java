@@ -17,8 +17,9 @@ class ItemsHistoryHandler implements ICraftingHandler, IUsageHandler {
     @Override
     public ICraftingHandler getRecipeHandler(String outputId, Object... results) {
 
-        if (NEIClientConfig.showHistoryPanelWidget() && "item".equals(outputId) && results[0] instanceof ItemStack) {
-            ItemPanels.itemPanel.historyPanel.addItem((ItemStack) results[0]);
+        if (NEIClientConfig.showHistoryPanelWidget() && "item".equals(outputId)
+                && results[0] instanceof ItemStack stack) {
+            ItemPanels.itemPanel.historyPanel.addItem(stack);
         }
 
         return null;
@@ -27,8 +28,9 @@ class ItemsHistoryHandler implements ICraftingHandler, IUsageHandler {
     @Override
     public IUsageHandler getUsageHandler(String inputId, Object... ingredients) {
 
-        if (NEIClientConfig.showHistoryPanelWidget() && "item".equals(inputId) && ingredients[0] instanceof ItemStack) {
-            ItemPanels.itemPanel.historyPanel.addItem((ItemStack) ingredients[0]);
+        if (NEIClientConfig.showHistoryPanelWidget() && "item".equals(inputId)
+                && ingredients[0] instanceof ItemStack stack) {
+            ItemPanels.itemPanel.historyPanel.addItem(stack);
         }
 
         return null;

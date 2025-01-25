@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -100,16 +99,7 @@ public class SearchTokenParser {
         }
     }
 
-    private final LinkedHashMap<String, ItemFilter> filtersCache = new LinkedHashMap<>() {
-
-        private static final long serialVersionUID = 1042213947848622164L;
-
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<String, ItemFilter> eldest) {
-            return size() > 20;
-        }
-    };
-
+    protected final LRUCache<String, ItemFilter> filtersCache = new LRUCache<>(20);
     protected final List<ISearchParserProvider> searchProviders;
     protected final ProvidersCache providersCache = new ProvidersCache();
     protected final Map<Character, Character> prefixRedefinitions = new HashMap<>();

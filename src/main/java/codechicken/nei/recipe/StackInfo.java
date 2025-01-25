@@ -2,7 +2,7 @@ package codechicken.nei.recipe;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.item.ItemStack;
@@ -16,7 +16,9 @@ import net.minecraftforge.fluids.IFluidContainerItem;
 
 import codechicken.nei.ClientHandler;
 import codechicken.nei.ItemStackMap;
+import codechicken.nei.LRUCache;
 import codechicken.nei.api.IStackStringifyHandler;
+import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.stackinfo.DefaultStackStringifyHandler;
 import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 import codechicken.nei.util.ItemStackKey;
@@ -24,18 +26,10 @@ import codechicken.nei.util.ItemStackKey;
 public class StackInfo {
 
     private static final FluidStack NULL_FLUID = new FluidStack(FluidRegistry.WATER, 0);
-    public static final ArrayList<IStackStringifyHandler> stackStringifyHandlers = new ArrayList<>();
-    private static final HashMap<String, HashMap<String, String[]>> guidfilters = new HashMap<>();
+    public static final List<IStackStringifyHandler> stackStringifyHandlers = new ArrayList<>();
+    private static final Map<String, HashMap<String, String[]>> guidfilters = new HashMap<>();
     private static final ItemStackMap<String> guidcache = new ItemStackMap<>();
-    private static final LinkedHashMap<ItemStackKey, FluidStack> fluidcache = new LinkedHashMap<>() {
-
-        private static final long serialVersionUID = 1042213947848622164L;
-
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<ItemStackKey, FluidStack> eldest) {
-            return size() > 200;
-        }
-    };
+    private static final LRUCache<ItemStackKey, FluidStack> fluidcache = new LRUCache<>(200);
 
     static {
         stackStringifyHandlers.add(new DefaultStackStringifyHandler());
@@ -79,8 +73,20 @@ public class StackInfo {
         return stack;
     }
 
+    public static ItemStack withAmount(ItemStack stack, long customCount) {
+        if (stack == null) return null;
+        final NBTTagCompound nbTag = StackInfo.itemStackToNBT(stack);
+        return nbTag != null ? loadFromNBT(nbTag, customCount) : null;
+    }
+
+    public static int getAmount(ItemStack stack) {
+        if (stack == null) return 0;
+        final NBTTagCompound nbTag = StackInfo.itemStackToNBT(stack);
+        return nbTag != null ? nbTag.getInteger("Count") : 0;
+    }
+
     public static boolean equalItemAndNBT(ItemStack stackA, ItemStack stackB, boolean useNBT) {
-        if (!stackA.isItemEqual(stackB)) {
+        if (stackA == null || stackB == null || !stackA.isItemEqual(stackB)) {
             return false;
         }
 
@@ -151,10 +157,10 @@ public class StackInfo {
 
                     try {
 
-                        if (local instanceof NBTTagCompound) {
-                            local = ((NBTTagCompound) local).getTag(rule[i]);
-                        } else if (local instanceof NBTTagList) {
-                            local = ((NBTTagList) local).tagList.get(Integer.parseInt(rule[i]));
+                        if (local instanceof NBTTagCompound item) {
+                            local = item.getTag(rule[i]);
+                        } else if (local instanceof NBTTagList item) {
+                            local = item.tagList.get(Integer.parseInt(rule[i]));
                         } else {
                             break;
                         }
@@ -164,8 +170,8 @@ public class StackInfo {
                     }
                 }
 
-                if (local instanceof NBTBase) {
-                    keys.add(((NBTBase) local).toString());
+                if (local instanceof NBTBase item) {
+                    keys.add(item.toString());
                 } else if (local != null) {
                     keys.add(String.valueOf(local));
                 }
@@ -204,7 +210,7 @@ public class StackInfo {
 
         if (stacks.length > 1) {
             for (ItemStack stack : stacks) {
-                if (stack.getItem() != null && stack.getItemDamage() < damage) {
+                if (stack.getItem() != null && !ItemInfo.isHidden(stack) && stack.getItemDamage() < damage) {
                     damage = stack.getItemDamage();
                     result = stack;
                 }

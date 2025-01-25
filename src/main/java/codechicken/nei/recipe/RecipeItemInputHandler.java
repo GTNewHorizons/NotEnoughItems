@@ -1,14 +1,22 @@
 package codechicken.nei.recipe;
 
+import java.util.Map;
+
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.item.ItemStack;
 
 import codechicken.nei.ItemPanels;
 import codechicken.nei.api.ShortcutInputHandler;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
+import codechicken.nei.guihook.IContainerTooltipHandler;
 
-public class RecipeItemInputHandler implements IContainerInputHandler {
+public class RecipeItemInputHandler implements IContainerInputHandler, IContainerTooltipHandler {
+
+    public static void load() {
+        RecipeItemInputHandler recipeHandler = new RecipeItemInputHandler();
+        GuiContainerManager.addInputHandler(recipeHandler);
+        GuiContainerManager.addTooltipHandler(recipeHandler);
+    }
 
     @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyCode) {
@@ -21,9 +29,21 @@ public class RecipeItemInputHandler implements IContainerInputHandler {
                 || ItemPanels.bookmarkPanel.contains(mousex, mousey))
             return false;
 
-        ItemStack stackover = GuiContainerManager.getStackMouseOver(gui);
+        return ShortcutInputHandler.handleMouseClick(GuiContainerManager.getStackMouseOver(gui));
+    }
 
-        return ShortcutInputHandler.handleMouseClick(stackover);
+    @Override
+    public Map<String, String> handleHotkeys(GuiContainer gui, int mousex, int mousey, Map<String, String> hotkeys) {
+
+        if ((gui instanceof GuiRecipe) || ItemPanels.itemPanel.contains(mousex, mousey)
+                || ItemPanels.bookmarkPanel.contains(mousex, mousey)
+                || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey)) {
+            hotkeys.putAll(
+                    ShortcutInputHandler
+                            .handleHotkeys(gui, mousex, mousey, GuiContainerManager.getStackMouseOver(gui)));
+        }
+
+        return hotkeys;
     }
 
     @Override

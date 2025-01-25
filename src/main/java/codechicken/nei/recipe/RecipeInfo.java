@@ -29,9 +29,10 @@ public class RecipeInfo {
 
         @Override
         public boolean equals(Object obj) {
-            if (!(obj instanceof OverlayKey)) return false;
-            OverlayKey key = (OverlayKey) obj;
-            return Objects.equal(ident, key.ident) && guiClass == key.guiClass;
+            if (obj instanceof OverlayKey item) {
+                return Objects.equal(ident, item.ident) && guiClass == item.guiClass;
+            }
+            return false;
         }
 
         @Override

@@ -10,7 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
-import java.util.stream.Collectors;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -29,7 +28,6 @@ import org.lwjgl.opengl.GL11;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.Button;
 import codechicken.nei.GuiNEIButton;
-import codechicken.nei.ItemStackSet;
 import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEICPH;
@@ -128,21 +126,27 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
 
         public static PermutationTooltipLineHandler getInstance(PositionedStack pStack) {
-            final ItemFilter filter = TemplateRecipeHandler.getItemFilter();
-            List<ItemStack> items = Arrays.asList(pStack.items).stream().filter(filter::matches)
-                    .collect(Collectors.toCollection(ArrayList::new));
-
-            if (items.isEmpty()) {
-                items = Arrays.asList(pStack.items);
-            }
-
-            items = new ItemStackSet().addAll(items).keys();
+            final List<ItemStack> items = pStack.getFilteredPermutations();
 
             if (items.size() > 1) {
                 return new PermutationTooltipLineHandler(pStack, items);
             }
 
             return null;
+        }
+
+        @Override
+        protected void drawItem(int x, int y, ItemStack drawStack, String stackSize) {
+
+            if (StackInfo.equalItemAndNBT(drawStack, this.pStack.item, true)) {
+                GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+                GL11.glDisable(GL11.GL_LIGHTING);
+                GL11.glDisable(GL11.GL_DEPTH_TEST);
+                GuiDraw.drawRect(x - 1, y - 1, 18, 18, 0x66555555);
+                GL11.glPopAttrib();
+            }
+
+            super.drawItem(x, y, drawStack, stackSize);
         }
 
     }
@@ -568,6 +572,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
 
         return recipeFilter.filters.size() == 1 ? recipeFilter.filters.get(0) : recipeFilter;
+    }
+
+    public static ItemFilter getSearchItemFilter() {
+        return searchField.getFilter();
     }
 
     private void checkYShift() {

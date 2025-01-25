@@ -1,12 +1,19 @@
 package codechicken.nei;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
+
+import codechicken.nei.ItemList.AllMultiItemFilter;
+import codechicken.nei.api.ItemFilter;
+import codechicken.nei.api.ItemInfo;
+import codechicken.nei.recipe.GuiRecipe;
 
 /**
  * Simply an {@link ItemStack} with position. Mainly used in the recipe handlers.
@@ -40,7 +47,7 @@ public class PositionedStack {
     public void generatePermutations() {
         if (permutated) return;
 
-        ArrayList<ItemStack> stacks = new ArrayList<>();
+        List<ItemStack> stacks = new ArrayList<>();
         for (ItemStack item : items) {
             if (item == null || item.getItem() == null) continue;
 
@@ -75,18 +82,60 @@ public class PositionedStack {
     }
 
     public PositionedStack copy() {
-        return new PositionedStack(items, relx, rely);
+        PositionedStack pStack = new PositionedStack(Arrays.asList(items), relx, rely, false);
+        pStack.permutated = this.permutated;
+        return pStack;
+    }
+
+    public List<ItemStack> getFilteredPermutations() {
+        return getFilteredPermutations(null);
+    }
+
+    public List<ItemStack> getFilteredPermutations(ItemFilter additionalFilter) {
+        List<ItemStack> items = Arrays.asList(this.items).stream().filter(getItemFilter(additionalFilter)::matches)
+                .collect(Collectors.toList());
+
+        if (items.isEmpty()) {
+            items.addAll(
+                    Arrays.asList(this.items).stream().filter(item -> !ItemInfo.isHidden(item))
+                            .collect(Collectors.toList()));
+        }
+
+        if (items.isEmpty()) {
+            items.addAll(Arrays.asList(this.items));
+        }
+
+        return items;
+    }
+
+    private ItemFilter getItemFilter(ItemFilter additionalFilter) {
+        return new AllMultiItemFilter(
+                additionalFilter,
+                item -> !ItemInfo.isHidden(item),
+                PresetsList.getItemFilter(),
+                GuiRecipe.getSearchItemFilter());
+    }
+
+    public boolean setPermutationToRender(ItemStack ingredient) {
+
+        for (int index = 0; index < this.items.length; index++) {
+            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(this.items[index], ingredient)) {
+                setPermutationToRender(index);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void setPermutationToRender(int index) {
-        item = items[index].copy();
+        this.item = this.items[index].copy();
 
-        if (item.getItem() == null) {
-            item = new ItemStack(Blocks.fire);
-        } else if (item.getItemDamage() == OreDictionary.WILDCARD_VALUE && item.getItem() != null
-                && item.getItem().isRepairable()) {
-                    item.setItemDamage(0);
-                }
+        if (this.item.getItem() == null) {
+            this.item = new ItemStack(Blocks.fire);
+        } else if (this.item.getItemDamage() == OreDictionary.WILDCARD_VALUE && this.item.getItem().isRepairable()) {
+            this.item.setItemDamage(0);
+        }
     }
 
     public boolean contains(ItemStack ingredient) {

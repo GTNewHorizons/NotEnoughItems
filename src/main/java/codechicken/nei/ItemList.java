@@ -287,7 +287,7 @@ public class ItemList {
                     .filter(
                             stack -> stack.getItem() != null && stack.getItem().delegate.name() != null
                                     && !ItemInfo.isHidden(stack))
-                    .collect(Collectors.toCollection(ArrayList::new));
+                    .collect(Collectors.toList());
         }
 
         // For optimization it generate itemslist, permutations, orders & collapsibleitems

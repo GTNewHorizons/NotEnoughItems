@@ -5,7 +5,9 @@ import static codechicken.lib.gui.GuiDraw.getMousePosition;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
@@ -197,6 +199,10 @@ public abstract class ShortcutInputHandler {
         }
 
         return false;
+    }
+
+    public static Map<String, String> handleHotkeys(GuiContainer gui, int mousex, int mousey, ItemStack stack) {
+        return new HashMap<>();
     }
 
 }

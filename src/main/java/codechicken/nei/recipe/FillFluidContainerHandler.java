@@ -70,8 +70,7 @@ public class FillFluidContainerHandler extends INEIGuiAdapter {
             }
 
             return FluidContainerRegistry.fillFluidContainer(fluidStack, draggedStack);
-        } else if (draggedStack.getItem() instanceof IFluidContainerItem) {
-            IFluidContainerItem item = (IFluidContainerItem) draggedStack.getItem();
+        } else if (draggedStack.getItem() instanceof IFluidContainerItem item) {
 
             if (item.getCapacity(draggedStack) > 0) {
                 item.drain(draggedStack, item.getCapacity(draggedStack), true);

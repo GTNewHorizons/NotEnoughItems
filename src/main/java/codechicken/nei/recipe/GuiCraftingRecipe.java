@@ -1,20 +1,19 @@
 package codechicken.nei.recipe;
 
-import static codechicken.lib.gui.GuiDraw.getMousePosition;
-
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.NEIClientConfig;
@@ -88,7 +87,7 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
     public static ArrayList<ICraftingHandler> getCraftingHandlers(String outputId, Object... results) {
         ArrayList<ICraftingHandler> craftinghandlers = GuiCraftingRecipe.craftinghandlers;
         ArrayList<ICraftingHandler> serialCraftingHandlers = GuiCraftingRecipe.serialCraftingHandlers;
-        Function<ICraftingHandler, ICraftingHandler> recipeHandlerFunction;
+        UnaryOperator<ICraftingHandler> recipeHandlerFunction;
 
         if ("recipeId".equals(outputId)) {
             ItemStack stack = (ItemStack) results[0];
@@ -139,7 +138,7 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
             }
         }
 
-        final Point mouseover = getMousePosition();
+        final Point mouseover = GuiDraw.getMousePosition();
         ItemPanelSlot panelSlot = ItemPanels.bookmarkPanel.getSlotMouseOver(mouseover.x, mouseover.y);
 
         if (panelSlot != null) {

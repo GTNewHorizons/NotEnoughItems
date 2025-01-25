@@ -15,7 +15,7 @@ import codechicken.nei.guihook.GuiContainerManager;
 public class DefaultOverlayRenderer implements IRecipeOverlayRenderer {
 
     public DefaultOverlayRenderer(List<PositionedStack> ai, IStackPositioner positioner) {
-        positioner = this.positioner = positioner;
+        this.positioner = positioner;
         ingreds = new ArrayList<>();
         for (PositionedStack stack : ai) ingreds.add(stack.copy());
         ingreds = positioner.positionStacks(ingreds);

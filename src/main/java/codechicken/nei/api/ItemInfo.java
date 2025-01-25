@@ -134,6 +134,7 @@ public class ItemInfo {
         addInputHandlers();
         addIDDumps();
         addSearchProviders();
+        RecipeItemInputHandler.load();
         PresetsList.load();
     }
 
@@ -295,7 +296,6 @@ public class ItemInfo {
     }
 
     private static void addInputHandlers() {
-        GuiContainerManager.addInputHandler(new RecipeItemInputHandler());
         GuiContainerManager.addInputHandler(new PopupInputHandler());
     }
 

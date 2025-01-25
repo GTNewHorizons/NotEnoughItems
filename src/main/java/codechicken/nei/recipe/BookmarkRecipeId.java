@@ -25,16 +25,16 @@ public class BookmarkRecipeId {
 
         for (Object pos : stacks) {
 
-            if (pos instanceof PositionedStack) {
-                pos = StackInfo.getItemStackWithMinimumDamage(((PositionedStack) pos).items);
+            if (pos instanceof PositionedStack item) {
+                pos = StackInfo.getItemStackWithMinimumDamage(item.items);
             }
 
-            if (pos instanceof ItemStack) {
-                pos = StackInfo.itemStackToNBT((ItemStack) pos);
+            if (pos instanceof ItemStack item) {
+                pos = StackInfo.itemStackToNBT(item);
             }
 
-            if (pos instanceof NBTTagCompound) {
-                ingredients.add((NBTTagCompound) pos);
+            if (pos instanceof NBTTagCompound item) {
+                ingredients.add(item);
             }
         }
     }
