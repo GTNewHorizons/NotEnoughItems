@@ -50,6 +50,8 @@ import codechicken.lib.util.LangProxy;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.IInfiniteItemHandler;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.util.NEIKeyboardUtils;
+import codechicken.nei.util.NEIMouseUtils;
 
 public class NEIClientUtils extends NEIServerUtils {
 
@@ -57,25 +59,10 @@ public class NEIClientUtils extends NEIServerUtils {
 
     /** Formats a number with group separator and at most 2 fraction digits. */
     private static final Map<Locale, DecimalFormat> decimalFormatters = new HashMap<>();
-    private static final Map<Integer, Integer> keyHashMap = new HashMap<>();
 
-    public static final int ALT_HASH = 1 << 27;
-    public static final int SHIFT_HASH = 1 << 26;
-    public static final int CTRL_HASH = 1 << 25;
-
-    static {
-        keyHashMap.put(Keyboard.KEY_LSHIFT, SHIFT_HASH);
-        keyHashMap.put(Keyboard.KEY_RSHIFT, SHIFT_HASH);
-
-        keyHashMap.put(Keyboard.KEY_LCONTROL, CTRL_HASH);
-        keyHashMap.put(Keyboard.KEY_LCONTROL, CTRL_HASH);
-
-        keyHashMap.put(Keyboard.KEY_LMETA, CTRL_HASH);
-        keyHashMap.put(Keyboard.KEY_RMETA, CTRL_HASH);
-
-        keyHashMap.put(Keyboard.KEY_LMENU, ALT_HASH);
-        keyHashMap.put(Keyboard.KEY_LMENU, ALT_HASH);
-    }
+    public static final int ALT_HASH = NEIKeyboardUtils.ALT_HASH;
+    public static final int SHIFT_HASH = NEIKeyboardUtils.SHIFT_HASH;
+    public static final int CTRL_HASH = NEIKeyboardUtils.CTRL_HASH;
 
     public static Minecraft mc() {
         return Minecraft.getMinecraft();
@@ -452,7 +439,7 @@ public class NEIClientUtils extends NEIServerUtils {
         if (Keyboard.getEventKeyState()) {
             final int keycode = Keyboard.getEventKey();
 
-            if (!keyHashMap.containsKey(keycode)) {
+            if (!NEIKeyboardUtils.isHashKey(keycode)) {
                 return getMetaHash() + keycode;
             }
         }
@@ -460,43 +447,20 @@ public class NEIClientUtils extends NEIServerUtils {
         return Keyboard.CHAR_NONE;
     }
 
-    public static String getKeyHashName(int keyBind) {
+    public static String getKeyName(int keyBind, int mouseBind) {
         StringJoiner keyText = new StringJoiner(" + ");
+        String keyHash = keyBind == Keyboard.KEY_NONE ? "" : NEIKeyboardUtils.getKeyName(keyBind);
+        String mouseHash = mouseBind == NEIMouseUtils.MOUSE_BTN_NONE ? "" : NEIMouseUtils.getKeyName(mouseBind);
 
-        if ((keyBind & CTRL_HASH) != 0) {
-            keyText.add(translate(Minecraft.isRunningOnMac ? "key.ctrl.mac" : "key.ctrl"));
+        if (!keyHash.isEmpty()) {
+            keyText.add(keyHash);
         }
 
-        if ((keyBind & SHIFT_HASH) != 0) {
-            keyText.add(translate("key.shift"));
-        }
-
-        if ((keyBind & ALT_HASH) != 0) {
-            keyText.add(translate("key.alt"));
+        if (!mouseHash.isEmpty()) {
+            keyText.add(mouseHash);
         }
 
         return keyText.toString();
-    }
-
-    public static String getKeyName(int keyBind) {
-        keyBind = keyHashMap.getOrDefault(keyBind, keyBind);
-        StringJoiner keyText = new StringJoiner(" + ");
-        String hashText = getKeyHashName(keyBind);
-        int keyID = unHashKey(keyBind);
-
-        if (!hashText.isEmpty()) {
-            keyText.add(hashText);
-        }
-
-        if (keyID != Keyboard.CHAR_NONE || hashText.isEmpty()) {
-            keyText.add(Keyboard.getKeyName(keyID));
-        }
-
-        return keyText.toString();
-    }
-
-    public static int unHashKey(int keyBind) {
-        return keyBind & ~(CTRL_HASH | SHIFT_HASH | ALT_HASH);
     }
 
     public static void playClickSound() {

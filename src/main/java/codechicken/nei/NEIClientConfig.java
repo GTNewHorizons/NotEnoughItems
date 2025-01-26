@@ -61,6 +61,7 @@ import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
 import codechicken.nei.recipe.RecipeInfo;
+import codechicken.nei.util.NEIKeyboardUtils;
 import codechicken.obfuscator.ObfuscationRun;
 
 public class NEIClientConfig {
@@ -789,7 +790,7 @@ public class NEIClientConfig {
     private static final Map<String, String> keySettings = new HashMap<>();
 
     public static int getKeyBinding(String string) {
-        final String key = keySettings.computeIfAbsent(string, (s) -> "keys." + s);
+        final String key = keySettings.computeIfAbsent(string, s -> "keys." + s);
         return getSetting(key).getIntValue(Keyboard.KEY_NONE);
     }
 
@@ -799,17 +800,37 @@ public class NEIClientConfig {
 
     public static boolean isKeyHashDown(String string) {
         final int hash = getKeyBinding(string);
-        return hash != Keyboard.CHAR_NONE && hash == NEIClientUtils.getKeyHash();
+
+        if (hash != Keyboard.CHAR_NONE && Keyboard.getEventKeyState()) {
+            return KeyManager.keyStates.containsKey(string) ? hash == Keyboard.getEventKey()
+                    : hash == NEIClientUtils.getKeyHash();
+        }
+
+        return false;
     }
 
     public static String getKeyName(String keyBind) {
+        return getKeyName(keyBind, 0);
+    }
+
+    public static String getKeyName(String keyBind, int meta, int mouseBind) {
         final int hash = getKeyBinding(keyBind);
 
         if (hash == Keyboard.CHAR_NONE) {
             return null;
         }
 
-        return NEIClientUtils.getKeyName(hash);
+        return NEIClientUtils.getKeyName(hash + meta, mouseBind);
+    }
+
+    public static String getKeyName(String keyBind, int meta) {
+        final int hash = getKeyBinding(keyBind);
+
+        if (hash == Keyboard.CHAR_NONE) {
+            return null;
+        }
+
+        return NEIKeyboardUtils.getKeyName(hash + meta);
     }
 
     public static void bootNEI(World world) {

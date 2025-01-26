@@ -33,6 +33,7 @@ import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerTooltipHandler;
+import codechicken.nei.util.NEIMouseUtils;
 
 public class SubsetWidget extends Button implements ItemFilterProvider, IContainerTooltipHandler {
 
@@ -841,21 +842,21 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
 
             if (NEIClientConfig.canCheatItem(SubsetWidget.hoverStack)) {
                 hotkeys.put(
-                        NEIClientUtils.translate("subsets.item.cheat.key"),
+                        NEIClientUtils.getKeyName(NEIClientUtils.CTRL_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
                         NEIClientUtils.translate("subsets.item.cheat"));
             }
 
             if (SubsetWidget.enableSearchBySubsets) {
                 hotkeys.put(
-                        NEIClientUtils.translate("subsets.item.search.key"),
+                        NEIClientUtils.getKeyName(NEIClientUtils.SHIFT_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
                         NEIClientUtils.translate("subsets.item.search"));
             }
 
             hotkeys.put(
-                    NEIClientUtils.translate("subsets.item.show.key"),
+                    NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
                     NEIClientUtils.translate("subsets.item.show"));
             hotkeys.put(
-                    NEIClientUtils.translate("subsets.item.hide.key"),
+                    NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_RMB),
                     NEIClientUtils.translate("subsets.item.hide"));
         } else if (SubsetWidget.hoverTag != null) {
             hotkeys.put(
@@ -864,12 +865,16 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
 
             if (SubsetWidget.enableSearchBySubsets) {
                 hotkeys.put(
-                        NEIClientUtils.translate("subsets.tag.search.key"),
+                        NEIClientUtils.getKeyName(NEIClientUtils.SHIFT_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
                         NEIClientUtils.translate("subsets.tag.search"));
             }
 
-            hotkeys.put(NEIClientUtils.translate("subsets.tag.show.key"), NEIClientUtils.translate("subsets.tag.show"));
-            hotkeys.put(NEIClientUtils.translate("subsets.tag.hide.key"), NEIClientUtils.translate("subsets.tag.hide"));
+            hotkeys.put(
+                    NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
+                    NEIClientUtils.translate("subsets.tag.show"));
+            hotkeys.put(
+                    NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_RMB),
+                    NEIClientUtils.translate("subsets.tag.hide"));
         }
 
         return hotkeys;

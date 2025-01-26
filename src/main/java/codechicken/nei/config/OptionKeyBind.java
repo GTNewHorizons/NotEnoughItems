@@ -8,6 +8,7 @@ import java.awt.Rectangle;
 import org.lwjgl.input.Keyboard;
 
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.util.NEIKeyboardUtils;
 
 public class OptionKeyBind extends OptionButton {
 
@@ -123,10 +124,10 @@ public class OptionKeyBind extends OptionButton {
     public String getButtonText() {
 
         if (editing) {
-            return NEIClientUtils.getKeyHashName(NEIClientUtils.getMetaHash());
+            return NEIKeyboardUtils.getHashName(NEIClientUtils.getMetaHash());
         }
 
-        return NEIClientUtils.getKeyName(Math.max(getValue(), 0));
+        return NEIKeyboardUtils.getKeyName(Math.max(getValue(), 0));
     }
 
     @Override

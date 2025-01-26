@@ -5,6 +5,12 @@ nei.save=Save
 nei.key.ctrl=CTRL
 nei.key.shift=SHIFT
 nei.key.alt=ALT
+nei.mouse.left=LMB
+nei.mouse.right=RMB
+nei.mouse.middle=MMB
+nei.mouse.other=Button %d
+nei.mouse.scroll=Scroll
+nei.mouse.drag=Drag
 # Mac Command Key
 nei.key.ctrl.mac=CMD
 nei.showHotkeys=Hold %s for hotkeys
@@ -461,21 +467,14 @@ nei.itemsort.damage=Item Damage
 nei.itemsort.name=Display Name
 
 nei.subsets.item.cheat=Give out an Item
-nei.subsets.item.cheat.key=Ctrl + LMB
 nei.subsets.item.search=Search by Item
-nei.subsets.item.search.key=Shift + LMB
 nei.subsets.item.show=Show Item
-nei.subsets.item.show.key=LMB
 nei.subsets.item.hide=Hide Item
-nei.subsets.item.hide.key=RMB
 nei.subsets.tag.search=Search by Subset
-nei.subsets.tag.search.key=Shift + LMB
 nei.subsets.tag.onlythis=Show only this Subset
 nei.subsets.tag.onlythis.key=Double LMB
 nei.subsets.tag.show=Show Subset
-nei.subsets.tag.show.key=LMB
 nei.subsets.tag.hide=Hide Subset
-nei.subsets.tag.hide.key=RMB
 
 nei.subsets.Blocks=Blocks
 nei.subsets.Blocks.MobSpawners=Mob Spawners
