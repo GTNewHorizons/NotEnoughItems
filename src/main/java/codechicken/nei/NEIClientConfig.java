@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -365,6 +366,7 @@ public class NEIClientConfig {
         tag.getTag("inventory.gridRenderingCacheMode").getIntValue(0);
         API.addOption(new OptionCycled("inventory.gridRenderingCacheMode", 3, true));
 
+        tag.getTag("loadPluginsInParallel").getBooleanValue(true);
         tag.getTag("itemLoadingTimeout").getIntValue(500);
 
         tag.getTag("command.creative").setDefaultValue("/gamemode {0} {1}");
@@ -849,8 +851,11 @@ public class NEIClientConfig {
 
                 @Override
                 public void run() {
+                    final Stream<Class<?>> stream = NEIClientConfig.getBooleanSetting("loadPluginsInParallel")
+                            ? NEIClientConfig.pluginsList.parallelStream()
+                            : NEIClientConfig.pluginsList.stream();
 
-                    NEIClientConfig.pluginsList.parallelStream().forEach(clazz -> {
+                    stream.forEach(clazz -> {
                         try {
                             IConfigureNEI config = (IConfigureNEI) clazz.getConstructor().newInstance();
                             config.loadConfig();
