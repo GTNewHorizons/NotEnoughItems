@@ -18,6 +18,7 @@ nei.showHotkeys=Hold %s for hotkeys
 nei.bookmark.toggle=Bookmarks
 nei.bookmark.toggle.tip=Toggle visibility of the Bookmark Panel
 nei.bookmark.pullBookmarkedItems.tip=Pull all bookmarked items from storage to inventory
+nei.bookmark.conflictingRecipe.tip=This recipe output conflicts with another recipe in this group
 
 nei.bookmark.group=Bookmarks Group
 nei.bookmark.group.include_group=Create/Include Group
@@ -178,6 +179,9 @@ nei.options.inventory.bookmarks=Bookmarks Panel
 nei.options.inventory.bookmarks.enabled=Bookmarks Panel Visibility
 nei.options.inventory.bookmarks.enabled.true=Visible
 nei.options.inventory.bookmarks.enabled.false=Hidden
+nei.options.inventory.bookmarks.allowNegativeRequests=Allow Negative Crafting Chain Requests
+nei.options.inventory.bookmarks.allowNegativeRequests.true=Yes
+nei.options.inventory.bookmarks.allowNegativeRequests.false=No
 nei.options.inventory.bookmarks.animation=REI Style Animation in Bookmarks
 nei.options.inventory.bookmarks.animation.true=Yes
 nei.options.inventory.bookmarks.animation.false=No
