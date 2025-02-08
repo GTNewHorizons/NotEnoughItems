@@ -82,7 +82,11 @@ public class PositionedStack {
     }
 
     public PositionedStack copy() {
-        PositionedStack pStack = new PositionedStack(Arrays.asList(items), relx, rely, false);
+        PositionedStack pStack = new PositionedStack(
+                Arrays.stream(this.items).map(ItemStack::copy).toArray(ItemStack[]::new),
+                relx,
+                rely,
+                false);
         pStack.permutated = this.permutated;
         return pStack;
     }
