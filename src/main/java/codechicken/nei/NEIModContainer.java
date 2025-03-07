@@ -25,6 +25,7 @@ import cpw.mods.fml.common.DummyModContainer;
 import cpw.mods.fml.common.LoadController;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModMetadata;
+import cpw.mods.fml.common.discovery.ASMDataTable;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
@@ -40,6 +41,8 @@ public class NEIModContainer extends DummyModContainer {
 
     private static boolean gregTech5Loaded;
     private static boolean gtnhLibLoaded;
+
+    private static ASMDataTable asmDataTable;
 
     public NEIModContainer() {
         super(getModMetadata());
@@ -117,6 +120,7 @@ public class NEIModContainer extends DummyModContainer {
         gregTech5Loaded = Loader.isModLoaded("gregtech") && !Loader.isModLoaded("gregapi_post");
         gtnhLibLoaded = Loader.isModLoaded("gtnhlib");
         if (CommonUtils.isClient()) ClientHandler.preInit();
+        asmDataTable = event.getAsmData();
     }
 
     @Subscribe
@@ -139,6 +143,7 @@ public class NEIModContainer extends DummyModContainer {
             GuiRecipeTab.loadHandlerInfo();
             ClientHandler.loadPluginsList();
             ClientHandler.loadHandlerOrdering();
+            asmDataTable = null;
         }
     }
 
@@ -160,5 +165,9 @@ public class NEIModContainer extends DummyModContainer {
     @Override
     public Class<?> getCustomResourcePackClass() {
         return getSource().isDirectory() ? FMLFolderResourcePack.class : FMLFileResourcePack.class;
+    }
+
+    public static ASMDataTable getAsmDataTable() {
+        return asmDataTable;
     }
 }

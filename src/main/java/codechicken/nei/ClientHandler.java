@@ -46,6 +46,9 @@ import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.StackInfo;
 import cpw.mods.fml.client.CustomModLoadingErrorDisplayException;
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModClassLoader;
+import cpw.mods.fml.common.discovery.ASMDataTable;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
@@ -254,11 +257,29 @@ public class ClientHandler {
     }
 
     public static void loadPluginsList() {
-        final ClassDiscoverer classDiscoverer = new ClassDiscoverer(
-                test -> test.startsWith("NEI") && test.endsWith("Config.class"),
-                IConfigureNEI.class);
+        if (!Loader.isModLoaded("jarjar")) {
+            // Do the old style class discovery
+            final ClassDiscoverer classDiscoverer = new ClassDiscoverer(
+                    test -> test.startsWith("NEI") && test.endsWith("Config.class"),
+                    IConfigureNEI.class);
 
-        NEIClientConfig.pluginsList.addAll(classDiscoverer.findClasses());
+            NEIClientConfig.pluginsList.addAll(classDiscoverer.findClasses());
+        } else {
+            // If JarJar's loaded, the ASMDataTable now includes interfaces in addition to Annotations, so use that
+            // instead Includes a small change in behavior of no longer requiring the class to start with NEI and end
+            // with Config; This could easily be changed if desired, but the previous behavior was likely to speed
+            // things up by limiting the scope when looking at all of the jars and classes in the classpath.
+            final ASMDataTable dataTable = NEIModContainer.getAsmDataTable();
+            final ModClassLoader modClassLoader = (ModClassLoader) Loader.instance().getModClassLoader();
+            for (ASMDataTable.ASMData asmData : dataTable.getAll(IConfigureNEI.class.getName().replace('.', '/'))) {
+                final String className = asmData.getClassName().replace('/', '.');
+                try {
+                    NEIClientConfig.pluginsList.add(Class.forName(className, true, modClassLoader));
+                } catch (ClassNotFoundException e) {
+                    NEIClientConfig.logger.error("Failed to load plugin class {}", className, e);
+                }
+            }
+        }
     }
 
     @SubscribeEvent
