@@ -387,8 +387,8 @@ nei.options.world.panels=Panels Settings
 nei.options.world.presets=Presets List
 
 nei.options.world.overlays=Overlays Config
-nei.options.world.overlays.lock=Not reset between world
-nei.options.world.overlays.unlock=Reset between world
+nei.options.world.overlays.lock=Keep overlays between dimensions
+nei.options.world.overlays.unlock=Reset overlays between dimensions
 
 nei.options.tools=Tools
 nei.options.tools.handler_load_from_config=Load handlers from Config
