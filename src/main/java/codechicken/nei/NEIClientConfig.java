@@ -45,6 +45,7 @@ import codechicken.nei.config.ConfigSet;
 import codechicken.nei.config.GuiHighlightTips;
 import codechicken.nei.config.GuiNEIOptionList;
 import codechicken.nei.config.GuiOptionList;
+import codechicken.nei.config.GuiOverlays;
 import codechicken.nei.config.GuiPanelSettings;
 import codechicken.nei.config.OptionButton;
 import codechicken.nei.config.OptionCycled;
@@ -348,6 +349,9 @@ public class NEIClientConfig {
         API.addOption(new OptionOpenGui("world.panels", GuiPanelSettings.class));
 
         API.addOption(new OptionOpenGui("world.presets", GuiPresetList.class));
+
+        tag.getTag("world.overlays").getBooleanValue(true);
+        API.addOption(new OptionOpenGui("world.overlays", GuiOverlays.class));
 
         tag.getTag("inventory.disableMouseScrollTransfer").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.disableMouseScrollTransfer", true));

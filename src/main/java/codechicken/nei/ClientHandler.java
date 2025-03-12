@@ -317,8 +317,9 @@ public class ClientHandler {
     public void loadWorld(World world, boolean fromServer) {
         if (world != lastworld) {
             SMPmagneticItems.clear();
-            WorldOverlayRenderer.reset();
-
+            if (!NEIClientConfig.getSetting("world.overlays").getBooleanValue()) {
+                WorldOverlayRenderer.reset();
+            }
             if (!fromServer) {
                 NEIClientConfig.setHasSMPCounterPart(false);
                 NEIClientConfig.setInternalEnabled(false);
