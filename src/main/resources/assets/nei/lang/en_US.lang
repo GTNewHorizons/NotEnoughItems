@@ -386,10 +386,10 @@ nei.options.world.highlight_tips.sample=Sample
 nei.options.world.panels=Panels Settings
 nei.options.world.presets=Presets List
 
-nei.options.world.overlays=Overlays Config
-nei.options.world.overlays.toggle.enabled=Enabled
-nei.options.world.overlays.toggle.disabled=Disabled
-nei.options.world.overlays.lock=Keep overlays active between dimensions
+nei.options.world.overlays=Overlays Settings
+nei.options.world.overlays.lock=Lock overlays between dimensions
+nei.options.world.overlays.lock.true=Enabled
+nei.options.world.overlays.lock.false=Disabled
 
 nei.options.tools=Tools
 nei.options.tools.handler_load_from_config=Load handlers from Config

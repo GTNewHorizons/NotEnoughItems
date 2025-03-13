@@ -134,10 +134,10 @@ nei.options.world.highlight_tips=Mettez en surbrillance les info-bulles
 nei.options.world.highlight_tips.hide=Caché
 nei.options.world.highlight_tips.show=Montré
 
-nei.options.world.overlays=Configuration des overlays
-nei.options.world.overlays.toggle.enabled=Activé
-nei.options.world.overlays.toggle.disabled=Désactivé
-nei.options.world.overlays.lock=Garder les overlays actifs entre les dimensions
+nei.options.world.overlays=Paramètres des overlays
+nei.options.world.overlays.lock.true=Activé
+nei.options.world.overlays.lock.false=Désactivé
+nei.options.world.overlays.lock=Conserver les overlays entre les dimensions
 
 nei.options.tools=Outils
 nei.options.tools.dump=Data Dumps

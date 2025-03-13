@@ -56,7 +56,6 @@ import codechicken.nei.config.OptionTextField;
 import codechicken.nei.config.OptionToggleButton;
 import codechicken.nei.config.OptionToggleButtonBoubs;
 import codechicken.nei.config.OptionUtilities;
-import codechicken.nei.config.overlay.GuiOverlays;
 import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
 import codechicken.nei.recipe.GuiRecipeTab;
@@ -350,8 +349,7 @@ public class NEIClientConfig {
 
         API.addOption(new OptionOpenGui("world.presets", GuiPresetList.class));
 
-        tag.getTag("world.overlays.lock").getBooleanValue(true);
-        API.addOption(new OptionOpenGui("world.overlays", GuiOverlays.class));
+        API.addOption(new OptionToggleButton("world.overlays.lock", true));
 
         tag.getTag("inventory.disableMouseScrollTransfer").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.disableMouseScrollTransfer", true));
