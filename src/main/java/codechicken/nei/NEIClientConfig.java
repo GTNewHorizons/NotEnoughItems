@@ -45,7 +45,6 @@ import codechicken.nei.config.ConfigSet;
 import codechicken.nei.config.GuiHighlightTips;
 import codechicken.nei.config.GuiNEIOptionList;
 import codechicken.nei.config.GuiOptionList;
-import codechicken.nei.config.GuiOverlays;
 import codechicken.nei.config.GuiPanelSettings;
 import codechicken.nei.config.OptionButton;
 import codechicken.nei.config.OptionCycled;
@@ -57,6 +56,7 @@ import codechicken.nei.config.OptionTextField;
 import codechicken.nei.config.OptionToggleButton;
 import codechicken.nei.config.OptionToggleButtonBoubs;
 import codechicken.nei.config.OptionUtilities;
+import codechicken.nei.config.overlay.GuiOverlays;
 import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
 import codechicken.nei.recipe.GuiRecipeTab;
@@ -350,7 +350,7 @@ public class NEIClientConfig {
 
         API.addOption(new OptionOpenGui("world.presets", GuiPresetList.class));
 
-        tag.getTag("world.overlays").getBooleanValue(true);
+        tag.getTag("world.overlays.lock").getBooleanValue(true);
         API.addOption(new OptionOpenGui("world.overlays", GuiOverlays.class));
 
         tag.getTag("inventory.disableMouseScrollTransfer").getBooleanValue(false);
