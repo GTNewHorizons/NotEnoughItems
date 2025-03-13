@@ -349,6 +349,7 @@ public class NEIClientConfig {
 
         API.addOption(new OptionOpenGui("world.presets", GuiPresetList.class));
 
+        tag.getTag("world.overlays.lock").getBooleanValue(true);
         API.addOption(new OptionToggleButton("world.overlays.lock", true));
 
         tag.getTag("inventory.disableMouseScrollTransfer").getBooleanValue(false);
