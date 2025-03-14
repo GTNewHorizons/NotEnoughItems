@@ -639,44 +639,17 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         return refIndex;
     }
 
-    public List<PositionedStack> getFocusedRecipeIngredients() {
+    public Integer getFocusedRecipeIndex() {
         List<Integer> indices = getRecipeIndices();
 
         for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
             final int recipeIndex = indices.get(refIndex);
             if (recipeInFocus(refIndex, recipeIndex)) {
-                return handler.original.getIngredientStacks(recipeIndex);
+                return recipeIndex;
             }
         }
 
         return null;
-    }
-
-    public int prepareFocusedRecipeResultStackSize(ItemStack stackover) {
-        List<Integer> indices = getRecipeIndices();
-
-        for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
-            final int recipeIndex = indices.get(refIndex);
-            if (recipeInFocus(refIndex, recipeIndex)) {
-                final PositionedStack result = handler.original.getResultStack(recipeIndex);
-                int stackSize = 0;
-
-                if (result != null && StackInfo.equalItemAndNBT(result.item, stackover, true)) {
-                    stackSize += result.item.stackSize;
-                }
-
-                final List<PositionedStack> stacks = handler.original.getOtherStacks(recipeIndex);
-                for (PositionedStack pStack : stacks) {
-                    if (StackInfo.equalItemAndNBT(pStack.item, stackover, true)) {
-                        stackSize += pStack.item.stackSize;
-                    }
-                }
-
-                return stackSize;
-            }
-        }
-
-        return stackover.stackSize;
     }
 
     protected boolean recipeInFocus(int refIndex, int recipeIndex) {
