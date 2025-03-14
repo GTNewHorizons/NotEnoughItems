@@ -1,4 +1,8 @@
 // Add any additional repositiroes for your dependencies here
 
 repositories {
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+    }
 }
