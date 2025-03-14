@@ -21,6 +21,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.permission.PermissionLevel;
+import net.minecraftforge.permission.PermissionManager;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -44,6 +46,8 @@ public class NEIServerConfig {
     public static HashMap<String, PlayerSave> playerSaves = new HashMap<>();
     public static ItemStackMap<Set<String>> bannedItems = new ItemStackMap<>();
 
+    private static boolean doesPermAPIExist = false;
+
     public static void load(World world) {
         if (MinecraftServer.getServer() != server) {
             logger.debug("Loading NEI Server");
@@ -53,6 +57,16 @@ public class NEIServerConfig {
             dimTags.clear();
             loadConfig();
             loadBannedItems();
+
+            try {
+                Class.forName("net.minecraftforge.permission.PermissionManager");
+                doesPermAPIExist = true;
+
+                NEIActions.baseActions().forEach(
+                        action -> {
+                            PermissionManager.registerPermission("nei.permissions." + action, PermissionLevel.OP);
+                        });
+            } catch (ClassNotFoundException ignored) {}
         }
         loadWorld(world);
     }
@@ -121,7 +135,12 @@ public class NEIServerConfig {
     }
 
     public static boolean canPlayerPerformAction(String playername, String name) {
-        return isPlayerInList(playername, getPlayerList("permissions." + NEIActions.base(name)), true);
+        String node = "permissions." + NEIActions.base(name);
+        boolean hasPerm = doesPermAPIExist
+                ? PermissionManager.checkPermission(ServerUtils.getPlayer(playername), "nei." + node)
+                : false;
+
+        return hasPerm || isPlayerInList(playername, getPlayerList(node), true);
     }
 
     public static boolean isPlayerInList(String playername, Set<String> list, boolean allowCards) {

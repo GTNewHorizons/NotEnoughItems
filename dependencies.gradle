@@ -5,4 +5,6 @@ dependencies {
     implementation('com.github.GTNewHorizons:GTNHLib:0.6.14:dev')
 
     shadowImplementation('org.apache.commons:commons-csv:1.10.0')
+
+    implementation 'maven.modrinth:forge-essentials:7.5.1'
 }
