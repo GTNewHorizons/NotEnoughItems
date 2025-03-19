@@ -234,8 +234,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             return true;
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.next_tooltip")) {
-            GuiContainerManager.incrementTooltipPage();
+        if (NEIClientConfig.isKeyHashDown("gui.next_tooltip") && GuiContainerManager.incrementTooltipPage()) {
             return true;
         }
 

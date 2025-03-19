@@ -298,7 +298,7 @@ public class NEIClientConfig {
                     @Override
                     public boolean onClick(int button) {
                         LayoutManager.markItemsDirty();
-                        return super.onClick(button);
+                        return true;
                     }
                 });
 
@@ -368,6 +368,9 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.gridRenderingCacheMode").getIntValue(0);
         API.addOption(new OptionCycled("inventory.gridRenderingCacheMode", 3, true));
+
+        tag.getTag("inventory.hotkeysHelpText").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.hotkeysHelpText", true));
 
         tag.getTag("inventory.gridRenderingCacheFPS").getIntValue(8);
         API.addOption(new OptionIntegerField("inventory.gridRenderingCacheFPS", 1, 144) {
