@@ -317,6 +317,7 @@ nei.options.inventory.gridRenderingCacheMode=Grid Rendering Cache Mode
 nei.options.inventory.gridRenderingCacheMode.0=Off
 nei.options.inventory.gridRenderingCacheMode.1=Low FPS
 nei.options.inventory.gridRenderingCacheMode.2=Freeze
+nei.options.inventory.gridRenderingCacheFPS=Grid Rendering Cache FPS
 nei.options.inventory.collapsibleItems=Collapsible Items
 nei.options.inventory.collapsibleItems.enabled=Collapsible Items
 nei.options.inventory.collapsibleItems.enabled.true=Enabled
