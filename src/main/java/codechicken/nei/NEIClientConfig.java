@@ -46,7 +46,6 @@ import codechicken.nei.config.GuiHighlightTips;
 import codechicken.nei.config.GuiNEIOptionList;
 import codechicken.nei.config.GuiOptionList;
 import codechicken.nei.config.GuiPanelSettings;
-import codechicken.nei.config.OptionButton;
 import codechicken.nei.config.OptionCycled;
 import codechicken.nei.config.OptionGamemodes;
 import codechicken.nei.config.OptionIntegerField;
