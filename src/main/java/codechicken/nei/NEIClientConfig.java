@@ -298,7 +298,7 @@ public class NEIClientConfig {
                     @Override
                     public boolean onClick(int button) {
                         LayoutManager.markItemsDirty();
-                        return super.onClick(button);
+                        return true;
                     }
                 });
 
@@ -326,6 +326,12 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.itemzoom.nameColor").getHexValue(0xFFFFFFFF);
         API.addOption(new OptionIntegerField("inventory.itemzoom.nameColor", 0, OptionIntegerField.UNSIGNED_INT_MAX));
+
+        tag.getTag("inventory.hotkeys.enabled").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.hotkeys.enabled", true));
+
+        tag.getTag("inventory.hotkeys.helpText").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.hotkeys.helpText", true));
 
         tag.getTag("inventory.itemIDs").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemIDs", 3, true));

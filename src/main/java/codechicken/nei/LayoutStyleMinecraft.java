@@ -184,7 +184,7 @@ public class LayoutStyleMinecraft extends LayoutStyle {
         final Rectangle4i area = new Rectangle4i(0, 0, 0, BUTTON_SIZE);
 
         if (NEIClientConfig.isSearchWidgetCentered()) {
-            area.w = gui.xSize - MARGIN * 2;
+            area.w = Math.min(gui.xSize, 176) - MARGIN * 2;
             area.x = (gui.width - area.w) / 2;
             area.y = gui.height - BUTTON_SIZE - MARGIN;
         } else if (NEIClientConfig.showItemQuantityWidget()) {

@@ -554,7 +554,8 @@ public class GuiContainerManager {
         }
 
         ItemStack stack = getStackMouseOver(window);
-        if (tooltip.isEmpty() && shouldShowTooltip(window)) { // mouseover tip, not holding an item
+        boolean showTooltip = shouldShowTooltip(window);
+        if (tooltip.isEmpty() && showTooltip) { // mouseover tip, not holding an item
             font = getFontRenderer(stack);
             if (stack != null) {
                 tooltip = itemDisplayNameMultiline(stack, window, true);
@@ -569,7 +570,7 @@ public class GuiContainerManager {
 
         if (!tooltip.isEmpty()) tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE); // add space after 'title'
 
-        if (shouldShowTooltip(window)) {
+        if (NEIClientConfig.getBooleanSetting("inventory.hotkeys.enabled") && showTooltip) {
             List<String> hotkeystips = collectHotkeyTips(mousex, mousey);
 
             if (!hotkeystips.isEmpty()) {
@@ -615,23 +616,19 @@ public class GuiContainerManager {
     }
 
     private List<String> collectHotkeyTips(int mousex, int mousey) {
-        Map<String, String> hotkeys = new HashMap<>();
 
-        synchronized (instanceTooltipHandlers) {
-            for (IContainerTooltipHandler handler : instanceTooltipHandlers) {
-                hotkeys = handler.handleHotkeys(window, mousex, mousey, hotkeys);
+        if (NEIClientUtils.altKey()) {
+            Map<String, String> hotkeys = new HashMap<>();
+
+            synchronized (instanceTooltipHandlers) {
+                for (IContainerTooltipHandler handler : instanceTooltipHandlers) {
+                    hotkeys = handler.handleHotkeys(window, mousex, mousey, hotkeys);
+                }
             }
-        }
 
-        if (!hotkeys.isEmpty()) {
-            List<String> hotkeystips = new ArrayList<>();
+            if (!hotkeys.isEmpty()) {
+                List<String> hotkeystips = new ArrayList<>();
 
-            if (!NEIClientUtils.altKey()) {
-                hotkeystips.add(
-                        EnumChatFormatting.GRAY + translate(
-                                "showHotkeys",
-                                EnumChatFormatting.GOLD + translate("key.alt") + EnumChatFormatting.GRAY));
-            } else {
                 Map<String, List<String>> messages = new HashMap<>();
                 hotkeys.remove(null);
                 hotkeys.remove("");
@@ -664,9 +661,28 @@ public class GuiContainerManager {
                 hotkeystips.set(
                         hotkeystips.size() - 1,
                         hotkeystips.get(hotkeystips.size() - 1) + GuiDraw.TOOLTIP_LINESPACE);
+
+                return hotkeystips;
             }
 
-            return hotkeystips;
+        } else if (NEIClientConfig.getBooleanSetting("inventory.hotkeys.helpText")) {
+            boolean existsHotkeys = false;
+
+            synchronized (instanceTooltipHandlers) {
+                for (IContainerTooltipHandler handler : instanceTooltipHandlers) {
+                    if (!handler.handleHotkeys(window, mousex, mousey, new HashMap<>()).isEmpty()) {
+                        existsHotkeys = true;
+                        break;
+                    }
+                }
+            }
+
+            if (existsHotkeys) {
+                return Collections.singletonList(
+                        EnumChatFormatting.GRAY + translate(
+                                "showHotkeys",
+                                EnumChatFormatting.GOLD + translate("key.alt") + EnumChatFormatting.GRAY));
+            }
         }
 
         return Collections.emptyList();
@@ -675,39 +691,51 @@ public class GuiContainerManager {
     private String getHotkeyTip(List<String> keys, String message) {
         return EnumChatFormatting.GOLD
                 + String.join(EnumChatFormatting.DARK_GRAY + " / " + EnumChatFormatting.GOLD, keys)
-                + EnumChatFormatting.GRAY
+                + EnumChatFormatting.DARK_GRAY
                 + " - "
+                + EnumChatFormatting.GRAY
                 + message
                 + EnumChatFormatting.RESET;
     }
 
     private static int tooltipPage;
+    private static int maxTooltipPage;
 
     public static void drawPagedTooltip(FontRenderer font, int x, int y, List<String> list) {
         if (list.isEmpty()) return;
         List<List<String>> tooltips = splitTooltipByPage(list);
-        tooltipPage = tooltipPage < tooltips.size() ? tooltipPage : 0;
-        if (tooltips.size() > 1) {
-            tooltips.get(tooltipPage).add(
-                    EnumChatFormatting.ITALIC + NEIClientUtils.translate(
+        maxTooltipPage = tooltips.size();
+        tooltipPage = tooltipPage < maxTooltipPage ? tooltipPage : 0;
+        final List<String> currentTooltip = tooltips.get(tooltipPage);
+
+        if (maxTooltipPage > 1) {
+            final String pageTooltip = EnumChatFormatting.ITALIC
+                    + NEIClientUtils.translate(
                             "inventory.tooltip.page",
                             tooltipPage + 1,
-                            tooltips.size(),
-                            NEIClientConfig.getKeyName("gui.next_tooltip")));
+                            maxTooltipPage,
+                            NEIClientConfig.getKeyName("gui.next_tooltip"));
+
+            currentTooltip.set(
+                    currentTooltip.size() - 1,
+                    currentTooltip.get(currentTooltip.size() - 1) + GuiDraw.TOOLTIP_LINESPACE);
+
+            currentTooltip.add(pageTooltip);
         }
+
         if (NEIModContainer.isGTNHLibLoaded()) {
             drawMultilineTip(
                     font,
                     x,
                     y,
-                    tooltips.get(tooltipPage),
+                    currentTooltip,
                     RenderTooltipEventHelper.getBackgroundStart(),
                     RenderTooltipEventHelper.getBackgroundEnd(),
                     RenderTooltipEventHelper.getBorderStart(),
                     RenderTooltipEventHelper.getBorderEnd());
-            return;
+        } else {
+            drawMultilineTip(font, x, y, currentTooltip);
         }
-        drawMultilineTip(font, x, y, tooltips.get(tooltipPage));
     }
 
     public static List<List<String>> splitTooltipByPage(List<String> list) {
@@ -752,8 +780,8 @@ public class GuiContainerManager {
         }
     }
 
-    public static void incrementTooltipPage() {
-        tooltipPage++;
+    public static boolean incrementTooltipPage() {
+        return tooltipPage != Math.min(tooltipPage++, maxTooltipPage);
     }
 
     public void renderSlotUnderlay(Slot slot) {
