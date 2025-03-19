@@ -369,6 +369,16 @@ public class NEIClientConfig {
         tag.getTag("inventory.gridRenderingCacheMode").getIntValue(0);
         API.addOption(new OptionCycled("inventory.gridRenderingCacheMode", 3, true));
 
+        tag.getTag("inventory.gridRenderingCacheFPS").getIntValue(8);
+        API.addOption(new OptionIntegerField("inventory.gridRenderingCacheFPS", 1, 144) {
+
+            @Override
+            public boolean isEnabled() {
+                return OpenGlHelper.framebufferSupported && getIntSetting("inventory.gridRenderingCacheMode") == 1;
+            }
+
+        });
+
         tag.getTag("loadPluginsInParallel").getBooleanValue(true);
         tag.getTag("itemLoadingTimeout").getIntValue(500);
 
