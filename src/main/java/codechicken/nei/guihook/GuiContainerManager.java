@@ -570,7 +570,7 @@ public class GuiContainerManager {
 
         if (!tooltip.isEmpty()) tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE); // add space after 'title'
 
-        if (NEIClientConfig.getBooleanSetting("inventory.hotkeys.enabled") && showTooltip) {
+        if (showTooltip) {
             List<String> hotkeystips = collectHotkeyTips(mousex, mousey);
 
             if (!hotkeystips.isEmpty()) {
@@ -665,7 +665,7 @@ public class GuiContainerManager {
                 return hotkeystips;
             }
 
-        } else if (NEIClientConfig.getBooleanSetting("inventory.hotkeys.helpText")) {
+        } else if (NEIClientConfig.getBooleanSetting("inventory.hotkeysHelpText")) {
             boolean existsHotkeys = false;
 
             synchronized (instanceTooltipHandlers) {
