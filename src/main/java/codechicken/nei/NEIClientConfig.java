@@ -289,19 +289,6 @@ public class NEIClientConfig {
                         0,
                         OptionIntegerField.UNSIGNED_INT_MAX));
 
-        API.addOption(
-                new OptionButton(
-                        "inventory.collapsibleItems.reloadLabel",
-                        "inventory.collapsibleItems.reloadButton",
-                        "inventory.collapsibleItems.reloadTip") {
-
-                    @Override
-                    public boolean onClick(int button) {
-                        LayoutManager.markItemsDirty();
-                        return true;
-                    }
-                });
-
         tag.getTag("inventory.itemzoom.enabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.itemzoom.enabled", true));
 
