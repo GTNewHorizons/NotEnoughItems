@@ -709,12 +709,11 @@ public class GuiContainerManager {
         final List<String> currentTooltip = tooltips.get(tooltipPage);
 
         if (maxTooltipPage > 1) {
-            final String pageTooltip = EnumChatFormatting.ITALIC
-                    + NEIClientUtils.translate(
-                            "inventory.tooltip.page",
-                            tooltipPage + 1,
-                            maxTooltipPage,
-                            NEIClientConfig.getKeyName("gui.next_tooltip"));
+            final String pageTooltip = EnumChatFormatting.ITALIC + NEIClientUtils.translate(
+                    "inventory.tooltip.page",
+                    tooltipPage + 1,
+                    maxTooltipPage,
+                    NEIClientConfig.getKeyName("gui.next_tooltip"));
 
             currentTooltip.set(
                     currentTooltip.size() - 1,
