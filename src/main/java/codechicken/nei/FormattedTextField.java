@@ -4,6 +4,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.util.ChatAllowedCharacters;
 import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.opengl.GL11;
@@ -100,6 +101,39 @@ public class FormattedTextField extends GuiTextField {
     public void setEnabled(boolean p_146184_1_) {
         super.setEnabled(p_146184_1_);
         this.editable = p_146184_1_;
+    }
+
+    @Override
+    public void writeText(String p_146191_1_) {
+        String newText = "";
+        String substr = ChatAllowedCharacters.filerAllowedCharacters(p_146191_1_);
+        int cursorPosition = getCursorPosition();
+        int maxStringLength = getMaxStringLength();
+        String text = getText();
+
+        if (text.isEmpty()) {
+            newText = substr.substring(0, Math.min(maxStringLength, substr.length()));
+            cursorPosition = newText.length();
+        } else {
+            int selectionEnd = getSelectionEnd();
+            String textStart = text.substring(0, Math.min(cursorPosition, selectionEnd));
+            String textEnd = text.substring(Math.max(cursorPosition, selectionEnd));
+            newText = textStart + substr + textEnd;
+
+            if (newText.length() > maxStringLength) {
+                newText = newText.substring(0, maxStringLength);
+            }
+
+            cursorPosition = Math.min(textStart.length() + substr.length(), newText.length());
+        }
+
+        setText(newText);
+        setCursorPosition(cursorPosition);
+    }
+
+    @Override
+    public int getNthWordFromPos(int p_146183_1_, int p_146183_2_) {
+        return this.func_146197_a(p_146183_1_, p_146183_2_, true);
     }
 
     @Override

@@ -38,13 +38,13 @@ public class NEIMouseUtils {
         if (mouseBind >= 0) {
             int button = unhash(mouseBind);
             switch (button) {
-                case 0:
+                case MOUSE_BTN_LMB:
                     mouseText.add(NEIClientUtils.translate("mouse.left"));
                     break;
-                case 1:
+                case MOUSE_BTN_RMB:
                     mouseText.add(NEIClientUtils.translate("mouse.right"));
                     break;
-                case 2:
+                case MOUSE_BTN_MMB:
                     mouseText.add(NEIClientUtils.translate("mouse.middle"));
                     break;
                 default:
