@@ -86,7 +86,7 @@ public class StackInfo {
     }
 
     public static boolean equalItemAndNBT(ItemStack stackA, ItemStack stackB, boolean useNBT) {
-        if (stackA == null || stackB == null || !stackA.isItemEqual(stackB)) {
+        if (stackA == null || stackB == null || stackA.getItem() != stackB.getItem()) {
             return false;
         }
 

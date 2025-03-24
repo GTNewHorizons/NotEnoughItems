@@ -46,7 +46,6 @@ import codechicken.nei.config.GuiHighlightTips;
 import codechicken.nei.config.GuiNEIOptionList;
 import codechicken.nei.config.GuiOptionList;
 import codechicken.nei.config.GuiPanelSettings;
-import codechicken.nei.config.OptionButton;
 import codechicken.nei.config.OptionCycled;
 import codechicken.nei.config.OptionGamemodes;
 import codechicken.nei.config.OptionIntegerField;
@@ -289,19 +288,6 @@ public class NEIClientConfig {
                         0,
                         OptionIntegerField.UNSIGNED_INT_MAX));
 
-        API.addOption(
-                new OptionButton(
-                        "inventory.collapsibleItems.reloadLabel",
-                        "inventory.collapsibleItems.reloadButton",
-                        "inventory.collapsibleItems.reloadTip") {
-
-                    @Override
-                    public boolean onClick(int button) {
-                        LayoutManager.markItemsDirty();
-                        return super.onClick(button);
-                    }
-                });
-
         tag.getTag("inventory.itemzoom.enabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.itemzoom.enabled", true));
 
@@ -378,6 +364,8 @@ public class NEIClientConfig {
             }
 
         });
+        tag.getTag("inventory.hotkeysHelpText").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.hotkeysHelpText", true));
 
         tag.getTag("loadPluginsInParallel").getBooleanValue(true);
         tag.getTag("itemLoadingTimeout").getIntValue(500);
