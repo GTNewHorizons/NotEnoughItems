@@ -746,8 +746,9 @@ public class GuiContainerManager {
             GuiDraw.ITooltipLineHandler line = GuiDraw.getTipLine(text);
             int lineHeight = line != null ? line.getSize().height
                     : text.endsWith(GuiDraw.TOOLTIP_LINESPACE) && i + 1 < list.size() ? 12 : 10;
-            if (height + lineHeight <= GuiDraw.displaySize().height - 8 * 2 - 10) {
+            if (height + lineHeight <= GuiDraw.displaySize().height - 8 * 2 - 10 || tmp.isEmpty()) {
                 // top & bottom 8px + last line for showing page
+                // and at least include one line per page
                 height += lineHeight;
             } else {
                 ret.add(new ArrayList<>(tmp));
