@@ -6,7 +6,6 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -15,12 +14,12 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import org.lwjgl.input.Mouse;
 
+import codechicken.nei.BookmarkPanel;
 import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
-import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.BookmarkRecipeId;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
@@ -182,19 +181,17 @@ public abstract class ShortcutInputHandler {
     }
 
     private static boolean saveRecipeInBookmark(ItemStack stack, boolean saveIngredients, boolean saveStackSize) {
-
         if (stack != null) {
             final GuiContainer gui = NEIClientUtils.getGuiContainer();
-            List<PositionedStack> ingredients = null;
-            String handlerName = "";
-
+            BookmarkPanel.BookmarkRecipe recipe = null;
             if (gui instanceof GuiRecipe) {
-                ingredients = ((GuiRecipe<?>) gui).getFocusedRecipeIngredients();
-                handlerName = ((GuiRecipe<?>) gui).getHandlerName();
-                stack.stackSize = ((GuiRecipe<?>) gui).prepareFocusedRecipeResultStackSize(stack);
+                GuiRecipe<?> guiRecipe = (GuiRecipe<?>) gui;
+                Integer idx = guiRecipe.getFocusedRecipeIndex();
+                if (idx != null) {
+                    recipe = BookmarkPanel.constructBookmarkRecipe(guiRecipe.getHandler(), idx);
+                }
             }
-
-            ItemPanels.bookmarkPanel.addOrRemoveItem(stack, handlerName, ingredients, saveIngredients, saveStackSize);
+            ItemPanels.bookmarkPanel.addOrRemoveItem(stack, recipe, saveIngredients, saveStackSize);
             return true;
         }
 
@@ -204,5 +201,4 @@ public abstract class ShortcutInputHandler {
     public static Map<String, String> handleHotkeys(GuiContainer gui, int mousex, int mousey, ItemStack stack) {
         return new HashMap<>();
     }
-
 }

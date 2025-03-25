@@ -245,7 +245,7 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
     public boolean handleClickExt(int mouseX, int mouseY, int button) {
 
         if (ItemPanels.itemPanel.draggedStack != null && ItemPanels.bookmarkPanel.contains(mouseX, mouseY)) {
-            ItemPanels.bookmarkPanel.addOrRemoveItem(ItemPanels.itemPanel.draggedStack, null, null, false, true);
+            ItemPanels.bookmarkPanel.addOrRemoveItem(ItemPanels.itemPanel.draggedStack, null, false, true);
             ItemPanels.itemPanel.draggedStack = null;
             return true;
         }

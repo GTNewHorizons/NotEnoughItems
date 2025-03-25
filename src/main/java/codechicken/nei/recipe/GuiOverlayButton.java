@@ -15,6 +15,7 @@ import net.minecraftforge.client.event.GuiScreenEvent;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
+import codechicken.nei.BookmarkPanel;
 import codechicken.nei.BookmarkPanel.BookmarkRecipe;
 import codechicken.nei.GuiNEIButton;
 import codechicken.nei.ItemPanels;
@@ -305,33 +306,8 @@ public class GuiOverlayButton extends GuiNEIButton {
     }
 
     public void saveRecipeInBookmark(boolean saveIngredients, boolean saveStackSize) {
-        final HandlerInfo handlerInfo = GuiRecipeTab.getHandlerInfo(this.handler);
-        final List<PositionedStack> ingredients = this.handler.getIngredientStacks(this.recipeIndex);
-        final BookmarkRecipeId recipeId = new BookmarkRecipeId(handlerInfo.getHandlerName(), ingredients);
-
-        if (!ItemPanels.bookmarkPanel.removeBookmarkRecipeId(recipeId)) {
-            BookmarkRecipe recipe = new BookmarkRecipe();
-            recipe.handlerName = recipeId.handlerName;
-            recipe.recipeId = recipeId;
-
-            if (saveIngredients) {
-                for (PositionedStack stack : ingredients) {
-                    recipe.ingredients.add(stack.item);
-                }
-            }
-
-            PositionedStack result = this.handler.getResultStack(this.recipeIndex);
-
-            if (result != null) {
-                recipe.result.add(result.item);
-            } else {
-                for (PositionedStack stack : this.handler.getOtherStacks(this.recipeIndex)) {
-                    recipe.result.add(stack.item);
-                }
-            }
-
-            ItemPanels.bookmarkPanel.addRecipe(recipe, saveStackSize);
-        }
+        BookmarkRecipe recipe = BookmarkPanel.constructBookmarkRecipe(this.handler, this.recipeIndex);
+        ItemPanels.bookmarkPanel.addRecipe(recipe, saveStackSize);
     }
 
     public int getResultStackSize(ItemStack stackover) {
