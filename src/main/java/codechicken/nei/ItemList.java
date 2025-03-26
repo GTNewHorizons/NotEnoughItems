@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
@@ -27,6 +29,7 @@ import codechicken.nei.ThreadOperationTimer.TimeoutException;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.search.TooltipFilter;
 
 public class ItemList {
@@ -365,6 +368,7 @@ public class ItemList {
             loadFinished = true;
 
             SubsetWidget.updateHiddenItems();
+            ItemPanels.bookmarkPanel.load();
             updateFilter.restart();
         }
     };
@@ -411,13 +415,20 @@ public class ItemList {
             if (interrupted()) return;
 
             Comparator<ItemStack> comparator = Comparator.comparingInt(ItemList.ordering::get);
-            filtered.sort(comparator::compare);
+            filtered.sort(comparator);
 
             if (interrupted()) return;
 
             ItemPanel.updateItemList(filtered);
         }
     };
+
+    public static int getItemOrderIndex(ItemStack stack) {
+        final Optional<Map.Entry<ItemStack, Integer>> orderingEntry = ItemList.ordering.entrySet().parallelStream()
+                .filter(entry -> StackInfo.equalItemAndNBT(entry.getKey(), stack, true)).findAny();
+
+        return orderingEntry.isPresent() ? orderingEntry.get().getValue() : 0;
+    }
 
     /**
      * @deprecated Use updateFilter.restart()

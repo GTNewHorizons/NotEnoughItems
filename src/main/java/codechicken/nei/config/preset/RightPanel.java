@@ -19,8 +19,8 @@ import codechicken.nei.CollapsibleItems;
 import codechicken.nei.ItemList.AllMultiItemFilter;
 import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.NegatedItemFilter;
-import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.ItemsGrid;
+import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PresetsList;
@@ -133,12 +133,12 @@ public class RightPanel extends GuiWidget {
 
         @Override
         protected ItemFilter getFilter() {
-            AllMultiItemFilter filter = new AllMultiItemFilter(searchField.getFilter());
+            final AllMultiItemFilter filter = new AllMultiItemFilter(searchField.getFilter());
 
             if (enabledPresets.isChecked()) {
-                AllMultiItemFilter andFilter = new AllMultiItemFilter();
-                AnyMultiItemFilter orFilter = new AnyMultiItemFilter();
-                Set<String> identifiers = PresetsList.presets.stream().flatMap(p -> p.items.stream())
+                final AllMultiItemFilter andFilter = new AllMultiItemFilter();
+                final AnyMultiItemFilter orFilter = new AnyMultiItemFilter();
+                final Set<String> identifiers = PresetsList.presets.stream().flatMap(p -> p.items.stream())
                         .collect(Collectors.toSet());
 
                 andFilter.filters.add(item -> !identifiers.contains(Preset.getIdentifier(item)));
@@ -163,6 +163,20 @@ public class RightPanel extends GuiWidget {
             }
 
             return preset.items.contains(Preset.getIdentifier(stack));
+        }
+
+        @Override
+        protected MouseContext getMouseContext(int mousex, int mousey) {
+            final ItemsGridSlot hovered = getSlotMouseOver(mousex, mousey);
+
+            if (hovered != null) {
+                return new MouseContext(
+                        hovered.slotIndex,
+                        hovered.slotIndex / this.columns,
+                        hovered.slotIndex % this.columns);
+            }
+
+            return null;
         }
     };
 
@@ -218,10 +232,10 @@ public class RightPanel extends GuiWidget {
         }
 
         if (mouseSelection == null && (button == 0 || button == 1)) {
-            ItemPanelSlot slot = grid.getSlotMouseOver(x, y);
+            final ItemsGridSlot slot = grid.getSlotMouseOver(x, y);
 
             if (slot != null) {
-                mouseSelection = new MouseSelection(slot.slotIndex, grid.getItemRect(slot.slotIndex), button == 0);
+                mouseSelection = new MouseSelection(slot.itemIndex, grid.getItemRect(slot.itemIndex), button == 0);
             }
         }
 
@@ -234,10 +248,10 @@ public class RightPanel extends GuiWidget {
         searchField.mouseUp(x, y, button);
 
         if (mouseSelection != null && (button == 0 || button == 1)) {
-            ItemPanelSlot hoverSlot = grid.getSlotMouseOver(x, y);
+            final ItemsGridSlot hoverSlot = grid.getSlotMouseOver(x, y);
 
-            if (hoverSlot != null && hoverSlot.slotIndex == mouseSelection.startIndex) {
-                setHidden(hoverSlot.item, button == 0);
+            if (hoverSlot != null && hoverSlot.itemIndex == mouseSelection.startIndex) {
+                setHidden(hoverSlot.getItemStack(), button == 0);
             } else if (!mouseSelection.items.isEmpty()) {
 
                 for (ItemStack stack : mouseSelection.items) {
@@ -304,13 +318,13 @@ public class RightPanel extends GuiWidget {
         searchField.mouseDragged(x, y, button, time);
 
         if (mouseSelection != null && (button == 0 || button == 1)) {
-            final ItemPanelSlot slot = grid.getSlotMouseOver(x, y);
+            final ItemsGridSlot slot = grid.getSlotMouseOver(x, y);
 
-            if (slot != null && slot.slotIndex != mouseSelection.endIndex) {
-                mouseSelection.endIndex = slot.slotIndex;
+            if (slot != null && slot.itemIndex != mouseSelection.endIndex) {
+                mouseSelection.endIndex = slot.itemIndex;
                 mouseSelection.items.clear();
 
-                final Rectangle4i rec = grid.getItemRect(slot.slotIndex);
+                final Rectangle4i rec = grid.getItemRect(slot.itemIndex);
                 final Rectangle4i sel = new Rectangle4i(
                         Math.min(rec.x, mouseSelection.startX),
                         Math.min(rec.y, mouseSelection.startY),
@@ -319,10 +333,10 @@ public class RightPanel extends GuiWidget {
 
                 for (int ix = sel.x; ix <= sel.x + sel.w; ix += ItemsGrid.SLOT_SIZE) {
                     for (int iy = sel.y; iy <= sel.y + sel.h; iy += ItemsGrid.SLOT_SIZE) {
-                        ItemPanelSlot over = grid.getSlotMouseOver(ix, iy);
+                        final ItemsGridSlot over = grid.getSlotMouseOver(ix, iy);
 
                         if (over != null) {
-                            mouseSelection.items.add(over.item);
+                            mouseSelection.items.add(over.getItemStack());
                         }
                     }
                 }
@@ -363,14 +377,14 @@ public class RightPanel extends GuiWidget {
     }
 
     public List<String> handleTooltip(int mousex, int mousey, List<String> tooltip) {
-        ItemPanelSlot over = grid.getSlotMouseOver(mousex, mousey);
+        final ItemsGridSlot over = grid.getSlotMouseOver(mousex, mousey);
 
         if (over != null) {
-            tooltip = GuiContainerManager.itemDisplayNameMultiline(over.item, null, true);
+            tooltip = GuiContainerManager.itemDisplayNameMultiline(over.getItemStack(), null, true);
 
             synchronized (GuiContainerManager.tooltipHandlers) {
                 for (IContainerTooltipHandler handler : GuiContainerManager.tooltipHandlers) {
-                    tooltip = handler.handleItemTooltip(null, over.item, mousex, mousey, tooltip);
+                    tooltip = handler.handleItemTooltip(null, over.getItemStack(), mousex, mousey, tooltip);
                 }
             }
 

@@ -10,7 +10,6 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -294,7 +293,7 @@ public class GuiContainerManager {
     }
 
     private static int modelviewDepth = -1;
-    private static final HashSet<String> stackTraces = new HashSet<>();
+    private static boolean contextEnabled = false;
     private static final ItemStackSet renderingErrorItems = new ItemStackSet();
 
     public static void drawItem(int offsetX, int offsetY, ItemStack itemstack, FontRenderer fontRenderer,
@@ -350,30 +349,32 @@ public class GuiContainerManager {
     private static void safeItemRenderContext(ItemStack stack, int x, int y, FontRenderer fontRenderer,
             Runnable callback) {
         float zLevel = drawItems.zLevel += 100F;
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        enableMatrixStackLogging();
         enable3DRender();
 
-        if (!renderingErrorItems.contains(stack)) {
-            try {
-                callback.run();
-
-                if (!checkMatrixStack()) throw new IllegalStateException("Modelview matrix stack too deep");
-                if (Tessellator.instance.isDrawing) throw new IllegalStateException("Still drawing");
-            } catch (Exception e) {
-                NEIClientUtils.reportErrorBuffered(e, stackTraces, stack);
-
-                restoreMatrixStack();
-                if (Tessellator.instance.isDrawing) Tessellator.instance.draw();
-
-                drawItems.zLevel = zLevel;
+        try {
+            if (renderingErrorItems.contains(stack)) {
                 drawItems.renderItemIntoGUI(fontRenderer, renderEngine, new ItemStack(Blocks.fire), x, y);
-                renderingErrorItems.add(stack);
+            } else {
+                callback.run();
             }
-        } else {
+
+            if (!checkMatrixStack()) throw new IllegalStateException("Modelview matrix stack too deep");
+            if (Tessellator.instance.isDrawing) throw new IllegalStateException("Still drawing");
+        } catch (Exception e) {
+            System.err.println("Error while rendering: " + stack + " (" + e.getMessage() + ")");
+            e.printStackTrace();
+
+            restoreMatrixStack();
+            if (Tessellator.instance.isDrawing) Tessellator.instance.draw();
+
+            drawItems.zLevel = zLevel;
             drawItems.renderItemIntoGUI(fontRenderer, renderEngine, new ItemStack(Blocks.fire), x, y);
+            renderingErrorItems.add(stack);
         }
 
-        GL11.glPopAttrib();
+        enable2DRender();
+        disableMatrixStackLogging();
         drawItems.zLevel = zLevel - 100;
     }
 
@@ -384,11 +385,19 @@ public class GuiContainerManager {
     }
 
     public static void enableMatrixStackLogging() {
-        modelviewDepth = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
+        if (!contextEnabled) {
+            modelviewDepth = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+            contextEnabled = true;
+        }
     }
 
     public static void disableMatrixStackLogging() {
-        modelviewDepth = -1;
+        if (contextEnabled) {
+            contextEnabled = false;
+            modelviewDepth = -1;
+            GL11.glPopAttrib();
+        }
     }
 
     public static boolean checkMatrixStack() {

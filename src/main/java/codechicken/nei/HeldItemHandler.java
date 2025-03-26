@@ -5,12 +5,12 @@ import static codechicken.nei.NEIClientUtils.translate;
 import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerTooltipHandler;
+import codechicken.nei.recipe.AutoCraftingManager;
 
 public class HeldItemHandler implements IContainerInputHandler, IContainerTooltipHandler {
 
@@ -25,7 +25,8 @@ public class HeldItemHandler implements IContainerInputHandler, IContainerToolti
     }
 
     protected boolean contains(int mousex, int mousey) {
-        return NEIClientUtils.getHeldItem() != null
+        return NEIClientUtils.getHeldItem() != null && !ItemPanels.bookmarkPanel.inEditingState()
+                && !AutoCraftingManager.processing()
                 && (ItemPanels.bookmarkPanel.contains(mousex, mousey) || ItemPanels.itemPanel.contains(mousex, mousey)
                         || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey));
     }
@@ -92,17 +93,6 @@ public class HeldItemHandler implements IContainerInputHandler, IContainerToolti
     @Override
     public void onMouseUp(GuiContainer gui, int mousex, int mousey, int button) {
 
-    }
-
-    @Override
-    public List<String> handleItemDisplayName(GuiContainer gui, ItemStack itemstack, List<String> currenttip) {
-        return currenttip;
-    }
-
-    @Override
-    public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
-            List<String> currenttip) {
-        return currenttip;
     }
 
     @Override

@@ -1,66 +1,31 @@
 package codechicken.nei.recipe;
 
-import static codechicken.nei.NEIClientUtils.translate;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraftforge.client.event.GuiScreenEvent;
+
+import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
-import codechicken.lib.vec.Rectangle4i;
-import codechicken.nei.BookmarkPanel.BookmarkRecipe;
-import codechicken.nei.GuiNEIButton;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
-import codechicken.nei.api.IOverlayHandler;
-import cpw.mods.fml.common.eventhandler.Cancelable;
+import codechicken.nei.bookmark.BookmarkGrid;
+import codechicken.nei.drawable.DrawableBuilder;
+import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.util.NEIMouseUtils;
 
-public class GuiOverlayButton extends GuiNEIButton {
-
-    public static class UpdateOverlayButtonsEvent extends GuiScreenEvent {
-
-        public List<GuiOverlayButton> buttonList;
-
-        public UpdateOverlayButtonsEvent(GuiRecipe<?> gui, List<GuiOverlayButton> buttonList) {
-            super(gui);
-            this.buttonList = new ArrayList<>(buttonList);
-        }
-
-        @Cancelable
-        public static class Pre extends UpdateOverlayButtonsEvent {
-
-            public int xOffset;
-            public int yOffset;
-            public int height;
-            public HandlerInfo handlerInfo;
-
-            public Pre(GuiRecipe<?> gui, int xOffset, int yOffset, int height, HandlerInfo handlerInfo) {
-                super(gui, new ArrayList<>());
-                this.xOffset = xOffset;
-                this.yOffset = yOffset;
-                this.height = height;
-                this.handlerInfo = handlerInfo;
-            }
-        }
-
-        public static class Post extends UpdateOverlayButtonsEvent {
-
-            public Post(GuiRecipe<?> gui, List<GuiOverlayButton> buttonList) {
-                super(gui, buttonList);
-            }
-        }
-    }
+public class GuiOverlayButton extends GuiRecipeButton {
 
     public enum ItemOverlayFormat {
 
@@ -99,44 +64,59 @@ public class GuiOverlayButton extends GuiNEIButton {
         }
     }
 
-    private static final int OVERLAY_BUTTON_ID_START = 4;
+    protected static final DrawableResource ICON_FILL = new DrawableBuilder(
+            "nei:textures/nei_sprites.png",
+            28,
+            76,
+            9,
+            10).build();
+    protected static final DrawableResource ICON_FILL_ERROR = new DrawableBuilder(
+            "nei:textures/nei_sprites.png",
+            37,
+            76,
+            9,
+            10).build();
+    protected static final DrawableResource ICON_OVERLAY = new DrawableBuilder(
+            "nei:textures/nei_sprites.png",
+            46,
+            76,
+            9,
+            10).build();
+    protected static final int BUTTON_ID_SHIFT = 4;
 
     public final GuiContainer firstGui;
-    public final IRecipeHandler handler;
-    public final int recipeIndex;
 
-    protected ItemsTooltipLineHandler missedMaterialsTooltipLineHandler;
-
-    protected final IOverlayHandler overlayHandler;
     protected final List<ItemOverlayState> itemPresenceCache = new ArrayList<>();
+    protected ItemsTooltipLineHandler missedMaterialsTooltipLineHandler;
     protected boolean requireShiftForOverlayRecipe = true;
-    protected boolean useOverlayRenderer = false;
+    protected boolean canUseOverlayRenderer = false;
+    protected boolean canFillCraftingGrid = false;
     protected boolean hasOverlay = false;
 
-    public GuiOverlayButton(GuiContainer firstGui, IRecipeHandler handler, int recipeIndex, int x, int y, int width,
-            int height) {
-        super(OVERLAY_BUTTON_ID_START + recipeIndex, x, y, width, height, "+");
+    public GuiOverlayButton(GuiContainer firstGui, RecipeHandlerRef handlerRef, int x, int y) {
+        super(handlerRef, x, y, handlerRef.recipeIndex + BUTTON_ID_SHIFT, "+");
         this.firstGui = firstGui != null && firstGui.inventorySlots != null ? firstGui : null;
-        this.handler = handler;
-        this.recipeIndex = recipeIndex;
-        this.hasOverlay = this.firstGui != null
-                && handler.hasOverlay(this.firstGui, this.firstGui.inventorySlots, recipeIndex);
-        this.useOverlayRenderer = this.hasOverlay && handler.getOverlayRenderer(firstGui, recipeIndex) != null;
-        this.overlayHandler = this.hasOverlay ? handler.getOverlayHandler(firstGui, recipeIndex) : null;
+
+        this.canUseOverlayRenderer = this.firstGui != null && handlerRef.getRecipeOverlayRenderer(firstGui) != null;
+        this.canFillCraftingGrid = this.firstGui != null && handlerRef.getOverlayHandler(firstGui) != null;
+        this.hasOverlay = this.canUseOverlayRenderer || this.canFillCraftingGrid;
 
         setRequireShiftForOverlayRecipe(NEIClientConfig.requireShiftForOverlayRecipe());
         ingredientsOverlay();
     }
 
+    @Override
     public List<String> handleTooltip(GuiRecipe<?> gui, List<String> currenttip) {
-        currenttip.add(translate("recipe.overlay"));
+        currenttip.add(NEIClientUtils.translate("recipe.overlay"));
 
-        if (!this.enabled && this.requireShiftForOverlayRecipe && this.overlayHandler == null) {
+        if (!this.enabled && this.requireShiftForOverlayRecipe && this.canFillCraftingGrid) {
             currenttip.set(currenttip.size() - 1, currenttip.get(currenttip.size() - 1) + GuiDraw.TOOLTIP_LINESPACE);
-            currenttip.add(EnumChatFormatting.RED + translate("recipe.overlay.mismatch") + EnumChatFormatting.RESET);
+            currenttip.add(
+                    EnumChatFormatting.RED + NEIClientUtils.translate("recipe.overlay.mismatch")
+                            + EnumChatFormatting.RESET);
         } else if (this.missedMaterialsTooltipLineHandler != null) {
 
-            if ((!this.requireShiftForOverlayRecipe || NEIClientUtils.shiftKey()) && this.overlayHandler != null) {
+            if ((!this.requireShiftForOverlayRecipe || NEIClientUtils.shiftKey()) && this.canFillCraftingGrid) {
                 this.missedMaterialsTooltipLineHandler.setLabelColor(EnumChatFormatting.RED);
             } else {
                 this.missedMaterialsTooltipLineHandler.setLabelColor(EnumChatFormatting.GRAY);
@@ -148,31 +128,32 @@ public class GuiOverlayButton extends GuiNEIButton {
         return currenttip;
     }
 
+    @Override
     public Map<String, String> handleHotkeys(GuiContainer gui, int mousex, int mousey, Map<String, String> hotkeys) {
 
-        if (this.requireShiftForOverlayRecipe && this.useOverlayRenderer) {
-            hotkeys.put(translate("recipe.overlay.fillCraftingGrid.key"), translate("recipe.overlay.fillCraftingGrid"));
+        if (requireShiftForOverlayRecipe()) {
+
+            if (useOverlayRenderer()) {
+                hotkeys.put(
+                        NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
+                        NEIClientUtils.translate("recipe.overlay.overlayRecipe"));
+            }
+
+            if (canFillCraftingGrid()) {
+                hotkeys.put(
+                        NEIClientUtils.getKeyName(NEIClientUtils.SHIFT_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
+                        NEIClientUtils.translate("recipe.overlay.fillCraftingGrid"));
+            }
+
+        } else if (canFillCraftingGrid()) {
+            hotkeys.put(
+                    NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
+                    NEIClientUtils.translate("recipe.overlay.fillCraftingGrid"));
         }
 
-        String keyName = NEIClientConfig.getKeyName("gui.bookmark");
-        if (keyName != null) {
-            hotkeys.put(keyName, translate("recipe.overlay.bookmark"));
-        }
-
-        keyName = NEIClientConfig.getKeyName("gui.bookmark_recipe");
-        if (keyName != null) {
-            hotkeys.put(keyName, translate("recipe.overlay.bookmarkRecipe"));
-        }
-
-        keyName = NEIClientConfig.getKeyName("gui.bookmark_count");
-        if (keyName != null) {
-            hotkeys.put(keyName, translate("recipe.overlay.bookmarkAmount"));
-        }
-
-        keyName = NEIClientConfig.getKeyName("gui.bookmark_recipe_count");
-        if (keyName != null) {
-            hotkeys.put(keyName, translate("recipe.overlay.bookmarkRecipeAndAmount"));
-        }
+        hotkeys.put(
+                NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                NEIClientUtils.translate("recipe.overlay.bookmarkRecipe"));
 
         return hotkeys;
     }
@@ -185,37 +166,59 @@ public class GuiOverlayButton extends GuiNEIButton {
         }
     }
 
-    public void drawItemPresenceOverlay() {
-        final int presenceOverlay = NEIClientConfig.itemPresenceOverlay();
-        final boolean highlightPresentItem = NEIClientConfig.isSlotHighlightPresent();
-        final ItemOverlayFormat format = ItemOverlayFormat.from(presenceOverlay);
+    @Override
+    protected void drawContent(Minecraft minecraft, int y, int x, boolean mouseOver) {
+        DrawableResource icon = ICON_OVERLAY;
 
-        for (ItemOverlayState overlay : ingredientsOverlay()) {
-            if (highlightPresentItem || !overlay.isPresent()) {
-                overlay.draw(format);
+        if (this.hasOverlay && (!this.requireShiftForOverlayRecipe || NEIClientUtils.shiftKey())) {
+            icon = canFillCraftingGrid() ? ICON_FILL : ICON_FILL_ERROR;
+        }
+
+        final int iconX = this.xPosition + (this.width - icon.width - 1) / 2;
+        final int iconY = this.yPosition + (this.height - icon.height) / 2;
+
+        GL11.glColor4f(1, 1, 1, this.enabled ? 1 : 0.5f);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        icon.draw(iconX, iconY);
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glColor4f(1, 1, 1, 1);
+    }
+
+    @Override
+    public void drawItemOverlay() {
+        final int presenceOverlay = NEIClientConfig.itemPresenceOverlay();
+
+        if (presenceOverlay > 0) {
+            final boolean highlightPresentItem = NEIClientConfig.isSlotHighlightPresent();
+            final ItemOverlayFormat format = ItemOverlayFormat.from(presenceOverlay);
+
+            for (ItemOverlayState overlay : ingredientsOverlay()) {
+                if (highlightPresentItem || !overlay.isPresent()) {
+                    overlay.draw(format);
+                }
             }
         }
     }
 
     protected List<ItemOverlayState> ingredientsOverlay() {
-        List<PositionedStack> ingredients = this.handler.getIngredientStacks(recipeIndex);
+        List<PositionedStack> ingredients = this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex);
 
         if (this.itemPresenceCache.size() != ingredients.size()) {
             this.itemPresenceCache.clear();
 
-            if (this.overlayHandler != null) {
-                this.itemPresenceCache
-                        .addAll(this.overlayHandler.presenceOverlay(this.firstGui, this.handler, this.recipeIndex));
+            if (this.canFillCraftingGrid) {
+                this.itemPresenceCache.addAll(this.handlerRef.getPresenceOverlay(this.firstGui));
             } else if (this.firstGui != null) {
                 this.itemPresenceCache.addAll(presenceOverlay(ingredients));
             }
 
             List<ItemStack> items = this.itemPresenceCache.stream().filter(state -> !state.isPresent())
-                    .map(state -> state.getSlot().item).collect(Collectors.toCollection(ArrayList::new));
+                    .map(state -> state.getSlot().item).collect(Collectors.toList());
 
             if (!items.isEmpty()) {
                 this.missedMaterialsTooltipLineHandler = new ItemsTooltipLineHandler(
-                        translate("recipe.overlay.missing"),
+                        NEIClientUtils.translate("recipe.overlay.missing"),
                         items,
                         true,
                         Integer.MAX_VALUE);
@@ -229,23 +232,31 @@ public class GuiOverlayButton extends GuiNEIButton {
 
     public void setRequireShiftForOverlayRecipe(boolean require) {
         this.requireShiftForOverlayRecipe = require;
-        this.enabled = this.hasOverlay && (this.requireShiftForOverlayRecipe || this.overlayHandler != null);
+        this.enabled = this.hasOverlay && (this.requireShiftForOverlayRecipe || this.canFillCraftingGrid);
     }
 
-    public void setUseOverlayRenderer(boolean use) {
-        this.useOverlayRenderer = use;
+    public void setCanUseOverlayRenderer(boolean use) {
+        this.canUseOverlayRenderer = use;
     }
 
     public boolean useOverlayRenderer() {
-        return this.useOverlayRenderer;
+        return this.canUseOverlayRenderer;
+    }
+
+    public boolean requireShiftForOverlayRecipe() {
+        return this.requireShiftForOverlayRecipe;
     }
 
     public boolean canFillCraftingGrid() {
-        return this.missedMaterialsTooltipLineHandler == null;
+        return this.missedMaterialsTooltipLineHandler == null || this.handlerRef.canFillCraftingGrid(this.firstGui);
     }
 
     public boolean hasOverlay() {
         return this.hasOverlay;
+    }
+
+    public Recipe getRecipe() {
+        return Recipe.of(this.handlerRef);
     }
 
     private List<ItemOverlayState> presenceOverlay(List<PositionedStack> ingredients) {
@@ -276,82 +287,30 @@ public class GuiOverlayButton extends GuiNEIButton {
     public void overlayRecipe(boolean shift) {
         if (!this.hasOverlay) return;
 
-        if (!this.useOverlayRenderer || !this.requireShiftForOverlayRecipe || shift) {
-            if (this.overlayHandler != null) {
-                this.overlayHandler.overlayRecipe(
-                        this.firstGui,
-                        this.handler,
-                        this.recipeIndex,
-                        !this.requireShiftForOverlayRecipe || shift);
+        if (!this.requireShiftForOverlayRecipe || shift) {
+            if (canFillCraftingGrid()) {
+                this.handlerRef.fillCraftingGrid(this.firstGui, 0);
             }
-        } else {
-            LayoutManager.overlayRenderer = this.handler.getOverlayRenderer(this.firstGui, this.recipeIndex);
+        } else if (useOverlayRenderer()) {
+            this.handlerRef.useOverlayRenderer(this.firstGui);
         }
 
     }
 
+    @Override
     public void lastKeyTyped(GuiRecipe<?> gui, char keyChar, int keyID) {
 
-        if (NEIClientConfig.isKeyHashDown("gui.bookmark")) {
-            saveRecipeInBookmark(false, false);
-        } else if (NEIClientConfig.isKeyHashDown("gui.bookmark_recipe")) {
-            saveRecipeInBookmark(true, false);
-        } else if (NEIClientConfig.isKeyHashDown("gui.bookmark_count")) {
-            saveRecipeInBookmark(false, true);
-        } else if (NEIClientConfig.isKeyHashDown("gui.bookmark_recipe_count")) {
-            saveRecipeInBookmark(true, true);
-        }
-
-    }
-
-    public void saveRecipeInBookmark(boolean saveIngredients, boolean saveStackSize) {
-        final HandlerInfo handlerInfo = GuiRecipeTab.getHandlerInfo(this.handler);
-        final List<PositionedStack> ingredients = this.handler.getIngredientStacks(this.recipeIndex);
-        final BookmarkRecipeId recipeId = new BookmarkRecipeId(handlerInfo.getHandlerName(), ingredients);
-
-        if (!ItemPanels.bookmarkPanel.removeBookmarkRecipeId(recipeId)) {
-            BookmarkRecipe recipe = new BookmarkRecipe();
-            recipe.handlerName = recipeId.handlerName;
-            recipe.recipeId = recipeId;
-
-            if (saveIngredients) {
-                for (PositionedStack stack : ingredients) {
-                    recipe.ingredients.add(stack.item);
-                }
-            }
-
-            PositionedStack result = this.handler.getResultStack(this.recipeIndex);
-
-            if (result != null) {
-                recipe.result.add(result.item);
-            } else {
-                for (PositionedStack stack : this.handler.getOtherStacks(this.recipeIndex)) {
-                    recipe.result.add(stack.item);
-                }
-            }
-
-            ItemPanels.bookmarkPanel.addRecipe(recipe, saveStackSize);
+        if (NEIClientConfig.isKeyHashDown("gui.bookmark") && NEIClientUtils.shiftKey()) {
+            saveRecipeInBookmark();
         }
     }
 
-    public int getResultStackSize(ItemStack stackover) {
-        final List<PositionedStack> stacks = this.handler.getOtherStacks(this.recipeIndex);
-        int stackSize = stackover.stackSize;
+    public void saveRecipeInBookmark() {
+        final Recipe recipe = getRecipe();
 
-        for (PositionedStack pStack : stacks) {
-            if (StackInfo.equalItemAndNBT(pStack.item, stackover, true)) {
-                stackSize += pStack.item.stackSize;
-            }
+        if (!ItemPanels.bookmarkPanel.removeRecipe(recipe.getRecipeId(), BookmarkGrid.DEFAULT_GROUP_ID)) {
+            ItemPanels.bookmarkPanel.addRecipe(recipe, BookmarkGrid.DEFAULT_GROUP_ID);
         }
-
-        return stackSize;
     }
 
-    public Rectangle4i bounds() {
-        return new Rectangle4i(this.xPosition, this.yPosition, this.width, this.height);
-    }
-
-    public boolean contains(int mx, int my) {
-        return bounds().contains(mx, my);
-    }
 }
