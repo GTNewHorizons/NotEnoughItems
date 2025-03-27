@@ -165,11 +165,17 @@ public abstract class ShortcutInputHandler {
             RecipeChainMath math = null;
 
             if (slot == null) {
-                math = RecipeChainMath.of(Recipe.of(recipeId), slot != null ? slot.getMultiplier() : 1);
+                final Recipe recipe = Recipe.of(recipeId);
+                if (recipe != null) {
+                    math = RecipeChainMath.of(recipe, 1);
+                }
             } else if (slot.getRecipeId() != null && !slot.isIngredient()) {
 
                 if (slot.getGroup().crafting == null) {
-                    math = RecipeChainMath.of(Recipe.of(slot.getRecipeId()), slot != null ? slot.getMultiplier() : 1);
+                    final Recipe recipe = Recipe.of(slot.getRecipeId());
+                    if (recipe != null) {
+                        math = RecipeChainMath.of(recipe, slot != null ? slot.getMultiplier() : 1);
+                    }
                 } else {
                     math = ItemPanels.bookmarkPanel.getGrid()
                             .createRecipeChainMath(slot.getGroupId(), slot.getRecipeId());

@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 
+import codechicken.nei.LRUCache;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.api.IOverlayHandler;
 import codechicken.nei.api.IRecipeOverlayRenderer;
@@ -13,6 +14,7 @@ import codechicken.nei.recipe.Recipe.RecipeId;
 
 public class RecipeHandlerRef {
 
+    private static final LRUCache<RecipeId, RecipeHandlerRef> recipeRefCache = new LRUCache<>(200);
     public final IRecipeHandler handler;
     public final int recipeIndex;
 
@@ -28,19 +30,22 @@ public class RecipeHandlerRef {
     public static RecipeHandlerRef of(RecipeId recipeId) {
 
         if (recipeId.getResult() != null && !recipeId.getIngredients().isEmpty()) {
-            final List<ICraftingHandler> handlers = GuiCraftingRecipe
-                    .getCraftingHandlers("recipeId", recipeId.getResult(), recipeId);
+            return recipeRefCache.computeIfAbsent(recipeId, ri -> {
+                final List<ICraftingHandler> handlers = GuiCraftingRecipe
+                        .getCraftingHandlers("recipeId", recipeId.getResult(), recipeId);
 
-            for (ICraftingHandler handler : handlers) {
-                int refIndex = SearchRecipeHandler.findFirst(
-                        handler,
-                        recipeIndex -> recipeId.equalsIngredients(handler.getIngredientStacks(recipeIndex)));
+                for (ICraftingHandler handler : handlers) {
+                    int refIndex = SearchRecipeHandler.findFirst(
+                            handler,
+                            recipeIndex -> recipeId.equalsIngredients(handler.getIngredientStacks(recipeIndex)));
 
-                if (refIndex >= 0) {
-                    return new RecipeHandlerRef(handler, refIndex);
+                    if (refIndex >= 0) {
+                        return new RecipeHandlerRef(handler, refIndex);
+                    }
                 }
-            }
 
+                return null;
+            });
         }
 
         return null;

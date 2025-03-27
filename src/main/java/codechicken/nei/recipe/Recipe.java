@@ -2,7 +2,6 @@ package codechicken.nei.recipe;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,7 +15,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-import codechicken.nei.LRUCache;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.ItemInfo;
@@ -289,8 +287,6 @@ public class Recipe {
         }
     }
 
-    private static final LRUCache<RecipeId, Recipe> recipeCache = new LRUCache<>(200);
-
     private final String handlerName;
     private final RecipeIngredient[] results;
     private final RecipeIngredient[] ingredients;
@@ -298,14 +294,6 @@ public class Recipe {
 
     private Recipe(String handlerName, List<RecipeIngredient> ingredients, List<RecipeIngredient> results) {
         this.handlerName = handlerName;
-
-        ingredients.sort(
-                Comparator.comparingInt((RecipeIngredient ingr) -> ingr.rely)
-                        .thenComparingInt((RecipeIngredient ingr) -> ingr.relx));
-        results.sort(
-                Comparator.comparingInt((RecipeIngredient ingr) -> ingr.rely)
-                        .thenComparingInt((RecipeIngredient ingr) -> ingr.relx));
-
         this.ingredients = ingredients.toArray(new RecipeIngredient[ingredients.size()]);
         this.results = results.toArray(new RecipeIngredient[results.size()]);
     }
@@ -343,17 +331,13 @@ public class Recipe {
             return null;
         }
 
-        final Recipe recipe = recipeCache.computeIfAbsent(recipeId, ri -> {
-            final RecipeHandlerRef handlerRef = RecipeHandlerRef.of(recipeId);
+        final RecipeHandlerRef handlerRef = RecipeHandlerRef.of(recipeId);
 
-            if (handlerRef != null) {
-                return Recipe.of(handlerRef);
-            }
+        if (handlerRef != null) {
+            return Recipe.of(handlerRef);
+        }
 
-            return null;
-        });
-
-        return recipe != null ? recipe.copy() : null;
+        return null;
     }
 
     protected static List<RecipeIngredient> extractItems(List<?> items) {
