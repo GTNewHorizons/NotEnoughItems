@@ -40,7 +40,6 @@ import codechicken.nei.recipe.BookmarkRecipeId;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.Recipe.RecipeIngredient;
-import codechicken.nei.recipe.RecipeTooltipLineHandler;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.recipe.chain.RecipeChainMath;
 import codechicken.nei.recipe.chain.RecipeChainTooltipLineHandler;
@@ -91,7 +90,6 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     public SortableGroup sortableGroup;
     public GroupingItem groupingItem;
 
-    protected RecipeTooltipLineHandler recipeTooltipLineHandler;
     protected AcceptsFollowingTooltipLineHandler acceptsFollowingTooltipLineHandler;
     protected RecipeChainTooltipLineHandler recipeChainTooltipLineHandler;
 
@@ -881,33 +879,6 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
         if (slot != null) {
 
-            if (!slot.isIngredient() && NEIClientConfig.getRecipeTooltipsMode() != 0) {
-                RecipeId recipeId = null;
-
-                if (slot.getRecipeId() != null) {
-                    final int tooltipMode = NEIClientConfig.getRecipeTooltipsMode();
-                    final BookmarkViewMode viewMode = slot.getGroup().viewMode;
-
-                    if (tooltipMode == 3 || viewMode == BookmarkViewMode.DEFAULT && tooltipMode == 1
-                            || viewMode == BookmarkViewMode.TODO_LIST && tooltipMode == 2) {
-                        recipeId = slot.getRecipeId();
-                    }
-                }
-
-                if (recipeId == null) {
-                    this.recipeTooltipLineHandler = null;
-                } else if (this.recipeTooltipLineHandler == null
-                        || !this.recipeTooltipLineHandler.getRecipeId().equals(recipeId)) {
-                            this.recipeTooltipLineHandler = new RecipeTooltipLineHandler(recipeId);
-                        }
-
-                if (this.recipeTooltipLineHandler != null) {
-                    currenttip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(this.recipeTooltipLineHandler));
-                }
-            } else {
-                this.acceptsFollowingTooltipLineHandler = null;
-            }
-
             if (slot.isIngredient() && slot.getRecipeId() != null && slot.getBookmarkItem().permutations.size() > 1) {
                 RecipeId recipeId = slot.getRecipeId();
 
@@ -931,7 +902,6 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             }
 
         } else {
-            this.recipeTooltipLineHandler = null;
             this.acceptsFollowingTooltipLineHandler = null;
         }
 

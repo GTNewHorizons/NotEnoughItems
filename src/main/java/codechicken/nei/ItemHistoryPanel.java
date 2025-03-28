@@ -15,13 +15,10 @@ import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
-import codechicken.nei.recipe.Recipe.RecipeId;
-import codechicken.nei.recipe.RecipeTooltipLineHandler;
 import codechicken.nei.recipe.StackInfo;
 
 public class ItemHistoryPanel extends Widget implements IContainerTooltipHandler {
 
-    protected RecipeTooltipLineHandler recipeTooltipLineHandler = null;
     protected int mouseDownItemIndex = -1;
 
     protected ItemsGrid<ItemsGridSlot, MouseContext> grid = new ItemsGrid<>() {
@@ -215,29 +212,6 @@ public class ItemHistoryPanel extends Widget implements IContainerTooltipHandler
         }
 
         this.mouseDownItemIndex = -1;
-    }
-
-    @Override
-    public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
-            List<String> currenttip) {
-
-        if (itemstack != null && contains(mousex, mousey) && NEIClientConfig.getFavoriteRecipeTooltips()) {
-            final RecipeId recipeId = FavoriteRecipes.getFavorite(itemstack);
-
-            if (recipeId == null) {
-                recipeTooltipLineHandler = null;
-            } else if (recipeTooltipLineHandler == null || !recipeTooltipLineHandler.getRecipeId().equals(recipeId)) {
-                recipeTooltipLineHandler = new RecipeTooltipLineHandler(recipeId);
-            }
-
-            if (recipeTooltipLineHandler != null) {
-                currenttip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(recipeTooltipLineHandler));
-            }
-        } else {
-            recipeTooltipLineHandler = null;
-        }
-
-        return currenttip;
     }
 
 }

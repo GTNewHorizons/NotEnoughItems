@@ -9,8 +9,6 @@ import net.minecraft.item.ItemStack;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemsPanelGrid.ItemsPanelGridSlot;
-import codechicken.nei.recipe.Recipe.RecipeId;
-import codechicken.nei.recipe.RecipeTooltipLineHandler;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
@@ -33,7 +31,6 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
         return super.getStackMouseOver(mousex, mousey);
     }
 
-    protected RecipeTooltipLineHandler recipeTooltipLineHandler = null;
     public ItemHistoryPanel historyPanel = new ItemHistoryPanel();
     public Button toggleGroups;
 
@@ -207,25 +204,7 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
             }
         }
 
-        currenttip = super.handleItemTooltip(gui, itemstack, mousex, mousey, currenttip);
-
-        if (itemstack != null && contains(mousex, mousey) && NEIClientConfig.getFavoriteRecipeTooltips()) {
-            RecipeId recipeId = FavoriteRecipes.getFavorite(itemstack);
-
-            if (recipeId == null) {
-                recipeTooltipLineHandler = null;
-            } else if (recipeTooltipLineHandler == null || !recipeTooltipLineHandler.getRecipeId().equals(recipeId)) {
-                recipeTooltipLineHandler = new RecipeTooltipLineHandler(recipeId);
-            }
-
-            if (recipeTooltipLineHandler != null) {
-                currenttip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(recipeTooltipLineHandler));
-            }
-        } else {
-            recipeTooltipLineHandler = null;
-        }
-
-        return currenttip;
+        return super.handleItemTooltip(gui, itemstack, mousex, mousey, currenttip);
     }
 
     @Override

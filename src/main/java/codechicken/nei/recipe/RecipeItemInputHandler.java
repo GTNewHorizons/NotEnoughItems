@@ -1,16 +1,26 @@
 package codechicken.nei.recipe;
 
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.item.ItemStack;
 
+import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.BookmarkPanel.BookmarkViewMode;
+import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
+import codechicken.nei.NEIClientConfig;
 import codechicken.nei.api.ShortcutInputHandler;
+import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerTooltipHandler;
+import codechicken.nei.recipe.Recipe.RecipeId;
 
 public class RecipeItemInputHandler implements IContainerInputHandler, IContainerTooltipHandler {
+
+    protected RecipeTooltipLineHandler recipeTooltipLineHandler = null;
 
     public static void load() {
         RecipeItemInputHandler recipeHandler = new RecipeItemInputHandler();
@@ -45,6 +55,56 @@ public class RecipeItemInputHandler implements IContainerInputHandler, IContaine
         }
 
         return hotkeys;
+    }
+
+    @Override
+    public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
+            List<String> currenttip) {
+
+        if (itemstack != null) {
+            final RecipeId recipeId = getHoveredRecipeId(gui, itemstack, mousex, mousey);
+
+            if (recipeId == null) {
+                recipeTooltipLineHandler = null;
+            } else if (recipeTooltipLineHandler == null || !recipeTooltipLineHandler.getRecipeId().equals(recipeId)) {
+                recipeTooltipLineHandler = new RecipeTooltipLineHandler(recipeId);
+            }
+
+            if (recipeTooltipLineHandler != null) {
+                currenttip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(recipeTooltipLineHandler));
+            }
+        } else {
+            recipeTooltipLineHandler = null;
+        }
+
+        return currenttip;
+    }
+
+    private RecipeId getHoveredRecipeId(GuiContainer gui, ItemStack itemstack, int mousex, int mousey) {
+
+        if (ItemPanels.bookmarkPanel.contains(mousex, mousey)) {
+            final BookmarksGridSlot slot = ItemPanels.bookmarkPanel.getSlotMouseOver(mousex, mousey);
+
+            if (slot != null && slot.getRecipeId() != null
+                    && !slot.isIngredient()
+                    && NEIClientConfig.getRecipeTooltipsMode() != 0) {
+                final int tooltipMode = NEIClientConfig.getRecipeTooltipsMode();
+                final BookmarkViewMode viewMode = slot.getGroup().viewMode;
+                if (tooltipMode == 3 || viewMode == BookmarkViewMode.DEFAULT && tooltipMode == 1
+                        || viewMode == BookmarkViewMode.TODO_LIST && tooltipMode == 2) {
+                    return slot.getRecipeId();
+                }
+            }
+
+            return null;
+        }
+
+        if (ItemPanels.itemPanel.contains(mousex, mousey)
+                || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey)) {
+            return NEIClientConfig.getFavoriteRecipeTooltips() ? FavoriteRecipes.getFavorite(itemstack) : null;
+        }
+
+        return null;
     }
 
     @Override
