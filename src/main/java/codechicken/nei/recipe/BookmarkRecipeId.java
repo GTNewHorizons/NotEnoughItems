@@ -14,6 +14,7 @@ import com.google.gson.JsonPrimitive;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.util.NBTJson;
 
+@Deprecated
 public class BookmarkRecipeId {
 
     public String handlerName = null;

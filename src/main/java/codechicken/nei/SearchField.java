@@ -281,7 +281,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
     }
 
     public static String getEscapedSearchText(ItemStack stack) {
-        final FluidStack fluidStack = StackInfo.isFluidContainer(stack) ? null : StackInfo.getFluid(stack);
+        final FluidStack fluidStack = StackInfo.getFluid(stack);
         String displayName;
 
         if (fluidStack != null) {

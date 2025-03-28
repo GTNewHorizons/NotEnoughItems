@@ -2,6 +2,7 @@ package codechicken.nei;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,7 +11,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
-import codechicken.nei.ItemList.AllMultiItemFilter;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.GuiRecipe;
@@ -96,28 +96,21 @@ public class PositionedStack {
     }
 
     public List<ItemStack> getFilteredPermutations(ItemFilter additionalFilter) {
-        List<ItemStack> items = Arrays.asList(this.items).stream().filter(getItemFilter(additionalFilter)::matches)
-                .collect(Collectors.toList());
+        List<ItemStack> items = Arrays.asList(this.items);
 
-        if (items.isEmpty()) {
-            items.addAll(
-                    Arrays.asList(this.items).stream().filter(item -> !ItemInfo.isHidden(item))
-                            .collect(Collectors.toList()));
-        }
+        items = filteringPermutations(items, item -> !ItemInfo.isHidden(item));
+        items = filteringPermutations(items, PresetsList.getItemFilter());
+        items = filteringPermutations(items, GuiRecipe.getSearchItemFilter());
+        items = filteringPermutations(items, additionalFilter);
 
-        if (items.isEmpty()) {
-            items.addAll(Arrays.asList(this.items));
-        }
-
+        items.sort(Comparator.comparing(FavoriteRecipes::contains).reversed());
         return items;
     }
 
-    private ItemFilter getItemFilter(ItemFilter additionalFilter) {
-        return new AllMultiItemFilter(
-                additionalFilter,
-                item -> !ItemInfo.isHidden(item),
-                PresetsList.getItemFilter(),
-                GuiRecipe.getSearchItemFilter());
+    private List<ItemStack> filteringPermutations(List<ItemStack> items, ItemFilter filter) {
+        if (filter == null) return items;
+        final List<ItemStack> filteredItems = items.stream().filter(filter::matches).collect(Collectors.toList());
+        return filteredItems.isEmpty() ? items : filteredItems;
     }
 
     public boolean setPermutationToRender(ItemStack ingredient) {

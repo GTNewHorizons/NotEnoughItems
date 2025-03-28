@@ -1,13 +1,14 @@
 package codechicken.nei;
 
+import java.awt.Point;
 import java.util.ArrayList;
-import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
-import codechicken.nei.ItemPanel.ItemPanelSlot;
+import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.guihook.GuiContainerManager;
@@ -16,7 +17,8 @@ import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
 
-public abstract class PanelWidget extends Widget implements IContainerTooltipHandler {
+public abstract class PanelWidget<T extends ItemsGrid<? extends ItemsGridSlot, ? extends ItemsGrid.MouseContext>>
+        extends Widget implements IContainerTooltipHandler {
 
     protected static final int PADDING = 2;
 
@@ -27,20 +29,20 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
     public Button pageNext;
     public Label pageLabel;
 
-    protected ItemsGrid grid;
+    protected T grid;
 
     public ArrayList<ItemStack> getItems() {
-        return grid.getItems();
+        return this.grid.getItems();
     }
 
-    public ItemsGrid getGrid() {
-        return grid;
+    public T getGrid() {
+        return this.grid;
     }
 
     public void init() {
         pageLabel = new Label("0/0", true);
 
-        pagePrev = new Button("Prev") {
+        pagePrev = new Button("<") {
 
             public boolean onButtonPress(boolean rightclick) {
 
@@ -54,11 +56,12 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
             }
 
             @Override
-            public String getRenderLabel() {
-                return "<";
+            public void draw(int mousex, int mousey) {
+                this.state = grid.getNumPages() <= 1 ? 2 : 0;
+                super.draw(mousex, mousey);
             }
         };
-        pageNext = new Button("Next") {
+        pageNext = new Button(">") {
 
             public boolean onButtonPress(boolean rightclick) {
 
@@ -72,8 +75,9 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
             }
 
             @Override
-            public String getRenderLabel() {
-                return ">";
+            public void draw(int mousex, int mousey) {
+                this.state = grid.getNumPages() <= 1 ? 2 : 0;
+                super.draw(mousex, mousey);
             }
         };
     }
@@ -97,9 +101,6 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
                 getWidth(gui),
                 getHeight(gui));
 
-        final int minWidth = 5 * ItemsGrid.SLOT_SIZE;
-        final int minHeight = 9 * ItemsGrid.SLOT_SIZE;
-
         final String settingName = getPositioningSettingName();
         int paddingLeft = (int) Math
                 .ceil(margin.w * NEIClientConfig.getSetting(settingName + ".left").getIntValue() / 100000.0);
@@ -110,12 +111,12 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
         int paddingBottom = (int) Math
                 .ceil(margin.h * NEIClientConfig.getSetting(settingName + ".bottom").getIntValue() / 100000.0);
 
-        int deltaHeight = Math.min(0, margin.h - paddingTop - paddingBottom - minHeight) / 2;
+        int deltaHeight = Math.min(0, margin.h - paddingTop - paddingBottom - ItemsGrid.SLOT_SIZE) / 2;
 
-        paddingLeft = Math.min(paddingLeft, Math.max(0, margin.w - paddingRight - minWidth));
-        paddingRight = Math.min(paddingRight, Math.max(0, margin.w - paddingLeft - minWidth));
-        paddingTop = Math.min(margin.h - minHeight, Math.max(0, paddingTop + deltaHeight));
-        paddingBottom = Math.min(margin.h - paddingTop - minHeight, Math.max(0, paddingBottom - deltaHeight));
+        paddingLeft = Math.min(paddingLeft, Math.max(0, margin.w - paddingRight - ItemsGrid.SLOT_SIZE));
+        paddingRight = Math.min(paddingRight, Math.max(0, margin.w - paddingLeft - ItemsGrid.SLOT_SIZE));
+        paddingTop = Math.min(margin.h - ItemsGrid.SLOT_SIZE, Math.max(0, paddingTop + deltaHeight));
+        paddingBottom = Math.min(margin.h - paddingTop - ItemsGrid.SLOT_SIZE, Math.max(0, paddingBottom - deltaHeight));
 
         x = margin.x + paddingLeft;
         y = margin.y + paddingTop;
@@ -125,8 +126,8 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
         final int header = resizeHeader(gui);
         final int footer = resizeFooter(gui);
 
-        grid.setGridSize(x, y + header, w, h - header - footer);
-        grid.refresh(gui);
+        this.grid.setGridSize(x, y + header, w, h - header - footer);
+        this.grid.refresh(gui);
     }
 
     protected int resizeHeader(GuiContainer gui) {
@@ -171,22 +172,22 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
     protected abstract int resizeFooter(GuiContainer gui);
 
     public void setVisible() {
-        if (grid.getPerPage() > 0 && !grid.isEmpty()) {
+        if (this.grid.getPerPage() > 0 && !this.grid.isEmpty()) {
             LayoutManager.addWidget(pagePrev);
             LayoutManager.addWidget(pageNext);
             LayoutManager.addWidget(pageLabel);
-            grid.setVisible();
+            this.grid.setVisible();
         }
     }
 
     @Override
     public void update() {
-        grid.update();
+        this.grid.update();
     }
 
     @Override
     public void draw(int mousex, int mousey) {
-        grid.draw(mousex, mousey);
+        this.grid.draw(mousex, mousey);
     }
 
     @Override
@@ -200,37 +201,33 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
 
     @Override
     public void mouseDragged(int mousex, int mousey, int button, long heldTime) {
-        if (mouseDownSlot >= grid.realItems.size()) {
+        if (this.grid.getSlotBySlotIndex(mouseDownSlot) == null) {
             mouseDownSlot = -1;
         }
 
         if (mouseDownSlot >= 0 && draggedStack == null
                 && NEIClientUtils.getHeldItem() == null
                 && NEIClientConfig.hasSMPCounterPart()) {
-            ItemPanelSlot mouseOverSlot = getSlotMouseOver(mousex, mousey);
+            ItemsGridSlot mouseOverSlot = this.grid.getSlotMouseOver(mousex, mousey);
 
             if (mouseOverSlot == null || mouseOverSlot.slotIndex != mouseDownSlot || heldTime > 500) {
-                draggedStack = getDraggedStackWithQuantity(mouseDownSlot);
+                draggedStack = getDraggedStackWithQuantity(this.grid.getSlotBySlotIndex(mouseDownSlot).getItemStack());
                 mouseDownSlot = -1;
             }
         }
     }
 
-    protected abstract ItemStack getDraggedStackWithQuantity(int mouseDownSlot);
+    protected abstract ItemStack getDraggedStackWithQuantity(ItemStack itemStack);
 
     @Override
     public boolean handleClick(int mousex, int mousey, int button) {
         if (handleClickExt(mousex, mousey, button)) return true;
 
-        ItemPanelSlot hoverSlot = getSlotMouseOver(mousex, mousey);
+        ItemsGridSlot hoverSlot = this.grid.getSlotMouseOver(mousex, mousey);
         if (hoverSlot != null) {
 
             if (button == 2) {
-
-                if (hoverSlot.item != null) {
-                    draggedStack = getDraggedStackWithQuantity(hoverSlot.slotIndex);
-                }
-
+                draggedStack = getDraggedStackWithQuantity(hoverSlot.getItemStack());
             } else {
                 mouseDownSlot = hoverSlot.slotIndex;
             }
@@ -245,7 +242,7 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
     public boolean handleClickExt(int mouseX, int mouseY, int button) {
 
         if (ItemPanels.itemPanel.draggedStack != null && ItemPanels.bookmarkPanel.contains(mouseX, mouseY)) {
-            ItemPanels.bookmarkPanel.addOrRemoveItem(ItemPanels.itemPanel.draggedStack, null, null, false, true);
+            ItemPanels.bookmarkPanel.addItem(ItemPanels.itemPanel.draggedStack);
             ItemPanels.itemPanel.draggedStack = null;
             return true;
         }
@@ -311,25 +308,23 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
 
     @Override
     public void mouseUp(int mousex, int mousey, int button) {
-        ItemPanelSlot hoverSlot = getSlotMouseOver(mousex, mousey);
+        final ItemsGridSlot hoverSlot = this.grid.getSlotMouseOver(mousex, mousey);
 
         if (hoverSlot != null && hoverSlot.slotIndex == mouseDownSlot && draggedStack == null) {
-            ItemStack item = hoverSlot.item.copy();
 
             if (NEIController.manager.window instanceof GuiRecipe || NEIClientUtils.shiftKey()
-                    || !NEIClientConfig.canCheatItem(item)) {
+                    || !NEIClientConfig.canCheatItem(hoverSlot.getItemStack())) {
 
                 if (button == 0) {
-                    GuiCraftingRecipe.openRecipeGui("item", item);
+                    GuiCraftingRecipe.openRecipeGui("item", hoverSlot.getItemStack().copy());
                 } else if (button == 1) {
-                    GuiUsageRecipe.openRecipeGui("item", item);
+                    GuiUsageRecipe.openRecipeGui("item", hoverSlot.getItemStack().copy());
                 }
 
-                mouseDownSlot = -1;
-                return;
+            } else {
+                NEIClientUtils.cheatItem(getDraggedStackWithQuantity(hoverSlot.getItemStack()), button, -1);
             }
 
-            NEIClientUtils.cheatItem(getDraggedStackWithQuantity(hoverSlot.slotIndex), button, -1);
         }
 
         mouseDownSlot = -1;
@@ -339,20 +334,22 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
     public boolean onMouseWheel(int i, int mousex, int mousey) {
         if (!contains(mousex, mousey)) return false;
 
-        grid.shiftPage(-i);
+        this.grid.shiftPage(-i);
         return true;
     }
 
     @Override
     public boolean handleKeyPress(int keyID, char keyChar) {
+        final Point mouse = GuiDraw.getMousePosition();
+        if (!contains(mouse.x, mouse.y)) return false;
 
         if (NEIClientConfig.isKeyHashDown("gui.next")) {
-            grid.shiftPage(1);
+            this.grid.shiftPage(1);
             return true;
         }
 
         if (NEIClientConfig.isKeyHashDown("gui.prev")) {
-            grid.shiftPage(-1);
+            this.grid.shiftPage(-1);
             return true;
         }
 
@@ -361,41 +358,28 @@ public abstract class PanelWidget extends Widget implements IContainerTooltipHan
 
     @Override
     public ItemStack getStackMouseOver(int mousex, int mousey) {
-        ItemPanelSlot slot = getSlotMouseOver(mousex, mousey);
-        return slot == null ? null : slot.item;
+        final ItemsGridSlot slot = this.grid.getSlotMouseOver(mousex, mousey);
+        return slot == null ? null : slot.getItemStack();
     }
 
-    public ItemPanelSlot getSlotMouseOver(int mousex, int mousey) {
-        return grid.getSlotMouseOver(mousex, mousey);
+    public ItemStack getStackMouseOverWithQuantity(int mousex, int mousey) {
+        final ItemStack hoverSlot = getStackMouseOver(mousex, mousey);
+        return hoverSlot != null ? getDraggedStackWithQuantity(hoverSlot) : null;
     }
+
+    abstract ItemsGridSlot getSlotMouseOver(int mousex, int mousey);
 
     public int getPage() {
-        return grid.getPage();
+        return this.grid.getPage();
     }
 
     public int getNumPages() {
-        return grid.getNumPages();
+        return this.grid.getNumPages();
     }
 
     @Override
     public boolean contains(int px, int py) {
-        return grid.contains(px, py);
-    }
-
-    @Override
-    public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
-        return currenttip;
-    }
-
-    @Override
-    public List<String> handleItemDisplayName(GuiContainer gui, ItemStack itemstack, List<String> currenttip) {
-        return currenttip;
-    }
-
-    @Override
-    public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
-            List<String> currenttip) {
-        return currenttip;
+        return this.grid.contains(px, py);
     }
 
 }

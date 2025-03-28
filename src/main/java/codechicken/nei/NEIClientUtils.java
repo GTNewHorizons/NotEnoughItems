@@ -8,6 +8,7 @@ import static codechicken.nei.NEIClientConfig.hasSMPCounterPart;
 import static codechicken.nei.NEIClientConfig.invCreativeMode;
 import static codechicken.nei.NEIClientConfig.world;
 
+import java.awt.Color;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.math.BigInteger;
@@ -32,6 +33,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
@@ -41,9 +44,11 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Iterables;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.inventory.InventoryRange;
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.util.LangProxy;
@@ -486,4 +491,66 @@ public class NEIClientUtils extends NEIServerUtils {
             reportErrorBuffered(e, buffer, "null");
         }
     }
+
+    public static void drawRect(double left, double top, double width, double height, Color color) {
+        Tessellator tessellator = Tessellator.instance;
+
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+        GL11.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
+        tessellator.startDrawingQuads();
+        tessellator.addVertex(left, top + height, 0.0D);
+        tessellator.addVertex(left + width, top + height, 0.0D);
+        tessellator.addVertex(left + width, top, 0.0D);
+        tessellator.addVertex(left, top, 0.0D);
+        tessellator.draw();
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_BLEND);
+    }
+
+    public static void drawMarker(float x, float y, float scale, String text, int color, boolean alignRight,
+            boolean alignBottom) {
+        final float screenScale = mc().currentScreen.width * 1f / mc().displayWidth;
+        final float smallTextScale = Math
+                .max(screenScale, Math.max(scale, 1f) * (GuiDraw.fontRenderer.getUnicodeFlag() ? 3F / 4F : 1F / 2F));
+
+        NEIClientUtils.gl2DRenderContext(() -> {
+            double offsetX = Math.ceil(x);
+            double offsetY = Math.ceil(y);
+
+            if (alignRight) {
+                offsetX = Math.ceil(x + 16 * scale - GuiDraw.fontRenderer.getStringWidth(text) * smallTextScale);
+            }
+
+            if (alignBottom) {
+                offsetY = Math
+                        .ceil(y + 16 * scale - GuiDraw.fontRenderer.FONT_HEIGHT * smallTextScale + smallTextScale);
+            }
+
+            GL11.glTranslated(offsetX, offsetY, 0);
+            GL11.glScalef(smallTextScale, smallTextScale, 1f);
+
+            GuiDraw.fontRenderer.drawStringWithShadow(text, 0, 0, color);
+
+            GL11.glScalef(1f / smallTextScale, 1f / smallTextScale, 1f);
+            GL11.glTranslated(-1 * offsetX, -1 * offsetY, 0);
+        });
+    }
+
+    public static void gl2DRenderContext(Runnable callback) {
+        boolean isLighting = GL11.glGetBoolean(GL11.GL_LIGHTING);
+        boolean isDepthTest = GL11.glGetBoolean(GL11.GL_DEPTH_TEST);
+        boolean isAlphaTest = GL11.glGetBoolean(GL11.GL_ALPHA_TEST);
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+
+        callback.run();
+
+        if (isLighting) GL11.glEnable(GL11.GL_LIGHTING);
+        if (isDepthTest) GL11.glEnable(GL11.GL_DEPTH_TEST);
+        if (!isAlphaTest) GL11.glDisable(GL11.GL_ALPHA_TEST);
+    }
+
 }
