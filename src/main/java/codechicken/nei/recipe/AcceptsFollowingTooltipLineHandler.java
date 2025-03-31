@@ -43,7 +43,7 @@ public class AcceptsFollowingTooltipLineHandler extends ItemsTooltipLineHandler 
         super.drawItem(x, y, drawStack, stackSize);
 
         if (FavoriteRecipes.contains(drawStack)) {
-            NEIClientUtils.drawMarker(x, y, 1f, "F", 0xA0A0A0, false, false);
+            NEIClientUtils.drawNEIOverlayText("F", x, y);
         }
     }
 

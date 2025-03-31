@@ -7,6 +7,7 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
@@ -101,7 +102,14 @@ public class RecipeItemInputHandler implements IContainerInputHandler, IContaine
 
         if (ItemPanels.itemPanel.contains(mousex, mousey)
                 || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey)) {
-            return NEIClientConfig.getFavoriteRecipeTooltips() ? FavoriteRecipes.getFavorite(itemstack) : null;
+            return NEIClientConfig.showRecipeTooltipInPanel() ? FavoriteRecipes.getFavorite(itemstack) : null;
+        }
+
+        if (gui instanceof GuiRecipe<?>guiRecipe
+                && new Rectangle4i(gui.guiLeft, gui.guiTop, gui.xSize, gui.ySize).contains(mousex, mousey)
+                && NEIClientConfig.showRecipeTooltipInGui()
+                && guiRecipe.getFocusedRecipe() == null) {
+            return FavoriteRecipes.getFavorite(itemstack);
         }
 
         return null;

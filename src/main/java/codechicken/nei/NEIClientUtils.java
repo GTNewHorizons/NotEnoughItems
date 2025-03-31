@@ -52,6 +52,7 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.inventory.InventoryRange;
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.util.LangProxy;
+import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.IInfiniteItemHandler;
 import codechicken.nei.api.ItemInfo;
@@ -59,6 +60,36 @@ import codechicken.nei.util.NEIKeyboardUtils;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class NEIClientUtils extends NEIServerUtils {
+
+    public static class Alignment {
+
+        public final int x, y;
+
+        public static final Alignment TopLeft = new Alignment(-1, -1);
+        public static final Alignment TopCenter = new Alignment(0, -1);
+        public static final Alignment TopRight = new Alignment(1, -1);
+        public static final Alignment CenterLeft = new Alignment(-1, 0);
+        public static final Alignment Center = new Alignment(0, 0);
+        public static final Alignment CenterRight = new Alignment(1, 0);
+        public static final Alignment BottomLeft = new Alignment(-1, 1);
+        public static final Alignment BottomCenter = new Alignment(0, 1);
+        public static final Alignment BottomRight = new Alignment(1, 1);
+
+        public Alignment(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public float getX(float parentWidth, float childWidth) {
+            final float x = (this.x + 1) / 2f;
+            return parentWidth * x - childWidth * x;
+        }
+
+        public float getY(float parentHeight, float childHeight) {
+            final float y = (this.y + 1) / 2f;
+            return parentHeight * y - childHeight * y;
+        }
+    }
 
     public static LangProxy lang = new LangProxy("nei");
 
@@ -509,33 +540,33 @@ public class NEIClientUtils extends NEIServerUtils {
         GL11.glDisable(GL11.GL_BLEND);
     }
 
-    public static void drawMarker(float x, float y, float scale, String text, int color, boolean alignRight,
-            boolean alignBottom) {
+    public static void drawNEIOverlayText(String text, Rectangle4i rect, float scale, int color, boolean shadow,
+            Alignment alignment) {
         final float screenScale = mc().currentScreen.width * 1f / mc().displayWidth;
-        final float smallTextScale = Math
-                .max(screenScale, Math.max(scale, 1f) * (GuiDraw.fontRenderer.getUnicodeFlag() ? 3F / 4F : 1F / 2F));
+        final double smallTextScale = Math
+                .max(screenScale, (Math.max(scale, 1f) * (GuiDraw.fontRenderer.getUnicodeFlag() ? 3F / 4F : 1F / 2F)));
 
         NEIClientUtils.gl2DRenderContext(() -> {
-            double offsetX = Math.ceil(x);
-            double offsetY = Math.ceil(y);
-
-            if (alignRight) {
-                offsetX = Math.ceil(x + 16 * scale - GuiDraw.fontRenderer.getStringWidth(text) * smallTextScale);
-            }
-
-            if (alignBottom) {
-                offsetY = Math
-                        .ceil(y + 16 * scale - GuiDraw.fontRenderer.FONT_HEIGHT * smallTextScale + smallTextScale);
-            }
+            final int width = GuiDraw.fontRenderer.getStringWidth(text);
+            final float partW = rect.w / 2f;
+            final float partH = rect.h / 2f;
+            final double offsetX = Math
+                    .ceil(rect.x + partW + partW * alignment.x - (width / 2f * (alignment.x + 1)) * smallTextScale);
+            final double offsetY = Math.ceil(
+                    rect.y + partH
+                            + partH * alignment.y
+                            - (GuiDraw.fontRenderer.FONT_HEIGHT / 2f * (alignment.y + 1)) * smallTextScale);
 
             GL11.glTranslated(offsetX, offsetY, 0);
-            GL11.glScalef(smallTextScale, smallTextScale, 1f);
-
-            GuiDraw.fontRenderer.drawStringWithShadow(text, 0, 0, color);
-
-            GL11.glScalef(1f / smallTextScale, 1f / smallTextScale, 1f);
+            GL11.glScaled(smallTextScale, smallTextScale, 1);
+            GuiDraw.fontRenderer.drawString(text, 0, 0, color, shadow);
+            GL11.glScaled(1 / smallTextScale, 1 / smallTextScale, 1);
             GL11.glTranslated(-1 * offsetX, -1 * offsetY, 0);
         });
+    }
+
+    public static void drawNEIOverlayText(String text, int x, int y) {
+        drawNEIOverlayText(text, new Rectangle4i(x, y, 16, 16), 0.5f, 0xFDD835, false, Alignment.TopLeft);
     }
 
     public static void gl2DRenderContext(Runnable callback) {

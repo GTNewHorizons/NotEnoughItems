@@ -51,13 +51,13 @@ public class ItemsPanelGrid extends ItemsGrid<ItemsPanelGrid.ItemsPanelGridSlot,
         public void drawItem(Rectangle4i rect) {
 
             if (!this.extended && getBGItem() != null) {
-                int scale = (int) Math.ceil(Math.min(rect.w, rect.h) / DEFAULT_SLOT_SIZE);
+                int panelFactor = (int) Math.ceil((Math.min(rect.w, rect.h) - 2) / (DEFAULT_SLOT_SIZE - 2));
 
                 GuiContainerManager.drawItems.zLevel -= 10F;
-                super.drawItem(getBGItem(), rect.offset(1 * scale, -1 * scale));
+                super.drawItem(getBGItem(), rect.offset(1 * panelFactor, -1 * panelFactor));
                 GuiContainerManager.drawItems.zLevel += 10F;
 
-                super.drawItem(getItemStack(), rect.offset(-2 * scale, 2 * scale));
+                super.drawItem(getItemStack(), rect.offset(-2 * panelFactor, 2 * panelFactor));
             } else {
                 super.drawItem(rect);
             }
@@ -78,7 +78,7 @@ public class ItemsPanelGrid extends ItemsGrid<ItemsPanelGrid.ItemsPanelGridSlot,
     }
 
     public static void updateScale() {
-        SLOT_SIZE = (int) Math.ceil(9f * NEIClientConfig.getIntSetting("inventory.itempanelScale") / 100) * 2;
+        SLOT_SIZE = 2 + (int) Math.ceil(8f * NEIClientConfig.getIntSetting("inventory.itempanelScale") / 100) * 2;
     }
 
     @Override
