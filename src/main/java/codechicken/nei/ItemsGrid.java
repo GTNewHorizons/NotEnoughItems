@@ -178,14 +178,14 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
         protected void drawItem(ItemStack stack, Rectangle4i rect) {
 
             if (rect.w != DEFAULT_SLOT_SIZE) {
-                final float panelFactor = rect.w / DEFAULT_SLOT_SIZE;
-                GL11.glTranslatef(rect.x + panelFactor, rect.y + panelFactor, 0);
+                final float panelFactor = (rect.w - 2) / (DEFAULT_SLOT_SIZE - 2);
+                GL11.glTranslatef(rect.x + 1, rect.y + 1, 0);
                 GL11.glScaled(panelFactor, panelFactor, 1);
 
                 GuiContainerManager.drawItem(0, 0, stack, true, "");
 
                 GL11.glScaled(1f / panelFactor, 1f / panelFactor, 1);
-                GL11.glTranslatef(-1 * (rect.x + panelFactor), -1 * (rect.y + panelFactor), 0);
+                GL11.glTranslatef(-1 * (rect.x + 1), -1 * (rect.y + 1), 0);
             } else {
                 GuiContainerManager.drawItem(rect.x + 1, rect.y + 1, stack, true, "");
             }

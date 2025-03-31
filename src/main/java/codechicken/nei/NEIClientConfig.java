@@ -197,6 +197,14 @@ public class NEIClientConfig {
         tag.getTag("inventory.bookmarks.showRecipeMarkerMode").setComment("Show Recipe Marker").getIntValue(0);
         API.addOption(new OptionCycled("inventory.bookmarks.showRecipeMarkerMode", 3, true));
 
+        tag.getTag("inventory.bookmarks.recipeMarkerColor").setComment("Color of the icon marker")
+                .getHexValue(0xFDD835);
+        API.addOption(
+                new OptionIntegerField(
+                        "inventory.bookmarks.recipeMarkerColor",
+                        0,
+                        OptionIntegerField.UNSIGNED_INT_MAX));
+
         tag.getTag("inventory.bookmarks.recipeChainDir").getIntValue(1);
         API.addOption(new OptionCycled("inventory.bookmarks.recipeChainDir", 2, true));
 
@@ -236,14 +244,14 @@ public class NEIClientConfig {
                 .setComment("Require holding shift to move items when overlaying recipe").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.guirecipe.shiftOverlayRecipe", true));
 
+        tag.getTag("inventory.guirecipe.profile").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.profile", true));
+
         tag.getTag("inventory.subsets.enabled").setComment("Enable/disable Subsets Dropdown").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.subsets.enabled", true));
 
         tag.getTag("inventory.subsets.widgetPosition").setComment("Subsets Widget Position").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.subsets.widgetPosition", true));
-
-        tag.getTag("inventory.guirecipe.profile").getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.guirecipe.profile", true));
 
         tag.getTag("inventory.history.enabled").setComment("Enable/disable History Panel").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.history.enabled", true));
@@ -701,9 +709,13 @@ public class NEIClientConfig {
             }
         });
 
-        tag.getTag("inventory.favorites.showRecipeTooltip").setComment("Show recipe tooltips in Items Panel")
+        tag.getTag("inventory.favorites.showRecipeTooltipInPanel").setComment("Show recipe tooltips in Items Panel")
                 .getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.favorites.showRecipeTooltip", true));
+        API.addOption(new OptionToggleButton("inventory.favorites.showRecipeTooltipInPanel", true));
+
+        tag.getTag("inventory.favorites.showRecipeTooltipInGui").setComment("Show recipe tooltips in Recipe Gui")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.favorites.showRecipeTooltipInGui", true));
 
         tag.getTag("inventory.favorites.depth").setComment("Bookmark creation depth").getIntValue(3);
         API.addOption(new OptionIntegerField("inventory.favorites.depth", 0, 100));
@@ -962,8 +974,12 @@ public class NEIClientConfig {
         return getIntSetting("inventory.bookmarks.recipeTooltipsMode");
     }
 
-    public static boolean getFavoriteRecipeTooltips() {
-        return getBooleanSetting("inventory.favorites.showRecipeTooltip");
+    public static boolean showRecipeTooltipInPanel() {
+        return getBooleanSetting("inventory.favorites.showRecipeTooltipInPanel");
+    }
+
+    public static boolean showRecipeTooltipInGui() {
+        return getBooleanSetting("inventory.favorites.showRecipeTooltipInGui");
     }
 
     public static int showRecipeMarkerMode() {

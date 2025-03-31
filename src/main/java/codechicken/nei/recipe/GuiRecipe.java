@@ -627,7 +627,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     public Recipe getFocusedRecipe() {
-        List<Integer> indices = getRecipeIndices();
+        final List<Integer> indices = getRecipeIndices();
 
         for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
             final int recipeIndex = indices.get(refIndex);
@@ -641,7 +641,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
     protected boolean recipeInFocus(int refIndex, int recipeIndex) {
         final PositionedStack result = handler.original.getResultStack(recipeIndex);
-
         if (result != null && isMouseOver(result, refIndex)) {
             return true;
         }
@@ -654,6 +653,15 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
 
         return false;
+    }
+
+    private boolean isMouseOver(PositionedStack stack, int refIndex) {
+        Point p = getRefIndexPosition(refIndex);
+        Point mousepos = GuiDraw.getMousePosition();
+        Slot stackSlot = slotcontainer.getSlotWithStack(stack, p.x, p.y);
+        Slot mouseoverSlot = getSlotAtPosition(mousepos.x, mousepos.y);
+
+        return stackSlot == mouseoverSlot;
     }
 
     public String getHandlerName() {
@@ -1202,15 +1210,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     @Override
     public GuiScreen getFirstScreenGeneral() {
         return firstGuiGeneral;
-    }
-
-    public boolean isMouseOver(PositionedStack stack, int refIndex) {
-        Point p = getRefIndexPosition(refIndex);
-        Point mousepos = GuiDraw.getMousePosition();
-        Slot stackSlot = slotcontainer.getSlotWithStack(stack, p.x, p.y);
-        Slot mouseoverSlot = getSlotAtPosition(mousepos.x, mousepos.y);
-
-        return stackSlot == mouseoverSlot;
     }
 
     private int getRecipesPerPage() {

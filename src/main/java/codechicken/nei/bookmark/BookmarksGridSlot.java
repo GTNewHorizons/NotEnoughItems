@@ -11,6 +11,7 @@ import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.ItemsGrid.MouseContext;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.NEIClientUtils.Alignment;
 import codechicken.nei.bookmark.BookmarkGrid.BookmarkMouseContext;
 import codechicken.nei.bookmark.RecipeChainDetails.CalculatedType;
 import codechicken.nei.recipe.Recipe.RecipeId;
@@ -90,7 +91,8 @@ public class BookmarksGridSlot extends ItemsGridSlot {
         final BookmarkGrid grid = ItemPanels.bookmarkPanel.getGrid();
         final BookmarkItem prevItem = grid.getCalculatedItem(
                 grid.gridGenerator.slotToItem.getOrDefault(grid.gridGenerator.itemToSlot.get(this.itemIndex) - 1, -1));
-        this.isFirstOutput = this.itemIndex >= 0
+        this.isFirstOutput = this.itemIndex >= 0 && !this.bookmarkItem.isIngredient
+                && ((this.slotIndex % grid.getColumns()) == 0 || group.viewMode == BookmarkViewMode.DEFAULT)
                 && (prevItem == null || prevItem.isIngredient || !this.bookmarkItem.equalsRecipe(prevItem));
         this.rowIndex = this.slotIndex / grid.getColumns();
     }
@@ -252,26 +254,35 @@ public class BookmarksGridSlot extends ItemsGridSlot {
                 drawMarker(
                         rect,
                         "x" + ReadableNumberConverter.INSTANCE.toWideReadableForm(this.realMultiplier),
-                        0xAAAAAA);
+                        0xFFFFFF);
             } else if (shownItemType == ShownItemType.SHIFT) {
                 drawMarker(rect, "x" + ReadableNumberConverter.INSTANCE.toWideReadableForm(getMultiplier()), 0xFFFFFF);
-            } else if (this.isOutputRecipe) {
+            } else if (this.isOutputRecipe || this.realMultiplier > 1) {
                 drawMarker(
                         rect,
                         "x" + ReadableNumberConverter.INSTANCE.toWideReadableForm(this.realMultiplier),
-                        0xAAAAAA);
+                        NEIClientConfig.getSetting("inventory.bookmarks.recipeMarkerColor").getHexValue());
             } else if (NEIClientConfig.showRecipeMarkerMode() == 1) {
-                drawMarker(rect, "R", 0xA0A0A0);
+                drawMarker(
+                        rect,
+                        "R",
+                        NEIClientConfig.getSetting("inventory.bookmarks.recipeMarkerColor").getHexValue());
             }
         } else if (NEIClientConfig.showRecipeMarkerMode() == 1) {
-            drawMarker(rect, "R", 0xA0A0A0);
+            drawMarker(rect, "R", NEIClientConfig.getSetting("inventory.bookmarks.recipeMarkerColor").getHexValue());
         }
 
     }
 
     protected void drawMarker(Rectangle4i rect, String text, int color) {
-        final float panelFactor = rect.w / DEFAULT_SLOT_SIZE;
-        NEIClientUtils.drawMarker(rect.x + panelFactor, rect.y + panelFactor, panelFactor, text, color, false, false);
+        final float panelFactor = (rect.w - 2) / (DEFAULT_SLOT_SIZE - 2);
+        NEIClientUtils.drawNEIOverlayText(
+                text,
+                new Rectangle4i(rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2),
+                panelFactor,
+                color,
+                true,
+                Alignment.TopLeft);
     }
 
     protected void drawStackSize(Rectangle4i rect, ShownItemType shownItemType) {
@@ -284,7 +295,7 @@ public class BookmarksGridSlot extends ItemsGridSlot {
         }
 
         if (amount > 0 || shownItemType == ShownItemType.REAL && this.bookmarkItem.factor > 0) {
-            final float panelFactor = rect.w / DEFAULT_SLOT_SIZE;
+            final float panelFactor = (rect.w - 2) / (DEFAULT_SLOT_SIZE - 2);
             final long stackSize = this.bookmarkItem.getStackSize(amount);
             String amountString = "";
 
@@ -298,14 +309,13 @@ public class BookmarksGridSlot extends ItemsGridSlot {
                 amountString += "L";
             }
 
-            NEIClientUtils.drawMarker(
-                    rect.x + panelFactor,
-                    rect.y + panelFactor,
-                    panelFactor,
+            NEIClientUtils.drawNEIOverlayText(
                     amountString,
+                    new Rectangle4i(rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2),
+                    panelFactor,
                     0xFFFFFF,
-                    !this.isFluidDisplay,
-                    true);
+                    true,
+                    this.isFluidDisplay ? Alignment.BottomLeft : Alignment.BottomRight);
         }
     }
 

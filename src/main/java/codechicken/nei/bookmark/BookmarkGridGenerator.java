@@ -236,11 +236,10 @@ public class BookmarkGridGenerator {
                 index++;
             } else if (viewMode == BookmarkViewMode.DEFAULT) {
                 return index;
-            } else if (isFirstColumn && (meta.recipeId == null || !meta.isIngredient
-                    || previousMeta == null
+            } else if (isFirstColumn && (meta.recipeId == null || previousMeta == null
                     || previousMeta.groupId != meta.groupId
-                    || index + 1 < maxIndex && this.grid.isInvalidSlot((index + 1) % maxIndex)
-                    || meta.isIngredient && !meta.recipeId.equals(previousMeta.recipeId))) {
+                    || !meta.recipeId.equals(previousMeta.recipeId)
+                    || index + 1 < maxIndex && this.grid.isInvalidSlot((index + 1) % maxIndex))) {
                         // In first column must be an item without recipe, a recipe result, or an ingredient
                         // if the second column is occupied
                         return index;
