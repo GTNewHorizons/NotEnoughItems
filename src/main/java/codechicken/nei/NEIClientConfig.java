@@ -198,7 +198,7 @@ public class NEIClientConfig {
         API.addOption(new OptionCycled("inventory.bookmarks.showRecipeMarkerMode", 3, true));
 
         tag.getTag("inventory.bookmarks.recipeMarkerColor").setComment("Color of the icon marker")
-                .getHexValue(0xFDD835);
+                .getHexValue(0xADADAD);
         API.addOption(
                 new OptionIntegerField(
                         "inventory.bookmarks.recipeMarkerColor",
