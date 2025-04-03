@@ -655,7 +655,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         return false;
     }
 
-    private boolean isMouseOver(PositionedStack stack, int refIndex) {
+    public boolean isMouseOver(PositionedStack stack, int refIndex) {
         Point p = getRefIndexPosition(refIndex);
         Point mousepos = GuiDraw.getMousePosition();
         Slot stackSlot = slotcontainer.getSlotWithStack(stack, p.x, p.y);
