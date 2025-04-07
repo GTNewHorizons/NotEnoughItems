@@ -212,7 +212,7 @@ public class GuiContainerManager {
 
     @Nullable
     public static String itemCountDetails(ItemStack stack) {
-        FluidStack fluid = StackInfo.getFluid(stack);
+        final FluidStack fluid = StackInfo.getFluid(stack);
         if (fluid != null) {
             return fluidAmountDetails(fluid.amount * Math.max(1, stack.stackSize));
         } else {

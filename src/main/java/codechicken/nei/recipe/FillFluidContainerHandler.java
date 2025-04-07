@@ -18,7 +18,7 @@ public class FillFluidContainerHandler extends INEIGuiAdapter {
             return false;
         }
 
-        if (draggedStack.getItem() instanceof IFluidContainerItem || FluidContainerRegistry.isContainer(draggedStack)) {
+        if (StackInfo.isFluidContainer(draggedStack)) {
             ItemStack overItemStack = ItemPanels.itemPanel.getStackMouseOver(mouseX, mouseY);
 
             if (overItemStack == null) {

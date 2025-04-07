@@ -62,29 +62,31 @@ public class RecipeChainMath {
         while (true) {
             Map<BookmarkItem, BookmarkItem> maxReference = Collections.emptyMap();
             RecipeId maxRecipeId = null;
+            long maxMultiplier = 0;
             int maxDepth = 0;
 
-            for (RecipeId recipeId : multipliers.keySet()) {
+            for (Map.Entry<RecipeId, Long> entry : multipliers.entrySet()) {
+                final RecipeId recipeId = entry.getKey();
                 if (!this.outputRecipes.containsKey(recipeId) && this.preferredItems.values().stream()
                         .noneMatch(resItem -> resItem.recipeId.equals(recipeId))) {
                     final Map<BookmarkItem, BookmarkItem> references = new HashMap<>(this.preferredItems);
                     final int depth = collectPreferredItems(recipeId, references, new HashSet<>());
 
-                    if (maxDepth < depth) {
+                    if (maxDepth < depth || maxDepth == depth && entry.getValue() > maxMultiplier) {
+                        maxMultiplier = entry.getValue();
                         maxReference = references;
                         maxRecipeId = recipeId;
                         maxDepth = depth;
                     }
-
                 }
             }
 
-            if (!maxReference.isEmpty()) {
-                this.preferredItems.putAll(maxReference);
-                this.outputRecipes.put(maxRecipeId, multipliers.get(maxRecipeId));
-            } else {
+            if (maxReference.isEmpty()) {
                 break;
             }
+
+            this.preferredItems.putAll(maxReference);
+            this.outputRecipes.put(maxRecipeId, multipliers.get(maxRecipeId));
         }
 
         for (Map.Entry<RecipeId, Long> entry : multipliers.entrySet()) {
@@ -113,7 +115,6 @@ public class RecipeChainMath {
 
                 for (BookmarkItem item : this.recipeResults) {
                     if (item.factor > (prefItem == null ? 0 : prefItem.factor) && item.containsItems(ingrItem)
-                            && !item.recipeId.equals(recipeId)
                             && !visited.contains(item.recipeId)) {
                         prefItem = item;
                     }
