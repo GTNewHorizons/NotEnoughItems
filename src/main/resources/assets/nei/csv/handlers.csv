@@ -12,6 +12,8 @@ appeng.integration.modules.NEIHelpers.NEIFacadeRecipeHandler,Applied Energistics
 appeng.integration.modules.NEIHelpers.NEIGrinderRecipeHandler,Applied Energistics 2,appliedenergistics2:tile.BlockGrinder,,appliedenergistics2,TRUE,,,,,,,,,,,
 appeng.integration.modules.NEIHelpers.NEIInscriberRecipeHandler,Applied Energistics 2,appliedenergistics2:tile.BlockInscriber,,appliedenergistics2,TRUE,,,70,,5,,,,,,
 appeng.integration.modules.NEIHelpers.NEIWorldCraftingHandler,Applied Energistics 2,appliedenergistics2:item.ItemMultiMaterial:9,,appliedenergistics2,TRUE,,,85,,5,,,,,,There's only some explanatory text for fluix crystals and QEDs
+appeng.integration.modules.NEIHelpers.NEICellViewHandler,Applied Energistics 2,appliedenergistics2:item.ItemBasicStorageCell.64k,,appliedenergistics2,TRUE,,,180,,1,,,,,,,
+com.glodblock.github.nei.NEICellViewHandler,AE2 Fluid Crafting,ae2fc:item.multi_fluid_storage64,,ae2fc,TRUE,,,,,1,,,,,,,
 aroma1997.core.recipes.nei.ShapedAromicRecipeHandler,AromaBackup,minecraft:crafting_table,,AromaBackup,TRUE,,,65,,5,,,,,,
 aroma1997.core.recipes.nei.ShapelessAromicRecipeHandler,AromaBackup,minecraft:crafting_table,,AromaBackup,TRUE,,,,,,,,,,,
 fox.spiteful.avaritia.compat.nei.CompressionHandler,Avaritia,Avaritia:Neutronium_Compressor,,Avaritia,TRUE,,,50,,6,,,,,,
