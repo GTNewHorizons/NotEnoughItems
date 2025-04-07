@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
-import codechicken.nei.ItemList;
+import codechicken.nei.ItemSorter;
 import codechicken.nei.bookmark.RecipeChainDetails.BookmarkChainItem;
 import codechicken.nei.bookmark.RecipeChainDetails.CalculatedType;
 import codechicken.nei.recipe.Recipe.RecipeId;
@@ -286,7 +286,10 @@ public class BookmarkGridGenerator {
     private Comparator<Integer> generateSortingComparator(Map<Integer, BookmarkChainItem> calculatedItems) {
         return Comparator.comparingInt((Integer index) -> calculatedItems.get(index).calculatedType.toInt())
                 .thenComparing(index -> StackInfo.getFluid(calculatedItems.get(index).getItem().itemStack) != null)
-                .thenComparing(index -> ItemList.getItemOrderIndex(calculatedItems.get(index).getItem().itemStack));
+                .thenComparing(
+                        (i1, i2) -> ItemSorter.instance.compare(
+                                calculatedItems.get(i1).getItem().itemStack,
+                                calculatedItems.get(i2).getItem().itemStack));
     }
 
     private void splitGridMask() {

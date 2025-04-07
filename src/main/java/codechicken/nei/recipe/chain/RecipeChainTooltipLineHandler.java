@@ -11,7 +11,7 @@ import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.gui.GuiDraw.ITooltipLineHandler;
-import codechicken.nei.ItemList;
+import codechicken.nei.ItemSorter;
 import codechicken.nei.ItemStackAmount;
 import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.NEIClientConfig;
@@ -57,7 +57,8 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
 
             if (lastShiftKey) {
                 for (ItemStack stack : inventory.values()) {
-                    long invStackSize = inventory.get(stack);
+                    final long invStackSize = inventory.get(stack);
+
                     if (invStackSize > 0) {
                         this.math.initialItems.add(BookmarkItem.of(-1, stack.copy()));
                     }
@@ -125,13 +126,13 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
 
         inputs.sort(
                 Comparator.comparing((ItemStack stack) -> StackInfo.getFluid(stack) != null)
-                        .thenComparing(stack -> ItemList.getItemOrderIndex(stack)));
+                        .thenComparing(ItemSorter.instance));
         outputs.sort(
                 Comparator.comparing((ItemStack stack) -> StackInfo.getFluid(stack) != null)
-                        .thenComparing(stack -> ItemList.getItemOrderIndex(stack)));
+                        .thenComparing(ItemSorter.instance));
         remainder.sort(
                 Comparator.comparing((ItemStack stack) -> StackInfo.getFluid(stack) != null)
-                        .thenComparing(stack -> ItemList.getItemOrderIndex(stack)));
+                        .thenComparing(ItemSorter.instance));
 
         this.inputs = new ItemsTooltipLineHandler(
                 lastShiftKey ? NEIClientUtils.translate("bookmark.crafting_chain.missing")

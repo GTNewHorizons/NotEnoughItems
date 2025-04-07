@@ -51,13 +51,10 @@ public class ItemsPanelGrid extends ItemsGrid<ItemsPanelGrid.ItemsPanelGridSlot,
         public void drawItem(Rectangle4i rect) {
 
             if (!this.extended && getBGItem() != null) {
-                int panelFactor = (int) Math.ceil((Math.min(rect.w, rect.h) - 2) / (DEFAULT_SLOT_SIZE - 2));
-
                 GuiContainerManager.drawItems.zLevel -= 10F;
-                super.drawItem(getBGItem(), rect.offset(1 * panelFactor, -1 * panelFactor));
+                super.drawItem(getBGItem(), rect.offset(1, -1));
                 GuiContainerManager.drawItems.zLevel += 10F;
-
-                super.drawItem(getItemStack(), rect.offset(-2 * panelFactor, 2 * panelFactor));
+                super.drawItem(getItemStack(), rect.offset(-2, 2));
             } else {
                 super.drawItem(rect);
             }

@@ -90,7 +90,7 @@ public class StackInfo {
             return false;
         }
 
-        if (useNBT) {
+        if (useNBT && stackA != stackB) {
             NBTTagCompound tagCompoundA = itemStackToNBT(stackA, false);
             NBTTagCompound tagCompoundB = itemStackToNBT(stackB, false);
 
