@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
@@ -47,7 +48,7 @@ public class ItemList {
 
     private static final HashSet<Item> erroredItems = new HashSet<>();
     private static final HashSet<String> stackTraces = new HashSet<>();
-    private static HashMap<ItemStack, Integer> ordering = new HashMap<>();
+    private static Map<ItemStack, Integer> ordering = new HashMap<>();
     /**
      * Unlike {@link LayoutManager#itemsLoaded}, this indicates whether item loading is actually finished or not.
      */
@@ -213,8 +214,7 @@ public class ItemList {
                 IIcon icon = item.getIconIndex(itemstack);
                 String name = getTooltip(itemstack);
                 String s = name + "@" + (icon == null ? 0 : icon.hashCode());
-                if (!damageIconSet.contains(s)) {
-                    damageIconSet.add(s);
+                if (damageIconSet.add(s)) {
                     permutations.add(itemstack);
                 }
             } catch (TimeoutException t) {
@@ -237,12 +237,11 @@ public class ItemList {
         }
 
         private void updateOrdering(List<ItemStack> items) {
+            final Map<ItemStack, Integer> newOrdering = new HashMap<>();
             ItemSorter.sort(items);
 
-            HashMap<ItemStack, Integer> newOrdering = new HashMap<>();
-
             if (!CollapsibleItems.isEmpty()) {
-                HashMap<Integer, Integer> groups = new HashMap<>();
+                final HashMap<Integer, Integer> groups = new HashMap<>();
                 int orderIndex = 0;
 
                 for (ItemStack stack : items) {
@@ -309,7 +308,6 @@ public class ItemList {
             ListMultimap<Item, ItemStack> itemMap = ArrayListMultimap.create();
             ItemStackSet unique = new ItemStackSet();
 
-            timer.setLimit(NEIClientConfig.getItemLoadingTimeout());
             StreamSupport.stream(((Iterable<Item>) Item.itemRegistry).spliterator(), true).forEach(item -> {
                 if (item == null || item.delegate.name() == null || erroredItems.contains(item)) return;
 
@@ -330,6 +328,7 @@ public class ItemList {
                             }
 
                             CollapsibleItems.putItem(stack);
+                            TooltipFilter.getSearchTooltip(stack);
                         }
                     }
 
@@ -358,13 +357,10 @@ public class ItemList {
             if (interrupted()) return;
             updateOrdering(ItemList.items);
 
-            new Thread(
-                    () -> ItemList.items.parallelStream().forEach(TooltipFilter::getSearchTooltip),
-                    "NEI Tooltip Filter Loader").start();
-
             loadFinished = true;
 
             SubsetWidget.updateHiddenItems();
+            ItemPanels.bookmarkPanel.load();
             updateFilter.restart();
         }
     };
@@ -410,8 +406,7 @@ public class ItemList {
 
             if (interrupted()) return;
 
-            Comparator<ItemStack> comparator = Comparator.comparingInt(ItemList.ordering::get);
-            filtered.sort(comparator::compare);
+            filtered.sort(Comparator.comparingInt(ItemList.ordering::get));
 
             if (interrupted()) return;
 

@@ -150,10 +150,16 @@ public class CollapsibleItems {
     }
 
     public static void putItem(ItemStack stack) {
-        final GroupItem group = CollapsibleItems.groups.stream().filter(g -> g.matches(stack)).findFirst().orElse(null);
+        int groupIndex = -1;
 
-        if (group != null) {
-            CollapsibleItems.cache.put(stack, CollapsibleItems.groups.indexOf(group));
+        for (int i = 0; i < CollapsibleItems.groups.size() && groupIndex == -1; i++) {
+            if (CollapsibleItems.groups.get(i).matches(stack)) {
+                groupIndex = i;
+            }
+        }
+
+        if (groupIndex != -1) {
+            CollapsibleItems.cache.put(stack, groupIndex);
         }
     }
 

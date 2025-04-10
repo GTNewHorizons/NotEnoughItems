@@ -2,6 +2,10 @@ package codechicken.nei;
 
 import static codechicken.nei.NEIClientUtils.translate;
 
+import net.minecraft.item.ItemStack;
+
+import codechicken.nei.recipe.StackInfo;
+
 public class ItemQuantityField extends TextField {
 
     public ItemQuantityField(String ident) {
@@ -20,6 +24,22 @@ public class ItemQuantityField extends TextField {
         } catch (NumberFormatException nfe) {
             return 0;
         }
+    }
+
+    public static ItemStack prepareStackWithQuantity(ItemStack stack, long amount) {
+        if (stack == null) {
+            return null;
+        }
+
+        if (amount == 0) {
+            amount = NEIClientConfig.showItemQuantityWidget() ? NEIClientConfig.getItemQuantity() : 0;
+
+            if (amount == 0) {
+                amount = StackInfo.itemStackToNBT(stack).hasKey("gtFluidName") ? 144 : stack.getMaxStackSize();
+            }
+        }
+
+        return StackInfo.withAmount(stack, amount);
     }
 
     @Override

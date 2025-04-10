@@ -5,31 +5,45 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
-import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.Button;
 import codechicken.nei.ItemList;
-import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.ItemSorter;
 import codechicken.nei.ItemsGrid;
+import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.Label;
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.RestartableTask;
 import codechicken.nei.api.ItemFilter;
 
-public abstract class PresetItemsGrid extends ItemsGrid {
+public abstract class PresetItemsGrid extends ItemsGrid<PresetItemsGrid.PresetsGridSlot, ItemsGrid.MouseContext> {
 
     protected static final int BUTTON_SIZE = 16;
+
+    public class PresetsGridSlot extends ItemsGridSlot {
+
+        public PresetsGridSlot(int slotIndex, int itemIndex, ItemStack itemStack) {
+            super(slotIndex, itemIndex, itemStack);
+        }
+
+        @Override
+        public void beforeDraw(Rectangle4i rect, MouseContext mouseContext) {
+            if (mouseContext != null && mouseContext.slotIndex == this.slotIndex || isSelected(getItemStack())) {
+                NEIClientUtils.drawRect(rect.x, rect.y, rect.w, rect.h, HIGHLIGHT_COLOR);
+            }
+        }
+
+    }
 
     public Button pagePrev;
     public Label pageLabel;
     public Button pageNext;
 
     protected ArrayList<ItemStack> newItems;
+    protected List<PresetsGridSlot> gridMask;
 
     protected final RestartableTask updateFilter = new RestartableTask("NEI Presets Item Filtering") {
 
@@ -140,6 +154,28 @@ public abstract class PresetItemsGrid extends ItemsGrid {
     }
 
     @Override
+    protected void onGridChanged() {
+        this.gridMask = null;
+        super.onGridChanged();
+    }
+
+    @Override
+    public List<PresetsGridSlot> getMask() {
+
+        if (this.gridMask == null) {
+            this.gridMask = new ArrayList<>();
+            int itemIndex = page * perPage;
+
+            for (int slotIndex = 0; slotIndex < rows * columns && itemIndex < size(); slotIndex++) {
+                this.gridMask.add(new PresetsGridSlot(slotIndex, itemIndex, getItem(itemIndex)));
+                itemIndex++;
+            }
+        }
+
+        return this.gridMask;
+    }
+
+    @Override
     public void refresh(GuiContainer gui) {
 
         if (this.newItems != null) {
@@ -149,15 +185,6 @@ public abstract class PresetItemsGrid extends ItemsGrid {
         }
 
         super.refresh(gui);
-    }
-
-    @Override
-    protected void beforeDrawSlot(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
-        if (isSelected(getItem(slotIdx))) {
-            GuiDraw.drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555);
-        } else {
-            super.beforeDrawSlot(focused, slotIdx, rect);
-        }
     }
 
     protected abstract boolean isSelected(ItemStack stack);

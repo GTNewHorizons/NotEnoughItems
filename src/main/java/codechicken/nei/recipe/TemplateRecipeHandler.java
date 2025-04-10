@@ -31,6 +31,7 @@ import com.google.common.base.Stopwatch;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
+import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -193,7 +194,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
             for (PositionedStack pStack : stacks) {
                 if (pStack.items.length <= 1) continue;
-                final List<ItemStack> items = pStack.getFilteredPermutations();
+                final List<ItemStack> items = pStack.getFilteredPermutations(FavoriteRecipes::contains);
                 pStack.setPermutationToRender(items.get((int) (cycle % items.size())));
             }
         }
@@ -204,7 +205,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
                     : Math.abs(new Random(cycle + offset).nextInt());
 
             if (stack.items.length <= 1) return;
-            final List<ItemStack> items = stack.getFilteredPermutations();
+            final List<ItemStack> items = stack.getFilteredPermutations(FavoriteRecipes::contains);
             stack.setPermutationToRender(items.get((int) (cycle % items.size())));
         }
 
@@ -706,15 +707,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
         if (overStack != null && overStack.items.length > 1) {
             final List<ItemStack> items = overStack.getFilteredPermutations();
-            int stackIndex = 0;
-
-            for (int index = 0; index < items.size(); index++) {
-                if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(items.get(index), overStack.item)) {
-                    stackIndex = index;
-                    break;
-                }
-            }
-
+            final int stackIndex = getPermutationIndex(overStack.item, items);
             final ItemStack stack = items.get((items.size() - scroll + stackIndex) % items.size());
 
             if (NEIClientConfig.useJEIStyledCycledIngredients()) {
@@ -731,6 +724,17 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
 
         return false;
+    }
+
+    private int getPermutationIndex(ItemStack stack, List<ItemStack> items) {
+
+        for (int index = 0; index < items.size(); index++) {
+            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(items.get(index), stack)) {
+                return index;
+            }
+        }
+
+        return -1;
     }
 
     private PositionedStack getIngredientMouseOver(int mousex, int mousey, int recipe) {

@@ -6,7 +6,6 @@ import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
-import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.api.INEIGuiAdapter;
 
@@ -19,18 +18,18 @@ public class FillFluidContainerHandler extends INEIGuiAdapter {
             return false;
         }
 
-        if (draggedStack.getItem() instanceof IFluidContainerItem || FluidContainerRegistry.isContainer(draggedStack)) {
-            ItemPanelSlot mouseOverSlot = ItemPanels.itemPanel.getSlotMouseOver(mouseX, mouseY);
+        if (StackInfo.isFluidContainer(draggedStack)) {
+            ItemStack overItemStack = ItemPanels.itemPanel.getStackMouseOver(mouseX, mouseY);
 
-            if (mouseOverSlot == null) {
-                mouseOverSlot = ItemPanels.bookmarkPanel.getSlotMouseOver(mouseX, mouseY);
+            if (overItemStack == null) {
+                overItemStack = ItemPanels.bookmarkPanel.getStackMouseOver(mouseX, mouseY);
             }
 
-            if (mouseOverSlot != null) {
-                FluidStack fluidStack = StackInfo.getFluid(mouseOverSlot.item);
+            if (overItemStack != null) {
+                final FluidStack fluidStack = StackInfo.getFluid(overItemStack);
 
                 if (fluidStack != null) {
-                    ItemStack container = fillContainer(draggedStack, fluidStack);
+                    final ItemStack container = fillContainer(draggedStack, fluidStack);
 
                     if (container != null) {
                         container.stackSize = draggedStack.stackSize;
@@ -43,7 +42,7 @@ public class FillFluidContainerHandler extends INEIGuiAdapter {
                     }
 
                     if (button == 1 && StackInfo.getFluid(container != null ? container : draggedStack) != null) {
-                        ItemPanels.bookmarkPanel.addOrRemoveItem((container != null ? container : draggedStack).copy());
+                        ItemPanels.bookmarkPanel.addItem(container != null ? container : draggedStack);
                     }
                 }
 

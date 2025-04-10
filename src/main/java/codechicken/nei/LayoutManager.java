@@ -65,6 +65,7 @@ import codechicken.nei.guihook.IContainerDrawHandler;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerObjectHandler;
 import codechicken.nei.guihook.IContainerTooltipHandler;
+import codechicken.nei.recipe.AutoCraftingManager;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.RecipeCatalysts;
 
@@ -829,7 +830,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     @Override
     public boolean shouldShowTooltip(GuiContainer gui) {
-        return itemPanel.draggedStack == null && !bookmarkPanel.inEditingState();
+        return itemPanel.draggedStack == null && !bookmarkPanel.inEditingState() && !AutoCraftingManager.processing();
     }
 
     /** Note: this method isn't actually used by this mod, but NEI add-ons might need it. */
@@ -857,13 +858,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             ItemStack item = slot.getStack();
 
             if (item == null ? !getSearchExpression().equals("") : !searchField.getFilter().matches(item)) {
-                GL11.glDisable(GL11.GL_LIGHTING);
-                GL11.glDisable(GL11.GL_DEPTH_TEST);
-                GL11.glTranslatef(0, 0, 150);
-                drawRect(slot.xDisplayPosition, slot.yDisplayPosition, 16, 16, 0x80000000);
-                GL11.glTranslatef(0, 0, -150);
-                GL11.glEnable(GL11.GL_LIGHTING);
-                GL11.glEnable(GL11.GL_DEPTH_TEST);
+                NEIClientUtils.gl2DRenderContext(() -> {
+                    GL11.glTranslatef(0, 0, 150);
+                    drawRect(slot.xDisplayPosition, slot.yDisplayPosition, 16, 16, 0x80000000);
+                    GL11.glTranslatef(0, 0, -150);
+                });
             }
         }
 
@@ -925,11 +924,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public static void drawItemPresenceOverlay(int slotX, int slotY, boolean isPresent, boolean slotHighlight) {
 
         if (slotHighlight) {
-            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-            GL11.glDisable(GL11.GL_LIGHTING);
-            GL11.glDisable(GL11.GL_DEPTH_TEST);
-            drawRect(slotX, slotY, 16, 16, isPresent ? 0x8000AA00 : 0x80AA0000);
-            GL11.glPopAttrib();
+            NEIClientUtils.gl2DRenderContext(() -> drawRect(slotX, slotY, 16, 16, isPresent ? 0x8000AA00 : 0x80AA0000));
         } else {
             Image icon = itemPresenceOverlays[isPresent ? 1 : 0];
             drawIcon(slotX + 16 - icon.width, slotY + 16 - icon.height, icon);

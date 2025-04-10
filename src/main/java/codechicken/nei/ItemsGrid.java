@@ -1,12 +1,10 @@
 package codechicken.nei;
 
-import static codechicken.lib.gui.GuiDraw.drawRect;
-
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.annotation.Nullable;
+import java.util.Objects;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
@@ -20,14 +18,13 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 
 import codechicken.lib.vec.Rectangle4i;
-import codechicken.nei.ItemPanel.ItemPanelSlot;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.StackInfo;
 
-public class ItemsGrid {
+public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends ItemsGrid.MouseContext> {
 
-    private static class ScreenCapture {
+    protected static class ScreenCapture {
 
         private long nextCacheRefresh = 0;
         private Framebuffer framebuffer;
@@ -140,7 +137,126 @@ public class ItemsGrid {
 
     }
 
-    public static final int SLOT_SIZE = 18;
+    public static class ItemsGridSlot {
+
+        protected static final float DEFAULT_SLOT_SIZE = 18f;
+        protected static final float LINE_WIDTH = 0.75f;
+
+        public final ItemStack item;
+        public final int slotIndex;
+        public final int itemIndex;
+
+        public Color borderColor = Color.BLACK;
+
+        public boolean borderLeft = false;
+        public boolean borderTop = false;
+        public boolean borderRight = false;
+        public boolean borderBottom = false;
+
+        public ItemsGridSlot(int slotIndex, int itemIndex, ItemStack itemStack) {
+            this.slotIndex = slotIndex;
+            this.itemIndex = itemIndex;
+            this.item = itemStack;
+        }
+
+        public ItemStack getItemStack() {
+            return this.item;
+        }
+
+        public <M extends MouseContext> void beforeDraw(Rectangle4i rect, M mouseContext) {
+            if (mouseContext != null && mouseContext.slotIndex == this.slotIndex) {
+                NEIClientUtils.drawRect(rect.x, rect.y, rect.w, rect.h, HIGHLIGHT_COLOR);
+            }
+        }
+
+        public <M extends MouseContext> void afterDraw(Rectangle4i rect, M mouseContext) {}
+
+        public void drawItem(Rectangle4i rect) {
+            drawItem(getItemStack(), rect);
+        }
+
+        protected void drawItem(ItemStack stack, Rectangle4i rect) {
+
+            if (rect.w != DEFAULT_SLOT_SIZE) {
+                final float panelFactor = (rect.w - 2) / (DEFAULT_SLOT_SIZE - 2);
+                GL11.glTranslatef(rect.x + 1, rect.y + 1, 0);
+                GL11.glScaled(panelFactor, panelFactor, 1);
+
+                GuiContainerManager.drawItem(0, 0, stack, true, "");
+
+                GL11.glScaled(1f / panelFactor, 1f / panelFactor, 1);
+                GL11.glTranslatef(-1 * (rect.x + 1), -1 * (rect.y + 1), 0);
+            } else {
+                GuiContainerManager.drawItem(rect.x + 1, rect.y + 1, stack, true, "");
+            }
+
+        }
+
+        public void drawBorder(Rectangle4i rect) {
+            float halfLineWidth = LINE_WIDTH / 2f;
+
+            if (this.borderLeft) {
+                NEIClientUtils
+                        .drawRect(rect.x - halfLineWidth, rect.y + halfLineWidth, LINE_WIDTH, rect.h, this.borderColor);
+            }
+
+            if (this.borderRight) {
+                NEIClientUtils.drawRect(
+                        rect.x + rect.w - halfLineWidth,
+                        rect.y - halfLineWidth,
+                        LINE_WIDTH,
+                        rect.h,
+                        this.borderColor);
+            }
+
+            if (this.borderTop) {
+                NEIClientUtils
+                        .drawRect(rect.x - halfLineWidth, rect.y - halfLineWidth, rect.w, LINE_WIDTH, this.borderColor);
+            }
+
+            if (this.borderBottom) {
+                NEIClientUtils.drawRect(
+                        rect.x + halfLineWidth,
+                        rect.y + rect.h - halfLineWidth,
+                        rect.w,
+                        LINE_WIDTH,
+                        this.borderColor);
+            }
+        }
+
+    }
+
+    public static class MouseContext {
+
+        public final int slotIndex;
+        public final int columnIndex;
+        public final int rowIndex;
+
+        public MouseContext(int slotIndex, int rowIndex, int columnIndex) {
+            this.slotIndex = slotIndex;
+            this.rowIndex = rowIndex;
+            this.columnIndex = columnIndex;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.rowIndex, this.slotIndex, this.columnIndex);
+        }
+
+        public boolean equals(Object obj) {
+
+            if (obj instanceof MouseContext context) {
+                return this.columnIndex == context.columnIndex && this.rowIndex == context.rowIndex
+                        && this.slotIndex == context.slotIndex;
+            }
+
+            return false;
+        }
+
+    }
+
+    public static int SLOT_SIZE = 18;
+    public static final Color HIGHLIGHT_COLOR = new Color(0xee555555, true);
 
     protected int width;
     protected int height;
@@ -157,7 +273,6 @@ public class ItemsGrid {
 
     protected int rows;
     protected int columns;
-    protected List<Integer> gridMask = null;
 
     protected boolean[] invalidSlotMap;
 
@@ -169,8 +284,8 @@ public class ItemsGrid {
         return realItems;
     }
 
-    public ItemStack getItem(int idx) {
-        return realItems.get(idx);
+    public ItemStack getItem(int itemIndex) {
+        return realItems.get(itemIndex);
     }
 
     public int size() {
@@ -222,7 +337,11 @@ public class ItemsGrid {
     }
 
     public int getLastRowIndex() {
-        return this.columns > 0 ? (int) Math.ceil((float) this.getMask().size() / this.columns) - 1 : 0;
+        final List<T> mask = getMask();
+
+        return this.columns > 0 && !mask.isEmpty()
+                ? (int) Math.ceil((float) (mask.get(mask.size() - 1).slotIndex + 1) / this.columns) - 1
+                : 0;
     }
 
     public void setGridSize(int mleft, int mtop, int w, int h) {
@@ -270,10 +389,9 @@ public class ItemsGrid {
         if (this.screenCapture != null) {
             this.screenCapture.refreshBuffer();
         }
-        this.gridMask = null;
     }
 
-    protected void onItemsChanged() {
+    public void onItemsChanged() {
         onGridChanged();
     }
 
@@ -323,20 +441,37 @@ public class ItemsGrid {
         }
     }
 
-    public Rectangle4i getItemRect(int idx) {
-        final List<Integer> mask = getMask();
-
-        for (int i = 0; i < mask.size(); i++) {
-            if (mask.get(i) != null && idx == mask.get(i)) {
-                return getSlotRect(i);
-            }
+    public T getSlotMouseOver(int mousex, int mousey) {
+        if (!contains(mousex, mousey)) {
+            return null;
         }
 
-        return null;
+        final int overRow = getRowIndex(mousey);
+        final int overColumn = getColumnIndex(mousex);
+        final int slt = columns * overRow + overColumn;
+
+        if (overRow >= rows || overColumn >= columns) {
+            return null;
+        }
+
+        return getSlotBySlotIndex(slt);
     }
 
-    public Rectangle4i getSlotRect(int i) {
-        return getSlotRect(i / columns, i % columns);
+    public T getSlotBySlotIndex(int slotIndex) {
+        return getMask().stream().filter(item -> item.slotIndex == slotIndex).findAny().orElse(null);
+    }
+
+    public T getSlotByItemIndex(int itemIndex) {
+        return getMask().stream().filter(item -> item.itemIndex == itemIndex).findAny().orElse(null);
+    }
+
+    public Rectangle4i getItemRect(int itemIndex) {
+        final T item = getSlotByItemIndex(itemIndex);
+        return item != null ? getSlotRect(item.slotIndex) : null;
+    }
+
+    public Rectangle4i getSlotRect(int slotIndex) {
+        return getSlotRect(slotIndex / columns, slotIndex % columns);
     }
 
     public Rectangle4i getSlotRect(int row, int column) {
@@ -347,67 +482,45 @@ public class ItemsGrid {
                 SLOT_SIZE);
     }
 
+    public int getRowIndex(int mousey) {
+        return (mousey - this.marginTop) / SLOT_SIZE;
+    }
+
+    public int getColumnIndex(int mousex) {
+        return (mousex - this.marginLeft - this.paddingLeft) / SLOT_SIZE;
+    }
+
     public boolean isInvalidSlot(int index) {
         return invalidSlotMap[index];
     }
 
-    protected List<Integer> getMask() {
+    public abstract List<T> getMask();
 
-        if (this.gridMask == null) {
-            this.gridMask = new ArrayList<>();
-            int idx = page * perPage;
+    protected abstract M getMouseContext(int mousex, int mousey);
 
-            for (int i = 0; i < rows * columns && idx < size(); i++) {
-                this.gridMask.add(isInvalidSlot(i) ? null : idx++);
-            }
-
+    protected void beforeDrawItems(int mousex, int mousey, M mouseContext) {
+        for (T item : getMask()) {
+            item.beforeDraw(getSlotRect(item.slotIndex), mouseContext);
         }
-
-        return this.gridMask;
-    }
-
-    protected void beforeDrawItems(int mousex, int mousey, @Nullable ItemPanelSlot focused) {
-
-        final List<Integer> mask = getMask();
-
-        for (int i = 0; i < mask.size(); i++) {
-            if (mask.get(i) != null) {
-                beforeDrawSlot(focused, mask.get(i), getSlotRect(i));
-            }
+        for (T item : getMask()) {
+            item.drawBorder(getSlotRect(item.slotIndex));
         }
     }
 
-    protected void afterDrawItems(int mousex, int mousey, @Nullable ItemPanelSlot focused) {
-        final List<Integer> mask = getMask();
-
-        for (int i = 0; i < mask.size(); i++) {
-            if (mask.get(i) != null) {
-                afterDrawSlot(focused, mask.get(i), getSlotRect(i));
-            }
+    protected void afterDrawItems(int mousex, int mousey, M mouseContext) {
+        for (T item : getMask()) {
+            item.afterDraw(getSlotRect(item.slotIndex), mouseContext);
         }
     }
 
     public void update() {}
 
-    protected void beforeDrawSlot(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {
-        if (focused != null && focused.slotIndex == slotIdx) {
-            drawRect(rect.x, rect.y, rect.w, rect.h, 0xee555555); // highlight
-        }
-    }
+    protected void drawItems() {
 
-    protected void afterDrawSlot(@Nullable ItemPanelSlot focused, int slotIdx, Rectangle4i rect) {}
-
-    private void drawItems() {
-        GuiContainerManager.enableMatrixStackLogging();
-
-        final List<Integer> mask = getMask();
-        for (int i = 0; i < mask.size(); i++) {
-            if (mask.get(i) != null) {
-                drawItem(getSlotRect(i), mask.get(i));
-            }
+        for (T item : getMask()) {
+            item.drawItem(getSlotRect(item.slotIndex));
         }
 
-        GuiContainerManager.disableMatrixStackLogging();
     }
 
     protected int getGridRenderingCacheMode() {
@@ -419,10 +532,10 @@ public class ItemsGrid {
             return;
         }
 
-        final ItemPanelSlot focused = getSlotMouseOver(mousex, mousey);
         final int gridRenderingCacheMode = getGridRenderingCacheMode();
+        final M mouseContext = getMouseContext(mousex, mousey);
 
-        beforeDrawItems(mousex, mousey, focused);
+        beforeDrawItems(mousex, mousey, mouseContext);
 
         if (gridRenderingCacheMode > 0) {
 
@@ -431,49 +544,27 @@ public class ItemsGrid {
             }
 
             if (this.screenCapture.needRefresh(gridRenderingCacheMode)) {
-                this.screenCapture.captureScreen(this::drawItems, gridRenderingCacheMode);
+                this.screenCapture.captureScreen(() -> {
+                    GuiContainerManager.enableMatrixStackLogging();
+                    drawItems();
+                    GuiContainerManager.disableMatrixStackLogging();
+                }, gridRenderingCacheMode);
             }
 
             this.screenCapture.renderCapturedScreen();
         } else {
+            GuiContainerManager.enableMatrixStackLogging();
             drawItems();
+            GuiContainerManager.disableMatrixStackLogging();
         }
 
-        afterDrawItems(mousex, mousey, focused);
+        afterDrawItems(mousex, mousey, mouseContext);
     }
 
     public void setVisible() {
         if (getItems().isEmpty() && getMessageOnEmpty() != null) {
             LayoutManager.addWidget(messageLabel);
         }
-    }
-
-    protected void drawItem(Rectangle4i rect, int idx) {
-        GuiContainerManager.drawItem(rect.x + 1, rect.y + 1, getItem(idx));
-    }
-
-    public ItemPanelSlot getSlotMouseOver(int mousex, int mousey) {
-        if (!contains(mousex, mousey)) {
-            return null;
-        }
-
-        final int overRow = (mousey - marginTop) / SLOT_SIZE;
-        final int overColumn = (mousex - marginLeft - paddingLeft) / SLOT_SIZE;
-        final int slt = columns * overRow + overColumn;
-
-        if (overRow >= rows || overColumn >= columns) {
-            return null;
-        }
-
-        final List<Integer> mask = getMask();
-
-        if (mask.size() > slt && mask.get(slt) != null) {
-            final int idx = mask.get(slt);
-
-            return new ItemPanelSlot(idx, getItem(idx));
-        }
-
-        return null;
     }
 
     public boolean contains(int px, int py) {
@@ -487,10 +578,7 @@ public class ItemsGrid {
             return false;
         }
 
-        final int r = (py - marginTop) / SLOT_SIZE;
-        final int c = (px - marginLeft - paddingLeft) / SLOT_SIZE;
-
-        return !isInvalidSlot(columns * r + c);
+        return !isInvalidSlot(columns * getRowIndex(py) + getColumnIndex(px));
     }
 
     public String getMessageOnEmpty() {

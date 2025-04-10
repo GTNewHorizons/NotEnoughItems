@@ -158,7 +158,7 @@ public class SearchTokenParser {
         return this.filtersCache.computeIfAbsent(filterText, text -> {
             final String[] parts = text.split("\\|");
             final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText).filter(s -> s != null)
-                    .collect(Collectors.toCollection(ArrayList::new));
+                    .collect(Collectors.toList());
 
             if (searchTokens.isEmpty()) {
                 return new EverythingItemFilter();

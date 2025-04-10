@@ -8,6 +8,7 @@ import static codechicken.nei.NEIClientConfig.hasSMPCounterPart;
 import static codechicken.nei.NEIClientConfig.invCreativeMode;
 import static codechicken.nei.NEIClientConfig.world;
 
+import java.awt.Color;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.math.BigInteger;
@@ -32,6 +33,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
@@ -41,12 +44,15 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Iterables;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.inventory.InventoryRange;
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.util.LangProxy;
+import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.IInfiniteItemHandler;
 import codechicken.nei.api.ItemInfo;
@@ -54,6 +60,36 @@ import codechicken.nei.util.NEIKeyboardUtils;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class NEIClientUtils extends NEIServerUtils {
+
+    public static class Alignment {
+
+        public final int x, y;
+
+        public static final Alignment TopLeft = new Alignment(-1, -1);
+        public static final Alignment TopCenter = new Alignment(0, -1);
+        public static final Alignment TopRight = new Alignment(1, -1);
+        public static final Alignment CenterLeft = new Alignment(-1, 0);
+        public static final Alignment Center = new Alignment(0, 0);
+        public static final Alignment CenterRight = new Alignment(1, 0);
+        public static final Alignment BottomLeft = new Alignment(-1, 1);
+        public static final Alignment BottomCenter = new Alignment(0, 1);
+        public static final Alignment BottomRight = new Alignment(1, 1);
+
+        public Alignment(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public float getX(float parentWidth, float childWidth) {
+            final float x = (this.x + 1) / 2f;
+            return parentWidth * x - childWidth * x;
+        }
+
+        public float getY(float parentHeight, float childHeight) {
+            final float y = (this.y + 1) / 2f;
+            return parentHeight * y - childHeight * y;
+        }
+    }
 
     public static LangProxy lang = new LangProxy("nei");
 
@@ -486,4 +522,66 @@ public class NEIClientUtils extends NEIServerUtils {
             reportErrorBuffered(e, buffer, "null");
         }
     }
+
+    public static void drawRect(double left, double top, double width, double height, Color color) {
+        Tessellator tessellator = Tessellator.instance;
+
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+        GL11.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
+        tessellator.startDrawingQuads();
+        tessellator.addVertex(left, top + height, 0.0D);
+        tessellator.addVertex(left + width, top + height, 0.0D);
+        tessellator.addVertex(left + width, top, 0.0D);
+        tessellator.addVertex(left, top, 0.0D);
+        tessellator.draw();
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_BLEND);
+    }
+
+    public static void drawNEIOverlayText(String text, Rectangle4i rect, float scale, int color, boolean shadow,
+            Alignment alignment) {
+        final float screenScale = mc().currentScreen.width * 1f / mc().displayWidth;
+        final double smallTextScale = Math
+                .max(screenScale, (Math.max(scale, 1f) * (GuiDraw.fontRenderer.getUnicodeFlag() ? 3F / 4F : 1F / 2F)));
+
+        NEIClientUtils.gl2DRenderContext(() -> {
+            final int width = GuiDraw.fontRenderer.getStringWidth(text);
+            final float partW = rect.w / 2f;
+            final float partH = rect.h / 2f;
+            final double offsetX = Math
+                    .ceil(rect.x + partW + partW * alignment.x - (width / 2f * (alignment.x + 1)) * smallTextScale);
+            final double offsetY = Math.ceil(
+                    rect.y + partH
+                            + partH * alignment.y
+                            - (GuiDraw.fontRenderer.FONT_HEIGHT / 2f * (alignment.y + 1)) * smallTextScale);
+
+            GL11.glTranslated(offsetX, offsetY, 0);
+            GL11.glScaled(smallTextScale, smallTextScale, 1);
+            GuiDraw.fontRenderer.drawString(text, 0, 0, color, shadow);
+            GL11.glScaled(1 / smallTextScale, 1 / smallTextScale, 1);
+            GL11.glTranslated(-1 * offsetX, -1 * offsetY, 0);
+        });
+    }
+
+    public static void drawNEIOverlayText(String text, int x, int y) {
+        drawNEIOverlayText(text, new Rectangle4i(x, y, 16, 16), 0.5f, 0xFDD835, false, Alignment.TopLeft);
+    }
+
+    public static void gl2DRenderContext(Runnable callback) {
+        boolean isLighting = GL11.glGetBoolean(GL11.GL_LIGHTING);
+        boolean isDepthTest = GL11.glGetBoolean(GL11.GL_DEPTH_TEST);
+        boolean isAlphaTest = GL11.glGetBoolean(GL11.GL_ALPHA_TEST);
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+
+        callback.run();
+
+        if (isLighting) GL11.glEnable(GL11.GL_LIGHTING);
+        if (isDepthTest) GL11.glEnable(GL11.GL_DEPTH_TEST);
+        if (!isAlphaTest) GL11.glDisable(GL11.GL_ALPHA_TEST);
+    }
+
 }

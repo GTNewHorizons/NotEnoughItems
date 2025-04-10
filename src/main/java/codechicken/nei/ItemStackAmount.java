@@ -22,6 +22,12 @@ public class ItemStackAmount {
         }
     }
 
+    public void addAll(Iterable<ItemStack> items) {
+        for (ItemStack stack : items) {
+            add(stack);
+        }
+    }
+
     public void add(ItemStack item) {
         add(item, (long) StackInfo.getAmount(item));
     }
@@ -30,7 +36,9 @@ public class ItemStackAmount {
         if (stack == null || stack.getItem() == null) return;
         final NBTTagCompound key = StackInfo.itemStackToNBT(stack, false);
 
-        this.itemMap.put(key, value + this.itemMap.getOrDefault(key, 0L));
+        if (key != null) {
+            this.itemMap.put(key, value + this.itemMap.getOrDefault(key, 0L));
+        }
     }
 
     public Long get(ItemStack stack) {
@@ -44,13 +52,19 @@ public class ItemStackAmount {
         if (stack == null || stack.getItem() == null) return;
         final NBTTagCompound key = StackInfo.itemStackToNBT(stack, false);
 
-        this.itemMap.put(key, value);
+        if (key != null) {
+            this.itemMap.put(key, value);
+        }
     }
 
     public long getOrDefault(ItemStack stack, long defaultAmount) {
         final Long e = get(stack);
 
         return e == null ? defaultAmount : e;
+    }
+
+    public boolean contains(ItemStack stack) {
+        return get(stack) != null;
     }
 
     public void clear() {
