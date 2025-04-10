@@ -1,7 +1,5 @@
 package codechicken.nei;
 
-import static codechicken.nei.NEIClientUtils.translate;
-
 import java.awt.Point;
 import java.io.File;
 import java.io.FileInputStream;
@@ -148,7 +146,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
             @Override
             public String getButtonTip() {
-                return translate("bookmark.pullBookmarkedItems.tip");
+                return NEIClientUtils.translate("bookmark.pullBookmarkedItems.tip");
             }
         };
 
@@ -674,7 +672,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         if (overRowIndex != -1) {
             final int groupId = this.grid.getRowGroupId(overRowIndex);
 
-            currenttip.add(translate("bookmark.group"));
+            currenttip.add(NEIClientUtils.translate("bookmark.group"));
 
             if (groupId != BookmarkGrid.DEFAULT_GROUP_ID) {
                 currenttip = recipeChainTooltip(groupId, currenttip);
@@ -684,7 +682,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         } else
             if (new Rectangle4i(pagePrev.x + pagePrev.w, pagePrev.y, pageNext.x - (pagePrev.x + pagePrev.w), pagePrev.h)
                     .contains(mousex, mousey)) {
-                        currenttip.add(translate("bookmark.group"));
+                        currenttip.add(NEIClientUtils.translate("bookmark.group"));
                         currenttip = recipeChainTooltip(BookmarkGrid.DEFAULT_GROUP_ID, currenttip);
                     } else {
                         this.recipeChainTooltipLineHandler = null;
@@ -731,32 +729,36 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                     NEIClientUtils.getKeyName(
                             NEIClientUtils.CTRL_HASH,
                             NEIMouseUtils.MOUSE_BTN_NONE + NEIMouseUtils.MOUSE_SCROLL),
-                    NEIClientUtils.translate("bookmark.group.change_quantity"));
+                    NEIClientUtils.translate("bookmark.change_quantity"));
 
             hotkeys.put(
                     NEIClientUtils.getKeyName(
                             NEIClientUtils.CTRL_HASH + NEIClientUtils.ALT_HASH,
                             NEIMouseUtils.MOUSE_BTN_NONE + NEIMouseUtils.MOUSE_SCROLL),
-                    NEIClientUtils.translate("bookmark.group.change_quantity_step"));
+                    NEIClientUtils.translate("bookmark.change_quantity_step"));
 
-            hotkeys.put(NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB), translate("bookmark.group.toggle_mode"));
+            hotkeys.put(
+                    NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
+                    NEIClientUtils.translate("bookmark.group.toggle_mode"));
             hotkeys.put(
                     NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_RMB),
-                    translate("bookmark.group.toggle_crafting_chain"));
-            hotkeys.put(NEIClientConfig.getKeyName("gui.remove_recipe"), translate("bookmark.group.remove_recipe"));
+                    NEIClientUtils.translate("bookmark.group.toggle_crafting_chain"));
+            hotkeys.put(
+                    NEIClientConfig.getKeyName("gui.remove_recipe"),
+                    NEIClientUtils.translate("bookmark.group.remove_recipe"));
 
             if (BookmarkContainerInfo.getBookmarkContainerHandler(gui) != null) {
                 hotkeys.put(
                         NEIClientConfig.getKeyName("gui.bookmark_pull_items"),
-                        translate("bookmark.group.pull_items"));
+                        NEIClientUtils.translate("bookmark.group.pull_items"));
                 hotkeys.put(
                         NEIClientConfig.getKeyName("gui.bookmark_pull_items", NEIClientUtils.SHIFT_HASH),
-                        translate("bookmark.group.pull_items_shift"));
+                        NEIClientUtils.translate("bookmark.group.pull_items_shift"));
             }
 
             hotkeys.put(
                     NEIClientUtils.getKeyName(NEIClientUtils.ALT_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
-                    translate("bookmark.group.toggle_collapse"));
+                    NEIClientUtils.translate("bookmark.group.toggle_collapse"));
         }
 
         if (overRowIndex != -1) {
@@ -764,7 +766,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
             hotkeys.put(
                     NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB + NEIMouseUtils.MOUSE_DRAG),
-                    translate("bookmark.group.include_group"));
+                    NEIClientUtils.translate("bookmark.group.include_group"));
 
             if (groupId != BookmarkGrid.DEFAULT_GROUP_ID) {
 
@@ -772,33 +774,33 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                         NEIClientUtils.getKeyName(
                                 NEIClientUtils.CTRL_HASH,
                                 NEIMouseUtils.MOUSE_BTN_NONE + NEIMouseUtils.MOUSE_SCROLL),
-                        NEIClientUtils.translate("bookmark.group.change_quantity"));
+                        NEIClientUtils.translate("bookmark.change_quantity"));
 
                 hotkeys.put(
                         NEIClientUtils.getKeyName(
                                 NEIClientUtils.CTRL_HASH + NEIClientUtils.ALT_HASH,
                                 NEIMouseUtils.MOUSE_BTN_NONE + NEIMouseUtils.MOUSE_SCROLL),
-                        NEIClientUtils.translate("bookmark.group.change_quantity_step"));
+                        NEIClientUtils.translate("bookmark.change_quantity_step"));
 
                 hotkeys.put(
                         NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_RMB + NEIMouseUtils.MOUSE_DRAG),
-                        translate("bookmark.group.exclude_group"));
+                        NEIClientUtils.translate("bookmark.group.exclude_group"));
                 hotkeys.put(
                         NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
-                        translate("bookmark.group.toggle_mode"));
+                        NEIClientUtils.translate("bookmark.group.toggle_mode"));
                 hotkeys.put(
                         NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_RMB),
-                        translate("bookmark.group.toggle_crafting_chain"));
+                        NEIClientUtils.translate("bookmark.group.toggle_crafting_chain"));
 
                 hotkeys.put(
                         NEIClientUtils.getKeyName(
                                 NEIClientUtils.SHIFT_HASH,
                                 NEIMouseUtils.MOUSE_BTN_LMB + NEIMouseUtils.MOUSE_DRAG),
-                        translate("bookmark.group.sorting"));
+                        NEIClientUtils.translate("bookmark.group.sorting"));
 
                 hotkeys.put(
                         NEIClientUtils.getKeyName(NEIClientUtils.ALT_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
-                        translate("bookmark.group.toggle_collapse"));
+                        NEIClientUtils.translate("bookmark.group.toggle_collapse"));
             }
         }
 
@@ -809,22 +811,28 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                     NEIClientUtils.getKeyName(
                             NEIClientUtils.CTRL_HASH,
                             NEIMouseUtils.MOUSE_BTN_NONE + NEIMouseUtils.MOUSE_SCROLL),
-                    NEIClientUtils.translate("itempanel.change_quantity"));
+                    NEIClientUtils.translate("bookmark.change_quantity"));
 
             hotkeys.put(
                     NEIClientUtils.getKeyName(
                             NEIClientUtils.CTRL_HASH + NEIClientUtils.ALT_HASH,
                             NEIMouseUtils.MOUSE_BTN_NONE + NEIMouseUtils.MOUSE_SCROLL),
-                    NEIClientUtils.translate("itempanel.change_quantity_step"));
+                    NEIClientUtils.translate("bookmark.change_quantity_step"));
+
+            hotkeys.put(
+                    NEIClientUtils.getKeyName(
+                            NEIClientUtils.SHIFT_HASH,
+                            NEIMouseUtils.MOUSE_BTN_LMB + NEIMouseUtils.MOUSE_DRAG),
+                    NEIClientUtils.translate("bookmark.item.sorting"));
 
             if (group.collapsed) {
                 hotkeys.put(
                         NEIClientUtils.getKeyName(NEIClientUtils.ALT_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
-                        translate("bookmark.group.toggle_collapse"));
+                        NEIClientUtils.translate("bookmark.group.toggle_collapse"));
             } else if (group.crafting != null) {
                 hotkeys.put(
                         NEIClientUtils.getKeyName(NEIClientUtils.ALT_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
-                        translate("bookmark.recipe.toggle_collapse"));
+                        NEIClientUtils.translate("bookmark.recipe.toggle_collapse"));
             }
 
             if (this.acceptsFollowingTooltipLineHandler != null) {

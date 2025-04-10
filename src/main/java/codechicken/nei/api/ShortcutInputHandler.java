@@ -347,13 +347,12 @@ public abstract class ShortcutInputHandler {
         if (slot != null) {
             hotkeys.put(
                     NEIClientConfig.getKeyName("gui.bookmark"),
-                    NEIClientUtils
-                            .translate(slot.isIngredient() ? "itempanel.remove_item" : "itempanel.remove_recipe"));
+                    NEIClientUtils.translate(slot.isIngredient() ? "bookmark.remove_item" : "bookmark.remove_recipe"));
 
             if (slot.isIngredient()) {
                 hotkeys.put(
                         NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
-                        NEIClientUtils.translate("itempanel.remove_recipe"));
+                        NEIClientUtils.translate("bookmark.remove_recipe"));
             }
 
             if (BookmarkContainerInfo.getBookmarkContainerHandler(gui) != null) {
@@ -366,18 +365,18 @@ public abstract class ShortcutInputHandler {
             }
 
         } else {
-            hotkeys.put(NEIClientConfig.getKeyName("gui.bookmark"), NEIClientUtils.translate("itempanel.add_item"));
+            hotkeys.put(NEIClientConfig.getKeyName("gui.bookmark"), NEIClientUtils.translate("bookmark.add_item"));
 
             if (StackInfo.getAmount(stack) > 0) {
                 hotkeys.put(
                         NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.CTRL_HASH),
-                        NEIClientUtils.translate("itempanel.add_item_with_count"));
+                        NEIClientUtils.translate("bookmark.add_item_with_count"));
             }
 
             if (recipeId != null) {
                 hotkeys.put(
                         NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
-                        NEIClientUtils.translate("itempanel.add_item_with_recipe"));
+                        NEIClientUtils.translate("bookmark.add_item_with_recipe"));
             }
 
         }
