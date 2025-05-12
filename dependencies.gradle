@@ -1,7 +1,7 @@
 // Add your dependencies here
 
 dependencies {
-    api('com.github.GTNewHorizons:CodeChickenCore:1.4.1:dev')
+    api('com.github.GTNewHorizons:CodeChickenCore:1.4.2:dev')
     implementation('com.github.GTNewHorizons:GTNHLib:0.6.21:dev')
 
     shadowImplementation('org.apache.commons:commons-csv:1.10.0')
