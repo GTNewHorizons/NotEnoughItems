@@ -885,17 +885,16 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             outer: for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
                 final int recipeIndex = indices.get(refIndex);
 
-                for (PositionedStack pStack : handler.original.getIngredientStacks(recipeIndex)) {
-                    if (isMouseOver(pStack, refIndex)) {
-                        hovered = pStack;
-                        break outer;
-                    }
-                }
+                List<List<PositionedStack>> stackGroups = List.of(
+                        handler.original.getIngredientStacks(recipeIndex),
+                        handler.original.getOtherStacks(recipeIndex));
 
-                for (PositionedStack pStack : handler.original.getOtherStacks(recipeIndex)) {
-                    if (isMouseOver(pStack, refIndex)) {
-                        hovered = pStack;
-                        break outer;
+                for (List<PositionedStack> group : stackGroups) {
+                    for (PositionedStack pStack : group) {
+                        if (isMouseOver(pStack, refIndex)) {
+                            hovered = pStack;
+                            break outer;
+                        }
                     }
                 }
             }
