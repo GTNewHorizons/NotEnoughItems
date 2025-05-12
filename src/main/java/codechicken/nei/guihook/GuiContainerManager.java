@@ -180,7 +180,9 @@ public class GuiContainerManager {
         namelist.set(0, stack.getRarity().rarityColor.toString() + namelist.get(0));
 
         for (int i = 1; i < namelist.size(); i++) {
-            namelist.set(i, EnumChatFormatting.GRAY + namelist.get(i) + EnumChatFormatting.RESET);
+            if (!namelist.get(i).startsWith(GuiDraw.TOOLTIP_HANDLER)) {
+                namelist.set(i, EnumChatFormatting.GRAY + namelist.get(i) + EnumChatFormatting.RESET);
+            }
         }
 
         return namelist;

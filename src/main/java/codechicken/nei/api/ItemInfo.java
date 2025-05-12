@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import net.minecraft.block.Block;
@@ -268,7 +269,8 @@ public class ItemInfo {
 
     @SuppressWarnings("unchecked")
     private static void parseModItems() {
-        HashMap<String, ItemStackSet> modSubsets = new HashMap<>();
+        final Map<String, ItemStackSet> modSubsets = new HashMap<>();
+
         for (Item item : (Iterable<Item>) Item.itemRegistry) {
             UniqueIdentifier ident = null;
             try {
@@ -280,14 +282,12 @@ public class ItemInfo {
                 continue;
             }
 
-            String modId = ident.modId;
-            itemOwners.put(item, modId);
-            ItemStackSet itemset = modSubsets.get(modId);
-            if (itemset == null) modSubsets.put(modId, itemset = new ItemStackSet());
-            itemset.with(item);
+            itemOwners.put(item, ident.modId);
+            modSubsets.computeIfAbsent(ident.modId, i -> new ItemStackSet()).with(item);
         }
 
         API.addSubset("Mod.Minecraft", modSubsets.remove("minecraft"));
+
         for (Entry<String, ItemStackSet> entry : modSubsets.entrySet()) {
             ModContainer mc = FMLCommonHandler.instance().findContainerFor(entry.getKey());
             if (mc == null) NEIClientConfig.logger.error("Missing container for " + entry.getKey());
@@ -323,44 +323,29 @@ public class ItemInfo {
     }
 
     private static void addDefaultDropDowns() {
+        final Item mob_spawner = Item.getItemFromBlock(Blocks.mob_spawner);
         API.addSubset("Items", item -> Block.getBlockFromItem(item.getItem()) == Blocks.air);
         API.addSubset("Blocks", item -> Block.getBlockFromItem(item.getItem()) != Blocks.air);
-        API.addSubset("Blocks.MobSpawners", ItemStackSet.of(Blocks.mob_spawner));
+        API.addSubset("Blocks.MobSpawners", item -> item.getItem() == mob_spawner);
     }
 
     @SuppressWarnings("unchecked")
     private static void searchItems() {
-        ItemStackSet tools = new ItemStackSet();
-        ItemStackSet picks = new ItemStackSet();
-        ItemStackSet shovels = new ItemStackSet();
-        ItemStackSet axes = new ItemStackSet();
-        ItemStackSet hoes = new ItemStackSet();
-        ItemStackSet swords = new ItemStackSet();
-        ItemStackSet chest = new ItemStackSet();
-        ItemStackSet helmets = new ItemStackSet();
-        ItemStackSet legs = new ItemStackSet();
-        ItemStackSet boots = new ItemStackSet();
-        ItemStackSet other = new ItemStackSet();
-        ItemStackSet ranged = new ItemStackSet();
-        ItemStackSet food = new ItemStackSet();
-        ItemStackSet potioningredients = new ItemStackSet();
-
-        ArrayList<ItemStackSet> creativeTabRanges = new ArrayList<>(CreativeTabs.creativeTabArray.length);
-        List<ItemStack> stackList = new LinkedList<>();
+        final Map<Integer, ItemStackSet> creativeTabRanges = new HashMap<>();
+        final List<ItemStack> stackList = new LinkedList<>();
 
         for (Item item : (Iterable<Item>) Item.itemRegistry) {
             if (item == null) continue;
 
             for (CreativeTabs itemTab : item.getCreativeTabs()) {
                 if (itemTab != null) {
-                    while (itemTab.getTabIndex() >= creativeTabRanges.size()) creativeTabRanges.add(null);
-                    ItemStackSet set = creativeTabRanges.get(itemTab.getTabIndex());
-                    if (set == null) creativeTabRanges.set(itemTab.getTabIndex(), set = new ItemStackSet());
+                    final ItemStackSet itemset = creativeTabRanges
+                            .computeIfAbsent(itemTab.getTabIndex(), i -> new ItemStackSet());
 
                     try {
                         stackList.clear();
                         item.getSubItems(item, itemTab, stackList);
-                        for (ItemStack stack : stackList) set.add(stack);
+                        itemset.addAll(stackList);
                     } catch (Exception e) {
                         NEIClientConfig.logger
                                 .error("Error loading sub-items for: " + item + ". Tab: " + itemTab.getTabLabel(), e);
@@ -368,41 +353,13 @@ public class ItemInfo {
                 }
             }
 
-            if (item.isDamageable()) {
-                tools.with(item);
-                if (item instanceof ItemPickaxe) picks.with(item);
-                else if (item instanceof ItemSpade) shovels.with(item);
-                else if (item instanceof ItemAxe) axes.with(item);
-                else if (item instanceof ItemHoe) hoes.with(item);
-                else if (item instanceof ItemSword) swords.with(item);
-                else if (item instanceof ItemArmor) switch (((ItemArmor) item).armorType) {
-                    case 0:
-                        helmets.with(item);
-                        break;
-                    case 1:
-                        chest.with(item);
-                        break;
-                    case 2:
-                        legs.with(item);
-                        break;
-                    case 3:
-                        boots.with(item);
-                        break;
-                }
-                else if (item == Items.arrow || item == Items.bow) ranged.with(item);
-                else if (item == Items.fishing_rod || item == Items.flint_and_steel || item == Items.shears)
-                    other.with(item);
-            }
-
-            if (item instanceof ItemFood) food.with(item);
-
             try {
-                LinkedList<ItemStack> subItems = new LinkedList<>();
+                final List<ItemStack> subItems = new LinkedList<>();
                 item.getSubItems(item, null, subItems);
+
                 for (ItemStack stack : subItems) {
                     if (item.isPotionIngredient(stack) && item.getPotionEffect(stack) != null) {
                         BrewingRecipeHandler.ingredients.add(stack);
-                        potioningredients.add(stack);
                     }
                 }
 
@@ -410,25 +367,33 @@ public class ItemInfo {
                 NEIClientConfig.logger.error("Error loading brewing ingredients for: " + item, e);
             }
         }
-        API.addSubset("Items.Tools.Pickaxes", picks);
-        API.addSubset("Items.Tools.Shovels", shovels);
-        API.addSubset("Items.Tools.Axes", axes);
-        API.addSubset("Items.Tools.Hoes", hoes);
-        API.addSubset("Items.Tools.Other", other);
-        API.addSubset("Items.Weapons.Swords", swords);
-        API.addSubset("Items.Weapons.Ranged", ranged);
-        API.addSubset("Items.Armor.Chestplates", chest);
-        API.addSubset("Items.Armor.Leggings", legs);
-        API.addSubset("Items.Armor.Helmets", helmets);
-        API.addSubset("Items.Armor.Boots", boots);
-        API.addSubset("Items.Food", food);
-        API.addSubset("Items.Potions.Ingredients", potioningredients);
+
+        API.addSubset("Items.Tools.Pickaxes", item -> item.getItem() instanceof ItemPickaxe);
+        API.addSubset("Items.Tools.Shovels", item -> item.getItem() instanceof ItemSpade);
+        API.addSubset("Items.Tools.Axes", item -> item.getItem() instanceof ItemAxe);
+        API.addSubset("Items.Tools.Hoes", item -> item.getItem() instanceof ItemHoe);
+        API.addSubset(
+                "Items.Tools.Other",
+                item -> item.getItem() == Items.fishing_rod || item.getItem() == Items.flint_and_steel
+                        || item.getItem() == Items.shears);
+        API.addSubset("Items.Weapons.Swords", item -> item.getItem() instanceof ItemSword);
+        API.addSubset("Items.Weapons.Ranged", item -> item.getItem() == Items.arrow || item.getItem() == Items.bow);
+        API.addSubset("Items.Armor.Helmets", item -> item.getItem() instanceof ItemArmor armor && armor.armorType == 0);
+        API.addSubset(
+                "Items.Armor.Chestplates",
+                item -> item.getItem() instanceof ItemArmor armor && armor.armorType == 1);
+        API.addSubset(
+                "Items.Armor.Leggings",
+                item -> item.getItem() instanceof ItemArmor armor && armor.armorType == 2);
+        API.addSubset("Items.Armor.Boots", item -> item.getItem() instanceof ItemArmor armor && armor.armorType == 3);
+        API.addSubset("Items.Food", item -> item.getItem() instanceof ItemFood);
+        API.addSubset("Items.Potions.Ingredients", BrewingRecipeHandler.ingredients);
 
         for (CreativeTabs tab : CreativeTabs.creativeTabArray) {
-            if (tab.getTabIndex() >= creativeTabRanges.size()) continue;
-            ItemStackSet set = creativeTabRanges.get(tab.getTabIndex());
-            if (set != null && !set.isEmpty())
-                API.addSubset("CreativeTabs." + I18n.format(tab.getTranslatedTabLabel()), set);
+            final ItemStackSet itemset = creativeTabRanges.get(tab.getTabIndex());
+            if (itemset != null && !itemset.isEmpty()) {
+                API.addSubset("CreativeTabs." + I18n.format(tab.getTranslatedTabLabel()), itemset);
+            }
         }
 
         BrewingRecipeHandler.searchPotions();
