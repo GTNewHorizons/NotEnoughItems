@@ -885,7 +885,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             outer: for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
                 final int recipeIndex = indices.get(refIndex);
 
-                List<List<PositionedStack>> stackGroups = List.of(
+                List<List<PositionedStack>> stackGroups = Arrays.asList(
                         handler.original.getIngredientStacks(recipeIndex),
                         handler.original.getOtherStacks(recipeIndex));
 
