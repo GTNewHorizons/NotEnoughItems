@@ -21,6 +21,7 @@ public class FormattedTextField extends GuiTextField {
     protected FontRenderer fontRenderer;
     protected String rawText = "";
     protected String formattedText = "";
+    protected String placeholder = "";
     protected boolean editable = true;
     protected int editableColor = 14737632;
     protected int notEditableColor = 7368816;
@@ -35,6 +36,10 @@ public class FormattedTextField extends GuiTextField {
 
     public void setFormatter(TextFormatter formatter) {
         this.formatter = formatter;
+    }
+
+    public void setPlaceholder(String placeholder) {
+        this.placeholder = placeholder;
     }
 
     @Override
@@ -103,10 +108,14 @@ public class FormattedTextField extends GuiTextField {
         this.editable = p_146184_1_;
     }
 
+    protected boolean beforeWrite(String text) {
+        return true;
+    }
+
     @Override
-    public void writeText(String p_146191_1_) {
+    public void writeText(String textPart) {
         String newText = "";
-        String substr = ChatAllowedCharacters.filerAllowedCharacters(p_146191_1_);
+        String substr = ChatAllowedCharacters.filerAllowedCharacters(textPart);
         int cursorPosition = getCursorPosition();
         int maxStringLength = getMaxStringLength();
         String text = getText();
@@ -127,8 +136,10 @@ public class FormattedTextField extends GuiTextField {
             cursorPosition = Math.min(textStart.length() + substr.length(), newText.length());
         }
 
-        setText(newText);
-        setCursorPosition(cursorPosition);
+        if (beforeWrite(newText)) {
+            setText(newText);
+            setCursorPosition(cursorPosition);
+        }
     }
 
     @Override
@@ -138,87 +149,99 @@ public class FormattedTextField extends GuiTextField {
 
     @Override
     public void drawTextBox() {
-        if (this.getVisible()) {
-            if (this.getEnableBackgroundDrawing()) {
-                drawRect(
-                        this.xPosition - 1,
-                        this.yPosition - 1,
-                        this.xPosition + this.width + 1,
-                        this.yPosition + this.height + 1,
-                        -6250336);
-                drawRect(
-                        this.xPosition,
-                        this.yPosition,
-                        this.xPosition + this.width,
-                        this.yPosition + this.height,
-                        -16777216);
+
+        if (!this.getVisible()) {
+            return;
+        }
+
+        if (this.getEnableBackgroundDrawing()) {
+            drawRect(
+                    this.xPosition - 1,
+                    this.yPosition - 1,
+                    this.xPosition + this.width + 1,
+                    this.yPosition + this.height + 1,
+                    -6250336);
+            drawRect(
+                    this.xPosition,
+                    this.yPosition,
+                    this.xPosition + this.width,
+                    this.yPosition + this.height,
+                    -16777216);
+        }
+
+        if (!this.rawText.equals(getText())) {
+            this.rawText = getText();
+            this.formattedText = this.formatter.format(this.rawText);
+            if (!EnumChatFormatting.getTextWithoutFormattingCodes(this.formattedText).toLowerCase()
+                    .equals(this.rawText.toLowerCase())) {
+                this.formattedText = this.rawText;
             }
+        }
 
-            if (!this.rawText.equals(getText())) {
-                this.rawText = getText();
-                this.formattedText = this.formatter.format(this.rawText);
-                if (!EnumChatFormatting.getTextWithoutFormattingCodes(this.formattedText).toLowerCase()
-                        .equals(this.rawText.toLowerCase())) {
-                    this.formattedText = this.rawText;
-                }
+        if (!isFocused() && this.formattedText.isEmpty()) {
+            int x = getEnableBackgroundDrawing() ? this.xPosition + 4 : this.xPosition;
+            int y = getEnableBackgroundDrawing() ? this.yPosition + (this.height - 8) / 2 : this.yPosition;
+            this.fontRenderer.drawStringWithShadow(
+                    this.fontRenderer.trimStringToWidth(this.placeholder, this.getWidth()),
+                    x,
+                    y,
+                    this.notEditableColor);
+            return;
+        }
+
+        int firstCharacterIndex = getFormattedTextShift(this.lineScrollOffset);
+        String rawTextClipped = this.fontRenderer
+                .trimStringToWidth(this.rawText.substring(this.lineScrollOffset), this.getWidth());
+        String textClipped = this.formattedText
+                .substring(firstCharacterIndex, getFormattedTextShift(this.lineScrollOffset + rawTextClipped.length()));
+        int cursorPosition = getFormattedTextShift(getCursorPosition());
+        int selectionEnd = getFormattedTextShift(getSelectionEnd());
+
+        int color = this.editable ? this.editableColor : this.notEditableColor;
+        int cursorA = cursorPosition - firstCharacterIndex;
+        int cursorB = selectionEnd - firstCharacterIndex;
+        boolean flag = cursorA >= 0 && cursorA <= textClipped.length();
+        boolean flag1 = isFocused() && this.frame / 6 % 2 == 0 && flag;
+        boolean flag2 = getCursorPosition() < this.rawText.length() || this.rawText.length() >= getMaxStringLength();
+        int x = getEnableBackgroundDrawing() ? this.xPosition + 4 : this.xPosition;
+        int y = getEnableBackgroundDrawing() ? this.yPosition + (this.height - 8) / 2 : this.yPosition;
+        int x2 = x;
+
+        if (cursorB > textClipped.length()) {
+            cursorB = textClipped.length();
+        }
+
+        if (textClipped.length() > 0) {
+            String s1 = flag ? textClipped.substring(0, cursorA) : textClipped;
+            String colorA = getPreviousColor(firstCharacterIndex);
+            x2 = this.fontRenderer.drawStringWithShadow(colorA + s1, x, y, color);
+        }
+
+        int k1 = x2;
+
+        if (!flag) {
+            k1 = cursorA > 0 ? x + this.width : x;
+        } else if (flag2) {
+            k1 = x2 - 1;
+            --x2;
+        }
+
+        if (textClipped.length() > 0 && flag && cursorA < textClipped.length()) {
+            String colorB = getPreviousColor(firstCharacterIndex + cursorA);
+            this.fontRenderer.drawStringWithShadow(colorB + textClipped.substring(cursorA), x2, y, color);
+        }
+
+        if (flag1) {
+            if (flag2) {
+                Gui.drawRect(k1, y - 1, k1 + 1, y + 1 + this.fontRenderer.FONT_HEIGHT, -3092272);
+            } else {
+                this.fontRenderer.drawStringWithShadow("_", k1, y, color);
             }
+        }
 
-            int firstCharacterIndex = getFormattedTextShift(this.lineScrollOffset);
-            String rawTextClipped = this.fontRenderer
-                    .trimStringToWidth(this.rawText.substring(this.lineScrollOffset), this.getWidth());
-            String textClipped = this.formattedText.substring(
-                    firstCharacterIndex,
-                    getFormattedTextShift(this.lineScrollOffset + rawTextClipped.length()));
-            int cursorPosition = getFormattedTextShift(this.getCursorPosition());
-            int selectionEnd = getFormattedTextShift(this.getSelectionEnd());
-
-            int color = this.editable ? this.editableColor : this.notEditableColor;
-            int cursorA = cursorPosition - firstCharacterIndex;
-            int cursorB = selectionEnd - firstCharacterIndex;
-            boolean flag = cursorA >= 0 && cursorA <= textClipped.length();
-            boolean flag1 = this.isFocused() && this.frame / 6 % 2 == 0 && flag;
-            boolean flag2 = this.getCursorPosition() < this.rawText.length()
-                    || this.rawText.length() >= this.getMaxStringLength();
-            int x = this.getEnableBackgroundDrawing() ? this.xPosition + 4 : this.xPosition;
-            int y = this.getEnableBackgroundDrawing() ? this.yPosition + (this.height - 8) / 2 : this.yPosition;
-            int x2 = x;
-
-            if (cursorB > textClipped.length()) {
-                cursorB = textClipped.length();
-            }
-
-            if (textClipped.length() > 0) {
-                String s1 = flag ? textClipped.substring(0, cursorA) : textClipped;
-                String colorA = getPreviousColor(firstCharacterIndex);
-                x2 = this.fontRenderer.drawStringWithShadow(colorA + s1, x, y, color);
-            }
-
-            int k1 = x2;
-
-            if (!flag) {
-                k1 = cursorA > 0 ? x + this.width : x;
-            } else if (flag2) {
-                k1 = x2 - 1;
-                --x2;
-            }
-
-            if (textClipped.length() > 0 && flag && cursorA < textClipped.length()) {
-                String colorB = getPreviousColor(firstCharacterIndex + cursorA);
-                this.fontRenderer.drawStringWithShadow(colorB + textClipped.substring(cursorA), x2, y, color);
-            }
-
-            if (flag1) {
-                if (flag2) {
-                    Gui.drawRect(k1, y - 1, k1 + 1, y + 1 + this.fontRenderer.FONT_HEIGHT, -3092272);
-                } else {
-                    this.fontRenderer.drawStringWithShadow("_", k1, y, color);
-                }
-            }
-
-            if (cursorB != cursorA) {
-                int l1 = x + this.fontRenderer.getStringWidth(textClipped.substring(0, cursorB));
-                drawCursorVertical(k1, y - 1, l1 - 1, y + 1 + this.fontRenderer.FONT_HEIGHT);
-            }
+        if (cursorB != cursorA) {
+            int l1 = x + this.fontRenderer.getStringWidth(textClipped.substring(0, cursorB));
+            drawCursorVertical(k1, y - 1, l1 - 1, y + 1 + this.fontRenderer.FONT_HEIGHT);
         }
     }
 

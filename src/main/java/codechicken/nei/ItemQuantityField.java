@@ -1,8 +1,9 @@
 package codechicken.nei;
 
-import static codechicken.nei.NEIClientUtils.translate;
-
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
+
+import org.lwjgl.input.Keyboard;
 
 import codechicken.nei.recipe.StackInfo;
 
@@ -14,13 +15,63 @@ public class ItemQuantityField extends TextField {
         field.setDisabledTextColour(0xFF303030);
     }
 
-    public int intValue() {
-        return intValue(text());
+    @Override
+    protected void initInternalTextField() {
+        field = new FormattedTextField(Minecraft.getMinecraft().fontRenderer, 0, 0, 0, 0) {
+
+            {
+                setPlaceholder(NEIClientUtils.translate("itempanel.quantity.default"));
+            }
+
+            @Override
+            public String getText() {
+                String text = super.getText();
+                return !isFocused() && "0".equals(text) ? "" : text;
+            }
+
+            @Override
+            protected boolean beforeWrite(String text) {
+                if (text == null || text.isEmpty()) return true;
+                try {
+                    return Integer.parseInt(text) >= 0;
+                } catch (NumberFormatException e) {
+                    return false;
+                }
+            }
+
+            @Override
+            public boolean textboxKeyTyped(char keyChar, int keyID) {
+                if (!isFocused()) return false;
+
+                if (super.textboxKeyTyped(keyChar, keyID)) {
+                    return true;
+                } else if (keyID == Keyboard.KEY_DOWN) {
+                    setText(Integer.toString(Math.max(0, getInteger() - 1)));
+                    return true;
+                } else if (keyID == Keyboard.KEY_UP) {
+                    setText(Integer.toString(getInteger() + 1));
+                    return true;
+                }
+
+                return false;
+            }
+
+            private int getInteger() {
+                try {
+                    return Math.max(0, Integer.parseInt(text()));
+                } catch (NumberFormatException nfe) {
+                    return 0;
+                }
+            }
+
+        };
+        field.setMaxStringLength(maxSearchLength);
+        field.setCursorPositionZero();
     }
 
-    public int intValue(String s) {
+    private int getInteger() {
         try {
-            return Math.max(0, Integer.parseInt(s));
+            return Math.max(0, Integer.parseInt(text()));
         } catch (NumberFormatException nfe) {
             return 0;
         }
@@ -56,36 +107,21 @@ public class ItemQuantityField extends TextField {
 
     @Override
     public void onTextChange(String oldText) {
-        NEIClientUtils.setItemQuantity(intValue());
-    }
-
-    @Override
-    public void draw(int mousex, int mousey) {
-
-        if (!focused() && intValue() == 0) {
-            field.setText(translate("itempanel.quantity.default"));
-            field.setCursorPositionZero();
-            field.setEnabled(false);
-            super.draw(mousex, mousey);
-            field.setEnabled(true);
-            field.setText("0");
-        } else {
-            super.draw(mousex, mousey);
-        }
+        NEIClientUtils.setItemQuantity(getInteger());
     }
 
     @Override
     public boolean onMouseWheel(int i, int mx, int my) {
         if (!contains(mx, my)) return false;
         int multiplier = 1;
+
         if (NEIClientUtils.shiftKey()) {
             multiplier = 10;
         } else if (NEIClientUtils.controlKey()) {
             multiplier = 64;
         }
 
-        int quantity = intValue() + i * multiplier;
-        setText(Integer.toString(quantity));
+        setText(Integer.toString(Math.max(0, getInteger() + i * multiplier)));
         return true;
     }
 

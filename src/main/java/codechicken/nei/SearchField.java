@@ -100,6 +100,8 @@ public class SearchField extends TextField implements ItemFilterProvider {
             super(Minecraft.getMinecraft().fontRenderer, 0, 0, 0, 0);
             this.searchParser = searchParser;
             setFormatter(new SearchTextFormatter(searchParser));
+            setDisabledTextColour(0xFF303030);
+            setPlaceholder(NEIClientUtils.translate("inventory.search.placeholder"));
         }
 
         public ItemFilter getFilter() {
