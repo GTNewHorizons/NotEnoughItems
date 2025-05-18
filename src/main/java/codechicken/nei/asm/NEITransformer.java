@@ -413,7 +413,7 @@ public class NEITransformer implements IClassTransformer {
                 if (name.equals("net.minecraftforge.oredict.OreDictionary")) {
                     ClassReader cr = new ClassReader(bytes);
                     ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-                    cr.accept(new OreDictionaryVisitor(ASM5, cw), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+                    cr.accept(new OreDictionaryVisitor(ASM5, cw), 0);
                     bytes = cw.toByteArray();
                 }
                 bytes = transformSubclasses(name, bytes);
