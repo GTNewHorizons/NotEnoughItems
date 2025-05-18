@@ -307,14 +307,19 @@ public class GuiContainerManager {
 
             if (stackSize == null) {
                 if (itemstack.stackSize > 1) {
-                    stackSize = ReadableNumberConverter.INSTANCE.toWideReadableForm(itemstack.stackSize);
 
-                    if (stackSize.length() == 3) {
-                        scale = 0.8f;
-                    } else if (stackSize.length() == 4) {
-                        scale = 0.6f;
-                    } else if (stackSize.length() > 4) {
-                        scale = 0.5f;
+                    if (NEIClientConfig.getBooleanSetting("inventory.dynamicFontSize")) {
+                        stackSize = ReadableNumberConverter.INSTANCE.toWideReadableForm(itemstack.stackSize);
+
+                        if (stackSize.length() == 3) {
+                            scale = 0.8f;
+                        } else if (stackSize.length() == 4) {
+                            scale = 0.6f;
+                        } else if (stackSize.length() > 4) {
+                            scale = 0.5f;
+                        }
+                    } else {
+                        stackSize = String.valueOf(itemstack.stackSize);
                     }
 
                 } else {

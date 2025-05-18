@@ -147,6 +147,7 @@ public class NEIClientConfig {
         API.addOption(new OptionToggleButton("inventory.widgetsenabled"));
 
         tag.getTag("inventory.autocrafting").getBooleanValue(false);
+        tag.getTag("inventory.dynamicFontSize").getBooleanValue(true);
         tag.getTag("inventory.hidden").getBooleanValue(false);
         tag.getTag("inventory.cheatmode").getIntValue(2);
         tag.getTag("inventory.lockmode").setComment(
