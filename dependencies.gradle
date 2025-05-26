@@ -2,7 +2,7 @@
 
 dependencies {
     api('com.github.GTNewHorizons:CodeChickenCore:1.4.2:dev')
-    implementation('com.github.GTNewHorizons:GTNHLib:0.6.22:dev')
+    implementation('com.github.GTNewHorizons:GTNHLib:0.6.24:dev')
 
     shadowImplementation('org.apache.commons:commons-csv:1.10.0')
 
