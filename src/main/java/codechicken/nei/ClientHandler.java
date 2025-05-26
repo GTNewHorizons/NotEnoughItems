@@ -25,6 +25,7 @@ import net.minecraft.client.gui.GuiSelectWorld;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.launchwrapper.Launch;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -257,13 +258,17 @@ public class ClientHandler {
     }
 
     public static void loadPluginsList() {
-        if (!Loader.isModLoaded("jarjar")) {
+        final boolean jarjar = Launch.blackboard.getOrDefault("jarjar.rfbPluginLoaded", Boolean.FALSE) == Boolean.TRUE;
+        if (!jarjar) {
             // Do the old style class discovery
             final ClassDiscoverer classDiscoverer = new ClassDiscoverer(
                     test -> test.startsWith("NEI") && test.endsWith("Config.class"),
                     IConfigureNEI.class);
 
             NEIClientConfig.pluginsList.addAll(classDiscoverer.findClasses());
+            NEIClientConfig.logger
+                    .info("Loading NEI Plugins via ClassDiscoverer: " + NEIClientConfig.pluginsList.size());
+
         } else {
             // If JarJar's loaded, the ASMDataTable now includes interfaces in addition to Annotations, so use that
             // instead Includes a small change in behavior of no longer requiring the class to start with NEI and end
@@ -279,6 +284,7 @@ public class ClientHandler {
                     NEIClientConfig.logger.error("Failed to load plugin class {}", className, e);
                 }
             }
+            NEIClientConfig.logger.info("Loading NEI Plugins via JarJar: " + NEIClientConfig.pluginsList.size());
         }
     }
 
