@@ -9,6 +9,7 @@ import net.minecraft.inventory.Slot;
 
 import org.lwjgl.opengl.GL11;
 
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.guihook.GuiContainerManager;
 
@@ -38,11 +39,7 @@ public class DefaultOverlayRenderer implements IRecipeOverlayRenderer {
     }
 
     private static void drawHover(int x, int y) {
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-        GL11.glDisable(GL11.GL_LIGHTING);
-        GL11.glDisable(GL11.GL_DEPTH_TEST);
-        drawRect(x, y, 16, 16, 0x66555555);
-        GL11.glPopAttrib();
+        NEIClientUtils.gl2DRenderContext(() -> drawRect(x, y, 16, 16, 0x66555555));
     }
 
     final IStackPositioner positioner;

@@ -1,25 +1,64 @@
 package codechicken.nei;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
 import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
-import codechicken.nei.ItemPanel.ItemPanelSlot;
+import codechicken.nei.ItemsGrid.ItemsGridSlot;
+import codechicken.nei.ItemsGrid.MouseContext;
+import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
 import codechicken.nei.recipe.StackInfo;
 
-public class ItemHistoryPanel extends Widget {
+public class ItemHistoryPanel extends Widget implements IContainerTooltipHandler {
 
-    protected int mouseDownSlot = -1;
-    protected ItemsGrid grid;
+    protected int mouseDownItemIndex = -1;
 
-    public ItemHistoryPanel() {
-        grid = new ItemsGrid();
-    }
+    protected ItemsGrid<ItemsGridSlot, MouseContext> grid = new ItemsGrid<>() {
+
+        protected List<ItemsGridSlot> gridMask;
+
+        @Override
+        protected void onGridChanged() {
+            this.gridMask = null;
+            super.onGridChanged();
+        }
+
+        @Override
+        public List<ItemsGridSlot> getMask() {
+
+            if (this.gridMask == null) {
+                this.gridMask = new ArrayList<>();
+                for (int slotIndex = 0; slotIndex < Math.min(size(), this.rows * this.columns); slotIndex++) {
+                    this.gridMask.add(new ItemsGridSlot(slotIndex, slotIndex, getItem(slotIndex)));
+                }
+            }
+
+            return this.gridMask;
+        }
+
+        @Override
+        protected MouseContext getMouseContext(int mousex, int mousey) {
+            final ItemsGridSlot hovered = getSlotMouseOver(mousex, mousey);
+
+            if (hovered != null) {
+                return new MouseContext(
+                        hovered.slotIndex,
+                        hovered.slotIndex / this.columns,
+                        hovered.slotIndex % this.columns);
+            }
+
+            return null;
+        }
+
+    };
 
     public boolean isEmpty() {
         return grid.isEmpty();
@@ -33,40 +72,40 @@ public class ItemHistoryPanel extends Widget {
             drawSplittingArea(x, y, w, h, NEIClientConfig.getSetting("inventory.history.historyColor").getHexValue());
         }
 
-        grid.draw(mousex, mousey);
+        this.grid.draw(mousex, mousey);
     }
 
     public void update() {
-        grid.update();
+        this.grid.update();
     }
 
     public void addItem(ItemStack stack) {
         if (stack != null) {
             ItemStack is = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack), 0);
 
-            grid.realItems.removeIf(historyStack -> StackInfo.equalItemAndNBT(historyStack, stack, true));
-            grid.realItems.add(0, is);
+            this.grid.realItems.removeIf(historyStack -> StackInfo.equalItemAndNBT(historyStack, stack, true));
+            this.grid.realItems.add(0, is);
 
-            if (grid.realItems.size() > Math.max(50, grid.rows * grid.columns)) {
-                grid.realItems.remove(grid.realItems.size() - 1);
+            if (this.grid.realItems.size() > Math.max(50, this.grid.rows * this.grid.columns)) {
+                this.grid.realItems.remove(this.grid.realItems.size() - 1);
             }
 
-            grid.onItemsChanged();
+            this.grid.onItemsChanged();
         }
     }
 
     public void resize(GuiContainer gui) {
-        grid.setGridSize(x, y, w, h);
-        grid.refresh(gui);
+        this.grid.setGridSize(x, y + 4, w, h - 8);
+        this.grid.refresh(gui);
     }
 
     @Override
     public ItemStack getStackMouseOver(int mousex, int mousey) {
-        ItemPanelSlot slot = getSlotMouseOver(mousex, mousey);
-        return slot == null ? null : slot.item;
+        final ItemsGridSlot slot = getSlotMouseOver(mousex, mousey);
+        return slot == null ? null : slot.getItemStack();
     }
 
-    public ItemPanelSlot getSlotMouseOver(int mousex, int mousey) {
+    public ItemsGridSlot getSlotMouseOver(int mousex, int mousey) {
         return grid.getSlotMouseOver(mousex, mousey);
     }
 
@@ -107,15 +146,16 @@ public class ItemHistoryPanel extends Widget {
     @Override
     public void mouseDragged(int mousex, int mousey, int button, long heldTime) {
 
-        if (mouseDownSlot >= 0 && ItemPanels.itemPanel.draggedStack == null
+        if (this.mouseDownItemIndex >= 0 && ItemPanels.itemPanel.draggedStack == null
                 && NEIClientUtils.getHeldItem() == null
                 && NEIClientConfig.hasSMPCounterPart()) {
 
-            ItemPanelSlot mouseOverSlot = getSlotMouseOver(mousex, mousey);
+            final ItemsGridSlot mouseOverSlot = getSlotMouseOver(mousex, mousey);
 
-            if (mouseOverSlot == null || mouseOverSlot.slotIndex != mouseDownSlot || heldTime > 500) {
-                ItemPanels.itemPanel.draggedStack = getDraggedStackWithQuantity(mouseDownSlot);
-                mouseDownSlot = -1;
+            if (mouseOverSlot == null || mouseOverSlot.itemIndex != this.mouseDownItemIndex || heldTime > 500) {
+                ItemPanels.itemPanel.draggedStack = getDraggedStackWithQuantity(
+                        this.grid.getItem(this.mouseDownItemIndex));
+                this.mouseDownItemIndex = -1;
             }
         }
 
@@ -125,17 +165,13 @@ public class ItemHistoryPanel extends Widget {
     public boolean handleClick(int mousex, int mousey, int button) {
         if (handleClickExt(mousex, mousey, button)) return true;
 
-        ItemPanelSlot hoverSlot = getSlotMouseOver(mousex, mousey);
+        final ItemsGridSlot hoverSlot = this.grid.getSlotMouseOver(mousex, mousey);
         if (hoverSlot != null) {
 
             if (button == 2) {
-
-                if (hoverSlot.item != null) {
-                    ItemPanels.itemPanel.draggedStack = getDraggedStackWithQuantity(hoverSlot.slotIndex);
-                }
-
+                ItemPanels.itemPanel.draggedStack = getDraggedStackWithQuantity(hoverSlot.getItemStack());
             } else {
-                mouseDownSlot = hoverSlot.slotIndex;
+                mouseDownItemIndex = hoverSlot.itemIndex;
             }
 
             return true;
@@ -144,46 +180,38 @@ public class ItemHistoryPanel extends Widget {
         return false;
     }
 
-    @Override
-    public void mouseUp(int mousex, int mousey, int button) {
-        ItemPanelSlot hoverSlot = getSlotMouseOver(mousex, mousey);
-
-        if (hoverSlot != null && hoverSlot.slotIndex == mouseDownSlot && ItemPanels.itemPanel.draggedStack == null) {
-            ItemStack item = hoverSlot.item.copy();
-
-            if (NEIController.manager.window instanceof GuiRecipe || NEIClientUtils.shiftKey()
-                    || !NEIClientConfig.canCheatItem(item)) {
-
-                if (button == 0) {
-                    GuiCraftingRecipe.openRecipeGui("item", item);
-                } else if (button == 1) {
-                    GuiUsageRecipe.openRecipeGui("item", item);
-                }
-
-                mouseDownSlot = -1;
-                return;
-            }
-
-            NEIClientUtils.cheatItem(getDraggedStackWithQuantity(hoverSlot.slotIndex), button, -1);
-        }
-
-        mouseDownSlot = -1;
+    protected ItemStack getDraggedStackWithQuantity(ItemStack itemStack) {
+        return ItemQuantityField.prepareStackWithQuantity(itemStack, 0);
     }
 
-    protected ItemStack getDraggedStackWithQuantity(int mouseDownSlot) {
-        ItemStack stack = grid.getItem(mouseDownSlot);
+    public ItemStack getStackMouseOverWithQuantity(int mousex, int mousey) {
+        final ItemStack hoverSlot = getStackMouseOver(mousex, mousey);
+        return hoverSlot != null ? getDraggedStackWithQuantity(hoverSlot) : null;
+    }
 
-        if (stack != null) {
-            int amount = NEIClientConfig.showItemQuantityWidget() ? NEIClientConfig.getItemQuantity() : 0;
+    @Override
+    public void mouseUp(int mousex, int mousey, int button) {
+        final ItemsGridSlot hoverSlot = getSlotMouseOver(mousex, mousey);
 
-            if (amount == 0) {
-                amount = stack.getMaxStackSize();
+        if (hoverSlot != null && hoverSlot.itemIndex == this.mouseDownItemIndex
+                && ItemPanels.itemPanel.draggedStack == null) {
+
+            if (NEIController.manager.window instanceof GuiRecipe || NEIClientUtils.shiftKey()
+                    || !NEIClientConfig.canCheatItem(hoverSlot.getItemStack())) {
+
+                if (button == 0) {
+                    GuiCraftingRecipe.openRecipeGui("item", hoverSlot.getItemStack().copy());
+                } else if (button == 1) {
+                    GuiUsageRecipe.openRecipeGui("item", hoverSlot.getItemStack().copy());
+                }
+
+            } else {
+                NEIClientUtils.cheatItem(getDraggedStackWithQuantity(hoverSlot.getItemStack()), button, -1);
             }
 
-            return NEIServerUtils.copyStack(stack, amount);
         }
 
-        return null;
+        this.mouseDownItemIndex = -1;
     }
 
 }

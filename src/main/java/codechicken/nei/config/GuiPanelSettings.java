@@ -1,9 +1,7 @@
 package codechicken.nei.config;
 
-import static codechicken.lib.gui.GuiDraw.getMousePosition;
-
 import java.awt.Point;
-import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderHelper;
@@ -14,6 +12,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import codechicken.core.gui.GuiScreenWidget;
+import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemPanels;
@@ -114,8 +113,8 @@ public class GuiPanelSettings extends GuiScreenWidget {
         }
 
         protected int[] getPaddings() {
-            final int minWidth = 5 * ItemsGrid.SLOT_SIZE;
-            final int minHeight = 9 * ItemsGrid.SLOT_SIZE;
+            final int minWidth = ItemsGrid.SLOT_SIZE;
+            final int minHeight = ItemsGrid.SLOT_SIZE;
 
             int paddingLeft = (int) Math.ceil(margin.w * opt.renderTag(name + ".left").getIntValue() / 100000.0);
             int paddingTop = (int) Math.ceil(margin.h * opt.renderTag(name + ".top").getIntValue() / 100000.0);
@@ -123,7 +122,7 @@ public class GuiPanelSettings extends GuiScreenWidget {
             int paddingBottom = (int) Math.ceil(margin.h * opt.renderTag(name + ".bottom").getIntValue() / 100000.0);
 
             if (dragDir != null) {
-                final Point mouse = getMousePosition();
+                final Point mouse = GuiDraw.getMousePosition();
                 Point drag = new Point(mouse.x - dragDown.x, mouse.y - dragDown.y);
 
                 if (dragDir == "left") {
@@ -164,18 +163,32 @@ public class GuiPanelSettings extends GuiScreenWidget {
             final int columns = w / ItemsGrid.SLOT_SIZE;
             final int rows = (h - (PANEL_SIZE + 2) * 2) / ItemsGrid.SLOT_SIZE;
             final int paddingLeft = (w % ItemsGrid.SLOT_SIZE) / 2;
-            final ArrayList<ItemStack> items = ItemPanels.itemPanel.getItems();
+            final List<ItemStack> items = ItemPanels.itemPanel.getItems();
             if (items.isEmpty()) return;
 
             for (int r = 0; r < rows; r++) {
                 for (int c = 0; c < columns; c++) {
-
-                    GuiContainerManager.drawItem(
+                    drawItem(
                             x + paddingLeft + ItemsGrid.SLOT_SIZE * c + 1,
                             y + PANEL_SIZE + 2 + ItemsGrid.SLOT_SIZE * r + 1,
                             items.get((r * columns + c) % items.size()));
                 }
             }
+        }
+
+        protected void drawItem(int x, int y, ItemStack stack) {
+            final float scale = ItemsGrid.SLOT_SIZE / 18f;
+            final float inverseScaleFactor = 1.0f / scale;
+            final float shiftX = x * inverseScaleFactor;
+            final float shiftY = y * inverseScaleFactor;
+
+            GL11.glScaled(scale, scale, 1);
+            GL11.glTranslated(shiftX, shiftY, 0);
+
+            GuiContainerManager.drawItem(0, 0, stack, true, "");
+
+            GL11.glTranslated(-1 * shiftX, -1 * shiftY, 0);
+            GL11.glScaled(inverseScaleFactor, inverseScaleFactor, 1);
         }
 
         public boolean contains(int pointX, int pointY) {
@@ -185,7 +198,7 @@ public class GuiPanelSettings extends GuiScreenWidget {
         protected void mouseClicked(int x, int y, int button) {
 
             if (contains(x, y)) {
-                dragDown = getMousePosition();
+                dragDown = GuiDraw.getMousePosition();
 
                 if (leftButton.contains(x, y)) {
                     dragDir = "left";

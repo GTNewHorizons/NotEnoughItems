@@ -4,9 +4,11 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -356,16 +358,18 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
     private static class DefaultParserProvider implements ISearchParserProvider {
 
         public ItemFilter getFilter(String searchText) {
-            final AnyMultiItemFilter filter = new AnyMultiItemFilter();
             final String pathPart = searchText.replaceAll("\\s+", "").toLowerCase();
+            final AnyMultiItemFilter filter = new AnyMultiItemFilter();
+            final Set<ItemStack> filteredItems = new HashSet<>();
 
             for (SubsetTag tag : tags.values()) {
                 if (tag.filter != null && tag.path.contains(pathPart)) {
+                    filteredItems.addAll(tag.items);
                     filter.filters.add(tag.filter);
                 }
             }
 
-            return filter;
+            return stack -> filteredItems.contains(stack) || !ItemList.items.contains(stack) && filter.matches(stack);
         }
 
         public char getPrefix() {
@@ -585,13 +589,13 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
         public void execute() {
 
             try {
-                List<SubsetTag> list = new ArrayList<>(tags.values());
+                final List<SubsetTag> list = new ArrayList<>(tags.values());
 
                 root.clearCache();
 
                 list.parallelStream().forEach(tag -> {
                     tag.clearCache();
-                    ItemList.items.stream().filter(tag.filter::matches).map(ItemStack::copy)
+                    ItemList.items.stream().filter(tag.filter::matches)
                             .collect(Collectors.toCollection(() -> tag.items));
                 });
 

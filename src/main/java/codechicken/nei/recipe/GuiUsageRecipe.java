@@ -10,6 +10,7 @@ import net.minecraft.item.ItemStack;
 
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 
 public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
@@ -30,7 +31,7 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
         if (!handlers.isEmpty()) {
             final Minecraft mc = NEIClientUtils.mc();
-            final BookmarkRecipeId recipeId = getCurrentRecipeId(mc.currentScreen);
+            final RecipeId recipeId = getCurrentRecipeId(mc.currentScreen);
             final GuiUsageRecipe gui = new GuiUsageRecipe(handlers);
 
             mc.displayGuiScreen(gui);

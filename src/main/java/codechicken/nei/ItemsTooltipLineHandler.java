@@ -3,15 +3,19 @@ package codechicken.nei;
 import static codechicken.lib.gui.GuiDraw.fontRenderer;
 
 import java.awt.Dimension;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.gui.GuiDraw.ITooltipLineHandler;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.StackInfo;
@@ -19,12 +23,14 @@ import codechicken.nei.util.ReadableNumberConverter;
 
 public class ItemsTooltipLineHandler implements ITooltipLineHandler {
 
+    protected static final int SLOT_SIZE = 18;
     protected static final int MAX_COLUMNS = 11;
     protected static final int MARGIN_TOP = 2;
 
     protected String label;
     protected EnumChatFormatting labelColor = EnumChatFormatting.GRAY;
     protected List<ItemStack> items;
+    protected int activeStackIndex = -1;
     protected Dimension size = new Dimension();
     protected boolean saveStackSize = false;
     protected int columns = 0;
@@ -46,9 +52,8 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
             this.columns = Math.min(MAX_COLUMNS, this.length);
             this.rows = Math.min(maxRows, (int) Math.ceil((float) this.length / this.columns));
 
-            this.size.width = Math
-                    .max(this.columns * ItemsGrid.SLOT_SIZE, fontRenderer.getStringWidth(this.label) + 15);
-            this.size.height = this.rows * ItemsGrid.SLOT_SIZE + fontRenderer.FONT_HEIGHT + 2 + MARGIN_TOP;
+            this.size.width = Math.max(this.columns * SLOT_SIZE, fontRenderer.getStringWidth(this.label) + 15);
+            this.size.height = this.rows * SLOT_SIZE + fontRenderer.FONT_HEIGHT + 2 + MARGIN_TOP;
 
             this.count = Math.min(
                     this.length,
@@ -58,10 +63,20 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
 
             if (this.items.size() > this.count) {
                 String text = "+" + (this.items.size() - this.count);
-                this.count -= (int) Math.ceil((float) (fontRenderer.getStringWidth(text) - 2) / ItemsGrid.SLOT_SIZE);
+                this.count -= (int) Math.ceil((float) (fontRenderer.getStringWidth(text) - 2) / SLOT_SIZE);
             }
         }
 
+    }
+
+    public void setActiveStack(ItemStack activeStack) {
+        final ItemStack realStack = items.stream().filter(stack -> StackInfo.equalItemAndNBT(stack, activeStack, true))
+                .findFirst().orElse(null);
+        this.activeStackIndex = items.indexOf(realStack);
+    }
+
+    public ItemStack getActiveStack() {
+        return this.activeStackIndex == -1 ? null : this.items.get(this.activeStackIndex);
     }
 
     public boolean isEmpty() {
@@ -93,26 +108,38 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
         GL11.glTranslatef(x, y + fontRenderer.FONT_HEIGHT + 2, 0);
         GL11.glEnable(GL12.GL_RESCALE_NORMAL);
 
-        for (int i = 0; i < this.count; i++) {
-            ItemStack drawStack = this.items.get(i);
-            int col = i % this.columns;
-            int row = i / this.columns;
+        int indexShift = 0;
+
+        if (this.activeStackIndex != -1) {
+            indexShift = Math.max(0, Math.min(this.items.size() - this.count, this.activeStackIndex - this.count + 2));
+        }
+
+        for (int index = 0; index < this.count && index + indexShift < this.items.size(); index++) {
+            ItemStack drawStack = this.items.get(index + indexShift);
+            int col = index % this.columns;
+            int row = index / this.columns;
 
             String stackSize = !this.saveStackSize || drawStack.stackSize == 0 ? ""
                     : ReadableNumberConverter.INSTANCE.toWideReadableForm(drawStack.stackSize);
 
-            drawItem(col * ItemsGrid.SLOT_SIZE, row * ItemsGrid.SLOT_SIZE, drawStack, stackSize);
+            if (this.activeStackIndex == index + indexShift) {
+                NEIClientUtils.gl2DRenderContext(
+                        () -> GuiDraw.drawRect(col * SLOT_SIZE - 1, row * SLOT_SIZE - 1, 18, 18, 0x66555555));
+            }
+
+            drawItem(col * SLOT_SIZE, row * SLOT_SIZE, drawStack, stackSize);
         }
 
         if (this.count < this.items.size()) {
-            String text = "+" + (this.items.size() - this.count);
+            final String text = "+" + (this.items.size() - this.count);
 
-            fontRenderer.drawStringWithShadow(
-                    text,
-                    MAX_COLUMNS * ItemsGrid.SLOT_SIZE - fontRenderer.getStringWidth(text) - 2,
-                    (this.rows - 1) * ItemsGrid.SLOT_SIZE + (ItemsGrid.SLOT_SIZE - fontRenderer.FONT_HEIGHT) / 2,
-                    0xee555555);
-
+            NEIClientUtils.gl2DRenderContext(() -> {
+                fontRenderer.drawStringWithShadow(
+                        text,
+                        MAX_COLUMNS * SLOT_SIZE - fontRenderer.getStringWidth(text) - 2,
+                        (this.rows - 1) * SLOT_SIZE + (SLOT_SIZE - fontRenderer.FONT_HEIGHT) / 2,
+                        0xee555555);
+            });
         }
 
         GL11.glPopMatrix();
@@ -124,12 +151,19 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
     }
 
     private List<ItemStack> groupingItemStacks(List<ItemStack> items) {
-        final List<ItemStack> result = ItemStackAmount.of(items).values();
+        final List<ItemStack> result = new ArrayList<>();
 
-        for (ItemStack stack : result) {
-            if (StackInfo.itemStackToNBT(stack).hasKey("gtFluidName")) {
+        for (Map.Entry<NBTTagCompound, Long> entry : ItemStackAmount.of(items).entrySet()) {
+            final ItemStack stack = StackInfo.loadFromNBT(entry.getKey(), Math.max(0, entry.getValue()));
+
+            if (entry.getKey().hasKey("gtFluidName")) {
                 stack.stackSize = 0;
             }
+            result.add(stack);
+        }
+
+        if (result.isEmpty()) {
+            result.addAll(items);
         }
 
         return result;

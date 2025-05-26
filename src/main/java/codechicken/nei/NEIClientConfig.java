@@ -146,6 +146,8 @@ public class NEIClientConfig {
         tag.getTag("inventory.widgetsenabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.widgetsenabled"));
 
+        tag.getTag("inventory.autocrafting").getBooleanValue(false);
+        tag.getTag("inventory.dynamicFontSize").getBooleanValue(true);
         tag.getTag("inventory.hidden").getBooleanValue(false);
         tag.getTag("inventory.cheatmode").getIntValue(2);
         tag.getTag("inventory.lockmode").setComment(
@@ -179,6 +181,7 @@ public class NEIClientConfig {
             @Override
             public boolean onClick(int button) {
                 super.onClick(button);
+                ItemPanels.bookmarkPanel.save();
                 ItemPanels.bookmarkPanel.load();
                 return true;
             }
@@ -192,11 +195,19 @@ public class NEIClientConfig {
                 .getIntValue(1);
         API.addOption(new OptionCycled("inventory.bookmarks.recipeTooltipsMode", 4, true));
 
-        tag.getTag("inventory.bookmarks.showRecipeMarker").setComment("Show Recipe Marker").getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.bookmarks.showRecipeMarker", true));
+        tag.getTag("inventory.bookmarks.showRecipeMarkerMode").setComment("Show Recipe Marker").getIntValue(0);
+        API.addOption(new OptionCycled("inventory.bookmarks.showRecipeMarkerMode", 3, true));
 
-        tag.getTag("inventory.bookmarks.craftingChainDir").getIntValue(1);
-        API.addOption(new OptionCycled("inventory.bookmarks.craftingChainDir", 2, true));
+        tag.getTag("inventory.bookmarks.recipeMarkerColor").setComment("Color of the icon marker")
+                .getHexValue(0xADADAD);
+        API.addOption(
+                new OptionIntegerField(
+                        "inventory.bookmarks.recipeMarkerColor",
+                        0,
+                        OptionIntegerField.UNSIGNED_INT_MAX));
+
+        tag.getTag("inventory.bookmarks.recipeChainDir").getIntValue(1);
+        API.addOption(new OptionCycled("inventory.bookmarks.recipeChainDir", 2, true));
 
         tag.getTag("inventory.bookmarks.ignorePotionOverlap").setComment("Ignore overlap with potion effect HUD")
                 .getBooleanValue(false);
@@ -234,14 +245,14 @@ public class NEIClientConfig {
                 .setComment("Require holding shift to move items when overlaying recipe").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.guirecipe.shiftOverlayRecipe", true));
 
+        tag.getTag("inventory.guirecipe.profile").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.profile", true));
+
         tag.getTag("inventory.subsets.enabled").setComment("Enable/disable Subsets Dropdown").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.subsets.enabled", true));
 
         tag.getTag("inventory.subsets.widgetPosition").setComment("Subsets Widget Position").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.subsets.widgetPosition", true));
-
-        tag.getTag("inventory.guirecipe.profile").getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.guirecipe.profile", true));
 
         tag.getTag("inventory.history.enabled").setComment("Enable/disable History Panel").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.history.enabled", true));
@@ -313,6 +324,8 @@ public class NEIClientConfig {
         tag.getTag("inventory.itemzoom.nameColor").getHexValue(0xFFFFFFFF);
         API.addOption(new OptionIntegerField("inventory.itemzoom.nameColor", 0, OptionIntegerField.UNSIGNED_INT_MAX));
 
+        setFavoriteDefaults(tag);
+
         tag.getTag("inventory.itemIDs").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemIDs", 3, true));
 
@@ -338,6 +351,16 @@ public class NEIClientConfig {
         tag.getTag("world.overlays.lock").getBooleanValue(true);
         API.addOption(new OptionToggleButton("world.overlays.lock", true));
 
+        tag.getTag("inventory.itempanelScale").getIntValue(100);
+        ItemsPanelGrid.updateScale();
+        API.addOption(new OptionIntegerField("inventory.itempanelScale", 1, 1000) {
+
+            @Override
+            public void onTextChange(String text) {
+                ItemsPanelGrid.updateScale();
+            }
+        });
+
         tag.getTag("inventory.disableMouseScrollTransfer").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.disableMouseScrollTransfer", true));
 
@@ -349,8 +372,6 @@ public class NEIClientConfig {
                 return isMouseScrollTransferEnabled();
             }
         });
-
-        tag.getTag("inventory.gridRenderingCacheFPS").getIntValue(8);
 
         tag.getTag("inventory.gridRenderingCacheMode").getIntValue(0);
         API.addOption(new OptionCycled("inventory.gridRenderingCacheMode", 3, true));
@@ -671,6 +692,36 @@ public class NEIClientConfig {
 
     }
 
+    private static void setFavoriteDefaults(ConfigTagParent tag) {
+
+        tag.getTag("inventory.favorites.enabled").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.favorites.enabled", true));
+
+        tag.getTag("inventory.favorites.worldSpecific").setComment("Global or world specific favorites")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.favorites.worldSpecific", true) {
+
+            @Override
+            public boolean onClick(int button) {
+                super.onClick(button);
+                FavoriteRecipes.save();
+                FavoriteRecipes.load();
+                return true;
+            }
+        });
+
+        tag.getTag("inventory.favorites.showRecipeTooltipInPanel").setComment("Show recipe tooltips in Items Panel")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.favorites.showRecipeTooltipInPanel", true));
+
+        tag.getTag("inventory.favorites.showRecipeTooltipInGui").setComment("Show recipe tooltips in Recipe Gui")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.favorites.showRecipeTooltipInGui", true));
+
+        tag.getTag("inventory.favorites.depth").setComment("Bookmark creation depth").getIntValue(3);
+        API.addOption(new OptionIntegerField("inventory.favorites.depth", 0, 100));
+    }
+
     private static void setDefaultKeyBindings() {
         API.addHashBind("gui.recipe", Keyboard.KEY_R);
         API.addHashBind("gui.usage", Keyboard.KEY_U);
@@ -685,22 +736,15 @@ public class NEIClientConfig {
         API.addKeyBind("gui.next_recipe", Keyboard.KEY_RIGHT);
         API.addHashBind("gui.hide", Keyboard.KEY_O);
         API.addHashBind("gui.search", Keyboard.KEY_F);
-        API.addHashBind("gui.bookmark", Keyboard.KEY_A);
-        API.addHashBind("gui.bookmark_recipe", Keyboard.KEY_A + NEIClientUtils.SHIFT_HASH);
+        API.addKeyBind("gui.bookmark", Keyboard.KEY_A);
         API.addHashBind("gui.remove_recipe", Keyboard.KEY_A + NEIClientUtils.SHIFT_HASH);
-        API.addHashBind("gui.bookmark_count", Keyboard.KEY_A + NEIClientUtils.CTRL_HASH);
-        API.addHashBind(
-                "gui.bookmark_recipe_count",
-                Keyboard.KEY_A + NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH);
-        API.addHashBind("gui.bookmark_pull_items", Keyboard.KEY_V);
-        API.addHashBind("gui.bookmark_pull_items_ingredients", Keyboard.KEY_V + NEIClientUtils.SHIFT_HASH);
-        API.addHashBind("gui.overlay", Keyboard.KEY_S);
-        API.addHashBind("gui.overlay_use", Keyboard.KEY_S + NEIClientUtils.SHIFT_HASH);
-        API.addHashBind("gui.overlay_hide", Keyboard.KEY_S + NEIClientUtils.CTRL_HASH);
+        API.addKeyBind("gui.bookmark_pull_items", Keyboard.KEY_V);
+        API.addKeyBind("gui.overlay", Keyboard.KEY_S);
+        API.addHashBind("gui.craft", Keyboard.KEY_C + NEIClientUtils.SHIFT_HASH);
         API.addHashBind("gui.hide_bookmarks", Keyboard.KEY_B);
         API.addKeyBind("gui.getprevioussearch", Keyboard.KEY_UP);
         API.addKeyBind("gui.getnextsearch", Keyboard.KEY_DOWN);
-        API.addHashBind("gui.next_tooltip", Keyboard.KEY_Z);
+        API.addKeyBind("gui.next_tooltip", Keyboard.KEY_Z);
 
         API.addHashBind("gui.itemzoom_toggle", Keyboard.KEY_Z + NEIClientUtils.SHIFT_HASH);
         API.addHashBind("gui.itemzoom_hold", 0);
@@ -779,10 +823,11 @@ public class NEIClientConfig {
 
     public static void unloadWorld() {
         if (ItemPanels.bookmarkPanel != null) {
-            ItemPanels.bookmarkPanel.saveBookmarks();
+            ItemPanels.bookmarkPanel.save();
         }
 
         SubsetWidget.saveHidden();
+        FavoriteRecipes.save();
         CollapsibleItems.saveStates();
 
         if (world != null) {
@@ -837,6 +882,7 @@ public class NEIClientConfig {
     }
 
     public static void bootNEI(World world) {
+
         if (!mainNEIConfigLoaded) {
             // main NEI config loading
             ItemInfo.load(world);
@@ -868,10 +914,10 @@ public class NEIClientConfig {
                     });
 
                     RecipeCatalysts.loadCatalystInfo();
-                    ItemPanels.bookmarkPanel.load();
                     SubsetWidget.loadHidden();
                     CollapsibleItems.load();
                     ItemSorter.loadConfig();
+                    FavoriteRecipes.load();
 
                     // Set pluginNEIConfigLoaded here before posting the NEIConfigsLoadedEvent. This used to be the
                     // other way around, but apparently if your modpack includes 800 mods the event poster might not
@@ -885,10 +931,10 @@ public class NEIClientConfig {
                 }
             }.start();
         } else {
-            ItemPanels.bookmarkPanel.load();
             SubsetWidget.loadHidden();
             ItemList.loadItems.restart();
         }
+
     }
 
     public static boolean isWorldSpecific(String setting) {
@@ -909,6 +955,14 @@ public class NEIClientConfig {
         return !enabledOverride || getBooleanSetting("inventory.hidden");
     }
 
+    public static boolean autocraftingEnabled() {
+        return getBooleanSetting("inventory.autocrafting");
+    }
+
+    public static boolean favoritesEnabled() {
+        return getBooleanSetting("inventory.favorites.enabled");
+    }
+
     public static boolean isBookmarkPanelHidden() {
         return !getBooleanSetting("inventory.bookmarks.enabled");
     }
@@ -921,8 +975,16 @@ public class NEIClientConfig {
         return getIntSetting("inventory.bookmarks.recipeTooltipsMode");
     }
 
-    public static boolean showRecipeMarker() {
-        return getBooleanSetting("inventory.bookmarks.showRecipeMarker");
+    public static boolean showRecipeTooltipInPanel() {
+        return getBooleanSetting("inventory.favorites.showRecipeTooltipInPanel");
+    }
+
+    public static boolean showRecipeTooltipInGui() {
+        return getBooleanSetting("inventory.favorites.showRecipeTooltipInGui");
+    }
+
+    public static int showRecipeMarkerMode() {
+        return getIntSetting("inventory.bookmarks.showRecipeMarkerMode");
     }
 
     public static boolean showItemQuantityWidget() {
@@ -973,8 +1035,8 @@ public class NEIClientConfig {
         return getBooleanSetting("inventory.bookmarks.ignorePotionOverlap");
     }
 
-    public static int craftingChainDir() {
-        return getIntSetting("inventory.bookmarks.craftingChainDir");
+    public static int recipeChainDir() {
+        return getIntSetting("inventory.bookmarks.recipeChainDir");
     }
 
     public static boolean optimizeGuiOverlapComputation() {
