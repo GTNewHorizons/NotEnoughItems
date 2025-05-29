@@ -29,7 +29,6 @@ public class ItemMobSpawner extends ItemBlock {
 
     public ItemMobSpawner() {
         super(Blocks.mob_spawner);
-
         hasSubtypes = true;
         MinecraftForgeClient.registerItemRenderer(this, new SpawnerRenderer());
     }
@@ -38,7 +37,6 @@ public class ItemMobSpawner extends ItemBlock {
      * These are ASM translated from BlockMobSpawner
      */
     public static int placedX;
-
     public static int placedY;
     public static int placedZ;
 
@@ -79,11 +77,10 @@ public class ItemMobSpawner extends ItemBlock {
     public static EntityLiving getEntity(int ID) {
         EntityLiving e = entityHashMap.get(ID);
         if (e == null) {
-            World world = NEIClientUtils.mc().theWorld;
-            loadSpawners(world);
-            Class<?> clazz = (Class<?>) EntityList.IDtoClassMapping.get(ID);
+            loadSpawners();
+            Class<?> clazz = EntityList.IDtoClassMapping.get(ID);
             try {
-                e = (EntityLiving) clazz.getConstructor(new Class[] { World.class }).newInstance(world);
+                e = (EntityLiving) clazz.getConstructor(new Class[] { World.class }).newInstance((World) null);
             } catch (Throwable t) {
                 if (clazz == null)
                     NEIClientConfig.logger.error("Null class for entity (" + ID + ", " + IDtoNameMap.get(ID));
@@ -95,15 +92,11 @@ public class ItemMobSpawner extends ItemBlock {
         return e;
     }
 
-    public static void clearEntityReferences(World newWorld) {
-        entityHashMap.values().removeIf(e -> e.worldObj != newWorld);
-    }
-
     private void setDefaultTag(ItemStack itemstack) {
         if (!IDtoNameMap.containsKey(itemstack.getItemDamage())) itemstack.setItemDamage(idPig);
     }
 
-    public static void loadSpawners(World world) {
+    public static void loadSpawners() {
         if (loaded) return;
         loaded = true;
         Map<Class<? extends Entity>, String> classToStringMapping = EntityList.classToStringMapping;
@@ -113,7 +106,7 @@ public class ItemMobSpawner extends ItemBlock {
             if (!EntityLiving.class.isAssignableFrom(eclass)) continue;
             try {
                 EntityLiving entityliving = (EntityLiving) eclass.getConstructor(new Class[] { World.class })
-                        .newInstance(world);
+                        .newInstance((World) null);
                 entityliving.isChild();
 
                 int id = classToIDMapping.get(eclass);
