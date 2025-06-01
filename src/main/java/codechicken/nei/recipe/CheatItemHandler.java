@@ -37,7 +37,6 @@ public class CheatItemHandler extends INEIGuiAdapter {
                 }
 
                 return true;
-                
             } else {
                 draggedStack.stackSize = 0;
             }
