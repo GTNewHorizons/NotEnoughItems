@@ -242,7 +242,8 @@ public abstract class ShortcutInputHandler {
             } else {
                 final RecipeId recipeId = recipe != null ? recipe.getRecipeId() : null;
                 final boolean existsRecipe = recipeId != null
-                        && ItemPanels.bookmarkPanel.existsRecipe(recipeId, BookmarkGrid.DEFAULT_GROUP_ID);
+                        && ItemPanels.bookmarkPanel.existsRecipe(recipeId, BookmarkGrid.DEFAULT_GROUP_ID)
+                        || NEIClientConfig.getBooleanSetting("inventory.bookmarks.bookmarkItemsWithRecipe");
 
                 if (!ItemPanels.bookmarkPanel
                         .removeItem(stackover, existsRecipe ? recipeId : null, BookmarkGrid.DEFAULT_GROUP_ID)) {

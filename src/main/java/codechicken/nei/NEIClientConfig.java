@@ -213,6 +213,10 @@ public class NEIClientConfig {
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.bookmarks.ignorePotionOverlap", true));
 
+        tag.getTag("inventory.bookmarks.bookmarkItemsWithRecipe").setComment("Bookmark items with recipe")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.bookmarks.bookmarkItemsWithRecipe", true));
+
         tag.getTag("inventory.guirecipe.jeiStyleTabs").setComment("Enable/disable JEI Style Tabs")
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.guirecipe.jeiStyleTabs", true));
