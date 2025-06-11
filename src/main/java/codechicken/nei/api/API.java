@@ -3,6 +3,7 @@ package codechicken.nei.api;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -164,8 +165,13 @@ public class API {
      * Add or replace the name normally shown on the item tooltip
      */
     public static void setOverrideName(ItemStack item, String name) {
-        if (!name.equals(ItemInfo.nameOverrides.get(item))) {
-            ItemInfo.nameOverrides.put(item, name);
+        String existing = ItemInfo.nameOverrides.get(item);
+        if (!Objects.equals(name, existing)) {
+            if (name == null) {
+                ItemInfo.nameOverrides.remove(item);
+            } else {
+                ItemInfo.nameOverrides.put(item, name);
+            }
             LayoutManager.markItemsDirty();
         }
     }
