@@ -725,15 +725,18 @@ public class GuiContainerManager {
         final List<String> currentTooltip = tooltips.get(tooltipPage);
 
         if (maxTooltipPage > 1) {
+            final String lastLine = currentTooltip.remove(currentTooltip.size() - 1);
             final String pageTooltip = EnumChatFormatting.ITALIC + NEIClientUtils.translate(
                     "inventory.tooltip.page",
                     tooltipPage + 1,
                     maxTooltipPage,
                     NEIClientConfig.getKeyName("gui.next_tooltip"));
 
-            currentTooltip.set(
-                    currentTooltip.size() - 1,
-                    currentTooltip.get(currentTooltip.size() - 1) + GuiDraw.TOOLTIP_LINESPACE);
+            if (lastLine.startsWith(GuiDraw.TOOLTIP_HANDLER)) {
+                currentTooltip.add(lastLine);
+            } else {
+                currentTooltip.add(lastLine + GuiDraw.TOOLTIP_LINESPACE);
+            }
 
             currentTooltip.add(pageTooltip);
         }
