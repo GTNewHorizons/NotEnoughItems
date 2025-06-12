@@ -110,6 +110,8 @@ nei.inventory.current.gamemode.1=Current gamemode: creative
 nei.inventory.current.gamemode.2=Current gamemode: creative+
 nei.inventory.current.gamemode.3=Current gamemode: adventure
 nei.inventory.tooltip.page=Page: %s / %s [Press %s to see next page]
+nei.inventory.tooltip.count.item=Count: %s
+nei.inventory.tooltip.count.fluid=Amount: %s
 
 nei.inventory.gamemode.0=Click: Set gamemode to survival
 nei.inventory.gamemode.1=Click: Set gamemode to creative

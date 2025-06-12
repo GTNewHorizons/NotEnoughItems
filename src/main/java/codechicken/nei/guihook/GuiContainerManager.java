@@ -221,8 +221,8 @@ public class GuiContainerManager {
             return countDetails(
                     stack.stackSize,
                     stack.getMaxStackSize(),
-                    "Count: %s = %s * %s + %s",
-                    "Count: %s = %s * %s");
+                    translate("inventory.tooltip.count.item", "%s = %s * %s + %s"),
+                    translate("inventory.tooltip.count.item", "%s = %s * %s"));
         }
     }
 
@@ -234,7 +234,11 @@ public class GuiContainerManager {
 
     @Nullable
     public static String fluidAmountDetails(int amount) {
-        return countDetails(amount, 144, "Amount: %s L = %s * %s L + %s L", "Amount: %s L = %s * %s L");
+        return countDetails(
+                amount,
+                144,
+                translate("inventory.tooltip.count.fluid", "%s L = %s * %s L + %s L"),
+                translate("inventory.tooltip.count.fluid", "%s L = %s * %s L"));
     }
 
     /**
