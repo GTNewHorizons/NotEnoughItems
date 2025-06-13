@@ -40,7 +40,7 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
     @Override
     public void draw(int mx, int my) {
 
-        if (this.stack != null
+        if (this.stack != null && this.availableAreaWidth >= SLOT_SIZE * 2
                 && (NEIClientConfig.getBooleanSetting("inventory.itemzoom.enabled")
                         || NEIClientConfig.isKeyHashDown("gui.itemzoom_hold"))
                 && GuiContainerManager.shouldShowTooltip(NEIClientUtils.getGuiContainer())) {
