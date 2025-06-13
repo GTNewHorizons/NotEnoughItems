@@ -16,9 +16,13 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityMobSpawner;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class ItemMobSpawner extends ItemBlock {
 
@@ -29,7 +33,6 @@ public class ItemMobSpawner extends ItemBlock {
 
     public ItemMobSpawner() {
         super(Blocks.mob_spawner);
-
         hasSubtypes = true;
         MinecraftForgeClient.registerItemRenderer(this, new SpawnerRenderer());
     }
@@ -38,7 +41,6 @@ public class ItemMobSpawner extends ItemBlock {
      * These are ASM translated from BlockMobSpawner
      */
     public static int placedX;
-
     public static int placedY;
     public static int placedZ;
 
@@ -65,6 +67,7 @@ public class ItemMobSpawner extends ItemBlock {
         return false;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void addInformation(ItemStack itemstack, EntityPlayer par2EntityPlayer, List<String> list, boolean par4) {
         setDefaultTag(itemstack);
@@ -73,15 +76,17 @@ public class ItemMobSpawner extends ItemBlock {
             meta = idPig;
         }
         Entity e = getEntity(meta);
-        list.add("\u00A7" + (e instanceof IMob ? "4" : "3") + IDtoNameMap.get(meta));
+        list.add(
+                (e instanceof IMob ? EnumChatFormatting.DARK_RED : EnumChatFormatting.DARK_AQUA)
+                        + IDtoNameMap.get(meta));
     }
 
     public static EntityLiving getEntity(int ID) {
         EntityLiving e = entityHashMap.get(ID);
         if (e == null) {
+            loadSpawners();
+            Class<?> clazz = EntityList.IDtoClassMapping.get(ID);
             World world = NEIClientUtils.mc().theWorld;
-            loadSpawners(world);
-            Class<?> clazz = (Class<?>) EntityList.IDtoClassMapping.get(ID);
             try {
                 e = (EntityLiving) clazz.getConstructor(new Class[] { World.class }).newInstance(world);
             } catch (Throwable t) {
@@ -95,40 +100,31 @@ public class ItemMobSpawner extends ItemBlock {
         return e;
     }
 
-    public static void clearEntityReferences(World newWorld) {
-        entityHashMap.values().removeIf(e -> e.worldObj != newWorld);
+    public static void clearEntityReferences() {
+        entityHashMap.clear();
     }
 
     private void setDefaultTag(ItemStack itemstack) {
         if (!IDtoNameMap.containsKey(itemstack.getItemDamage())) itemstack.setItemDamage(idPig);
     }
 
-    public static void loadSpawners(World world) {
+    public static void loadSpawners() {
         if (loaded) return;
         loaded = true;
-        Map<Class<? extends Entity>, String> classToStringMapping = EntityList.classToStringMapping;
-        @SuppressWarnings("unchecked")
-        Map<Class<? extends Entity>, Integer> classToIDMapping = (Map<Class<? extends Entity>, Integer>) EntityList.classToIDMapping;
-        for (Class<? extends Entity> eclass : classToStringMapping.keySet()) {
-            if (!EntityLiving.class.isAssignableFrom(eclass)) continue;
-            try {
-                EntityLiving entityliving = (EntityLiving) eclass.getConstructor(new Class[] { World.class })
-                        .newInstance(world);
-                entityliving.isChild();
-
-                int id = classToIDMapping.get(eclass);
-                String name = classToStringMapping.get(eclass);
-
+        for (Map.Entry<Class<? extends Entity>, String> entry : EntityList.classToStringMapping.entrySet()) {
+            final Class<? extends Entity> clazz = entry.getKey();
+            if (EntityLiving.class.isAssignableFrom(clazz)) {
+                Integer id = (Integer) EntityList.classToIDMapping.get(clazz);
+                if (id == null) continue;
+                String name = entry.getValue();
+                if (name == null) continue;
                 if (name.equals("EnderDragon")) continue;
-
-                IDtoNameMap.put(id, name);
-
                 if (name.equals("Pig")) idPig = id;
-            } catch (Throwable ignored) {}
+                if (clazz != EntityPig.class || name.equals("Pig")) {
+                    IDtoNameMap.put(id, name);
+                }
+            }
         }
-
-        IDtoNameMap.entrySet()
-                .removeIf(e -> getEntity(e.getKey()).getClass() == EntityPig.class && !e.getValue().equals("Pig"));
     }
 
     @Override

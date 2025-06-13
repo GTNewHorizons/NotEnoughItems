@@ -19,7 +19,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiErrorScreen;
-import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiSelectWorld;
 import net.minecraft.client.multiplayer.WorldClient;
@@ -27,6 +26,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
@@ -61,7 +61,6 @@ public class ClientHandler {
     private static ClientHandler instance;
     private final ArrayList<EntityItem> SMPmagneticItems = new ArrayList<>();
     private World lastworld;
-    private GuiScreen lastGui;
 
     public void addSMPMagneticItem(int i, World world) {
         WorldClient cworld = (WorldClient) world;
@@ -308,18 +307,19 @@ public class ClientHandler {
             if (mc.currentScreen == null) NEIController.processCreativeCycling(mc.thePlayer.inventory);
 
             updateMagnetMode(mc.theWorld, mc.thePlayer);
+        } else {
+            lastworld = null;
         }
+    }
 
-        GuiScreen gui = mc.currentScreen;
-        if (gui != lastGui) {
-            if (gui instanceof GuiMainMenu) lastworld = null;
-            else if (gui instanceof GuiSelectWorld) NEIClientConfig.reloadSaves();
-            else if (gui == null) {
-                /* prevent WorldClient reference being held in the Gui */
-                NEIController.manager = null;
-            }
+    @SubscribeEvent
+    public void onGuiScreen(GuiOpenEvent event) {
+        if (event.gui instanceof GuiSelectWorld) {
+            NEIClientConfig.reloadSaves();
+        } else if (event.gui == null) {
+            /* prevent WorldClient reference being held in the Gui */
+            NEIController.manager = null;
         }
-        lastGui = gui;
     }
 
     @SubscribeEvent
@@ -338,6 +338,7 @@ public class ClientHandler {
         Minecraft mc = Minecraft.getMinecraft();
         if (event.world == mc.theWorld) {
             NEIClientConfig.unloadWorld();
+            ItemMobSpawner.clearEntityReferences();
         }
     }
 
@@ -354,8 +355,6 @@ public class ClientHandler {
                 if (!Minecraft.getMinecraft().isSingleplayer()) // wait for server to initiate in singleplayer
                     NEIClientConfig.loadWorld("remote/" + ClientUtils.getServerIP().replace(':', '~'));
             }
-            ItemMobSpawner.clearEntityReferences(world);
-
             lastworld = world;
         }
     }

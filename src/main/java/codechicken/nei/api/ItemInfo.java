@@ -124,12 +124,12 @@ public class ItemInfo {
         addMobSpawnerItem();
     }
 
-    public static void load(World world) {
+    public static void load() {
         addVanillaBlockProperties();
         addDefaultDropDowns();
         searchItems();
         parseModItems();
-        ItemMobSpawner.loadSpawners(world);
+        ItemMobSpawner.loadSpawners();
         addSpawnEggs();
         addInfiniteHandlers();
         addInputHandlers();
