@@ -17,7 +17,6 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.world.World;
 import net.minecraft.world.storage.SaveFormatComparator;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -790,7 +789,7 @@ public class NEIClientConfig {
             }
 
             world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
-            bootNEI(ClientUtils.getWorld());
+            bootNEI();
             onWorldLoad(newWorld);
         }
     }
@@ -885,11 +884,11 @@ public class NEIClientConfig {
         return NEIKeyboardUtils.getKeyName(hash + meta);
     }
 
-    public static void bootNEI(World world) {
+    public static void bootNEI() {
 
         if (!mainNEIConfigLoaded) {
             // main NEI config loading
-            ItemInfo.load(world);
+            ItemInfo.load();
             GuiInfo.load();
             RecipeInfo.load();
             HeldItemHandler.load();
