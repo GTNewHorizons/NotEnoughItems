@@ -145,7 +145,7 @@ public class NEIClientConfig {
         tag.getTag("inventory.widgetsenabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.widgetsenabled"));
 
-        tag.getTag("inventory.autocrafting").getBooleanValue(false);
+        tag.getTag("inventory.autocrafting").getBooleanValue(true);
         tag.getTag("inventory.dynamicFontSize").getBooleanValue(true);
         tag.getTag("inventory.hidden").getBooleanValue(false);
         tag.getTag("inventory.cheatmode").getIntValue(2);
@@ -411,6 +411,9 @@ public class NEIClientConfig {
         tag.getTag("inventory.optimize_gui_overlap_computation").setComment("Optimize computation for GUI overlap")
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.optimize_gui_overlap_computation", true));
+
+        tag.getTag("inventory.autocrafting").setComment("Autocrafting").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.autocrafting", true));
 
         tag.getTag("tools.handler_load_from_config").setComment("ADVANCED: Load handlers from config")
                 .getBooleanValue(false);
