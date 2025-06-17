@@ -2,14 +2,11 @@ package codechicken.nei.recipe;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
 
 import codechicken.nei.ItemStackAmount;
 import codechicken.nei.NEIClientUtils;
@@ -25,16 +22,11 @@ public class AutoCraftingManager {
 
     private static final RestartableTask task = new RestartableTask("NEI Bookmark AutoCraft Processing") {
 
-        private static final ItemStack ROOT_ITEM = new ItemStack(Blocks.fire);
-        private static final RecipeId ROOT_RECIPE_ID = RecipeId
-                .of(ROOT_ITEM, "recipe-autocrafting", Collections.emptyList());
-
         @Override
         public void execute() {
             final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
             final InventoryPlayer playerInventory = guiContainer.mc.thePlayer.inventory;
             final ItemStackAmount inventory = ItemStackAmount.of(Arrays.asList(playerInventory.mainInventory));
-            final RecipeChainMath math = createMasterRoot(AutoCraftingManager.math);
             final List<BookmarkItem> initialItems = prepareInitialItems(math, inventory);
             boolean processed = false;
             boolean changed = false;
@@ -91,31 +83,6 @@ public class AutoCraftingManager {
             return interrupted() || guiContainer != NEIClientUtils.getGuiContainer();
         }
 
-        private RecipeChainMath createMasterRoot(RecipeChainMath math) {
-            final List<BookmarkItem> rootIngredients = new ArrayList<>();
-
-            for (BookmarkItem item : math.recipeResults) {
-                if (math.outputRecipes.containsKey(item.recipeId)) {
-                    long amount = item.factor * math.outputRecipes.get(item.recipeId);
-                    rootIngredients.add(
-                            BookmarkItem.of(
-                                    -1,
-                                    item.getItemStack(amount),
-                                    item.getStackSize(amount),
-                                    ROOT_RECIPE_ID,
-                                    true,
-                                    BookmarkItem.generatePermutations(item.itemStack, null)));
-                }
-            }
-
-            math.outputRecipes.clear();
-            math.outputRecipes.put(ROOT_RECIPE_ID, 1L);
-            math.recipeResults.add(BookmarkItem.of(-1, ROOT_ITEM, 1, ROOT_RECIPE_ID, false));
-            math.recipeIngredients.addAll(rootIngredients);
-
-            return math;
-        }
-
         private List<BookmarkItem> prepareInitialItems(RecipeChainMath math, ItemStackAmount inventory) {
             final List<BookmarkItem> initialItems = new ArrayList<>();
 
@@ -139,6 +106,7 @@ public class AutoCraftingManager {
         AutoCraftingManager.math = math;
 
         if (AutoCraftingManager.math != null) {
+            math.createMasterRoot();
             task.restart();
         }
     }

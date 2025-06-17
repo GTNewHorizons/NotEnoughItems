@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 
 import codechicken.nei.ItemStackAmount;
@@ -18,6 +19,10 @@ import codechicken.nei.recipe.Recipe.RecipeIngredient;
 import codechicken.nei.recipe.StackInfo;
 
 public class RecipeChainMath {
+
+    private static final ItemStack ROOT_ITEM = new ItemStack(Blocks.fire);
+    private static final RecipeId ROOT_RECIPE_ID = RecipeId
+            .of(ROOT_ITEM, "recipe-autocrafting", Collections.emptyList());
 
     public final Map<RecipeId, Long> outputRecipes = new HashMap<>();
 
@@ -130,6 +135,36 @@ public class RecipeChainMath {
 
         visited.remove(recipeId);
         return maxDepth;
+    }
+
+    public RecipeId createMasterRoot() {
+        final List<BookmarkItem> rootIngredients = new ArrayList<>();
+
+        for (BookmarkItem item : this.recipeResults) {
+            if (this.outputRecipes.containsKey(item.recipeId) && !ROOT_RECIPE_ID.equals(item.recipeId)) {
+                final long amount = item.factor * this.outputRecipes.get(item.recipeId);
+                rootIngredients.add(
+                        BookmarkItem.of(
+                                -1,
+                                item.getItemStack(amount),
+                                item.getStackSize(amount),
+                                ROOT_RECIPE_ID,
+                                true,
+                                BookmarkItem.generatePermutations(item.itemStack, null)));
+            }
+        }
+
+        this.outputRecipes.clear();
+        this.outputRecipes.put(ROOT_RECIPE_ID, 1L);
+        this.recipeResults.removeIf(item -> ROOT_RECIPE_ID.equals(item.recipeId));
+        this.recipeResults.add(BookmarkItem.of(-1, ROOT_ITEM, 1, ROOT_RECIPE_ID, false));
+        this.recipeIngredients.addAll(rootIngredients);
+
+        return ROOT_RECIPE_ID;
+    }
+
+    public boolean hasMasterRoot() {
+        return this.outputRecipes.containsKey(ROOT_RECIPE_ID);
     }
 
     public static RecipeChainMath of(List<BookmarkItem> chainItems, Set<RecipeId> collapsedRecipes) {

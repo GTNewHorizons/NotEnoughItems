@@ -746,7 +746,8 @@ public class NEIClientConfig {
         API.addHashBind("gui.remove_recipe", Keyboard.KEY_A + NEIClientUtils.SHIFT_HASH);
         API.addKeyBind("gui.bookmark_pull_items", Keyboard.KEY_V);
         API.addKeyBind("gui.overlay", Keyboard.KEY_S);
-        API.addHashBind("gui.craft", Keyboard.KEY_C + NEIClientUtils.SHIFT_HASH);
+        API.addHashBind("gui.craft_all", Keyboard.KEY_C + NEIClientUtils.SHIFT_HASH);
+        API.addHashBind("gui.craft_missing", Keyboard.KEY_C + NEIClientUtils.SHIFT_HASH + NEIKeyboardUtils.CTRL_HASH);
         API.addHashBind("gui.hide_bookmarks", Keyboard.KEY_B);
         API.addKeyBind("gui.getprevioussearch", Keyboard.KEY_UP);
         API.addKeyBind("gui.getnextsearch", Keyboard.KEY_DOWN);
