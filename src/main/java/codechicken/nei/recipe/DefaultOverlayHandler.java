@@ -135,6 +135,8 @@ public class DefaultOverlayHandler implements IOverlayHandler {
 
         }
 
+        clearIngredients(firstGui);
+
         return craft;
     }
 
