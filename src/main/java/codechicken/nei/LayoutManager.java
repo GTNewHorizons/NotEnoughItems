@@ -136,10 +136,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     @Override
     public void onPreDraw(GuiContainer gui) {
-        if (!isHidden() && isEnabled() && gui instanceof InventoryEffectRenderer) // Reset the gui to the center of the
-                                                                                  // screen, for potion effect offsets
-        // etc
-        {
+        // Reset the gui to the center of the screen, for potion effect offsets etc
+        if (isEnabled() && gui instanceof InventoryEffectRenderer) {
             gui.guiLeft = (gui.width - gui.xSize) / 2;
             gui.guiTop = (gui.height - gui.ySize) / 2;
 

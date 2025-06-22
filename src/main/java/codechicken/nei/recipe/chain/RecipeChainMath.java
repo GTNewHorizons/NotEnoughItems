@@ -6,9 +6,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import codechicken.nei.ItemStackAmount;
@@ -32,6 +34,7 @@ public class RecipeChainMath {
 
     public final Map<BookmarkItem, BookmarkItem> preferredItems = new HashMap<>();
     public final Map<BookmarkItem, Long> requiredAmount = new HashMap<>();
+    public final Map<BookmarkItem, ItemStack> requiredContainerItem = new HashMap<>();
 
     private RecipeChainMath(List<BookmarkItem> recipeItems, Set<RecipeId> collapsedRecipes) {
         final Map<RecipeId, Integer> recipeState = new HashMap<>();
@@ -48,7 +51,17 @@ public class RecipeChainMath {
             if (recipeState.getOrDefault(item.recipeId, 0) != 3) {
                 this.initialItems.add(item.copy());
             } else if (item.isIngredient) {
+                final Optional<ItemStack> containerItem = StackInfo.getContainerItem(item.getItemStack(1));
                 this.recipeIngredients.add(item.copyWithAmount(0));
+
+                if (containerItem != null && containerItem.isPresent()) {
+                    final ItemStack stack = containerItem.get();
+
+                    if (Item.getIdFromItem(item.itemStack.getItem()) != Item.getIdFromItem(stack.getItem())) {
+                        this.recipeResults.add(BookmarkItem.of(-2, stack, 1, item.recipeId, false).copyWithAmount(0));
+                    }
+                }
+
             } else {
                 this.recipeResults.add(item.copyWithAmount(0));
                 multipliers.put(
@@ -75,7 +88,8 @@ public class RecipeChainMath {
                 if (!this.outputRecipes.containsKey(recipeId) && this.preferredItems.values().stream()
                         .noneMatch(resItem -> resItem.recipeId.equals(recipeId))) {
                     final Map<BookmarkItem, BookmarkItem> references = new HashMap<>(this.preferredItems);
-                    final int depth = collectPreferredItems(recipeId, references, new HashSet<>());
+                    collectPreferredItems(recipeId, references, new HashSet<>());
+                    final int depth = getMaxDepth(recipeId, references);
 
                     if (maxDepth < depth || maxDepth == depth && entry.getValue() > maxMultiplier) {
                         maxMultiplier = entry.getValue();
@@ -109,9 +123,9 @@ public class RecipeChainMath {
         }
     }
 
-    private int collectPreferredItems(RecipeId recipeId, Map<BookmarkItem, BookmarkItem> preferredItems,
+    private void collectPreferredItems(RecipeId recipeId, Map<BookmarkItem, BookmarkItem> preferredItems,
             Set<RecipeId> visited) {
-        int maxDepth = 0;
+
         visited.add(recipeId);
 
         for (BookmarkItem ingrItem : this.recipeIngredients) {
@@ -127,13 +141,23 @@ public class RecipeChainMath {
 
                 if (prefItem != null) {
                     preferredItems.put(ingrItem, prefItem);
-                    maxDepth = Math
-                            .max(maxDepth, collectPreferredItems(prefItem.recipeId, preferredItems, visited) + 1);
+                    collectPreferredItems(prefItem.recipeId, preferredItems, visited);
                 }
             }
         }
 
         visited.remove(recipeId);
+    }
+
+    private int getMaxDepth(RecipeId recipeId, Map<BookmarkItem, BookmarkItem> preferredItems) {
+        int maxDepth = 0;
+
+        for (BookmarkItem ingrItem : this.recipeIngredients) {
+            if (ingrItem.factor > 0 && recipeId.equals(ingrItem.recipeId) && preferredItems.containsKey(ingrItem)) {
+                maxDepth = Math.max(maxDepth, getMaxDepth(preferredItems.get(ingrItem).recipeId, preferredItems) + 1);
+            }
+        }
+
         return maxDepth;
     }
 
@@ -141,7 +165,8 @@ public class RecipeChainMath {
         final List<BookmarkItem> rootIngredients = new ArrayList<>();
 
         for (BookmarkItem item : this.recipeResults) {
-            if (this.outputRecipes.containsKey(item.recipeId) && !ROOT_RECIPE_ID.equals(item.recipeId)) {
+            if (item.groupId != -2 && this.outputRecipes.containsKey(item.recipeId)
+                    && !ROOT_RECIPE_ID.equals(item.recipeId)) {
                 final long amount = item.factor * this.outputRecipes.get(item.recipeId);
                 rootIngredients.add(
                         BookmarkItem.of(
@@ -235,6 +260,7 @@ public class RecipeChainMath {
 
         this.preferredItems.clear();
         this.requiredAmount.clear();
+        this.requiredContainerItem.clear();
 
         for (RecipeId recipeId : this.outputRecipes.keySet()) {
             collectPreferredItems(recipeId, this.preferredItems, new HashSet<>());
@@ -278,11 +304,11 @@ public class RecipeChainMath {
         final BookmarkItem prefItem = this.preferredItems.get(ingrItem);
 
         if (prefItem == null) {
-            this.requiredAmount.put(ingrItem, this.requiredAmount.getOrDefault(ingrItem, 0L) + ingrAmount);
+            addRequiredAmount(ingrItem, ingrAmount);
         } else if (visited.contains(prefItem.recipeId)) {
-            this.requiredAmount.put(prefItem, this.requiredAmount.getOrDefault(prefItem, 0L) + ingrAmount);
+            addRequiredAmount(prefItem, ingrAmount);
         } else {
-            this.requiredAmount.put(prefItem, this.requiredAmount.getOrDefault(prefItem, 0L) + ingrAmount);
+            addRequiredAmount(prefItem, ingrAmount);
             final long shift = (long) Math
                     .ceil((this.requiredAmount.get(prefItem) - prefItem.amount) / (double) prefItem.factor);
 
@@ -297,15 +323,71 @@ public class RecipeChainMath {
 
     }
 
+    private void addRequiredAmount(BookmarkItem prefItem, long ingrAmount) {
+        long amount = this.requiredAmount.getOrDefault(prefItem, 0L);
+
+        if (prefItem.itemStack.getItem().hasContainerItem(prefItem.itemStack)) {
+            amount += calculateContainerItemCount(prefItem, ingrAmount);
+        } else {
+            amount += ingrAmount;
+        }
+
+        this.requiredAmount.put(prefItem, amount);
+    }
+
+    private long calculateContainerItemCount(BookmarkItem item, long amount) {
+        final int itemId = Item.getIdFromItem(item.itemStack.getItem());
+        ItemStack aStack = this.requiredContainerItem.get(item);
+        long result = 0;
+
+        for (int i = 0; i < amount; i++) {
+
+            if (aStack == null) {
+                aStack = item.getItemStack(1);
+                result++;
+            }
+
+            final Optional<ItemStack> containerItem = StackInfo.getContainerItem(aStack);
+
+            if (containerItem != null && containerItem.isPresent()) {
+                aStack = containerItem.get();
+
+                if (itemId != Item.getIdFromItem(aStack.getItem())) {
+                    aStack = null;
+                }
+            } else {
+                aStack = null;
+            }
+
+        }
+
+        this.requiredContainerItem.put(item, aStack);
+
+        return result;
+    }
+
     private long prepareAmount(BookmarkItem ingrItem, long ingrAmount) {
         if (ingrAmount == 0) return 0;
 
         for (BookmarkItem item : this.initialItems) {
             if (item.containsItems(ingrItem)) {
-                long initAmount = Math.min(ingrAmount, item.amount - this.requiredAmount.getOrDefault(item, 0L));
+                long amount = this.requiredAmount.getOrDefault(item, 0L);
+
+                if (item.itemStack.getItem().hasContainerItem(item.itemStack)
+                        && ((item.amount - amount) > 0 || this.requiredContainerItem.get(item) != null)) {
+                    ingrAmount = calculateContainerItemCount(item, ingrAmount);
+                }
+
+                long initAmount = Math.min(ingrAmount, item.amount - amount);
+
                 if (initAmount > 0) {
                     this.requiredAmount.put(item, this.requiredAmount.getOrDefault(item, 0L) + initAmount);
                     ingrAmount -= initAmount;
+
+                    if ((item.amount - amount - initAmount) < 0) {
+                        this.requiredContainerItem.put(item, null);
+                    }
+
                     if (ingrAmount == 0) break;
                 }
             }

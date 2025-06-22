@@ -9,12 +9,15 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.FluidStack;
 
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.Recipe.RecipeIngredient;
 import codechicken.nei.recipe.StackInfo;
 
 public class BookmarkItem {
+
+    private static Map<ItemStack, String> fuzzyPermutations = new HashMap<>();
 
     public int groupId;
 
@@ -120,13 +123,23 @@ public class BookmarkItem {
         return Collections.singletonMap(getItemGUID(stack), stack);
     }
 
-    private static String getItemGUID(ItemStack stack) {
+    private static synchronized String getItemGUID(ItemStack stack) {
         final FluidStack fluidStack = StackInfo.getFluid(stack);
 
         if (fluidStack != null) {
             return fluidStack.getFluid().getName() + ":" + fluidStack.tag;
         } else {
-            return StackInfo.getItemStackGUID(stack);
+
+            for (Map.Entry<ItemStack, String> entry : BookmarkItem.fuzzyPermutations.entrySet()) {
+                if (NEIClientUtils.areStacksSameTypeCraftingWithNBT(stack, entry.getKey())) {
+                    return entry.getValue();
+                }
+            }
+
+            final String stackGUID = StackInfo.getItemStackGUID(stack);
+            BookmarkItem.fuzzyPermutations.put(stack, stackGUID);
+
+            return stackGUID;
         }
     }
 

@@ -1,14 +1,27 @@
 package codechicken.nei.api;
 
+import java.util.Optional;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.FluidStack;
 
 public interface IStackStringifyHandler {
 
-    public NBTTagCompound convertItemStackToNBT(ItemStack stack, boolean saveStackSize);
+    default NBTTagCompound convertItemStackToNBT(ItemStack stack, boolean saveStackSize) {
+        return null;
+    }
 
-    public ItemStack convertNBTToItemStack(NBTTagCompound nbtTag);
+    default ItemStack convertNBTToItemStack(NBTTagCompound nbtTag) {
+        return null;
+    }
 
-    public FluidStack getFluid(ItemStack stack);
+    default FluidStack getFluid(ItemStack stack) {
+        return null;
+    }
+
+    default Optional<ItemStack> getContainerItem(ItemStack stack) {
+        return null;
+    }
+
 }

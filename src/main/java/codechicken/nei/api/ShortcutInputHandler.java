@@ -20,7 +20,6 @@ import codechicken.nei.BookmarkContainerInfo;
 import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemQuantityField;
-import codechicken.nei.ItemStackAmount;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -476,12 +475,17 @@ public abstract class ShortcutInputHandler {
     private static void autocraftingIgnoreInventory(RecipeChainMath math) {
         final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
         final InventoryPlayer playerInventory = guiContainer.mc.thePlayer.inventory;
-        final ItemStackAmount inventory = ItemStackAmount.of(Arrays.asList(playerInventory.mainInventory));
         final RecipeId rootRecipeId = math.createMasterRoot();
 
         for (BookmarkItem item : math.recipeIngredients) {
-            if (rootRecipeId.equals(item.recipeId)) {
-                long amount = inventory.getOrDefault(item.itemStack, 0) * item.fluidCellAmount;
+            if (item.amount > 0 && rootRecipeId.equals(item.recipeId)) {
+                long amount = 0;
+
+                for (ItemStack stack : playerInventory.mainInventory) {
+                    if (stack != null && NEIClientUtils.areStacksSameTypeCraftingWithNBT(stack, item.itemStack)) {
+                        amount += StackInfo.getAmount(stack);
+                    }
+                }
 
                 if (amount >= item.amount) {
                     item.factor = item.amount = amount + item.amount - (amount % item.amount);

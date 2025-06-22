@@ -142,7 +142,9 @@ public class RecipeChainDetails {
         if (collapsedRecipes.isEmpty()) {
 
             for (BookmarkItem item : math.recipeResults) {
-                generateResult(math, item, sortingChainItems.get(item));
+                if (sortingChainItems.containsKey(item)) {
+                    generateResult(math, item, sortingChainItems.get(item));
+                }
             }
 
             for (BookmarkItem item : math.recipeIngredients) {

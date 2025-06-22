@@ -95,10 +95,18 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
                 final long amount = item.amount - math.requiredAmount.getOrDefault(item, 0L);
 
                 if (amount > 0) {
-                    if (math.outputRecipes.containsKey(item.recipeId)) {
+                    if (math.outputRecipes.containsKey(item.recipeId) && item.groupId != -2) {
                         outputs.add(item.getItemStack(amount));
                     } else if (lastShiftKey) {
                         remainder.add(item.getItemStack(amount));
+                    }
+                }
+            }
+
+            if (lastShiftKey) {
+                for (ItemStack stack : math.requiredContainerItem.values()) {
+                    if (stack != null) {
+                        remainder.add(stack.copy());
                     }
                 }
             }

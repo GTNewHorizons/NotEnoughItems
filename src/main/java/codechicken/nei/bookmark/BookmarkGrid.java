@@ -1024,8 +1024,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         }
 
         if (bookmarkItem != null && (group.crafting != null && group.viewMode == BookmarkViewMode.DEFAULT
-                || group.viewMode == BookmarkViewMode.TODO_LIST)) {
-
+                || group.viewMode == BookmarkViewMode.TODO_LIST && !sortableItem.bookmarkItem.isIngredient)) {
             while (sortIndex > 0 && bookmarkItem.equalsRecipe(getCalculatedItem(sortedIndexes.get(sortIndex - 1)))) {
                 sortIndex--;
             }
@@ -1055,7 +1054,8 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         if (nextSortIndex < sortedIndexes.size()) {
             final int nextItemIndex = sortedIndexes.get(nextSortIndex);
 
-            if (group.viewMode == BookmarkViewMode.TODO_LIST && target.equalsRecipe(getCalculatedItem(nextItemIndex))) {
+            if (group.viewMode == BookmarkViewMode.TODO_LIST && !target.isIngredient
+                    && target.equalsRecipe(getCalculatedItem(nextItemIndex))) {
                 return -1;
             }
 

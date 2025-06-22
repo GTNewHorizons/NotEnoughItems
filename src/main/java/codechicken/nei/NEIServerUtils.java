@@ -46,8 +46,21 @@ import codechicken.nei.PacketIDs.S2C;
 import codechicken.nei.util.NBTHelper;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class NEIServerUtils {
+
+    private static Class<?> gtMetaBaseItem;
+
+    static {
+        try {
+            final ClassLoader loader = NEIServerUtils.class.getClassLoader();
+            NEIServerUtils.gtMetaBaseItem = ReflectionHelper
+                    .getClass(loader, "gregtech.api.items.MetaBaseItem", "gregtech.api.items.GT_MetaBase_Item");
+        } catch (Exception ignored) {
+            /* Do nothing */
+        }
+    }
 
     public static boolean isRaining(World world) {
         return world.getWorldInfo().isRaining();
@@ -177,19 +190,28 @@ public class NEIServerUtils {
 
     /**
      * NBT-friendly version of {@link #areStacksSameTypeCrafting(ItemStack, ItemStack)}
-     * 
+     *
      * @param stack1 The {@link ItemStack} being compared.
      * @param stack2 The {@link ItemStack} to compare to.
      * @return whether the two items are the same from the perspective of a crafting inventory.
      */
     public static boolean areStacksSameTypeCraftingWithNBT(ItemStack stack1, ItemStack stack2) {
-        return stack1 != null && stack2 != null
-                && stack1.getItem() == stack2.getItem()
-                && (stack1.getItemDamage() == stack2.getItemDamage()
-                        || stack1.getItemDamage() == OreDictionary.WILDCARD_VALUE
-                        || stack2.getItemDamage() == OreDictionary.WILDCARD_VALUE
-                        || stack1.getItem().isDamageable())
-                && NBTHelper.matchTag(stack1.getTagCompound(), stack2.getTagCompound());
+        if (stack1 == null || stack2 == null) return true;
+
+        if (NEIServerUtils.areStacksSameTypeCrafting(stack2, stack1)) {
+            if (NBTHelper.matchTag(stack1.getTagCompound(), stack2.getTagCompound())) return true;
+
+            return (isItemTool(stack1) || stack1.getMaxStackSize() == 1 && stack2.getMaxStackSize() == 1)
+                    && (stack1.stackTagCompound == null ^ stack2.stackTagCompound == null);
+        }
+
+        return false;
+    }
+
+    public static boolean isItemTool(ItemStack stack) {
+        // GT Items don't have any NBT set for the recipe, so if either of the stacks has a NULL nbt, and the other
+        // doesn't, pretend they stack
+        return NEIServerUtils.gtMetaBaseItem != null && NEIServerUtils.gtMetaBaseItem.isInstance(stack.getItem());
     }
 
     /**

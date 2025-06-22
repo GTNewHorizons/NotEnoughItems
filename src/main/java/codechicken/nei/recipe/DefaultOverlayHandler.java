@@ -17,25 +17,10 @@ import net.minecraft.item.ItemStack;
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.nei.FastTransferManager;
 import codechicken.nei.NEIClientUtils;
-import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.IOverlayHandler;
-import codechicken.nei.util.NBTHelper;
-import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class DefaultOverlayHandler implements IOverlayHandler {
-
-    private static Class<?> gtItem;
-
-    static {
-        try {
-            final ClassLoader loader = DefaultOverlayHandler.class.getClassLoader();
-            gtItem = ReflectionHelper
-                    .getClass(loader, "gregtech.api.items.MetaBaseItem", "gregtech.api.items.GT_MetaBase_Item");
-        } catch (Exception ignored) {
-            /* Do nothing */
-        }
-    }
 
     public static class DistributedIngred {
 
@@ -352,17 +337,6 @@ public class DefaultOverlayHandler implements IOverlayHandler {
     }
 
     protected boolean canStack(ItemStack stack1, ItemStack stack2) {
-        if (stack1 == null || stack2 == null) return true;
-        if (NEIServerUtils.areStacksSameTypeCrafting(stack2, stack1)) {
-            if (NBTHelper.matchTag(stack1.getTagCompound(), stack2.getTagCompound())) return true;
-
-            // GT Items don't have any NBT set for the recipe, so if either of the stacks has a NULL nbt, and the other
-            // doesn't, pretend they stack
-            if (((gtItem != null && gtItem.isInstance(stack1.getItem()))
-                    || (stack1.getMaxStackSize() == 1 && stack2.getMaxStackSize() == 1))
-                    && (stack1.stackTagCompound == null ^ stack2.stackTagCompound == null))
-                return true;
-        }
-        return false;
+        return NEIClientUtils.areStacksSameTypeCraftingWithNBT(stack1, stack2);
     }
 }

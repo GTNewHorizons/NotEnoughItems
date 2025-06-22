@@ -1,6 +1,7 @@
 package codechicken.nei.recipe.stackinfo;
 
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -19,6 +20,8 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
     protected static Method getFluidDisplayStack = null;
     protected static Method getFluidFromDisplayStack = null;
     public static boolean replaceAE2FCFluidDrop = false;
+    private static Class<?> gtMetaGeneratedTool = null;
+    private static Method getContainerItem = null;
 
     static {
         try {
@@ -32,6 +35,11 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
                     "gregtech.common.items.GT_FluidDisplayItem");
             getFluidFromDisplayStack = gtUtility.getMethod("getFluidFromDisplayStack", ItemStack.class);
             getFluidDisplayStack = gtUtility.getMethod("getFluidDisplayStack", FluidStack.class, boolean.class);
+
+            gtMetaGeneratedTool = ReflectionHelper.getClass(loader, "gregtech.api.items.MetaGeneratedTool");
+            getContainerItem = gtMetaGeneratedTool
+                    .getDeclaredMethod("getContainerItem", ItemStack.class, boolean.class, boolean.class);
+            getContainerItem.setAccessible(true);
         } catch (Exception ignored) {
             /* Do nothing */
         }
@@ -101,6 +109,19 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
                 }
             }
         } catch (Exception e) {}
+
+        return null;
+    }
+
+    @Override
+    public Optional<ItemStack> getContainerItem(ItemStack stack) {
+
+        if (getContainerItem != null && gtMetaGeneratedTool.isInstance(stack.getItem())
+                && stack.getItem().hasContainerItem(stack)) {
+            try {
+                return Optional.ofNullable((ItemStack) getContainerItem.invoke(stack.getItem(), stack, false, true));
+            } catch (Exception ex) {}
+        }
 
         return null;
     }

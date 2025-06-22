@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
@@ -71,6 +72,16 @@ public class StackInfo {
         }
 
         return stack;
+    }
+
+    public static Optional<ItemStack> getContainerItem(ItemStack stack) {
+        Optional<ItemStack> result = null;
+
+        for (int i = stackStringifyHandlers.size() - 1; i >= 0 && result == null; i--) {
+            result = stackStringifyHandlers.get(i).getContainerItem(stack);
+        }
+
+        return result;
     }
 
     public static ItemStack withAmount(ItemStack stack, long customCount) {
