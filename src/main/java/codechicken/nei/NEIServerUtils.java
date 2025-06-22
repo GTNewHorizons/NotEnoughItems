@@ -159,7 +159,7 @@ public class NEIServerUtils {
 
     /**
      * NBT-friendly version of {@link #areStacksSameType(ItemStack, ItemStack)}
-     * 
+     *
      * @param stack1 The {@link ItemStack} being compared.
      * @param stack2 The {@link ItemStack} to compare to.
      * @return whether the two items are the same in terms of itemID, damage and NBT.
@@ -196,7 +196,6 @@ public class NEIServerUtils {
      * @return whether the two items are the same from the perspective of a crafting inventory.
      */
     public static boolean areStacksSameTypeCraftingWithNBT(ItemStack stack1, ItemStack stack2) {
-        if (stack1 == null || stack2 == null) return true;
 
         if (NEIServerUtils.areStacksSameTypeCrafting(stack2, stack1)) {
             if (NBTHelper.matchTag(stack1.getTagCompound(), stack2.getTagCompound())) return true;

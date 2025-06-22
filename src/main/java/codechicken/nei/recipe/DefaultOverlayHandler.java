@@ -337,6 +337,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
     }
 
     protected boolean canStack(ItemStack stack1, ItemStack stack2) {
+        if (stack1 == null || stack2 == null) return true;
         return NEIClientUtils.areStacksSameTypeCraftingWithNBT(stack1, stack2);
     }
 }
