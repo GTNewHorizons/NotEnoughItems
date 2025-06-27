@@ -14,6 +14,7 @@ import codechicken.nei.recipe.Recipe.RecipeId;
 
 public class RecipeHandlerRef {
 
+    private static final LRUCache<Class<?>, Boolean> transferAlghoritmCache = new LRUCache<>(200);
     private static final LRUCache<RecipeId, RecipeHandlerRef> recipeRefCache = new LRUCache<>(200);
     public final IRecipeHandler handler;
     public final int recipeIndex;
@@ -139,20 +140,36 @@ public class RecipeHandlerRef {
     public boolean allowedTransferAlghoritm(GuiContainer gui) {
         final IOverlayHandler overlayHandler = getOverlayHandler(gui);
 
-        if (overlayHandler != null) {
-            try {
-                return !overlayHandler.getClass()
-                        .getDeclaredMethod(
-                                "transferRecipe",
-                                GuiContainer.class,
-                                IRecipeHandler.class,
-                                int.class,
-                                int.class)
-                        .isDefault();
-            } catch (NoSuchMethodException e) {}
+        if (overlayHandler == null) {
+            return false;
         }
 
-        return false;
+        return transferAlghoritmCache.computeIfAbsent(overlayHandler.getClass(), clazz -> {
+
+            try {
+
+                if (overlayHandler instanceof DefaultOverlayHandler) {
+                    final Class<?> overlayRecipeClazz = overlayHandler.getClass()
+                            .getMethod(
+                                    "overlayRecipe",
+                                    GuiContainer.class,
+                                    IRecipeHandler.class,
+                                    int.class,
+                                    boolean.class)
+                            .getDeclaringClass();
+
+                    if (overlayRecipeClazz.equals(DefaultOverlayHandler.class)) {
+                        return true;
+                    }
+                }
+
+                return !overlayHandler.getClass()
+                        .getMethod("transferRecipe", GuiContainer.class, IRecipeHandler.class, int.class, int.class)
+                        .isDefault();
+            } catch (NoSuchMethodException e) {}
+
+            return false;
+        });
     }
 
     public IRecipeOverlayRenderer getRecipeOverlayRenderer(GuiContainer gui) {

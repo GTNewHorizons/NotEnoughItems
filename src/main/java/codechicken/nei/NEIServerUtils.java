@@ -199,17 +199,25 @@ public class NEIServerUtils {
 
         if (NEIServerUtils.areStacksSameTypeCrafting(stack2, stack1)) {
             if (NBTHelper.matchTag(stack1.getTagCompound(), stack2.getTagCompound())) return true;
-
-            return (isItemTool(stack1) || stack1.getMaxStackSize() == 1 && stack2.getMaxStackSize() == 1)
+            if (isItemTool(stack1)
+                    && (stack1.stackTagCompound == null || stack1.stackTagCompound.hasKey("GT.ToolStats"))
+                    && (stack2.stackTagCompound == null || stack2.stackTagCompound.hasKey("GT.ToolStats")))
+                return true;
+            return stack1.getMaxStackSize() == 1 && stack2.getMaxStackSize() == 1
                     && (stack1.stackTagCompound == null ^ stack2.stackTagCompound == null);
         }
 
         return false;
     }
 
+    /**
+     * GT Items don't have any NBT set for the recipe, so if either of the stacks has a NULL nbt, and the other doesn't,
+     * pretend they stack
+     *
+     * @param ItemStack stack
+     * @return
+     */
     public static boolean isItemTool(ItemStack stack) {
-        // GT Items don't have any NBT set for the recipe, so if either of the stacks has a NULL nbt, and the other
-        // doesn't, pretend they stack
         return NEIServerUtils.gtMetaBaseItem != null && NEIServerUtils.gtMetaBaseItem.isInstance(stack.getItem());
     }
 

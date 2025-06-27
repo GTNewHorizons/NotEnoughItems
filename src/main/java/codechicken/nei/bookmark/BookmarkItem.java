@@ -132,6 +132,7 @@ public class BookmarkItem {
 
             for (Map.Entry<ItemStack, String> entry : BookmarkItem.fuzzyPermutations.entrySet()) {
                 if (NEIClientUtils.areStacksSameTypeCraftingWithNBT(stack, entry.getKey())) {
+                    BookmarkItem.fuzzyPermutations.put(stack, entry.getValue());
                     return entry.getValue();
                 }
             }
