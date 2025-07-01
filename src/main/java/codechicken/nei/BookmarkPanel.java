@@ -1153,6 +1153,11 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         return true;
     }
 
+    public void clearTooltips() {
+        this.acceptsFollowingTooltipLineHandler = null;
+        this.recipeChainTooltipLineHandler = null;
+    }
+
     @Deprecated
     public void addItem(ItemStack stack, boolean saveSize) {
         addItem(saveSize ? stack : StackInfo.withAmount(stack, 0));

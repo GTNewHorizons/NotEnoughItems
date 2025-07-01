@@ -8,6 +8,7 @@ import java.util.Map;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.InventoryPlayer;
 
+import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemStackAmount;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.RestartableTask;
@@ -106,6 +107,7 @@ public class AutoCraftingManager {
         AutoCraftingManager.math = math;
 
         if (AutoCraftingManager.math != null) {
+            ItemPanels.bookmarkPanel.clearTooltips();
             math.createMasterRoot();
             task.restart();
         }
