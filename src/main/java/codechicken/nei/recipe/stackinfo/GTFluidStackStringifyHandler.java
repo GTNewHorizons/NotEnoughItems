@@ -1,5 +1,6 @@
 package codechicken.nei.recipe.stackinfo;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
@@ -22,6 +23,7 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
     public static boolean replaceAE2FCFluidDrop = false;
     private static Class<?> gtMetaGeneratedTool = null;
     private static Method getContainerItem = null;
+    private static Field playSound = null;
 
     static {
         try {
@@ -40,6 +42,9 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
             getContainerItem = gtMetaGeneratedTool
                     .getDeclaredMethod("getContainerItem", ItemStack.class, boolean.class, boolean.class);
             getContainerItem.setAccessible(true);
+
+            playSound = gtMetaGeneratedTool.getDeclaredField("playSound");
+            playSound.setAccessible(true);
         } catch (Exception ignored) {
             /* Do nothing */
         }
@@ -125,4 +130,15 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
 
         return null;
     }
+
+    @Override
+    public void playItemDamageSound(boolean enabled) {
+        if (playSound != null) {
+            try {
+                playSound.setBoolean(null, enabled);
+            } catch (Exception e) {}
+        }
+
+    }
+
 }

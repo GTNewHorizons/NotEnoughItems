@@ -84,6 +84,12 @@ public class StackInfo {
         return result;
     }
 
+    public static void playItemDamageSound(boolean enabled) {
+        for (IStackStringifyHandler handler : stackStringifyHandlers) {
+            handler.playItemDamageSound(enabled);
+        }
+    }
+
     public static ItemStack withAmount(ItemStack stack, long customCount) {
         if (stack == null) return null;
         final NBTTagCompound nbTag = StackInfo.itemStackToNBT(stack);

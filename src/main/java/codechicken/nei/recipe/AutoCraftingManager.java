@@ -32,6 +32,8 @@ public class AutoCraftingManager {
             boolean processed = false;
             boolean changed = false;
 
+            StackInfo.playItemDamageSound(false);
+
             do {
                 changed = false;
 
@@ -67,6 +69,8 @@ public class AutoCraftingManager {
                 }
 
             } while (changed && !interrupted(guiContainer));
+
+            StackInfo.playItemDamageSound(true);
 
             if (processed && !changed && !interrupted(guiContainer)) {
                 NEIClientUtils.playClickSound();

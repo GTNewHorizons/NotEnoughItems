@@ -24,4 +24,6 @@ public interface IStackStringifyHandler {
         return null;
     }
 
+    default void playItemDamageSound(boolean enabled) {}
+
 }
