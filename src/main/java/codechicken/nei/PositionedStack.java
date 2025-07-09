@@ -14,6 +14,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.GuiRecipe;
+import codechicken.nei.recipe.StackInfo;
 
 /**
  * Simply an {@link ItemStack} with position. Mainly used in the recipe handlers.
@@ -145,7 +146,7 @@ public class PositionedStack {
      * NBT-friendly version of {@link #contains(ItemStack)}
      */
     public boolean containsWithNBT(ItemStack ingredient) {
-        for (ItemStack item : items) if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(item, ingredient)) return true;
+        for (ItemStack item : items) if (StackInfo.equalItemAndNBT(item, ingredient, true)) return true;
 
         return false;
     }
