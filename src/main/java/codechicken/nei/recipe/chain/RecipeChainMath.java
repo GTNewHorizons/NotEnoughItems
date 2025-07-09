@@ -121,13 +121,24 @@ public class RecipeChainMath {
 
         for (BookmarkItem ingrItem : this.recipeIngredients) {
             if (ingrItem.factor > 0 && recipeId.equals(ingrItem.recipeId) && !preferredItems.containsKey(ingrItem)) {
+                BookmarkItem activeItem = null;
                 BookmarkItem prefItem = null;
 
                 for (BookmarkItem item : this.recipeResults) {
-                    if (item.factor > (prefItem == null ? 0 : prefItem.factor) && item.containsItems(ingrItem)
-                            && !visited.contains(item.recipeId)) {
-                        prefItem = item;
+                    if (item.factor > 0 && !visited.contains(item.recipeId) && item.containsItems(ingrItem)) {
+
+                        if ((activeItem == null || item.factor > activeItem.factor) && NEIClientUtils
+                                .areStacksSameTypeCraftingWithNBT(ingrItem.itemStack, item.itemStack)) {
+                            activeItem = item;
+                        } else if (prefItem == null || item.factor > prefItem.factor) {
+                            prefItem = item;
+                        }
+
                     }
+                }
+
+                if (activeItem != null) {
+                    prefItem = activeItem;
                 }
 
                 if (prefItem != null) {
