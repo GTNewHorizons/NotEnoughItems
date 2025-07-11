@@ -30,7 +30,7 @@ public class StackInfo {
     private static final Map<String, HashMap<String, String[]>> guidfilters = new HashMap<>();
     private static final ItemStackMap<String> guidcache = new ItemStackMap<>();
     private static final LRUCache<ItemStackKey, FluidStack> fluidcache = new LRUCache<>(200);
-    private static boolean isPausedItemDamageSound = true;
+    private static boolean isPausedItemDamageSound = false;
 
     static {
         stackStringifyHandlers.add(new DefaultStackStringifyHandler());

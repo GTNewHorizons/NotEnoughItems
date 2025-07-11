@@ -83,7 +83,10 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
 
                             if (amount >= item.amount) {
                                 final long itemAmount = item.factor * this.math.outputRecipes.get(item.recipeId);
-                                amount += itemAmount - amount % itemAmount;
+                                if (itemAmount > 0) {
+                                    amount += itemAmount - amount % itemAmount;
+                                }
+
                                 this.math.outputRecipes.put(
                                         item.recipeId,
                                         Math.max(this.math.outputRecipes.get(item.recipeId), amount / item.factor));

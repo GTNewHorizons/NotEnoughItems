@@ -377,17 +377,9 @@ public class RecipeChainMath {
                 itemStack = itemStack.copy();
                 itemStack.stackSize = 1;
 
-                final ContainerItemResult result = getToolsContainerItems(itemStack, prefItem.getStackSize(ingrAmount));
-
-                ingrAmount = result.leftSteps * prefItem.fluidCellAmount;
-
-                if (result.stack != null) {
-                    this.containerItems.add(result.stack);
-                }
-
-                if (result.containerItem != null) {
-                    this.containerItems.add(result.containerItem);
-                }
+                this.containerItems.add(itemStack);
+                ingrAmount = shiftContainerItems(itemStack, prefItem.getStackSize(ingrAmount))
+                        * prefItem.fluidCellAmount;
 
                 shiftAmount += prefItem.fluidCellAmount;
             }
@@ -440,30 +432,31 @@ public class RecipeChainMath {
                 final long maxDamage = toolStats.getLong("MaxDamage");
                 final long damage = toolStats.getLong("Damage");
                 final long leftSteps = (maxDamage - damage) / damagePerContainerCraft;
-                final long availableSteps = Math.min(steps, leftSteps);
+                final long availableSteps = Math.min(steps, Math.max(1, leftSteps));
 
                 steps -= availableSteps;
 
-                if (availableSteps == leftSteps || leftSteps < 0) {
+                if ((damage + availableSteps * damagePerContainerCraft) == maxDamage || leftSteps <= 0) {
                     aStack = null;
                 } else {
                     toolStats.setLong("Damage", damage + availableSteps * damagePerContainerCraft);
                 }
+
+                return new ContainerItemResult(aStack, steps, null);
             }
 
-        } else {
-            final Item item = aStack.getItem();
+        }
 
-            while (aStack != null && steps > 0) {
-                aStack = item.getContainerItem(aStack);
+        final Item item = aStack.getItem();
 
-                steps--;
+        while (aStack != null && steps > 0) {
+            aStack = item.getContainerItem(aStack);
 
-                if (aStack != null && item != aStack.getItem()) {
-                    return new ContainerItemResult(null, steps, aStack);
-                }
+            steps--;
+
+            if (aStack != null && item != aStack.getItem()) {
+                return new ContainerItemResult(null, steps, aStack);
             }
-
         }
 
         return new ContainerItemResult(aStack, steps, null);
