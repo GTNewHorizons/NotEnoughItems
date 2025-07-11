@@ -9,9 +9,11 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -32,6 +34,7 @@ import codechicken.nei.util.NBTJson;
 
 public class FavoriteRecipes {
 
+    private static final Set<NBTTagCompound> tools = new HashSet<>();
     private static final Map<NBTTagCompound, RecipeId> items = new HashMap<>();
     private static final Map<String, RecipeId> fluids = new HashMap<>();
     private static File favoriteFile;
@@ -123,6 +126,10 @@ public class FavoriteRecipes {
                     }
 
                     items.put(itemStackNBT, recipeId);
+
+                    if (NEIServerUtils.isItemTool(stack)) {
+                        tools.add(itemStackNBT);
+                    }
                 }
 
             } catch (IllegalArgumentException | JsonSyntaxException | IllegalStateException e) {
@@ -143,7 +150,19 @@ public class FavoriteRecipes {
                 recipeId = fluids.get(getFluidKey(stack));
             }
 
-            return recipeId;
+            if (recipeId != null) {
+                return recipeId;
+            }
+
+            if (NEIServerUtils.isItemTool(stack)
+                    && (stack.stackTagCompound == null || !stack.stackTagCompound.hasKey("GT.ToolStats"))) {
+                for (NBTTagCompound nbt : tools) {
+                    if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(stack, StackInfo.loadFromNBT(nbt))) {
+                        return items.get(nbt);
+                    }
+                }
+            }
+
         }
 
         return null;
@@ -175,6 +194,10 @@ public class FavoriteRecipes {
 
         if (recipeId != null) {
             items.put(itemStackNBT, recipeId);
+
+            if (NEIServerUtils.isItemTool(stack)) {
+                tools.add(itemStackNBT);
+            }
 
             if (fluidKey != null) {
                 fluids.put(fluidKey, recipeId);

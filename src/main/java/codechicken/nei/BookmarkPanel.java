@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -306,18 +307,33 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
         if (recipeId == null || !removeFullRecipe) {
             this.grid.removeRecipe(slot.itemIndex, removeFullRecipe);
-
             return true;
         }
 
-        if (group.crafting != null && group.crafting.recipeRelations.containsKey(recipeId)) {
-            boolean removed = false;
+        if (group.crafting != null && group.collapsed && removeFullRecipe) {
+            this.grid.removeGroup(groupId);
+            return true;
+        } else if (group.crafting != null) {
+            Set<RecipeId> recipes = group.crafting.recipeRelations.getOrDefault(recipeId, Collections.emptySet());
 
-            for (RecipeId relRecipeId : group.crafting.recipeRelations.get(recipeId)) {
-                removed = this.grid.removeRecipe(relRecipeId, groupId) || removed;
+            if (removeFullRecipe && recipes.isEmpty()) {
+                for (Map.Entry<RecipeId, Set<RecipeId>> entry : group.crafting.recipeRelations.entrySet()) {
+                    if (entry.getValue().contains(recipeId)) {
+                        recipes = entry.getValue();
+                        break;
+                    }
+                }
             }
 
-            return removed;
+            if (!recipes.isEmpty()) {
+                boolean removed = false;
+
+                for (RecipeId relRecipeId : recipes) {
+                    removed = this.grid.removeRecipe(relRecipeId, groupId) || removed;
+                }
+
+                return removed;
+            }
         }
 
         return this.grid.removeRecipe(recipeId, groupId);

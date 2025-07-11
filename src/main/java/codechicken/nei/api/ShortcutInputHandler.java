@@ -295,7 +295,7 @@ public abstract class ShortcutInputHandler {
                 recipe.getIngredients().stream().forEach(ingr -> {
                     final List<ItemStack> permutations = ingr.getPermutations();
                     for (int index = 0; index < permutations.size(); index++) {
-                        if (FavoriteRecipes.getFavorite(permutations.get(index)) != null) {
+                        if (FavoriteRecipes.contains(permutations.get(index))) {
                             ingr.setActiveIndex(index);
                             break;
                         }
