@@ -6,11 +6,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 
 import codechicken.nei.ItemStackAmount;
 import codechicken.nei.NEIClientUtils;
@@ -21,6 +22,19 @@ import codechicken.nei.recipe.Recipe.RecipeIngredient;
 import codechicken.nei.recipe.StackInfo;
 
 public class RecipeChainMath {
+
+    private static class ContainerItemResult {
+
+        public ItemStack stack;
+        public ItemStack containerItem;
+        public long leftSteps;
+
+        public ContainerItemResult(ItemStack stack, long leftSteps, ItemStack containerItem) {
+            this.stack = stack;
+            this.leftSteps = leftSteps;
+            this.containerItem = containerItem;
+        }
+    }
 
     private static final ItemStack ROOT_ITEM = new ItemStack(Blocks.fire);
     private static final RecipeId ROOT_RECIPE_ID = RecipeId
@@ -64,6 +78,7 @@ public class RecipeChainMath {
         for (Map.Entry<RecipeId, Long> entry : multipliers.entrySet()) {
             if (entry.getValue() > 1 || collapsedRecipes.contains(entry.getKey())) {
                 collectPreferredItems(entry.getKey(), this.preferredItems, new HashSet<>());
+                removeLoop(entry.getKey(), this.preferredItems, new HashSet<>());
                 this.outputRecipes.put(entry.getKey(), entry.getValue());
             }
         }
@@ -80,6 +95,7 @@ public class RecipeChainMath {
                         .noneMatch(resItem -> resItem.recipeId.equals(recipeId))) {
                     final Map<BookmarkItem, BookmarkItem> references = new HashMap<>(this.preferredItems);
                     collectPreferredItems(recipeId, references, new HashSet<>());
+                    removeLoop(recipeId, references, new HashSet<>());
                     final int depth = getMaxDepth(recipeId, references);
 
                     if (maxDepth < depth || maxDepth == depth && entry.getValue() > maxMultiplier) {
@@ -154,13 +170,31 @@ public class RecipeChainMath {
     private int getMaxDepth(RecipeId recipeId, Map<BookmarkItem, BookmarkItem> preferredItems) {
         int maxDepth = 0;
 
-        for (BookmarkItem ingrItem : this.recipeIngredients) {
-            if (ingrItem.factor > 0 && recipeId.equals(ingrItem.recipeId) && preferredItems.containsKey(ingrItem)) {
+        for (BookmarkItem ingrItem : preferredItems.keySet()) {
+            if (ingrItem.factor > 0 && recipeId.equals(ingrItem.recipeId)) {
                 maxDepth = Math.max(maxDepth, getMaxDepth(preferredItems.get(ingrItem).recipeId, preferredItems) + 1);
             }
         }
 
         return maxDepth;
+    }
+
+    private void removeLoop(RecipeId recipeId, Map<BookmarkItem, BookmarkItem> preferredItems, Set<RecipeId> visited) {
+        visited.add(recipeId);
+
+        for (BookmarkItem ingrItem : this.recipeIngredients) {
+            if (ingrItem.factor > 0 && recipeId.equals(ingrItem.recipeId) && preferredItems.containsKey(ingrItem)) {
+                BookmarkItem prefItem = preferredItems.get(ingrItem);
+
+                if (visited.contains(prefItem.recipeId)) {
+                    preferredItems.remove(ingrItem);
+                } else {
+                    removeLoop(prefItem.recipeId, preferredItems, visited);
+                }
+            }
+        }
+
+        visited.remove(recipeId);
     }
 
     public RecipeId createMasterRoot() {
@@ -266,10 +300,14 @@ public class RecipeChainMath {
 
         for (RecipeId recipeId : this.outputRecipes.keySet()) {
             collectPreferredItems(recipeId, this.preferredItems, new HashSet<>());
+            removeLoop(recipeId, this.preferredItems, new HashSet<>());
         }
     }
 
     public RecipeChainMath refresh() {
+        final boolean isPausedItemDamageSound = StackInfo.isPausedItemDamageSound();
+        StackInfo.pauseItemDamageSound(true);
+
         resetCalculation();
 
         if (this.outputRecipes.containsKey(ROOT_RECIPE_ID)) {
@@ -303,6 +341,7 @@ public class RecipeChainMath {
             }
         }
 
+        StackInfo.pauseItemDamageSound(isPausedItemDamageSound);
         return this;
     }
 
@@ -395,22 +434,13 @@ public class RecipeChainMath {
             ItemStack bStack = this.containerItems.get(i);
 
             if (bStack != null && NEIClientUtils.areStacksSameTypeCraftingWithNBT(aStack, bStack)) {
+                final ContainerItemResult result = getToolsContainerItems(bStack, steps);
 
-                while (bStack != null && steps > 0) {
-                    final Optional<ItemStack> containerItem = StackInfo.getContainerItem(bStack);
+                bStack = result.stack;
+                steps = result.leftSteps;
 
-                    steps--;
-
-                    if (containerItem != null && containerItem.isPresent()) {
-                        bStack = containerItem.get();
-
-                        if (aStack.getItem() != bStack.getItem()) {
-                            this.containerItems.add(bStack);
-                            bStack = null;
-                        }
-                    } else {
-                        bStack = null;
-                    }
+                if (result.containerItem != null) {
+                    this.containerItems.add(result.containerItem);
                 }
 
                 this.containerItems.set(i, bStack);
@@ -421,6 +451,60 @@ public class RecipeChainMath {
         this.containerItems.removeIf(stack -> stack == null);
 
         return steps;
+    }
+
+    private ContainerItemResult getToolsContainerItems(ItemStack aStack, long steps) {
+        final NBTTagCompound tagCompound = aStack.getTagCompound();
+
+        if (tagCompound != null && tagCompound.hasKey("GT.ToolStats")) {
+            final int damagePerContainerCraft = getGTToolDamagePerContainerCraft(aStack);
+
+            if (damagePerContainerCraft > 0) {
+                final NBTTagCompound toolStats = tagCompound.getCompoundTag("GT.ToolStats");
+                final long maxDamage = toolStats.getLong("MaxDamage");
+                final long damage = toolStats.getLong("Damage");
+                final long leftSteps = (maxDamage - damage) / damagePerContainerCraft;
+                final long availableSteps = Math.min(steps, Math.max(1, leftSteps));
+
+                steps -= availableSteps;
+
+                if ((damage + availableSteps * damagePerContainerCraft) == maxDamage || leftSteps <= 0) {
+                    aStack = null;
+                } else {
+                    toolStats.setLong("Damage", damage + availableSteps * damagePerContainerCraft);
+                }
+
+                return new ContainerItemResult(aStack, steps, null);
+            }
+
+        }
+
+        final Item item = aStack.getItem();
+
+        while (aStack != null && steps > 0) {
+            aStack = item.getContainerItem(aStack);
+
+            steps--;
+
+            if (aStack != null && item != aStack.getItem()) {
+                return new ContainerItemResult(null, steps, aStack);
+            }
+        }
+
+        return new ContainerItemResult(aStack, steps, null);
+    }
+
+    private int getGTToolDamagePerContainerCraft(ItemStack aStack) {
+
+        try {
+            final Object toolStats = aStack.getItem().getClass().getMethod("getToolStats", ItemStack.class)
+                    .invoke(aStack.getItem(), aStack);
+            return (int) toolStats.getClass().getMethod("getToolDamagePerContainerCraft").invoke(toolStats);
+        } catch (Throwable th) {
+            th.printStackTrace();
+        }
+
+        return 0;
     }
 
     private boolean hasContainerItem(ItemStack aStack) {

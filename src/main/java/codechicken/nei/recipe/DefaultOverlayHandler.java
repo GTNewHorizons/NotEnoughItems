@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -15,6 +14,7 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.inventory.SlotCrafting;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.nei.FastTransferManager;
@@ -339,9 +339,20 @@ public class DefaultOverlayHandler implements IOverlayHandler {
 
                     if (!istack.isContainerItem && pstack.getMaxStackSize() == 1
                             && pstack.getItem().hasContainerItem(pstack)) {
-                        final Optional<ItemStack> containerItem = StackInfo.getContainerItem(pstack);
-                        if (containerItem != null && containerItem.isPresent()) {
-                            istack.isContainerItem = pstack.getItem() == containerItem.get().getItem();
+                        final NBTTagCompound tagCompound = pstack.getTagCompound();
+
+                        if (tagCompound != null && tagCompound.hasKey("GT.ToolStats")) {
+                            istack.isContainerItem = true;
+                        } else {
+                            final boolean isPausedItemDamageSound = StackInfo.isPausedItemDamageSound();
+                            StackInfo.pauseItemDamageSound(true);
+
+                            final ItemStack containerItem = pstack.getItem().getContainerItem(pstack);
+                            if (containerItem != null) {
+                                istack.isContainerItem = pstack.getItem() == containerItem.getItem();
+                            }
+
+                            StackInfo.pauseItemDamageSound(isPausedItemDamageSound);
                         }
                     }
                 }

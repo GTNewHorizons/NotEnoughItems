@@ -2,7 +2,6 @@ package codechicken.nei.recipe.stackinfo;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Optional;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -22,7 +21,6 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
     protected static Method getFluidFromDisplayStack = null;
     public static boolean replaceAE2FCFluidDrop = false;
     private static Class<?> gtMetaGeneratedTool = null;
-    private static Method getContainerItem = null;
     private static Field playSound = null;
 
     static {
@@ -38,13 +36,11 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
             getFluidFromDisplayStack = gtUtility.getMethod("getFluidFromDisplayStack", ItemStack.class);
             getFluidDisplayStack = gtUtility.getMethod("getFluidDisplayStack", FluidStack.class, boolean.class);
 
-            gtMetaGeneratedTool = ReflectionHelper.getClass(loader, "gregtech.api.items.MetaGeneratedTool");
-            getContainerItem = gtMetaGeneratedTool
-                    .getDeclaredMethod("getContainerItem", ItemStack.class, boolean.class, boolean.class);
-            getContainerItem.setAccessible(true);
-
+            gtMetaGeneratedTool = ReflectionHelper.getClass(
+                    loader,
+                    "gregtech.api.items.MetaGeneratedTool",
+                    "gregtech.api.items.GT_MetaGenerated_Tool");
             playSound = gtMetaGeneratedTool.getDeclaredField("playSound");
-            playSound.setAccessible(true);
         } catch (Exception ignored) {
             /* Do nothing */
         }
@@ -119,23 +115,10 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
     }
 
     @Override
-    public Optional<ItemStack> getContainerItem(ItemStack stack) {
-
-        if (getContainerItem != null && gtMetaGeneratedTool.isInstance(stack.getItem())
-                && stack.getItem().hasContainerItem(stack)) {
-            try {
-                return Optional.ofNullable((ItemStack) getContainerItem.invoke(stack.getItem(), stack, false, true));
-            } catch (Exception ex) {}
-        }
-
-        return null;
-    }
-
-    @Override
-    public void playItemDamageSound(boolean enabled) {
+    public void pauseItemDamageSound(boolean pause) {
         if (playSound != null) {
             try {
-                playSound.setBoolean(null, enabled);
+                playSound.setBoolean(null, !pause);
             } catch (Exception e) {}
         }
 

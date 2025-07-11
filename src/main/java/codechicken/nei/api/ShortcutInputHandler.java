@@ -9,7 +9,6 @@ import java.util.Map;
 
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -470,15 +469,15 @@ public abstract class ShortcutInputHandler {
 
     private static void autocraftingIgnoreInventory(RecipeChainMath math) {
         final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
-        final InventoryPlayer playerInventory = guiContainer.mc.thePlayer.inventory;
+        final List<ItemStack> playerInventory = AutoCraftingManager.getInventoryItems(guiContainer).values();
         final RecipeId rootRecipeId = math.createMasterRoot();
 
         for (BookmarkItem item : math.recipeIngredients) {
             if (item.amount > 0 && rootRecipeId.equals(item.recipeId)) {
                 long amount = 0;
 
-                for (ItemStack stack : playerInventory.mainInventory) {
-                    if (stack != null && NEIClientUtils.areStacksSameTypeCraftingWithNBT(stack, item.itemStack)) {
+                for (ItemStack stack : playerInventory) {
+                    if (NEIClientUtils.areStacksSameTypeCraftingWithNBT(stack, item.itemStack)) {
                         amount += StackInfo.getAmount(stack);
                     }
                 }
@@ -494,7 +493,7 @@ public abstract class ShortcutInputHandler {
             BookmarksGridSlot slot) {
 
         if (slot != null) {
-            return slot.getRecipeId();
+            return slot.isIngredient() ? null : slot.getRecipeId();
         } else if (ItemPanels.itemPanel.contains(mousex, mousey)
                 || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey)) {
                     return FavoriteRecipes.getFavorite(stack);

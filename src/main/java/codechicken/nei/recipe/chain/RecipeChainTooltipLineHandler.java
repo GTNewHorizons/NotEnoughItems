@@ -7,10 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.inventory.Slot;
-import net.minecraft.inventory.SlotCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
@@ -22,6 +19,8 @@ import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.BookmarkItem;
+import codechicken.nei.recipe.AutoCraftingManager;
+import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.StackInfo;
 
@@ -57,14 +56,9 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
         final List<ItemStack> remainder = new ArrayList<>();
         final ItemStackAmount inventory = new ItemStackAmount();
         final GuiContainer currentGui = NEIClientUtils.getGuiContainer();
-        final EntityClientPlayerMP thePlayer = currentGui.mc.thePlayer;
 
-        if (this.lastShiftKey) {
-            for (Slot slot : currentGui.inventorySlots.inventorySlots) {
-                if (slot.getHasStack() && !(slot instanceof SlotCrafting) && slot.canTakeStack(thePlayer)) {
-                    inventory.add(slot.getStack());
-                }
-            }
+        if (this.lastShiftKey && !(currentGui instanceof GuiRecipe<?>)) {
+            inventory.putAll(AutoCraftingManager.getInventoryItems(currentGui));
         }
 
         if (!this.math.outputRecipes.isEmpty()) {
@@ -89,7 +83,10 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
 
                             if (amount >= item.amount) {
                                 final long itemAmount = item.factor * this.math.outputRecipes.get(item.recipeId);
-                                amount += itemAmount - amount % itemAmount;
+                                if (itemAmount > 0) {
+                                    amount += itemAmount - amount % itemAmount;
+                                }
+
                                 this.math.outputRecipes.put(
                                         item.recipeId,
                                         Math.max(this.math.outputRecipes.get(item.recipeId), amount / item.factor));
