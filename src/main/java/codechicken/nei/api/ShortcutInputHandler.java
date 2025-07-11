@@ -493,7 +493,7 @@ public abstract class ShortcutInputHandler {
             BookmarksGridSlot slot) {
 
         if (slot != null) {
-            return slot.getRecipeId();
+            return slot.isIngredient() ? null : slot.getRecipeId();
         } else if (ItemPanels.itemPanel.contains(mousex, mousey)
                 || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey)) {
                     return FavoriteRecipes.getFavorite(stack);
