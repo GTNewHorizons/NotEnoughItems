@@ -1,12 +1,12 @@
 package codechicken.nei.recipe;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.SlotCrafting;
 
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemStackAmount;
@@ -26,19 +26,17 @@ public class AutoCraftingManager {
         @Override
         public void execute() {
             final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
-            final InventoryPlayer playerInventory = guiContainer.mc.thePlayer.inventory;
-            final ItemStackAmount inventory = ItemStackAmount.of(Arrays.asList(playerInventory.mainInventory));
-            final List<BookmarkItem> initialItems = prepareInitialItems(math, inventory);
+            final List<BookmarkItem> initialItems = prepareInitialItems(math, getInventoryItems(guiContainer));
             boolean processed = false;
             boolean changed = false;
 
-            StackInfo.playItemDamageSound(false);
+            StackInfo.pauseItemDamageSound(true);
 
             do {
                 changed = false;
 
                 RecipeChainIterator iterator = new RecipeChainIterator(math, initialItems);
-                iterator.updateInventory(playerInventory.mainInventory);
+                iterator.updateInventory(getInventoryItems(guiContainer));
 
                 while (iterator.hasNext() && !interrupted(guiContainer)) {
                     final Map<RecipeId, Long> recipes = iterator.next();
@@ -64,13 +62,13 @@ public class AutoCraftingManager {
                     if (craft) {
                         changed = true;
                         processed = true;
-                        iterator.updateInventory(playerInventory.mainInventory);
+                        iterator.updateInventory(getInventoryItems(guiContainer));
                     }
                 }
 
             } while (changed && !interrupted(guiContainer));
 
-            StackInfo.playItemDamageSound(true);
+            StackInfo.pauseItemDamageSound(false);
 
             if (processed && !changed && !interrupted(guiContainer)) {
                 NEIClientUtils.playClickSound();
@@ -119,6 +117,18 @@ public class AutoCraftingManager {
 
     public static boolean processing() {
         return AutoCraftingManager.math != null && !task.interrupted();
+    }
+
+    public static ItemStackAmount getInventoryItems(GuiContainer guiContainer) {
+        final ItemStackAmount inventory = new ItemStackAmount();
+
+        for (Slot slot : guiContainer.inventorySlots.inventorySlots) {
+            if (slot.getHasStack() && !(slot instanceof SlotCrafting) && slot.canTakeStack(guiContainer.mc.thePlayer)) {
+                inventory.add(slot.getStack());
+            }
+        }
+
+        return inventory;
     }
 
 }

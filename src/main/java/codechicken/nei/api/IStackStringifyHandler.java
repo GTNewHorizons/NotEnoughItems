@@ -1,7 +1,5 @@
 package codechicken.nei.api;
 
-import java.util.Optional;
-
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.FluidStack;
@@ -20,10 +18,6 @@ public interface IStackStringifyHandler {
         return null;
     }
 
-    default Optional<ItemStack> getContainerItem(ItemStack stack) {
-        return null;
-    }
-
-    default void playItemDamageSound(boolean enabled) {}
+    default void pauseItemDamageSound(boolean pause) {}
 
 }

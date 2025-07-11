@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
@@ -31,6 +30,7 @@ public class StackInfo {
     private static final Map<String, HashMap<String, String[]>> guidfilters = new HashMap<>();
     private static final ItemStackMap<String> guidcache = new ItemStackMap<>();
     private static final LRUCache<ItemStackKey, FluidStack> fluidcache = new LRUCache<>(200);
+    private static boolean isPausedItemDamageSound = true;
 
     static {
         stackStringifyHandlers.add(new DefaultStackStringifyHandler());
@@ -74,20 +74,16 @@ public class StackInfo {
         return stack;
     }
 
-    public static Optional<ItemStack> getContainerItem(ItemStack stack) {
-        Optional<ItemStack> result = null;
-
-        for (int i = stackStringifyHandlers.size() - 1; i >= 0 && result == null; i--) {
-            result = stackStringifyHandlers.get(i).getContainerItem(stack);
+    public static void pauseItemDamageSound(boolean pause) {
+        if (isPausedItemDamageSound != (isPausedItemDamageSound = pause)) {
+            for (IStackStringifyHandler handler : stackStringifyHandlers) {
+                handler.pauseItemDamageSound(pause);
+            }
         }
-
-        return result;
     }
 
-    public static void playItemDamageSound(boolean enabled) {
-        for (IStackStringifyHandler handler : stackStringifyHandlers) {
-            handler.playItemDamageSound(enabled);
-        }
+    public static boolean isPausedItemDamageSound() {
+        return isPausedItemDamageSound;
     }
 
     public static ItemStack withAmount(ItemStack stack, long customCount) {

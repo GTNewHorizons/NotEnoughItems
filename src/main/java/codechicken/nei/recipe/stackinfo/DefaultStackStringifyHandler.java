@@ -1,7 +1,5 @@
 package codechicken.nei.recipe.stackinfo;
 
-import java.util.Optional;
-
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -56,16 +54,6 @@ public class DefaultStackStringifyHandler implements IStackStringifyHandler {
         }
 
         return fluidStack;
-    }
-
-    @Override
-    public Optional<ItemStack> getContainerItem(ItemStack stack) {
-
-        if (stack.getItem().hasContainerItem(stack)) {
-            return Optional.ofNullable(stack.getItem().getContainerItem(stack));
-        }
-
-        return null;
     }
 
 }
