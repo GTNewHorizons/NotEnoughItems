@@ -64,6 +64,7 @@ public class RecipeChainMath {
         for (Map.Entry<RecipeId, Long> entry : multipliers.entrySet()) {
             if (entry.getValue() > 1 || collapsedRecipes.contains(entry.getKey())) {
                 collectPreferredItems(entry.getKey(), this.preferredItems, new HashSet<>());
+                removeLoop(entry.getKey(), this.preferredItems, new HashSet<>());
                 this.outputRecipes.put(entry.getKey(), entry.getValue());
             }
         }
@@ -80,6 +81,7 @@ public class RecipeChainMath {
                         .noneMatch(resItem -> resItem.recipeId.equals(recipeId))) {
                     final Map<BookmarkItem, BookmarkItem> references = new HashMap<>(this.preferredItems);
                     collectPreferredItems(recipeId, references, new HashSet<>());
+                    removeLoop(recipeId, references, new HashSet<>());
                     final int depth = getMaxDepth(recipeId, references);
 
                     if (maxDepth < depth || maxDepth == depth && entry.getValue() > maxMultiplier) {
@@ -143,13 +145,31 @@ public class RecipeChainMath {
     private int getMaxDepth(RecipeId recipeId, Map<BookmarkItem, BookmarkItem> preferredItems) {
         int maxDepth = 0;
 
-        for (BookmarkItem ingrItem : this.recipeIngredients) {
-            if (ingrItem.factor > 0 && recipeId.equals(ingrItem.recipeId) && preferredItems.containsKey(ingrItem)) {
+        for (BookmarkItem ingrItem : preferredItems.keySet()) {
+            if (ingrItem.factor > 0 && recipeId.equals(ingrItem.recipeId)) {
                 maxDepth = Math.max(maxDepth, getMaxDepth(preferredItems.get(ingrItem).recipeId, preferredItems) + 1);
             }
         }
 
         return maxDepth;
+    }
+
+    private void removeLoop(RecipeId recipeId, Map<BookmarkItem, BookmarkItem> preferredItems, Set<RecipeId> visited) {
+        visited.add(recipeId);
+
+        for (BookmarkItem ingrItem : this.recipeIngredients) {
+            if (ingrItem.factor > 0 && recipeId.equals(ingrItem.recipeId) && preferredItems.containsKey(ingrItem)) {
+                BookmarkItem prefItem = preferredItems.get(ingrItem);
+
+                if (visited.contains(prefItem.recipeId)) {
+                    preferredItems.remove(ingrItem);
+                } else {
+                    removeLoop(prefItem.recipeId, preferredItems, visited);
+                }
+            }
+        }
+
+        visited.remove(recipeId);
     }
 
     public RecipeId createMasterRoot() {
@@ -255,6 +275,7 @@ public class RecipeChainMath {
 
         for (RecipeId recipeId : this.outputRecipes.keySet()) {
             collectPreferredItems(recipeId, this.preferredItems, new HashSet<>());
+            removeLoop(recipeId, this.preferredItems, new HashSet<>());
         }
     }
 
