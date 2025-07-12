@@ -415,6 +415,17 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
         }
     }
 
+    public static void removeTag(String path) {
+        updateState.stop();
+
+        synchronized (tags) {
+            tags.keySet().removeIf(
+                    parentpath -> parentpath.equals(path.toLowerCase())
+                            || parentpath.startsWith(path.toLowerCase() + "."));
+            updateHiddenItems();
+        }
+    }
+
     public static boolean isHidden(ItemStack item) {
         try {
             if (hiddenReadLock.tryLock(5, TimeUnit.SECONDS)) {
