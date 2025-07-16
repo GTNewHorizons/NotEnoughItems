@@ -96,9 +96,8 @@ public class NEIServerUtils {
         IChatComponent message = new ChatComponentText( "<"+sender.getDisplayName()+"> ");
 
         itemLinkComponent.setChatStyle(style);
-        message.appendSibling(new ChatComponentText("[")); // god please forgive me for my sins
-        message.appendSibling(itemLinkComponent);               //
-        message.appendSibling(new ChatComponentText("]")); //
+        message.appendSibling(new ChatComponentTranslation(
+                "nei.chat.item_link.text",itemLinkComponent));
 
         ServerUtils.sendChatToAll(message);
     }

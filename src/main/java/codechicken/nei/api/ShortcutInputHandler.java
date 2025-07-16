@@ -166,7 +166,7 @@ public abstract class ShortcutInputHandler {
     private static boolean sendItemStackChatLink(ItemStack stackover) {
         if (stackover == null) return false;
 
-        NEIClientUtils.sendChatItemLink(stackover);
+        NEIClientUtils.sendChatItemLink(stackover); // I wish clients could just send formatted messages
         return true;
     }
 
