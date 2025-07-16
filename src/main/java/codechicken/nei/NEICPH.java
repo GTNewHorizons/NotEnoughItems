@@ -187,7 +187,7 @@ public class NEICPH implements IClientPacketHandler {
     }
 
     public static void sendChatLink(ItemStack stackover) {
-        PacketCustom packet = new PacketCustom(channel, C2S.SEND_CHAT_LINK);
+        PacketCustom packet = new PacketCustom(channel, C2S.SEND_CHAT_ITEM_LINK);
         packet.writeItemStack(stackover);
         packet.sendToServer();
     }

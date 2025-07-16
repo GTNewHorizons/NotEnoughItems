@@ -88,14 +88,14 @@ public class NEISPH implements IServerPacketHandler {
             case C2S.SET_DUMMY_SLOT:
                 handleDummySlotSet(sender, packet);
                 break;
-            case C2S.SEND_CHAT_LINK:
-                handleSendChatItemLink(sender,packet);
+            case C2S.SEND_CHAT_ITEM_LINK:
+                handleSendChatItemLink(sender, packet);
                 break;
         }
     }
 
     private void handleSendChatItemLink(EntityPlayerMP sender, PacketCustom packet) {
-        NEIServerUtils.SendChatItemLink(sender, packet.readItemStack());
+        NEIServerUtils.sendChatItemLink(sender, packet.readItemStack());
     }
 
     private void handleDummySlotSet(EntityPlayerMP sender, PacketCustom packet) {

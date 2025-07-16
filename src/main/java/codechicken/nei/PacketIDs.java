@@ -23,7 +23,7 @@ public final class PacketIDs {
         public static final int SET_CREATIVE_PLUS_MODE = 23;
         public static final int REQUEST_POTION_GUI = 24;
         public static final int SET_DUMMY_SLOT = 25;
-        public static final int SEND_CHAT_LINK = 26;
+        public static final int SEND_CHAT_ITEM_LINK = 26;
     }
 
     public static final class S2C {

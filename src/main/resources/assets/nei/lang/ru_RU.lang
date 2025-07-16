@@ -31,7 +31,7 @@ nei.itempanel.deleteItem=Удалить предмет
 nei.itempanel.collapsed.button.tip=Свернуть/Развернуть все группы предметов
 nei.itempanel.collapsed.hint.expand=Развернуть группу (%d предметов)
 nei.itempanel.collapsed.hint.collapse=Свернуть группу (%d предметов)
-nei.itempanel.chat_link=Отправить ссылку на предмет в чат
+nei.itempanel.chat_link_item=Отправить ссылку на предмет в чат
 
 nei.enchant=Зачаровать
 nei.enchant.level=Уровень
@@ -101,7 +101,7 @@ nei.chat.chunkoverlay.0=Отображение чанков: Выключено
 nei.chat.chunkoverlay.1=Отображение чанков: Углы чанков
 nei.chat.chunkoverlay.2=Отображение чанков: Чанки
 nei.chat.chunkoverlay.3=Отображение чанков: Жилы руды GT
-nei.chat.item_link.text=Взгляни на это: [%s]
+nei.chat.item_link.text=Взгляни на это: %s
 
 nei.options=Настройки NEI
 nei.options.back=Назад
@@ -141,7 +141,7 @@ nei.options.keys.gui.getnextsearch=Следующий поиск
 nei.options.keys.gui.next_tooltip=Следующая подсказка
 nei.options.keys.gui.copy_name=Скопировать название предмета
 nei.options.keys.gui.copy_oredict=Скопировать OreDictionary предмета
-nei.options.keys.gui.chat_link=Отправить ссылку на предмет в чат
+nei.options.keys.gui.chat_link_item=Отправить ссылку на предмет в чат
 nei.options.keys.gui.itemzoom_toggle=Переключить увеличение предмета
 nei.options.keys.gui.itemzoom_hold=Удерживать для отображения увеличения предмета
 nei.options.keys.gui.itemzoom_zoom_in=Увеличить предмет

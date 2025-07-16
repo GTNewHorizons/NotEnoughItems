@@ -100,7 +100,7 @@ public abstract class ShortcutInputHandler {
             return copyItemStackOreDictionary(stackover);
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.chat_link")) {
+        if (NEIClientConfig.isKeyHashDown("gui.chat_link_item")) {
             return sendItemStackChatLink(stackover);
         }
 
@@ -419,7 +419,9 @@ public abstract class ShortcutInputHandler {
 
         hotkeys.put(NEIClientConfig.getKeyName("gui.copy_name"), NEIClientUtils.translate("itempanel.copy_name"));
         hotkeys.put(NEIClientConfig.getKeyName("gui.copy_oredict"), NEIClientUtils.translate("itempanel.copy_oredict"));
-        hotkeys.put(NEIClientConfig.getKeyName("gui.chat_link"), NEIClientUtils.translate("itempanel.chat_link"));
+        hotkeys.put(
+                NEIClientConfig.getKeyName("gui.chat_link_item"),
+                NEIClientUtils.translate("itempanel.chat_link_item"));
 
         if (!(gui instanceof GuiRecipe) && NEIClientConfig.canCheatItem(stack)) {
             hotkeys.put(
