@@ -7,9 +7,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import codechicken.core.ServerUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import net.minecraftforge.oredict.OreDictionary;
 
 import org.lwjgl.input.Mouse;
@@ -100,6 +111,10 @@ public abstract class ShortcutInputHandler {
             return copyItemStackOreDictionary(stackover);
         }
 
+        if (NEIClientConfig.isKeyHashDown("gui.chat_link")) {
+            return sendItemStackChatLink(stackover);
+        }
+
         if (NEIClientConfig.isKeyHashDown("gui.recipe")) {
             return GuiCraftingRecipe.openRecipeGui("item", stackover);
         }
@@ -145,6 +160,13 @@ public abstract class ShortcutInputHandler {
 
     private static boolean copyItemStackName(ItemStack stackover) {
         GuiScreen.setClipboardString(SearchField.getEscapedSearchText(stackover));
+        return true;
+    }
+
+    private static boolean sendItemStackChatLink(ItemStack stackover) {
+        if (stackover == null) return false;
+
+        NEIClientUtils.sendChatItemLink(stackover);
         return true;
     }
 
@@ -408,6 +430,7 @@ public abstract class ShortcutInputHandler {
 
         hotkeys.put(NEIClientConfig.getKeyName("gui.copy_name"), NEIClientUtils.translate("itempanel.copy_name"));
         hotkeys.put(NEIClientConfig.getKeyName("gui.copy_oredict"), NEIClientUtils.translate("itempanel.copy_oredict"));
+        hotkeys.put(NEIClientConfig.getKeyName("gui.chat_link"), NEIClientUtils.translate("itempanel.chat_link"));
 
         if (!(gui instanceof GuiRecipe) && NEIClientConfig.canCheatItem(stack)) {
             hotkeys.put(

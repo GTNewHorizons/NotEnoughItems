@@ -370,6 +370,10 @@ public class NEIClientUtils extends NEIServerUtils {
         else sendCommand(getStringSetting("command.heal"), mc().thePlayer.getCommandSenderName());
     }
 
+    public static void sendChatItemLink(ItemStack stackover) {
+        if (hasSMPCounterPart()) NEICPH.sendChatLink(stackover);
+    }
+
     public static void toggleMagnetMode() {
         if (hasSMPCounterPart()) NEICPH.sendToggleMagnetMode();
     }

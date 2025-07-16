@@ -17,6 +17,7 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -27,7 +28,9 @@ import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
@@ -80,6 +83,24 @@ public class NEIServerUtils {
         player.heal(20);
         player.getFoodStats().addStats(20, 1);
         player.extinguish();
+    }
+
+    public static void SendChatItemLink(EntityPlayerMP sender, ItemStack stackover) {
+        NBTTagCompound tag = new NBTTagCompound();
+        ChatStyle style = new ChatStyle().setColor(EnumChatFormatting.GOLD);
+
+        stackover.writeToNBT(tag);
+        style.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new ChatComponentText(tag.toString())));
+
+        IChatComponent itemLinkComponent = new ChatComponentTranslation(stackover.getDisplayName());
+        IChatComponent message = new ChatComponentText( "<"+sender.getDisplayName()+"> ");
+
+        itemLinkComponent.setChatStyle(style);
+        message.appendSibling(new ChatComponentText("[")); // god please forgive me for my sins
+        message.appendSibling(itemLinkComponent);               //
+        message.appendSibling(new ChatComponentText("]")); //
+
+        ServerUtils.sendChatToAll(message);
     }
 
     public static long getTime(World world) {

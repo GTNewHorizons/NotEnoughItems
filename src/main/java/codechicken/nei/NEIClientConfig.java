@@ -769,6 +769,7 @@ public class NEIClientConfig {
         API.addKeyBind("world.creative", 0);
         API.addHashBind("gui.copy_name", Keyboard.KEY_C + NEIClientUtils.CTRL_HASH);
         API.addHashBind("gui.copy_oredict", Keyboard.KEY_D + NEIClientUtils.CTRL_HASH);
+        API.addHashBind("gui.chat_link", Keyboard.KEY_L + NEIClientUtils.CTRL_HASH);
     }
 
     public static OptionList getOptionList() {

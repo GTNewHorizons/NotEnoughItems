@@ -1,5 +1,7 @@
 package codechicken.nei;
 
+import static codechicken.nei.NEIClientConfig.getStringSetting;
+import static codechicken.nei.NEIClientConfig.hasSMPCounterPart;
 import static codechicken.nei.PacketIDs.C2S;
 import static codechicken.nei.PacketIDs.S2C;
 
@@ -8,6 +10,7 @@ import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
 import codechicken.core.ClientUtils;
@@ -183,6 +186,12 @@ public class NEICPH implements IClientPacketHandler {
 
     public static void sendToggleRain() {
         PacketCustom packet = new PacketCustom(channel, C2S.TOGGLE_RAIN);
+        packet.sendToServer();
+    }
+
+    public static void sendChatLink(ItemStack stackover) {
+        PacketCustom packet = new PacketCustom(channel, C2S.SEND_CHAT_LINK);
+        packet.writeItemStack(stackover);
         packet.sendToServer();
     }
 
