@@ -31,6 +31,7 @@ nei.itempanel.deleteItem=Удалить предмет
 nei.itempanel.collapsed.button.tip=Свернуть/Развернуть все группы предметов
 nei.itempanel.collapsed.hint.expand=Развернуть группу (%d предметов)
 nei.itempanel.collapsed.hint.collapse=Свернуть группу (%d предметов)
+nei.itempanel.chat_link=Отправить ссылку на предмет в чат
 
 nei.enchant=Зачаровать
 nei.enchant.level=Уровень
@@ -139,6 +140,7 @@ nei.options.keys.gui.getnextsearch=Следующий поиск
 nei.options.keys.gui.next_tooltip=Следующая подсказка
 nei.options.keys.gui.copy_name=Скопировать название предмета
 nei.options.keys.gui.copy_oredict=Скопировать OreDictionary предмета
+nei.options.keys.gui.chat_link=Отправить ссылку на предмет в чат
 nei.options.keys.gui.itemzoom_toggle=Переключить увеличение предмета
 nei.options.keys.gui.itemzoom_hold=Удерживать для отображения увеличения предмета
 nei.options.keys.gui.itemzoom_zoom_in=Увеличить предмет
