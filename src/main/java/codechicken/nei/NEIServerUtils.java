@@ -17,6 +17,7 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
@@ -91,6 +92,10 @@ public class NEIServerUtils {
 
         stackover.writeToNBT(tag);
         style.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new ChatComponentText(tag.toString())));
+//        style.setChatClickEvent(new ClickEvent(  // I wish there was an easy way to register client side only commands
+//                ClickEvent.Action.RUN_COMMAND,
+//                "/nei_bookmark " + tag
+//        ));
 
         IChatComponent itemLinkComponent = new ChatComponentTranslation(stackover.getDisplayName());
         IChatComponent message = new ChatComponentText( "<"+sender.getDisplayName()+"> ");
