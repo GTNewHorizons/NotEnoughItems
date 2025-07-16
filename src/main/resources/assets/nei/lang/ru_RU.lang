@@ -101,7 +101,7 @@ nei.chat.chunkoverlay.0=Отображение чанков: Выключено
 nei.chat.chunkoverlay.1=Отображение чанков: Углы чанков
 nei.chat.chunkoverlay.2=Отображение чанков: Чанки
 nei.chat.chunkoverlay.3=Отображение чанков: Жилы руды GT
-nei.chat.item_link.text=Зацени это: [%s]
+nei.chat.item_link.text=Взгляни на  это: [%s]
 
 nei.options=Настройки NEI
 nei.options.back=Назад

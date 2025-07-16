@@ -7,20 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import codechicken.core.ServerUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 import net.minecraftforge.oredict.OreDictionary;
 
 import org.lwjgl.input.Mouse;

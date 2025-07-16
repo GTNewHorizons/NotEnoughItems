@@ -1,7 +1,5 @@
 package codechicken.nei;
 
-import static codechicken.nei.NEIClientConfig.getStringSetting;
-import static codechicken.nei.NEIClientConfig.hasSMPCounterPart;
 import static codechicken.nei.PacketIDs.C2S;
 import static codechicken.nei.PacketIDs.S2C;
 
@@ -10,7 +8,6 @@ import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
 import codechicken.core.ClientUtils;
