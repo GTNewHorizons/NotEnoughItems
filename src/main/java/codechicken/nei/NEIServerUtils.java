@@ -27,7 +27,6 @@ import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -84,9 +83,11 @@ public class NEIServerUtils {
     }
 
     public static void sendChatItemLink(EntityPlayerMP sender, ItemStack stackover) {
-        IChatComponent message = new ChatComponentText("<" + sender.getDisplayName() + "> ");
-        message.appendSibling(new ChatComponentTranslation("nei.chat.item_link.text", stackover.func_151000_E()));
-        ServerUtils.sendChatToAll(message);
+        ServerUtils.sendChatToAll(
+                new ChatComponentTranslation(
+                        "nei.chat.item_link.text",
+                        sender.getDisplayName(),
+                        stackover.func_151000_E()));
     }
 
     public static long getTime(World world) {
