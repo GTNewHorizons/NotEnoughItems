@@ -102,6 +102,7 @@ nei.chat.chunkoverlay.1=Отображение чанков: Углы чанко
 nei.chat.chunkoverlay.2=Отображение чанков: Чанки
 nei.chat.chunkoverlay.3=Отображение чанков: Жилы руды GT
 nei.chat.item_link.text=<%s> §6Нажми чтобы добавить закладку: %s
+nei.chat.bookmark_added.text=Закладка добавлена!
 
 nei.options=Настройки NEI
 nei.options.back=Назад
