@@ -29,6 +29,7 @@ import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.recipe.AutoCraftingManager;
 import codechicken.nei.recipe.GuiCraftingRecipe;
+import codechicken.nei.recipe.GuiFavoriteButton;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
 import codechicken.nei.recipe.Recipe;
@@ -111,6 +112,10 @@ public abstract class ShortcutInputHandler {
 
         if (NEIClientConfig.isKeyHashDown("gui.usage")) {
             return GuiUsageRecipe.openRecipeGui("item", stackover);
+        }
+
+        if (NEIClientConfig.isKeyHashDown("gui.favorite")) {
+            return saveFavoriteTree(stackover);
         }
 
         if (NEIClientConfig.isKeyHashDown("gui.bookmark")) {
@@ -243,6 +248,25 @@ public abstract class ShortcutInputHandler {
                     handlerRef.useOverlayRenderer(gui);
                 }
             }
+        }
+
+        return false;
+    }
+
+    private static boolean saveFavoriteTree(ItemStack stackover) {
+        final Point mouse = GuiDraw.getMousePosition();
+
+        if (ItemPanels.itemPanel.contains(mouse.x, mouse.y)
+                || ItemPanels.itemPanel.historyPanel.contains(mouse.x, mouse.y)) {
+            final RecipeHandlerRef handlerRef = RecipeHandlerRef.of(FavoriteRecipes.getFavorite(stackover));
+
+            if (handlerRef != null) {
+                final GuiFavoriteButton button = new GuiFavoriteButton(handlerRef, 0, 0);
+                button.saveRecipeInBookmark();
+                return true;
+            }
+
+            return true;
         }
 
         return false;
@@ -452,6 +476,13 @@ public abstract class ShortcutInputHandler {
                 hotkeys.put(
                         NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
                         NEIClientUtils.translate("bookmark.add_item_with_recipe"));
+            }
+
+            if ((ItemPanels.itemPanel.contains(mousex, mousey)
+                    || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey)) && FavoriteRecipes.contains(stack)) {
+                hotkeys.put(
+                        NEIClientConfig.getKeyName("gui.favorite"),
+                        NEIClientUtils.translate("recipe.favorite.bookmark_recipe"));
             }
 
         }

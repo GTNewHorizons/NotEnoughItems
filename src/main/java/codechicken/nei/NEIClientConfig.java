@@ -745,6 +745,7 @@ public class NEIClientConfig {
         API.addHashBind("gui.hide", Keyboard.KEY_O);
         API.addHashBind("gui.search", Keyboard.KEY_F);
         API.addKeyBind("gui.bookmark", Keyboard.KEY_A);
+        API.addHashBind("gui.favorite", Keyboard.KEY_F + NEIClientUtils.SHIFT_HASH);
         API.addHashBind("gui.remove_recipe", Keyboard.KEY_A + NEIClientUtils.SHIFT_HASH);
         API.addKeyBind("gui.bookmark_pull_items", Keyboard.KEY_V);
         API.addKeyBind("gui.overlay", Keyboard.KEY_S);
@@ -859,7 +860,7 @@ public class NEIClientConfig {
         final int hash = getKeyBinding(string);
 
         if (hash != Keyboard.CHAR_NONE && Keyboard.getEventKeyState()) {
-            return KeyManager.keyStates.containsKey(string) ? hash == Keyboard.getEventKey()
+            return KeyManager.keyStates.containsKey(string) ? Keyboard.isKeyDown(hash)
                     : hash == NEIClientUtils.getKeyHash();
         }
 
