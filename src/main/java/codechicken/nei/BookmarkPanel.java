@@ -435,7 +435,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     protected int resizeHeader(GuiContainer gui) {
         final LayoutStyleMinecraft layout = (LayoutStyleMinecraft) LayoutManager.getLayoutStyle();
         final int rows = (int) Math.ceil((double) layout.buttonCount / layout.numButtons);
-        final int diff = rows * 19 + getMarginTop(gui) - y;
+        final int diff = rows * 19 + PADDING - y;
 
         if (diff > 0) {
             y += diff;
@@ -493,24 +493,31 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         }
     }
 
-    protected String getPositioningSettingName() {
-        return "world.panels.bookmarks";
-    }
+    public Rectangle4i calculateBounds() {
+        final GuiContainer gui = NEIClientUtils.getGuiContainer();
+        final int width = (gui.width - gui.xSize) / 2 - PADDING * 2;
+        final Rectangle4i bounds = new Rectangle4i(
+                PADDING,
+                PADDING,
+                (gui.width - 176) / 2 - PADDING * 2,
+                gui.height - PADDING * 2);
 
-    public int getMarginLeft(GuiContainer gui) {
-        return PADDING;
-    }
+        int paddingLeft = (int) Math
+                .ceil(bounds.w * NEIClientConfig.getSetting("world.panels.bookmarks.left").getIntValue() / 100000.0);
+        int paddingTop = (int) Math
+                .ceil(bounds.h * NEIClientConfig.getSetting("world.panels.bookmarks.top").getIntValue() / 100000.0);
+        int paddingRight = (int) Math
+                .ceil(bounds.w * NEIClientConfig.getSetting("world.panels.bookmarks.right").getIntValue() / 100000.0);
+        int paddingBottom = (int) Math
+                .ceil(bounds.h * NEIClientConfig.getSetting("world.panels.bookmarks.bottom").getIntValue() / 100000.0);
 
-    public int getMarginTop(GuiContainer gui) {
-        return PADDING;
-    }
+        bounds.h = Math.max(ItemsGrid.SLOT_SIZE, bounds.h - paddingTop - paddingBottom);
+        bounds.y = bounds.y + Math.min(paddingTop, bounds.h - ItemsGrid.SLOT_SIZE);
 
-    public int getWidth(GuiContainer gui) {
-        return gui.width - (gui.xSize + gui.width) / 2 - PADDING * 2;
-    }
+        bounds.w = Math.max(ItemsGrid.SLOT_SIZE, Math.min(bounds.w - paddingLeft - paddingRight, width - paddingLeft));
+        bounds.x = bounds.x + Math.min(paddingLeft, bounds.w - ItemsGrid.SLOT_SIZE);
 
-    public int getHeight(GuiContainer gui) {
-        return gui.height - getMarginTop(gui) - PADDING;
+        return bounds;
     }
 
     protected ItemStack getDraggedStackWithQuantity(ItemStack itemStack) {
