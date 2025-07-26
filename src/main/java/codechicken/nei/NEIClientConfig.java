@@ -390,6 +390,8 @@ public class NEIClientConfig {
         });
         tag.getTag("inventory.hotkeysHelpText").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.hotkeysHelpText", true));
+        tag.getTag("inventory.showHotkeys").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.showHotkeys", true));
 
         tag.getTag("loadPluginsInParallel").getBooleanValue(true);
         tag.getTag("itemLoadingTimeout").getIntValue(500);
