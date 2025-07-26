@@ -64,7 +64,7 @@ public class IMCHandler {
         final boolean requiresMod = tag.getBoolean("modRequired");
         final String excludedModId = tag.hasKey("excludedModId") ? tag.getString("excludedModId") : null;
 
-        if (handler.equals("") || modName.equals("") || modId.equals("")) {
+        if (handler.isEmpty() || modName.isEmpty() || modId.isEmpty()) {
             NEIClientConfig.logger.warn("Missing relevant information to registerHandlerInfo!");
             return;
         }
@@ -74,7 +74,7 @@ public class IMCHandler {
 
         HandlerInfo info = new HandlerInfo(handler, modName, modId, requiresMod, excludedModId);
         final String imageResource = tag.hasKey("imageResource") ? tag.getString("imageResource") : null;
-        if (imageResource != null && !imageResource.equals("")) {
+        if (imageResource != null && !imageResource.isEmpty()) {
             info.setImage(
                     imageResource,
                     tag.getInteger("imageX"),
@@ -84,7 +84,7 @@ public class IMCHandler {
         }
         if (!info.hasImageOrItem()) {
             final String itemName = tag.getString("itemName");
-            if (itemName != null && !itemName.equals("")) {
+            if (itemName != null && !itemName.isEmpty()) {
                 info.setItem(itemName, tag.hasKey("nbtInfo") ? tag.getString("nbtInfo") : null);
             }
         }
@@ -102,6 +102,10 @@ public class IMCHandler {
         } catch (NumberFormatException ignored) {
             NEIClientConfig.logger.info("Error setting handler dimensions for " + handler);
         }
+
+        // true if not set to false
+        info.setShowFavoritesButton(!tag.hasKey("showFavoritesButton") || tag.getBoolean("showFavoritesButton"));
+        info.setShowOverlayButton(!tag.hasKey("showOverlayButton") || tag.getBoolean("showOverlayButton"));
 
         GuiRecipeTab.handlerAdderFromIMC.remove(handler);
         GuiRecipeTab.handlerAdderFromIMC.put(handler, info);

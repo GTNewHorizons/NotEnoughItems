@@ -28,6 +28,8 @@ public class HandlerInfo {
     private int height = DEFAULT_HEIGHT;
     private int width = DEFAULT_WIDTH;
     private int maxRecipesPerPage = DEFAULT_MAX_PER_PAGE;
+    private boolean showFavoritesButton = true;
+    private boolean showOverlayButton = true;
 
     private ItemStack itemStack = null;
     private DrawableResource image = null;
@@ -110,6 +112,22 @@ public class HandlerInfo {
 
     public void setYShift(int yShift) {
         this.yShift = yShift;
+    }
+
+    public boolean getShowFavoritesButton() {
+        return this.showFavoritesButton;
+    }
+
+    public void setShowFavoritesButton(boolean showFavoritesButton) {
+        this.showFavoritesButton = showFavoritesButton;
+    }
+
+    public boolean getShowOverlayButton() {
+        return this.showOverlayButton;
+    }
+
+    public void setShowOverlayButton(boolean showOverlayButton) {
+        this.showOverlayButton = showOverlayButton;
     }
 
     public static class Builder {
