@@ -11,16 +11,21 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.inventory.SlotCrafting;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.client.ClientCommandHandler;
 
+import codechicken.core.CommonUtils;
 import codechicken.nei.api.API;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.IInfiniteItemHandler;
 import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.commands.CommandBookmarkAdd;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerSlotClickHandler;
 import codechicken.nei.recipe.GuiRecipe;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class NEIController implements IContainerSlotClickHandler, IContainerInputHandler {
 
@@ -39,6 +44,8 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
     public static void load() {
         GuiContainerManager.addSlotClickHandler(instance);
         GuiContainerManager.addInputHandler(instance);
+
+        if (CommonUtils.isClient()) registerClientCommands();
     }
 
     public static void load(GuiContainer gui) {
@@ -54,6 +61,11 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
 
     public static boolean isSpreading(GuiContainer gui) {
         return gui.field_147007_t && gui.field_147008_s.size() > 1;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void registerClientCommands() {
+        ClientCommandHandler.instance.registerCommand(new CommandBookmarkAdd());
     }
 
     public static void updateUnlimitedItems(InventoryPlayer inventory) {
