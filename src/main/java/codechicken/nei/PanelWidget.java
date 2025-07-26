@@ -84,44 +84,15 @@ public abstract class PanelWidget<T extends ItemsGrid<? extends ItemsGridSlot, ?
 
     public abstract String getLabelText();
 
-    protected abstract String getPositioningSettingName();
-
-    public abstract int getMarginLeft(GuiContainer gui);
-
-    public abstract int getMarginTop(GuiContainer gui);
-
-    public abstract int getWidth(GuiContainer gui);
-
-    public abstract int getHeight(GuiContainer gui);
+    public abstract Rectangle4i calculateBounds();
 
     public void resize(GuiContainer gui) {
-        final Rectangle4i margin = new Rectangle4i(
-                getMarginLeft(gui),
-                getMarginTop(gui),
-                getWidth(gui),
-                getHeight(gui));
+        final Rectangle4i bounds = calculateBounds();
 
-        final String settingName = getPositioningSettingName();
-        int paddingLeft = (int) Math
-                .ceil(margin.w * NEIClientConfig.getSetting(settingName + ".left").getIntValue() / 100000.0);
-        int paddingTop = (int) Math
-                .ceil(margin.h * NEIClientConfig.getSetting(settingName + ".top").getIntValue() / 100000.0);
-        int paddingRight = (int) Math
-                .ceil(margin.w * NEIClientConfig.getSetting(settingName + ".right").getIntValue() / 100000.0);
-        int paddingBottom = (int) Math
-                .ceil(margin.h * NEIClientConfig.getSetting(settingName + ".bottom").getIntValue() / 100000.0);
-
-        int deltaHeight = Math.min(0, margin.h - paddingTop - paddingBottom - ItemsGrid.SLOT_SIZE) / 2;
-
-        paddingLeft = Math.min(paddingLeft, Math.max(0, margin.w - paddingRight - ItemsGrid.SLOT_SIZE));
-        paddingRight = Math.min(paddingRight, Math.max(0, margin.w - paddingLeft - ItemsGrid.SLOT_SIZE));
-        paddingTop = Math.min(margin.h - ItemsGrid.SLOT_SIZE, Math.max(0, paddingTop + deltaHeight));
-        paddingBottom = Math.min(margin.h - paddingTop - ItemsGrid.SLOT_SIZE, Math.max(0, paddingBottom - deltaHeight));
-
-        x = margin.x + paddingLeft;
-        y = margin.y + paddingTop;
-        w = margin.w - paddingLeft - paddingRight;
-        h = margin.h - paddingTop - paddingBottom;
+        x = bounds.x;
+        y = bounds.y;
+        w = bounds.w;
+        h = bounds.h;
 
         final int header = resizeHeader(gui);
         final int footer = resizeFooter(gui);
