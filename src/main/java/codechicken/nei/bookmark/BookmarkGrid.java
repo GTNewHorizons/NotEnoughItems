@@ -904,7 +904,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
 
         if (item.recipeId != null && removeFullRecipe) {
             removeRecipe(item.recipeId, item.groupId);
-        } else {
+        } else if (itemIndex >= 0) {
             this.bookmarkItems.remove(itemIndex);
             onItemsChanged();
         }

@@ -305,18 +305,20 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         final RecipeId recipeId = slot.getRecipeId();
         final BookmarkGroup group = slot.getGroup();
 
-        if (recipeId == null || !removeFullRecipe) {
-            this.grid.removeRecipe(slot.itemIndex, removeFullRecipe);
+        if (group.crafting != null && group.collapsed) {
+
+            if (!removeFullRecipe) {
+                return true;
+            }
+
+            this.grid.removeGroup(groupId);
             return true;
         }
 
-        if (group.crafting != null && group.collapsed && removeFullRecipe) {
-            this.grid.removeGroup(groupId);
-            return true;
-        } else if (group.crafting != null) {
+        if (recipeId != null && group.crafting != null) {
             Set<RecipeId> recipes = group.crafting.recipeRelations.getOrDefault(recipeId, Collections.emptySet());
 
-            if (removeFullRecipe && recipes.isEmpty()) {
+            if (recipes.isEmpty()) {
                 for (Map.Entry<RecipeId, Set<RecipeId>> entry : group.crafting.recipeRelations.entrySet()) {
                     if (entry.getValue().contains(recipeId)) {
                         recipes = entry.getValue();
@@ -326,14 +328,23 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             }
 
             if (!recipes.isEmpty()) {
-                boolean removed = false;
 
+                if (!removeFullRecipe) {
+                    return true;
+                }
+
+                boolean removed = false;
                 for (RecipeId relRecipeId : recipes) {
                     removed = this.grid.removeRecipe(relRecipeId, groupId) || removed;
                 }
 
                 return removed;
             }
+        }
+
+        if (recipeId == null || !removeFullRecipe) {
+            this.grid.removeRecipe(slot.itemIndex, removeFullRecipe);
+            return true;
         }
 
         return this.grid.removeRecipe(recipeId, groupId);
