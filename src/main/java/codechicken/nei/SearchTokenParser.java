@@ -161,7 +161,7 @@ public class SearchTokenParser {
         filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
 
         return this.filtersCache.computeIfAbsent(filterText, text -> {
-            final String[] parts = text.split("\\|");
+            final String[] parts = text.split("\\|\\|");
             final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText).filter(s -> s != null)
                     .collect(Collectors.toList());
 
