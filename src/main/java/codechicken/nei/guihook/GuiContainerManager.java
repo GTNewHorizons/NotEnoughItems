@@ -592,7 +592,7 @@ public class GuiContainerManager {
 
         if (!tooltip.isEmpty()) tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE); // add space after 'title'
 
-        if (showTooltip) {
+        if (showTooltip && NEIClientConfig.getBooleanSetting("inventory.showHotkeys")) {
             List<String> hotkeystips = collectHotkeyTips(mousex, mousey);
 
             if (!hotkeystips.isEmpty()) {
