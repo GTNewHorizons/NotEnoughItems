@@ -1116,16 +1116,16 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
                 if (item.factor > 0
                         && outputRecipes.stream().anyMatch(recipeId -> item.equalsRecipe(recipeId, targetGroupId))) {
                     final long multiplier = recipeMultipliers.getOrDefault(item.recipeId, (long) Integer.MAX_VALUE);
-                    final boolean isOutputRecipe = group.crafting != null
-                            && !group.crafting.recipeInMiddle.contains(item.recipeId);
+                    final boolean recipeInMiddle = group.crafting != null
+                            && group.crafting.recipeInMiddle.contains(item.recipeId);
 
                     recipeMultipliers.put(
                             item.recipeId,
                             Math.min(
                                     shiftMultiplier(
-                                            Math.max(isOutputRecipe ? 1 : 0, item.getMultiplier()),
+                                            Math.max(recipeInMiddle ? 1 : 0, item.getMultiplier()),
                                             shift,
-                                            isOutputRecipe ? 1 : 0),
+                                            recipeInMiddle ? 1 : 0),
                                     multiplier));
                     items.add(item);
                 }
@@ -1148,16 +1148,16 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         } else if (targetItem.recipeId != null) {
             final RecipeId recipeId = this.gridGenerator.itemToRecipe
                     .getOrDefault(targetItemIndex, targetItem.recipeId);
-            final boolean isOutputRecipe = group.crafting != null && !group.crafting.recipeInMiddle.contains(recipeId);
+            final boolean recipeInMiddle = group.crafting != null && group.crafting.recipeInMiddle.contains(recipeId);
             long multiplier = Integer.MAX_VALUE;
 
             for (BookmarkItem item : this.bookmarkItems) {
                 if (item.equalsRecipe(recipeId, targetItem.groupId) && item.factor > 0) {
                     multiplier = Math.min(
                             shiftMultiplier(
-                                    Math.max(isOutputRecipe ? 1 : 0, item.getMultiplier()),
+                                    Math.max(recipeInMiddle ? 1 : 0, item.getMultiplier()),
                                     shift,
-                                    isOutputRecipe ? 1 : 0),
+                                    recipeInMiddle ? 1 : 0),
                             multiplier);
                 }
             }
