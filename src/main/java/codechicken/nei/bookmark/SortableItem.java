@@ -78,7 +78,7 @@ public class SortableItem {
             return;
         }
 
-        for (Map.Entry<Integer, BookmarkChainItem> entry : this.grid.gridGenerator.caclulatedItems.entrySet()) {
+        for (Map.Entry<Integer, BookmarkChainItem> entry : this.grid.gridGenerator.calculatedItems.entrySet()) {
             if (containsItem(entry.getValue().getItem())) {
                 this.items.add(entry.getKey());
             }

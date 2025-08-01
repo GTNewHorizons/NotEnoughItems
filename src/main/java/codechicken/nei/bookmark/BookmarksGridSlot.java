@@ -52,7 +52,6 @@ public class BookmarksGridSlot extends ItemsGridSlot {
     protected final CalculatedType realType;
     protected final BookmarkItem bookmarkItem;
 
-    protected final boolean isOutputRecipe;
     protected final boolean isFirstOutput;
     protected final int rowIndex;
 
@@ -73,7 +72,6 @@ public class BookmarksGridSlot extends ItemsGridSlot {
         this.calculatedType = calculatedType;
         this.bookmarkItem = bookmarkItem;
 
-        this.isOutputRecipe = group.crafting != null && group.crafting.outputRecipes.contains(bookmarkItem.recipeId);
         this.isFluidDisplay = StackInfo.itemStackToNBT(bookmarkItem.itemStack).hasKey("gtFluidName");
 
         this.realMultiplier = bookmarkItem.getMultiplier(realAmount);
@@ -257,7 +255,7 @@ public class BookmarksGridSlot extends ItemsGridSlot {
                         0xFFFFFF);
             } else if (shownItemType == ShownItemType.SHIFT) {
                 drawMarker(rect, "x" + ReadableNumberConverter.INSTANCE.toWideReadableForm(getMultiplier()), 0xFFFFFF);
-            } else if (this.isOutputRecipe || this.realMultiplier > 1) {
+            } else if (this.realMultiplier > 1) {
                 drawMarker(
                         rect,
                         "x" + ReadableNumberConverter.INSTANCE.toWideReadableForm(this.realMultiplier),

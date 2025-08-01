@@ -12,7 +12,6 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
 import codechicken.lib.vec.Rectangle4i;
-import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.guihook.GuiContainerManager;
 
 public class ItemsPanelGrid extends ItemsGrid<ItemsPanelGrid.ItemsPanelGridSlot, ItemsPanelGrid.MouseContext> {

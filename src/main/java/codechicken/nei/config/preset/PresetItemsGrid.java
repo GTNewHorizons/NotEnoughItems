@@ -13,7 +13,6 @@ import codechicken.nei.Button;
 import codechicken.nei.ItemList;
 import codechicken.nei.ItemSorter;
 import codechicken.nei.ItemsGrid;
-import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.Label;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.RestartableTask;
