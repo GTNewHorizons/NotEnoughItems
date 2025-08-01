@@ -27,7 +27,7 @@ public class BookmarkGridGenerator {
     public final Map<Integer, Integer> slotToItem = new LinkedHashMap<>();
     public final Map<Integer, Integer> itemToSlot = new LinkedHashMap<>();
 
-    public final Map<Integer, BookmarkChainItem> caclulatedItems = new HashMap<>();
+    public final Map<Integer, BookmarkChainItem> calculatedItems = new HashMap<>();
 
     public int pageCount = 0;
     public int maxAbsoluteSlotIndex = 0;
@@ -53,7 +53,7 @@ public class BookmarkGridGenerator {
         this.maxAbsoluteSlotIndex = 0;
         this.gridMask = new ArrayList<>();
         this.itemToRecipe.clear();
-        this.caclulatedItems.clear();
+        this.calculatedItems.clear();
         this.slotToItem.clear();
         this.itemToSlot.clear();
         this.rowToGroupId.clear();
@@ -91,7 +91,7 @@ public class BookmarkGridGenerator {
                     absoluteSlotIndex = nextSlotIndex;
                     this.slotToItem.put(absoluteSlotIndex, collapsedItemIndex);
                     this.itemToSlot.put(collapsedItemIndex, absoluteSlotIndex);
-                    this.caclulatedItems.put(collapsedItemIndex, getItem(group, collapsedItemIndex));
+                    this.calculatedItems.put(collapsedItemIndex, getItem(group, collapsedItemIndex));
                     borderGrid.put(absoluteSlotIndex, groupKey);
                 }
 
@@ -115,7 +115,7 @@ public class BookmarkGridGenerator {
                         prevBookmarkItem = item;
                         this.slotToItem.put(absoluteSlotIndex, collapsedItemIndex);
                         this.itemToSlot.put(collapsedItemIndex, absoluteSlotIndex);
-                        this.caclulatedItems.put(collapsedItemIndex, getItem(group, collapsedItemIndex));
+                        this.calculatedItems.put(collapsedItemIndex, getItem(group, collapsedItemIndex));
 
                         if (!(shadows = getShadows(group, item.recipeId)).isEmpty()) {
                             borderGrid.put(absoluteSlotIndex, "recipe:" + shadows.get(0));
@@ -143,7 +143,7 @@ public class BookmarkGridGenerator {
                         prevBookmarkItem = bookmarkItem;
                         this.slotToItem.put(absoluteSlotIndex, itemIndex);
                         this.itemToSlot.put(itemIndex, absoluteSlotIndex);
-                        this.caclulatedItems.put(itemIndex, getItem(group, itemIndex));
+                        this.calculatedItems.put(itemIndex, getItem(group, itemIndex));
                         itemIndex++;
                     }
         }
@@ -203,7 +203,7 @@ public class BookmarkGridGenerator {
                     group.viewMode)) != -1) {
                 this.slotToItem.put(absoluteSlotIndex, shadowIndex);
                 this.itemToSlot.put(shadowIndex, absoluteSlotIndex);
-                this.caclulatedItems.put(shadowIndex, getItem(group, shadowIndex));
+                this.calculatedItems.put(shadowIndex, getItem(group, shadowIndex));
                 this.itemToRecipe.put(shadowIndex, bookmarkItem.recipeId);
                 borderGrid.put(absoluteSlotIndex, borderId);
                 prevBookmarkItem = shadowBookmarkItem;
@@ -266,7 +266,7 @@ public class BookmarkGridGenerator {
                 int groupId = BookmarkGrid.DEFAULT_GROUP_ID;
 
                 if (this.slotToItem.containsKey(absoluteSlotIndex)) {
-                    groupId = this.caclulatedItems.get(this.slotToItem.get(absoluteSlotIndex)).getItem().groupId;
+                    groupId = this.calculatedItems.get(this.slotToItem.get(absoluteSlotIndex)).getItem().groupId;
                 }
 
                 this.rowToGroupId.put(absoluteRowIndex, groupId);
@@ -320,7 +320,7 @@ public class BookmarkGridGenerator {
     }
 
     private BookmarksGridSlot getBookmarkGridSlot(int slotIndex, int itemIndex) {
-        final BookmarkChainItem chainItem = this.caclulatedItems.get(itemIndex);
+        final BookmarkChainItem chainItem = this.calculatedItems.get(itemIndex);
         final BookmarkGroup group = this.grid.getGroup(chainItem.getItem().groupId);
 
         if (group.crafting == null) {

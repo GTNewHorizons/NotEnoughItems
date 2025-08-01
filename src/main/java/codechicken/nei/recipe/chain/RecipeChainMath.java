@@ -76,7 +76,7 @@ public class RecipeChainMath {
         }
 
         for (Map.Entry<RecipeId, Long> entry : multipliers.entrySet()) {
-            if (entry.getValue() > 1 || collapsedRecipes.contains(entry.getKey())) {
+            if (entry.getValue() > 0 || collapsedRecipes.contains(entry.getKey())) {
                 collectPreferredItems(entry.getKey(), this.preferredItems, new HashSet<>());
                 removeLoop(entry.getKey(), this.preferredItems, new HashSet<>());
                 this.outputRecipes.put(entry.getKey(), entry.getValue());
@@ -122,12 +122,6 @@ public class RecipeChainMath {
             }
         }
 
-        for (Map.Entry<RecipeId, Long> entry : this.outputRecipes.entrySet()) {
-            if (entry.getValue() == 0 && this.preferredItems.values().stream()
-                    .noneMatch(prefItem -> prefItem.recipeId.equals(entry.getKey()))) {
-                entry.setValue(1L);
-            }
-        }
     }
 
     private void collectPreferredItems(RecipeId recipeId, Map<BookmarkItem, BookmarkItem> preferredItems,

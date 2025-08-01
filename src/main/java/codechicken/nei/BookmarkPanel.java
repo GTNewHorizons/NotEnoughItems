@@ -39,6 +39,7 @@ import codechicken.nei.recipe.BookmarkRecipeId;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.Recipe.RecipeIngredient;
+import codechicken.nei.recipe.RecipeWithAmount;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.recipe.chain.RecipeChainMath;
 import codechicken.nei.recipe.chain.RecipeChainTooltipLineHandler;
@@ -208,10 +209,14 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     }
 
     public boolean addRecipe(Recipe recipe, int groupId) {
+        return addRecipe(recipe, groupId, 1);
+    }
+
+    public boolean addRecipe(Recipe recipe, int groupId, int times) {
         final RecipeId recipeId = recipe.getRecipeId();
 
         if (recipe != null && this.grid.getGroup(groupId) != null && !this.grid.existsRecipe(recipeId, groupId)) {
-            this.grid.addRecipe(recipe, groupId);
+            this.grid.addRecipe(recipe, groupId, times);
             return true;
         }
 
@@ -231,7 +236,13 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
         for (Object item : items) {
 
-            if (item instanceof Recipe recipe) {
+            if (item instanceof RecipeWithAmount recipeWithAmount) {
+
+                if (uniqueRecipe.add(recipeWithAmount.getRecipe().getRecipeId())) {
+                    this.grid.addRecipe(recipeWithAmount.getRecipe(), groupId, recipeWithAmount.getAmount());
+                }
+
+            } else if (item instanceof Recipe recipe) {
 
                 if (uniqueRecipe.add(recipe.getRecipeId())) {
                     this.grid.addRecipe(recipe, groupId);
@@ -1195,7 +1206,10 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                     && !handlerName.isEmpty()
                     && ingredients != null
                     && !ingredients.isEmpty()) {
-                addRecipe(Recipe.of(Arrays.asList(stack), handlerName, ingredients), BookmarkGrid.DEFAULT_GROUP_ID);
+                addRecipe(
+                        Recipe.of(Arrays.asList(stack), handlerName, ingredients),
+                        BookmarkGrid.DEFAULT_GROUP_ID,
+                        saveSize ? 1 : 0);
             } else {
                 addItem(stack, saveSize);
             }
@@ -1209,7 +1223,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
     @Deprecated
     public void addRecipe(BookmarkRecipe recipe, boolean saveSize, int groupId) {
-        addRecipe(recipe.getRecipe(), groupId);
+        addRecipe(recipe.getRecipe(), groupId, saveSize ? 1 : 0);
     }
 
     @Deprecated

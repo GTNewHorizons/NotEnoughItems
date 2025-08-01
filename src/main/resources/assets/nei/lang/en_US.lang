@@ -37,6 +37,7 @@ nei.bookmark.remove_recipe=Remove Recipe
 nei.bookmark.remove_item=Remove Item
 nei.bookmark.add_item=Add Bookmark
 nei.bookmark.add_item_with_recipe=Add Bookmark with Recipe
+nei.bookmark.add_item_with_recipe_and_count=Add Bookmark with Recipe and Count
 nei.bookmark.add_item_with_count=Add Bookmark with Count
 nei.bookmark.change_quantity=Change Quantity
 nei.bookmark.change_quantity_step=Change Quantity with Multiplier
@@ -508,9 +509,11 @@ nei.recipe.overlay.mismatch=Mismatch Crafting Grid
 nei.recipe.overlay.overlayRecipe=Overlay Recipe
 nei.recipe.overlay.fillCraftingGrid=Fill Crafting Grid
 nei.recipe.overlay.bookmarkRecipe=Save with Recipe
+nei.recipe.overlay.bookmarkRecipeAndCount=Save with Recipe and Count
 
 nei.recipe.favorite=Favorite
 nei.recipe.favorite.bookmark_recipe=Save Recipe Tree
+nei.recipe.favorite.bookmark_recipe_with_count=Save Recipe Tree with Count
 nei.recipe.favorite.change_result_index=Change Output
 
 nei.itemsort.minecraft=Minecraft

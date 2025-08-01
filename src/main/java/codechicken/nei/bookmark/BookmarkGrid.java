@@ -26,7 +26,6 @@ import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemStackAmount;
 import codechicken.nei.ItemsGrid;
-import codechicken.nei.ItemsGrid.MouseContext;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -832,8 +831,8 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
 
     public BookmarkItem getCalculatedItem(int itemIndex) {
 
-        if (this.gridGenerator.caclulatedItems.containsKey(itemIndex)) {
-            return this.gridGenerator.caclulatedItems.get(itemIndex).getItem();
+        if (this.gridGenerator.calculatedItems.containsKey(itemIndex)) {
+            return this.gridGenerator.calculatedItems.get(itemIndex).getItem();
         }
 
         return null;
@@ -867,6 +866,10 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
     }
 
     public void addRecipe(Recipe recipe, int groupId) {
+        addRecipe(recipe, groupId, 1);
+    }
+
+    public void addRecipe(Recipe recipe, int groupId, int times) {
         final RecipeId recipeId = recipe.getRecipeId();
         final List<ItemStack> results = recipe.getResults().stream().map(res -> res.getItemStack())
                 .collect(Collectors.toList());
@@ -874,15 +877,23 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
                 .collect(Collectors.toList());
 
         for (ItemStack stack : ItemStackAmount.of(results).values()) {
-            this.addItem(BookmarkItem.of(groupId, stack, StackInfo.getAmount(stack), recipeId, false), true);
+            int currentAmount = StackInfo.getAmount(stack);
+            this.addItem(BookmarkItem.of(
+                    groupId,
+                    StackInfo.withAmount(stack, (long) currentAmount * times),
+                    currentAmount,
+                    recipeId,
+                    false
+            ), true);
         }
 
         for (ItemStack stack : ItemStackAmount.of(ingredients).values()) {
+            int currentAmount = StackInfo.getAmount(stack);
             this.addItem(
                     BookmarkItem.of(
                             groupId,
-                            stack,
-                            StackInfo.getAmount(stack),
+                            StackInfo.withAmount(stack, (long) currentAmount * times),
+                            currentAmount,
                             recipeId,
                             true,
                             BookmarkItem.generatePermutations(stack, recipe)),
@@ -1148,17 +1159,11 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         } else if (targetItem.recipeId != null) {
             final RecipeId recipeId = this.gridGenerator.itemToRecipe
                     .getOrDefault(targetItemIndex, targetItem.recipeId);
-            final boolean isOutputRecipe = group.crafting != null && !group.crafting.recipeInMiddle.contains(recipeId);
             long multiplier = Integer.MAX_VALUE;
 
             for (BookmarkItem item : this.bookmarkItems) {
                 if (item.equalsRecipe(recipeId, targetItem.groupId) && item.factor > 0) {
-                    multiplier = Math.min(
-                            shiftMultiplier(
-                                    Math.max(isOutputRecipe ? 1 : 0, item.getMultiplier()),
-                                    shift,
-                                    isOutputRecipe ? 1 : 0),
-                            multiplier);
+                    multiplier = Math.min(shiftMultiplier(Math.max(0, item.getMultiplier()), shift, 0), multiplier);
                 }
             }
 
