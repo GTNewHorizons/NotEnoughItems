@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import net.minecraft.client.Minecraft;
@@ -119,7 +120,14 @@ public class GuiFavoriteButton extends GuiRecipeButton {
     public void lastKeyTyped(GuiRecipe<?> gui, char keyChar, int keyID) {
 
         if (NEIClientConfig.isKeyHashDown("gui.bookmark") && NEIClientUtils.shiftKey()) {
-            ItemPanels.bookmarkPanel.addGroup(getRecipesTree(getRecipe()), BookmarkViewMode.TODO_LIST, true);
+            Recipe mainRecipe = getRecipe();
+            List<Recipe> recipeTree = getRecipesTree(mainRecipe);
+            List<RecipeWithAmount> adjustedRecipeTree = new ArrayList<>();
+            for (Recipe node : recipeTree) {
+                int amount = NEIClientUtils.controlKey() && Objects.equals(mainRecipe, node) ? 1 : 0;
+                adjustedRecipeTree.add(new RecipeWithAmount(node, amount));
+            }
+            ItemPanels.bookmarkPanel.addGroup(adjustedRecipeTree, BookmarkViewMode.TODO_LIST, true);
         }
 
     }
@@ -129,6 +137,9 @@ public class GuiFavoriteButton extends GuiRecipeButton {
         hotkeys.put(
                 NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
                 translate("recipe.favorite.bookmark_recipe"));
+        hotkeys.put(
+                NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
+                translate("recipe.favorite.bookmark_recipe_with_count"));
 
         if (this.recipe.getResults().size() > 1) {
             hotkeys.put(
