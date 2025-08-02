@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.FluidContainerRegistry;
@@ -81,7 +82,15 @@ public class Recipe {
                 ItemStack stack = extractItem(item);
 
                 if (stack != null) {
-                    list.add(stack.copy());
+                    stack = stack.copy();
+
+                    // hack: remove metadata for data stick
+                    if (stack.hasTagCompound() && stack.getItemDamage() == 32708
+                            && "gregtech:gt.metaitem.01".equals(Item.itemRegistry.getNameForObject(stack.getItem()))) {
+                        stack.stackTagCompound = null;
+                    }
+
+                    list.add(stack);
                 }
             }
 
@@ -116,9 +125,20 @@ public class Recipe {
             }
 
             for (int index = 0; index < stacks.size(); index++) {
-                if (!stacks.get(index).containsWithNBT(ingredients.get(index))) {
-                    return false;
+                for (ItemStack item : stacks.get(index).items) {
+
+                    // hack: remove metadata for data stick
+                    if (item.hasTagCompound() && item.getItemDamage() == 32708
+                            && "gregtech:gt.metaitem.01".equals(Item.itemRegistry.getNameForObject(item.getItem()))) {
+                        item = item.copy();
+                        item.stackTagCompound = null;
+                    }
+
+                    if (!StackInfo.equalItemAndNBT(item, this.ingredients.get(index), true)) {
+                        return false;
+                    }
                 }
+
             }
 
             return true;

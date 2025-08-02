@@ -43,12 +43,10 @@ public class NBTJson {
             // NBTTagCompound
             final NBTTagCompound nbtTagCompound = (NBTTagCompound) nbt;
             final Map<String, NBTBase> tagMap = (Map<String, NBTBase>) nbtTagCompound.tagMap;
+            final JsonObject root = new JsonObject();
 
-            JsonObject root = new JsonObject();
-
-            for (Map.Entry<String, NBTBase> nbtEntry : tagMap.entrySet()) {
-                root.add(nbtEntry.getKey(), toJsonObject(nbtEntry.getValue()));
-            }
+            tagMap.entrySet().stream().sorted(Map.Entry.<String, NBTBase>comparingByKey())
+                    .forEach(nbtEntry -> { root.add(nbtEntry.getKey(), toJsonObject(nbtEntry.getValue())); });
 
             return root;
         } else if (nbt instanceof NBTTagByte) {

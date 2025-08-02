@@ -921,6 +921,7 @@ public class NEIClientConfig {
                     });
 
                     RecipeCatalysts.loadCatalystInfo();
+                    SubsetWidget.loadCustomSubsets();
                     SubsetWidget.loadHidden();
                     CollapsibleItems.load();
                     ItemSorter.loadConfig();
