@@ -23,7 +23,6 @@ import net.minecraft.util.EnumChatFormatting;
 
 import org.apache.commons.io.IOUtils;
 
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import codechicken.core.CommonUtils;
@@ -34,8 +33,6 @@ import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.ICraftingHandler;
 import codechicken.nei.recipe.Recipe;
-import codechicken.nei.recipe.Recipe.RecipeId;
-import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.NBTJson;
 
 public class CommandRecipeId extends CommandBase {
@@ -95,12 +92,16 @@ public class CommandRecipeId extends CommandBase {
 
             for (String recipe : notAllowedRecipes) {
                 try {
-                    final RecipeId recipeId = RecipeId.of((JsonObject) parser.parse(recipe));
-                    final NBTTagCompound nbtStack = StackInfo.itemStackToNBT(recipeId.getResult(), false);
-                    nbtStack.removeTag("Count");
+                    final NBTTagCompound nbtRecipe = (NBTTagCompound) NBTJson.toNbt(parser.parse(recipe));
 
-                    subsetsBuilder.computeIfAbsent(recipeId.getHandleName(), rn -> new HashSet<>())
-                            .add(NBTJson.toJson(nbtStack));
+                    if (nbtRecipe.hasKey("result")) {
+                        final NBTTagCompound nbtStack = nbtRecipe.getCompoundTag("result");
+                        nbtStack.removeTag("Count");
+                        subsetsBuilder.computeIfAbsent(nbtRecipe.getString("handlerName"), rn -> new HashSet<>())
+                                .add(NBTJson.toJson(nbtStack));
+                    } else {
+                        NEIClientConfig.logger.error("Found Blocken RecipeId {}", recipe);
+                    }
                 } catch (Exception ex) {
                     NEIClientConfig.logger.error("Found Blocken RecipeId {}", recipe, ex);
                 }
@@ -212,7 +213,7 @@ public class CommandRecipeId extends CommandBase {
         } else if ("diff".equals(command)) {
             processDiffCommand(sender, args);
         } else {
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + getCommandUsage(sender)));
+            sendChatErrorMessage(sender, getCommandUsage(sender));
         }
 
     }
@@ -220,28 +221,26 @@ public class CommandRecipeId extends CommandBase {
     protected void processDiffCommand(ICommandSender sender, String[] args) {
 
         if (args.length > 4) {
-            sender.addChatMessage(new ChatComponentText("Too many parameters! Usage: " + getCommandUsage(sender)));
+            sendChatErrorMessage(sender, "Too many parameters! Usage: " + getCommandUsage(sender));
             return;
         }
 
         if (args.length < 3) {
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + getCommandUsage(sender)));
+            sendChatErrorMessage(sender, getCommandUsage(sender));
             return;
         }
 
         final File prevFilename = getFile(args[1]);
         final File currFilename = getFile(args[2]);
-        final File diffFilename = getFile(args.length > 3 ? args[3] : "subsets");
+        final File diffFilename = getFile(args.length > 3 ? args[3] : "changelog");
 
         if (!prevFilename.exists()) {
-            sender.addChatMessage(
-                    new ChatComponentText("File `" + args[1] + "` not found! Usage: " + getCommandUsage(sender)));
+            sendChatErrorMessage(sender, "File `" + prevFilename.getName() + "` not found!");
             return;
         }
 
         if (!currFilename.exists()) {
-            sender.addChatMessage(
-                    new ChatComponentText("File `" + args[2] + "` not found! Usage: " + getCommandUsage(sender)));
+            sendChatErrorMessage(sender, "File `" + currFilename.getName() + "` not found!");
             return;
         }
 
@@ -249,8 +248,9 @@ public class CommandRecipeId extends CommandBase {
     }
 
     protected void processDumpCommand(ICommandSender sender, String[] args) {
+
         if (args.length > 2) {
-            sender.addChatMessage(new ChatComponentText("Too many parameters! Usage: " + getCommandUsage(sender)));
+            sendChatErrorMessage(sender, "Too many parameters! Usage: " + getCommandUsage(sender));
             return;
         }
 
@@ -263,6 +263,10 @@ public class CommandRecipeId extends CommandBase {
 
     private static File getFile(String filename) {
         return new File(CommonUtils.getMinecraftDir(), "recipeid/" + filename + ".json");
+    }
+
+    private static void sendChatErrorMessage(ICommandSender sender, String message) {
+        sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + message));
     }
 
 }
