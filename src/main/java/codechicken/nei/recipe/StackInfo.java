@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -223,7 +224,9 @@ public class StackInfo {
 
         if (stacks.length > 1) {
             for (ItemStack stack : stacks) {
-                if (stack.getItem() != null && !ItemInfo.isHidden(stack) && stack.getItemDamage() < damage) {
+                if (stack.getItem() != null && !ItemInfo.isHidden(stack)
+                        && (stack.getItemDamage() < damage || stack.getItemDamage() == damage
+                                && Item.getIdFromItem(stack.getItem()) < Item.getIdFromItem(result.getItem()))) {
                     damage = stack.getItemDamage();
                     result = stack;
                 }
