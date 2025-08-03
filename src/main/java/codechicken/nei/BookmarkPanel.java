@@ -207,11 +207,11 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         return false;
     }
 
-    public boolean addRecipe(Recipe recipe, int groupId) {
+    public boolean addRecipe(Recipe recipe, int multiplier, int groupId) {
         final RecipeId recipeId = recipe.getRecipeId();
 
         if (recipe != null && this.grid.getGroup(groupId) != null && !this.grid.existsRecipe(recipeId, groupId)) {
-            this.grid.addRecipe(recipe, groupId);
+            this.grid.addRecipe(recipe, multiplier, groupId);
             return true;
         }
 
@@ -234,7 +234,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             if (item instanceof Recipe recipe) {
 
                 if (uniqueRecipe.add(recipe.getRecipeId())) {
-                    this.grid.addRecipe(recipe, groupId);
+                    this.grid.addRecipe(recipe, 1, groupId);
                 }
 
             } else if (item instanceof RecipeId recipeId) {
@@ -1195,7 +1195,10 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                     && !handlerName.isEmpty()
                     && ingredients != null
                     && !ingredients.isEmpty()) {
-                addRecipe(Recipe.of(Arrays.asList(stack), handlerName, ingredients), BookmarkGrid.DEFAULT_GROUP_ID);
+                addRecipe(
+                        Recipe.of(Arrays.asList(stack), handlerName, ingredients),
+                        saveSize ? 1 : 0,
+                        BookmarkGrid.DEFAULT_GROUP_ID);
             } else {
                 addItem(stack, saveSize);
             }
@@ -1209,7 +1212,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
     @Deprecated
     public void addRecipe(BookmarkRecipe recipe, boolean saveSize, int groupId) {
-        addRecipe(recipe.getRecipe(), groupId);
+        addRecipe(recipe.getRecipe(), saveSize ? 1 : 0, groupId);
     }
 
     @Deprecated

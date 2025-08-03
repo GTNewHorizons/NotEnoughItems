@@ -866,7 +866,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         onItemsChanged();
     }
 
-    public void addRecipe(Recipe recipe, int groupId) {
+    public void addRecipe(Recipe recipe, int multiplier, int groupId) {
         final RecipeId recipeId = recipe.getRecipeId();
         final List<ItemStack> results = recipe.getResults().stream().map(res -> res.getItemStack())
                 .collect(Collectors.toList());
@@ -874,15 +874,19 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
                 .collect(Collectors.toList());
 
         for (ItemStack stack : ItemStackAmount.of(results).values()) {
-            this.addItem(BookmarkItem.of(groupId, stack, StackInfo.getAmount(stack), recipeId, false), true);
+            long factor = StackInfo.getAmount(stack);
+            this.addItem(
+                    BookmarkItem.of(groupId, StackInfo.withAmount(stack, factor * multiplier), factor, recipeId, false),
+                    true);
         }
 
         for (ItemStack stack : ItemStackAmount.of(ingredients).values()) {
+            long factor = StackInfo.getAmount(stack);
             this.addItem(
                     BookmarkItem.of(
                             groupId,
-                            stack,
-                            StackInfo.getAmount(stack),
+                            StackInfo.withAmount(stack, factor * multiplier),
+                            factor,
                             recipeId,
                             true,
                             BookmarkItem.generatePermutations(stack, recipe)),
