@@ -167,6 +167,14 @@ public class SearchTokenParser {
 
     public synchronized ItemFilter getFilter(String filterText) {
         filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
+        if (filterText == null || filterText.isEmpty()) {
+            return new EverythingItemFilter();
+        }
+        int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+
+        if (spaceModeEnabled == 1) {
+            filterText = filterText.replaceAll(" ", "\\\\ ");
+        }
 
         return this.filtersCache.computeIfAbsent(filterText, text -> {
             // TODO: implement proper mode switching
@@ -183,9 +191,7 @@ public class SearchTokenParser {
             // return new IsRegisteredItemFilter(new AnyMultiItemFilter(searchTokens));
             // }
             //
-            if (text == null || text.isEmpty()) {
-                return new EverythingItemFilter();
-            }
+
             final CharStream inputStream = CharStreams.fromString(text);
             final SearchExpressionErrorListener errorListener = new SearchExpressionErrorListener(true);
             final SearchExpressionLexer lexer = new SearchExpressionLexer(inputStream);

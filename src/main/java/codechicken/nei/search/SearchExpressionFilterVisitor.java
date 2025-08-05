@@ -195,14 +195,21 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
 
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx) {
         String cleanText = null;
+        int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
         if (ctx.PLAIN_TEXT() != null) {
             cleanText = Pattern.quote(ctx.PLAIN_TEXT().getSymbol().getText().replaceAll("\\\\(.)", "$1"));
         } else if (ctx.REGEX() != null) {
             String regex = ctx.REGEX().getSymbol().getText();
             cleanText = regex.substring(regex.indexOf('/') + 1, regex.length() - 1);
+            if (spaceModeEnabled == 1) {
+                cleanText = cleanText.replaceAll("((?:\\\\\\\\)*)\\\\ ", "$1 ");
+            }
         } else if (ctx.QUOTED() != null) {
             String quoted = ctx.QUOTED().getSymbol().getText();
             cleanText = Pattern.quote(quoted.substring(1, quoted.length() - 1)).replaceAll("\\\\\"", "\"");
+            if (spaceModeEnabled == 1) {
+                cleanText = cleanText.replaceAll("\\\\ ", " ");
+            }
         }
         return cleanText;
     }
