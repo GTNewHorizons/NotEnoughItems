@@ -1,5 +1,6 @@
 //version: 1707058017
 
 plugins {
+    id 'antlr'
     id 'com.gtnewhorizons.gtnhconvention'
 }

@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
@@ -356,6 +357,20 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
     }
 
     private static class DefaultParserProvider implements ISearchParserProvider {
+
+        public ItemFilter getFilter(Pattern pattern) {
+            final AnyMultiItemFilter filter = new AnyMultiItemFilter();
+            final Set<ItemStack> filteredItems = new HashSet<>();
+
+            for (SubsetTag tag : tags.values()) {
+                if (tag.filter != null && pattern.matcher(tag.path).find()) {
+                    filteredItems.addAll(tag.items);
+                    filter.filters.add(tag.filter);
+                }
+            }
+
+            return stack -> filteredItems.contains(stack) || !ItemList.items.contains(stack) && filter.matches(stack);
+        }
 
         public ItemFilter getFilter(String searchText) {
             final String pathPart = searchText.replaceAll("\\s+", "").toLowerCase();

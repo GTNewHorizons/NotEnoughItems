@@ -17,8 +17,8 @@ public class SearchTextFormatter implements TextFormatter {
     }
 
     public String format(String text) {
-        final String[] parts = (text + "|| ").split("\\|\\|");
-        StringJoiner formattedText = new StringJoiner(EnumChatFormatting.GRAY + "||");
+        final String[] parts = (text + "| ").split("\\|");
+        StringJoiner formattedText = new StringJoiner(EnumChatFormatting.GRAY + "|");
 
         for (int i = 0; i < parts.length - 1; i++) {
             final String filterText = parts[i];
