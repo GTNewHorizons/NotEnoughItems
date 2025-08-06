@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,7 +19,8 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 
 import org.apache.commons.io.IOUtils;
@@ -29,10 +31,12 @@ import codechicken.core.CommonUtils;
 import codechicken.nei.ClientHandler;
 import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.ICraftingHandler;
 import codechicken.nei.recipe.Recipe;
+import codechicken.nei.recipe.RecipeHandlerQuery;
 import codechicken.nei.util.NBTJson;
 
 public class CommandRecipeId extends CommandBase {
@@ -53,15 +57,10 @@ public class CommandRecipeId extends CommandBase {
 
         @Override
         public void run() {
+            sendChatInfoMessage(sender, "nei.chat.recipeid.diff.start");
+
             final Set<String> prevRecipes = loadFileContent(this.prevFile);
             final Set<String> currRecipes = loadFileContent(this.currFile);
-
-            if (prevRecipes == null || currRecipes == null) {
-                return;
-            }
-
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.AQUA + "Generate subset diff!"));
-
             final Set<String> notAllowedRecipes = prevRecipes.stream().filter(recipe -> !currRecipes.contains(recipe))
                     .collect(Collectors.toSet());
             final List<String> subsetsList = new ArrayList<>();
@@ -74,7 +73,7 @@ public class CommandRecipeId extends CommandBase {
             saveFile(this.diffFile, subsetsList);
             saveFile(getFile("not-allowed-recipes"), new ArrayList<>(notAllowedRecipes));
 
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.AQUA + "Finished processing recipe diff!"));
+            sendChatInfoMessage(sender, "nei.chat.recipeid.diff.finish");
         }
 
         private Set<String> loadFileContent(File file) {
@@ -83,16 +82,16 @@ public class CommandRecipeId extends CommandBase {
             } catch (IOException e) {
                 NEIClientConfig.logger.error("Failed to load '{}' file {}", file.getName(), file, e);
             }
-            return null;
+            return new HashSet<>();
         }
 
         private Map<String, Set<String>> generateSubsets(Set<String> notAllowedRecipes) {
             final JsonParser parser = new JsonParser();
             final Map<String, Set<String>> subsetsBuilder = new HashMap<>();
 
-            for (String recipe : notAllowedRecipes) {
+            for (String recipeStr : notAllowedRecipes) {
                 try {
-                    final NBTTagCompound nbtRecipe = (NBTTagCompound) NBTJson.toNbt(parser.parse(recipe));
+                    final NBTTagCompound nbtRecipe = (NBTTagCompound) NBTJson.toNbt(parser.parse(recipeStr));
 
                     if (nbtRecipe.hasKey("result")) {
                         final NBTTagCompound nbtStack = nbtRecipe.getCompoundTag("result");
@@ -100,10 +99,10 @@ public class CommandRecipeId extends CommandBase {
                         subsetsBuilder.computeIfAbsent(nbtRecipe.getString("handlerName"), rn -> new HashSet<>())
                                 .add(NBTJson.toJson(nbtStack));
                     } else {
-                        NEIClientConfig.logger.error("Found Blocken RecipeId {}", recipe);
+                        NEIClientConfig.logger.error("Found Broken RecipeId {}", recipeStr);
                     }
                 } catch (Exception ex) {
-                    NEIClientConfig.logger.error("Found Blocken RecipeId {}", recipe, ex);
+                    NEIClientConfig.logger.error("Found Broken RecipeId {}", recipeStr, ex);
                 }
             }
 
@@ -114,7 +113,7 @@ public class CommandRecipeId extends CommandBase {
             try (FileOutputStream output = new FileOutputStream(file)) {
                 IOUtils.writeLines(content, "\n", output, StandardCharsets.UTF_8);
             } catch (IOException e) {
-                NEIClientConfig.logger.error("Filed to save recipeid diff list to file {}", file, e);
+                NEIClientConfig.logger.error("Failed to save recipeid diff list to file {}", file, e);
             }
         }
 
@@ -122,21 +121,31 @@ public class CommandRecipeId extends CommandBase {
 
     protected static class ProcessDumpThread extends Thread {
 
-        private Set<String> blacklist;
+        private ArrayList<ICraftingHandler> craftinghandlers = new ArrayList<>();
+        private ArrayList<ICraftingHandler> serialCraftingHandlers = new ArrayList<>();
         protected final ICommandSender sender;
         protected final File currFile;
 
         public ProcessDumpThread(ICommandSender sender, File currFile) {
             this.sender = sender;
             this.currFile = currFile;
-            ClientHandler
-                    .loadSettingsFile("hiddenhandlers.cfg", lines -> blacklist = lines.collect(Collectors.toSet()));
+            ClientHandler.loadSettingsFile("recipeidblacklist.cfg", lines -> {
+                final Set<String> names = lines.collect(Collectors.toSet());
+
+                this.craftinghandlers = GuiCraftingRecipe.craftinghandlers.stream()
+                        .filter(h -> !names.contains(GuiRecipeTab.getHandlerInfo(h).getHandlerName()))
+                        .collect(Collectors.toCollection(ArrayList::new));
+
+                this.serialCraftingHandlers = GuiCraftingRecipe.serialCraftingHandlers.stream()
+                        .filter(h -> !names.contains(GuiRecipeTab.getHandlerInfo(h).getHandlerName()))
+                        .collect(Collectors.toCollection(ArrayList::new));
+            });
         }
 
         @Override
         public void run() {
             NEIClientConfig.logger.info("Start processing recipe handlers!");
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.AQUA + "Start processing recipe handlers!"));
+            sendChatInfoMessage(sender, "nei.chat.recipeid.dump.start");
 
             try {
                 if (!this.currFile.exists()) this.currFile.createNewFile();
@@ -157,21 +166,20 @@ public class CommandRecipeId extends CommandBase {
 
                     count++;
 
-                    for (ICraftingHandler handler : GuiCraftingRecipe.getCraftingHandlers("item", stack)) {
-                        if (!blacklist.contains(GuiRecipeTab.getHandlerInfo(handler).getHandlerName())) {
-                            for (int index = 0; index < handler.numRecipes(); index++) {
-                                try {
-                                    final Recipe recipe = Recipe.of(handler, index);
-                                    if (recipe != null) {
-                                        recipes.println(NBTJson.toJson(recipe.getRecipeId().toJsonObject()));
-                                    }
-                                } catch (Exception ex) {
-                                    NEIClientConfig.logger.error(
-                                            "Found Blocken RecipeId {}:{}",
-                                            GuiRecipeTab.getHandlerInfo(handler).getHandlerName(),
-                                            stack,
-                                            ex);
+                    for (ICraftingHandler handler : getCraftingHandlers(stack)) {
+                        for (int index = 0; index < handler.numRecipes(); index++) {
+                            try {
+                                final Recipe recipe = Recipe.of(handler, index);
+                                if (recipe != null
+                                        && (!recipe.getIngredients().isEmpty() && !recipe.getResults().isEmpty())) {
+                                    recipes.println(NBTJson.toJson(recipe.getRecipeId().toJsonObject()));
                                 }
+                            } catch (Exception ex) {
+                                NEIClientConfig.logger.error(
+                                        "Found Broken RecipeId {}:{}",
+                                        GuiRecipeTab.getHandlerInfo(handler).getHandlerName(),
+                                        stack,
+                                        ex);
                             }
                         }
                     }
@@ -183,8 +191,18 @@ public class CommandRecipeId extends CommandBase {
             }
 
             NEIClientConfig.logger.info("Finished processing recipe handlers!");
-            sender.addChatMessage(
-                    new ChatComponentText(EnumChatFormatting.AQUA + "Finished processing recipe handlers!"));
+            sendChatInfoMessage(sender, "nei.chat.recipeid.dump.finish");
+        }
+
+        private ArrayList<ICraftingHandler> getCraftingHandlers(Object... results) {
+            return new RecipeHandlerQuery<>(
+                    h -> h.getRecipeHandler("item", results),
+                    this.craftinghandlers,
+                    this.serialCraftingHandlers,
+                    "Error while looking up crafting recipe",
+                    "outputId: item",
+                    "results: " + Arrays.toString(results))
+                            .runWithProfiling(NEIClientUtils.translate("recipe.concurrent.crafting"));
         }
 
     }
@@ -221,7 +239,7 @@ public class CommandRecipeId extends CommandBase {
     protected void processDiffCommand(ICommandSender sender, String[] args) {
 
         if (args.length > 4) {
-            sendChatErrorMessage(sender, "Too many parameters! Usage: " + getCommandUsage(sender));
+            sendChatErrorMessage(sender, "nei.chat.recipeid.many_params", getCommandUsage(sender));
             return;
         }
 
@@ -235,12 +253,12 @@ public class CommandRecipeId extends CommandBase {
         final File diffFilename = getFile(args.length > 3 ? args[3] : "changelog");
 
         if (!prevFilename.exists()) {
-            sendChatErrorMessage(sender, "File `" + prevFilename.getName() + "` not found!");
+            sendChatErrorMessage(sender, "nei.chat.recipeid.not_found", prevFilename.getName());
             return;
         }
 
         if (!currFilename.exists()) {
-            sendChatErrorMessage(sender, "File `" + currFilename.getName() + "` not found!");
+            sendChatErrorMessage(sender, "nei.chat.recipeid.not_found", currFilename.getName());
             return;
         }
 
@@ -250,7 +268,7 @@ public class CommandRecipeId extends CommandBase {
     protected void processDumpCommand(ICommandSender sender, String[] args) {
 
         if (args.length > 2) {
-            sendChatErrorMessage(sender, "Too many parameters! Usage: " + getCommandUsage(sender));
+            sendChatErrorMessage(sender, "nei.chat.recipeid.many_params", getCommandUsage(sender));
             return;
         }
 
@@ -265,8 +283,16 @@ public class CommandRecipeId extends CommandBase {
         return new File(CommonUtils.getMinecraftDir(), "recipeid/" + filename + ".json");
     }
 
-    private static void sendChatErrorMessage(ICommandSender sender, String message) {
-        sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + message));
+    private static void sendChatInfoMessage(ICommandSender sender, String translationKey, Object... args) {
+        sender.addChatMessage(
+                new ChatComponentTranslation(translationKey, args)
+                        .setChatStyle(new ChatStyle().setColor(EnumChatFormatting.AQUA)));
+    }
+
+    private static void sendChatErrorMessage(ICommandSender sender, String translationKey, Object... args) {
+        sender.addChatMessage(
+                new ChatComponentTranslation(translationKey, args)
+                        .setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
     }
 
 }

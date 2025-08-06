@@ -23,6 +23,7 @@ import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.stackinfo.DefaultStackStringifyHandler;
 import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 import codechicken.nei.util.ItemStackKey;
+import codechicken.nei.util.NBTHelper;
 
 public class StackInfo {
 
@@ -145,7 +146,7 @@ public class StackInfo {
         final NBTTagCompound nbTag = itemStackToNBT(stack, false);
 
         if (nbTag == null) {
-            return null;
+            return "unknown";
         }
 
         nbTag.removeTag("Count");
@@ -158,9 +159,11 @@ public class StackInfo {
             nbTag.removeTag("tag");
         }
 
-        if (nbTag.hasKey("strId") && guidfilters.containsKey(nbTag.getString("strId"))) {
+        if (nbTag.hasKey("strId") && (guidfilters.containsKey(nbTag.getString("strId"))
+                || guidfilters.containsKey(nbTag.getString("strId") + "&" + nbTag.getShort("Damage")))) {
+            final String strId = nbTag.getString("strId")
+                    + (guidfilters.containsKey(nbTag.getString("strId")) ? "" : "&" + nbTag.getShort("Damage"));
             final ArrayList<String> keys = new ArrayList<>();
-            final String strId = nbTag.getString("strId");
 
             keys.add(strId);
 
@@ -185,7 +188,7 @@ public class StackInfo {
                 }
 
                 if (local instanceof NBTBase item) {
-                    keys.add(item.toString());
+                    keys.add(NBTHelper.toString(item));
                 } else if (local != null) {
                     keys.add(String.valueOf(local));
                 }
@@ -196,7 +199,7 @@ public class StackInfo {
             }
         } else {
             synchronized (guidcache) {
-                guidcache.put(stack, nbTag.toString());
+                guidcache.put(stack, NBTHelper.toString(nbTag));
             }
         }
 
@@ -219,15 +222,17 @@ public class StackInfo {
     }
 
     public static ItemStack getItemStackWithMinimumDamage(ItemStack[] stacks) {
-        int damage = Short.MAX_VALUE;
         ItemStack result = stacks[0];
 
         if (stacks.length > 1) {
             for (ItemStack stack : stacks) {
+                // to optimize compare recipes from permutation, an item with a minimum strId and damage is taken so as
+                // not to check everything permutation items
                 if (stack.getItem() != null && !ItemInfo.isHidden(stack)
-                        && (stack.getItemDamage() < damage || stack.getItemDamage() == damage
-                                && Item.getIdFromItem(stack.getItem()) < Item.getIdFromItem(result.getItem()))) {
-                    damage = stack.getItemDamage();
+                        && (stack.getItemDamage() < result.getItemDamage()
+                                || stack.getItemDamage() == result.getItemDamage()
+                                        && Item.itemRegistry.getNameForObject(stack.getItem()).compareTo(
+                                                Item.itemRegistry.getNameForObject(result.getItem())) == -1)) {
                     result = stack;
                 }
             }

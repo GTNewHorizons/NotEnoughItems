@@ -566,9 +566,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
         SubsetTag processedTag = new SubsetTag(subsetNamespace, new ItemStackSet());
 
         for (String itemStr : itemStrings) {
-
             try {
-
                 if (itemStr.startsWith("; ")) {
                     final String handlerName = itemStr.substring(2);
                     String recipeName = handlerName;
@@ -592,11 +590,9 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
                     ((ItemStackSet) processedTag.filter)
                             .add(StackInfo.loadFromNBT((NBTTagCompound) NBTJson.toNbt(parser.parse(itemStr))));
                 }
-
             } catch (IllegalArgumentException | JsonSyntaxException | IllegalStateException e) {
                 NEIClientConfig.logger.error("Failed to load collapsible items from json string:\n{}", itemStr);
             }
-
         }
     }
 
