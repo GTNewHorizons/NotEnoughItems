@@ -171,7 +171,7 @@ public class GuiOverlayButton extends GuiRecipeButton {
         DrawableResource icon = ICON_OVERLAY;
 
         if (this.hasOverlay && (!this.requireShiftForOverlayRecipe || NEIClientUtils.shiftKey())) {
-            icon = canFillCraftingGrid() ? ICON_FILL : ICON_FILL_ERROR;
+            icon = this.missedMaterialsTooltipLineHandler == null ? ICON_FILL : ICON_FILL_ERROR;
         }
 
         final int iconX = this.xPosition + (this.width - icon.width - 1) / 2;
