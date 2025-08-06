@@ -186,11 +186,11 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
 
     private ItemFilter getFilterForPrefixedExpression(char prefix, SearchExpressionParser.TokenContext ctx) {
         Pattern pattern = getPattern(ctx);
-        if (pattern == null) {
+        SearchTokenParser.ISearchParserProvider provider = parser.getProviderForDefaultPrefix(prefix);
+        if (pattern == null || provider == null) {
             return new ItemList.NothingItemFilter();
         }
-
-        return parser.getProvider(prefix).getFilter(pattern);
+        return provider.getFilter(pattern);
     }
 
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx) {

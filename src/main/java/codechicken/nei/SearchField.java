@@ -309,6 +309,10 @@ public class SearchField extends TextField implements ItemFilterProvider {
             case 2:
                 text = text.replaceAll("[{}()\\[\\].+*?^$\\\\|]", "\\\\$0");
                 break;
+            case 3:
+                text = text.replaceAll("\"", "\\\\$0");
+                text = "\"" + text + "\"";
+                return text;
             default:
                 break;
         }

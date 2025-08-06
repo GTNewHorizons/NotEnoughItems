@@ -1,12 +1,14 @@
 package codechicken.nei;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.Language;
@@ -165,47 +167,55 @@ public class SearchTokenParser {
                 .findFirst().orElse(null);
     }
 
+    public ISearchParserProvider getProviderForDefaultPrefix(char ch) {
+        return getProviders().stream()
+                .filter(provider -> provider.getSearchMode() == SearchMode.PREFIX && provider.getPrefix() == ch)
+                .findFirst().orElse(null);
+    }
+
     public synchronized ItemFilter getFilter(String filterText) {
         filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
         if (filterText == null || filterText.isEmpty()) {
             return new EverythingItemFilter();
         }
         int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+        int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
 
-        if (spaceModeEnabled == 1) {
+        if (spaceModeEnabled == 1 && patternMode == 3) {
             filterText = filterText.replaceAll(" ", "\\\\ ");
         }
 
-        return this.filtersCache.computeIfAbsent(filterText, text -> {
-            // TODO: implement proper mode switching
-            // final String[] parts = text.split("\\|");
-            // final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText).filter(s -> s !=
-            // null)
-            // .collect(Collectors.toList());
+        if (patternMode != 3) {
+            return this.filtersCache.computeIfAbsent(filterText, text -> {
+                final String[] parts = text.split("\\|");
+                final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText)
+                        .filter(s -> s != null).collect(Collectors.toList());
 
-            // if (searchTokens.isEmpty()) {
-            // return new EverythingItemFilter();
-            // } else if (searchTokens.size() == 1) {
-            // return new IsRegisteredItemFilter(searchTokens.get(0));
-            // } else {
-            // return new IsRegisteredItemFilter(new AnyMultiItemFilter(searchTokens));
-            // }
-            //
+                if (searchTokens.isEmpty()) {
+                    return new EverythingItemFilter();
+                } else if (searchTokens.size() == 1) {
+                    return new IsRegisteredItemFilter(searchTokens.get(0));
+                } else {
+                    return new IsRegisteredItemFilter(new AnyMultiItemFilter(searchTokens));
+                }
+            });
+        } else {
+            return this.filtersCache.computeIfAbsent(filterText, text -> {
+                final CharStream inputStream = CharStreams.fromString(text);
+                final SearchExpressionErrorListener errorListener = new SearchExpressionErrorListener(true);
+                final SearchExpressionLexer lexer = new SearchExpressionLexer(inputStream);
+                lexer.removeErrorListeners();
+                lexer.addErrorListener(errorListener);
+                final CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+                final SearchExpressionParser parser = new SearchExpressionParser(tokenStream);
+                parser.removeErrorListeners();
+                parser.addErrorListener(errorListener);
+                final SearchExpressionFilterVisitor visitor = new SearchExpressionFilterVisitor(this, true);
+                final ItemFilter searchToken = visitor.visitSearchExpression(parser.searchExpression());
 
-            final CharStream inputStream = CharStreams.fromString(text);
-            final SearchExpressionErrorListener errorListener = new SearchExpressionErrorListener(true);
-            final SearchExpressionLexer lexer = new SearchExpressionLexer(inputStream);
-            lexer.removeErrorListeners();
-            lexer.addErrorListener(errorListener);
-            final CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-            final SearchExpressionParser parser = new SearchExpressionParser(tokenStream);
-            parser.removeErrorListeners();
-            parser.addErrorListener(errorListener);
-            final SearchExpressionFilterVisitor visitor = new SearchExpressionFilterVisitor(this, true);
-            final ItemFilter searchToken = visitor.visitSearchExpression(parser.searchExpression());
-
-            return new IsRegisteredItemFilter(searchToken);
-        });
+                return new IsRegisteredItemFilter(searchToken);
+            });
+        }
 
     }
 

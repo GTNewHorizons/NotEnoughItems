@@ -277,6 +277,7 @@ nei.options.inventory.search.patternMode=Search Mode
 nei.options.inventory.search.patternMode.0=Plain
 nei.options.inventory.search.patternMode.1=Extended
 nei.options.inventory.search.patternMode.2=Regex
+nei.options.inventory.search.patternMode.3=Extended+
 nei.options.inventory.search.spaceMode=Space Works like
 nei.options.inventory.search.spaceMode.0=AND
 nei.options.inventory.search.spaceMode.0.tip=Space between non-prefixed tokens works like "AND"
