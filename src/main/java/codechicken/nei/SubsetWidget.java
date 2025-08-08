@@ -1,6 +1,7 @@
 package codechicken.nei;
 
 import java.awt.Point;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -22,6 +24,9 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.opengl.GL11;
+
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 import codechicken.core.gui.GuiScrollSlot;
 import codechicken.lib.gui.GuiDraw;
@@ -35,6 +40,12 @@ import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerTooltipHandler;
+import codechicken.nei.recipe.GuiCraftingRecipe;
+import codechicken.nei.recipe.GuiRecipeTab;
+import codechicken.nei.recipe.ICraftingHandler;
+import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.util.NBTJson;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class SubsetWidget extends Button implements ItemFilterProvider, IContainerTooltipHandler {
@@ -544,6 +555,60 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
         if (ItemList.loadFinished) {
             updateState.restart();
         }
+    }
+
+    public static void loadCustomSubsets() {
+        File dir = new File(NEIClientConfig.configDir, "subsets");
+
+        if (!dir.exists() || !dir.isDirectory()) {
+            return;
+        }
+
+        Stream.of(dir.listFiles()).filter(file -> !file.isDirectory()).forEach(file -> {
+            ClientHandler.loadSettingsFile(
+                    "subsets/" + file.getName(),
+                    lines -> parseFile(file.getName(), lines.collect(Collectors.toList())));
+        });
+    }
+
+    private static void parseFile(String resource, List<String> itemStrings) {
+        final JsonParser parser = new JsonParser();
+        final String subsetNamespace = resource.substring(0, resource.lastIndexOf('.'));
+        SubsetTag processedTag = new SubsetTag(subsetNamespace, new ItemStackSet());
+
+        for (String itemStr : itemStrings) {
+            try {
+                if (itemStr.startsWith("; ")) {
+                    final String handlerName = itemStr.substring(2);
+                    String recipeName = handlerName;
+                    addTag(processedTag);
+                    IRecipeHandler recipeHandler = GuiCraftingRecipe.craftinghandlers.stream()
+                            .filter(handler -> handlerName.equals(getHandlerName(handler))).findAny().orElse(null);
+
+                    if (recipeHandler == null) {
+                        recipeHandler = GuiCraftingRecipe.serialCraftingHandlers.stream()
+                                .filter(handler -> handlerName.equals(getHandlerName(handler))).findAny().orElse(null);
+                    }
+
+                    if (recipeHandler != null) {
+                        recipeName = recipeHandler.getRecipeName().trim();
+                    }
+
+                    processedTag = new SubsetTag(
+                            subsetNamespace + "." + recipeName.replace(".", ""),
+                            new ItemStackSet());
+                } else {
+                    ((ItemStackSet) processedTag.filter)
+                            .add(StackInfo.loadFromNBT((NBTTagCompound) NBTJson.toNbt(parser.parse(itemStr))));
+                }
+            } catch (IllegalArgumentException | JsonSyntaxException | IllegalStateException e) {
+                NEIClientConfig.logger.error("Failed to load collapsible items from json string:\n{}", itemStr);
+            }
+        }
+    }
+
+    private static String getHandlerName(ICraftingHandler handler) {
+        return GuiRecipeTab.getHandlerInfo(handler).getHandlerName();
     }
 
     public static void loadHidden() {
