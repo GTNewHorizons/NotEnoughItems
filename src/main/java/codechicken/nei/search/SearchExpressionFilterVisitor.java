@@ -50,8 +50,10 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
      * @return the visitor result
      */
     public ItemFilter visitOrExpression(SearchExpressionParser.OrExpressionContext ctx) {
-        List<ItemFilter> childrenFilters = ctx.sequenceExpression().stream().map(this::visit)
-                .collect(Collectors.toList());
+        List<ItemFilter> childrenFilters = ctx.sequenceExpression()
+            .stream()
+            .map(this::visit)
+            .collect(Collectors.toList());
         return new ItemList.AnyMultiItemFilter(childrenFilters);
     }
 
@@ -62,7 +64,10 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
      * @return the visitor result
      */
     public ItemFilter visitSequenceExpression(SearchExpressionParser.SequenceExpressionContext ctx) {
-        List<ItemFilter> childrenFilters = ctx.unaryExpression().stream().map(this::visit).collect(Collectors.toList());
+        List<ItemFilter> childrenFilters = ctx.unaryExpression()
+            .stream()
+            .map(this::visit)
+            .collect(Collectors.toList());
         return new ItemList.AllMultiItemFilter(childrenFilters);
     }
 
@@ -73,22 +78,35 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
      * @return the visitor result
      */
     public ItemFilter visitUnaryExpression(SearchExpressionParser.UnaryExpressionContext ctx) {
-        if (ctx.orExpression() != null) {
-            return this.visitOrExpression(ctx.orExpression());
+        if (ctx.complexUnaryExpression() != null) {
+            return visitComplexUnaryExpression(ctx.complexUnaryExpression());
         } else if (ctx.token() != null) {
-            return this.visitToken(ctx.token());
+            return visitToken(ctx.token());
+        }
+        return new ItemList.NothingItemFilter();
+    }
+
+    /**
+     * Visit a parse tree produced by {@link SearchExpressionParser#complexUnaryExpression}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    public ItemFilter visitComplexUnaryExpression(SearchExpressionParser.ComplexUnaryExpressionContext ctx) {
+        if (ctx.orExpression() != null) {
+            return visitOrExpression(ctx.orExpression());
         } else if (ctx.modnameExpression() != null) {
-            return this.visitModnameExpression(ctx.modnameExpression());
+            return visitModnameExpression(ctx.modnameExpression());
         } else if (ctx.tooltipExpression() != null) {
-            return this.visitTooltipExpression(ctx.tooltipExpression());
+            return visitTooltipExpression(ctx.tooltipExpression());
         } else if (ctx.identifierExpression() != null) {
-            return this.visitIdentifierExpression(ctx.identifierExpression());
+            return visitIdentifierExpression(ctx.identifierExpression());
         } else if (ctx.oredictExpression() != null) {
-            return this.visitOredictExpression(ctx.oredictExpression());
+            return visitOredictExpression(ctx.oredictExpression());
         } else if (ctx.subsetExpression() != null) {
-            return this.visitSubsetExpression(ctx.subsetExpression());
+            return visitSubsetExpression(ctx.subsetExpression());
         } else if (ctx.negateExpression() != null) {
-            return this.visitNegateExpression(ctx.negateExpression());
+            return visitNegateExpression(ctx.negateExpression());
         }
         return new ItemList.NothingItemFilter();
     }
@@ -100,7 +118,12 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
      * @return the visitor result
      */
     public ItemFilter visitNegateExpression(SearchExpressionParser.NegateExpressionContext ctx) {
-        return new ItemList.NegatedItemFilter(this.visitUnaryExpression(ctx.unaryExpression()));
+        if (ctx.complexUnaryExpression() != null) {
+            return new ItemList.NegatedItemFilter(visitComplexUnaryExpression(ctx.complexUnaryExpression()));
+        } else if (ctx.smartToken() != null) {
+            return new ItemList.NegatedItemFilter(visitSmartToken(ctx.smartToken()));
+        }
+        return new ItemList.NothingItemFilter();
     }
 
     /**
@@ -160,32 +183,51 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
      * @return the visitor result
      */
     public ItemFilter visitToken(SearchExpressionParser.TokenContext ctx) {
-        Pattern pattern = getPattern(ctx);
-        if (pattern != null) {
-            return new ItemList.PatternItemFilter(pattern);
+        String cleanText = getTokenCleanText(ctx);
+        if (cleanText != null) {
+            Pattern pattern = getPattern(cleanText);
+            if (pattern != null) {
+                return new ItemList.PatternItemFilter(pattern);
+            }
         }
         return new ItemList.NothingItemFilter();
     }
 
-    private Pattern getPattern(SearchExpressionParser.TokenContext ctx) {
+    /**
+     * Visit a parse tree produced by {@link SearchExpressionParser#smartToken}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    public ItemFilter visitSmartToken(SearchExpressionParser.SmartTokenContext ctx) {
         String cleanText = getTokenCleanText(ctx);
+        if (cleanText != null) {
+            Pattern pattern = getPattern(cleanText);
+            if (pattern != null) {
+                return new ItemList.PatternItemFilter(pattern);
+            }
+        }
+        return new ItemList.NothingItemFilter();
+    }
+
+    private Pattern getPattern(String cleanText) {
         if (cleanText == null) {
             return null;
         }
         try {
             Pattern pattern = Pattern
-                    .compile(cleanText, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+                .compile(cleanText, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
             return pattern;
         } catch (PatternSyntaxException e) {
             if (logSearchExceptions) {
-                NEIClientConfig.logger.error("Invalid pattern syntax when parsing " + cleanText, e);
+                NEIClientConfig.logger.error("Invalid pattern syntax when parsing " + cleanText);
             }
             return null;
         }
     }
 
     private ItemFilter getFilterForPrefixedExpression(char prefix, SearchExpressionParser.TokenContext ctx) {
-        Pattern pattern = getPattern(ctx);
+        Pattern pattern = getPattern(getTokenCleanText(ctx));
         SearchTokenParser.ISearchParserProvider provider = parser.getProviderForDefaultPrefix(prefix);
         if (pattern == null || provider == null) {
             return new ItemList.NothingItemFilter();
@@ -194,19 +236,52 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
     }
 
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx) {
+        if (ctx.PLAIN_TEXT() != null) {
+            return Pattern.quote(
+                ctx.PLAIN_TEXT()
+                    .getSymbol()
+                    .getText()
+                    .replaceAll("\\\\(.)", "$1"));
+        } else if (ctx.smartToken() != null) {
+            return getTokenCleanText(ctx.smartToken());
+        }
+        return null;
+    }
+
+    private String getTokenCleanText(SearchExpressionParser.SmartTokenContext ctx) {
         String cleanText = null;
         int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
-        if (ctx.PLAIN_TEXT() != null) {
-            cleanText = Pattern.quote(ctx.PLAIN_TEXT().getSymbol().getText().replaceAll("\\\\(.)", "$1"));
+        if (ctx.DASH() != null) {
+            cleanText = "-";
         } else if (ctx.REGEX() != null) {
-            String regex = ctx.REGEX().getSymbol().getText();
-            cleanText = regex.substring(regex.indexOf('/') + 1, regex.length() - 1);
+            String regex = ctx.REGEX()
+                .getSymbol()
+                .getText();
+            // Allows to avoid forcing '/' at the end of REGEX
+            if (Pattern.compile("[^\\\\](?:\\\\\\\\)*/$")
+                .matcher(regex)
+                .find()) {
+                cleanText = regex.substring(regex.indexOf('/') + 1, regex.length() - 1);
+            } else {
+                cleanText = regex.substring(regex.indexOf('/') + 1);
+            }
             if (spaceModeEnabled == 1) {
-                cleanText = cleanText.replaceAll("((?:\\\\\\\\)*)\\\\ ", "$1 ");
+                cleanText = cleanText.replaceAll("([^\\\\](?:\\\\\\\\)+)?\\\\ ", "$1 ");
             }
         } else if (ctx.QUOTED() != null) {
-            String quoted = ctx.QUOTED().getSymbol().getText();
-            cleanText = Pattern.quote(quoted.substring(1, quoted.length() - 1)).replaceAll("\\\\\"", "\"");
+            String quoted = ctx.QUOTED()
+                .getSymbol()
+                .getText();
+            // Allows to avoid forcing '\"' at the end of QUOTED
+            if (Pattern.compile("[^\\\\]\"$")
+                .matcher(quoted)
+                .find()) {
+                cleanText = quoted.substring(1, quoted.length() - 1);
+            } else {
+                cleanText = quoted.substring(1);
+            }
+            cleanText = Pattern.quote(cleanText)
+                .replaceAll("\\\\\"", "\"");
             if (spaceModeEnabled == 1) {
                 cleanText = cleanText.replaceAll("\\\\ ", " ");
             }
