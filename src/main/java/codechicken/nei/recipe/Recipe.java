@@ -2,9 +2,12 @@ package codechicken.nei.recipe;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.FluidContainerRegistry;
@@ -36,10 +39,15 @@ public class Recipe {
             this.result = result != null ? StackInfo.withAmount(result, 0) : null;
             this.handlerName = handlerName;
             this.ingredients = ingredients;
+
+            if (!isSharpedRecipe()) {
+                // sort to ignore ingredients position in shapeless recipes
+                Collections.sort(this.ingredients, Comparator.comparing(StackInfo::getItemStackGUID));
+            }
         }
 
         public static RecipeId of(Object result, String handlerName, Iterable<?> ingredients) {
-            return new RecipeId(extractItem(result), handlerName, extractItems(ingredients));
+            return new RecipeId(extractItem(result), handlerName, extractIngredients(ingredients));
         }
 
         public static RecipeId of(JsonObject json) {
@@ -74,14 +82,14 @@ public class Recipe {
             return new ArrayList<>(this.ingredients);
         }
 
-        protected static List<ItemStack> extractItems(Iterable<?> items) {
+        protected static List<ItemStack> extractIngredients(Iterable<?> items) {
             final List<ItemStack> list = new ArrayList<>();
 
             for (Object item : items) {
-                ItemStack stack = extractItem(item);
+                final ItemStack stack = extractItem(item);
 
                 if (stack != null) {
-                    list.add(stack.copy());
+                    list.add(prepareIngredient(stack.copy()));
                 }
             }
 
@@ -115,13 +123,54 @@ public class Recipe {
                 return false;
             }
 
-            for (int index = 0; index < stacks.size(); index++) {
-                if (!stacks.get(index).containsWithNBT(ingredients.get(index))) {
-                    return false;
+            if (isSharpedRecipe()) {
+                for (int index = 0; index < stacks.size(); index++) {
+                    if (!containsWithNBT(stacks.get(index), Arrays.asList(this.ingredients.get(index)))) {
+                        return false;
+                    }
+                }
+            } else {
+                for (PositionedStack pStack : stacks) {
+                    if (!containsWithNBT(pStack, this.ingredients)) {
+                        return false;
+                    }
                 }
             }
 
             return true;
+        }
+
+        private static boolean containsWithNBT(PositionedStack pStack, List<ItemStack> ingrStacks) {
+            for (ItemStack item : pStack.items) {
+                final ItemStack pItem = prepareIngredient(item);
+                if (ingrStacks.stream().anyMatch(stack -> StackInfo.equalItemAndNBT(pItem, stack, true))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static ItemStack prepareIngredient(ItemStack stack) {
+
+            // hack: remove metadata for "Data Stick"
+            if (stack.hasTagCompound() && stack.getItemDamage() == 32708
+                    && "gregtech:gt.metaitem.01".equals(Item.itemRegistry.getNameForObject(stack.getItem()))) {
+                return new ItemStack(stack.getItem(), stack.getItemDamage());
+            }
+
+            // hack: remove metadata for "Circuit Imprint"
+            if (stack.hasTagCompound() && stack.getItemDamage() == 0
+                    && "bartworks:gt.bwMetaGeneratedItem0"
+                            .equals(Item.itemRegistry.getNameForObject(stack.getItem()))) {
+                return new ItemStack(stack.getItem(), stack.getItemDamage());
+            }
+
+            return stack;
+        }
+
+        public boolean isSharpedRecipe() {
+            return this.handlerName.equals("codechicken.nei.recipe.ShapedRecipeHandler")
+                    || this.handlerName.equals("fox.spiteful.avaritia.compat.nei.ExtremeShapedRecipeHandler");
         }
 
         public JsonObject toJsonObject() {
@@ -142,8 +191,8 @@ public class Recipe {
         protected JsonArray convertItemsToJsonArray(List<ItemStack> items) {
             final JsonArray arr = new JsonArray();
 
-            for (ItemStack nbTag : items) {
-                arr.add(NBTJson.toJsonObject(StackInfo.itemStackToNBT(nbTag)));
+            for (ItemStack stack : items) {
+                arr.add(NBTJson.toJsonObject(StackInfo.itemStackToNBT(stack)));
             }
 
             return arr;

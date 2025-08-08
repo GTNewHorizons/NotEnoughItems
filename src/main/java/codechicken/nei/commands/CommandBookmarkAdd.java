@@ -1,7 +1,6 @@
 package codechicken.nei.commands;
 
 import net.minecraft.command.CommandBase;
-import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
@@ -12,7 +11,7 @@ import net.minecraft.util.ChatComponentTranslation;
 
 import codechicken.nei.ItemPanels;
 
-public class CommandBookmarkAdd extends CommandBase implements ICommand {
+public class CommandBookmarkAdd extends CommandBase {
 
     @Override
     public String getCommandName() {

@@ -244,7 +244,7 @@ public class FavoriteRecipes {
         try (FileOutputStream output = new FileOutputStream(favoriteFile)) {
             IOUtils.writeLines(strings, "\n", output, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            NEIClientConfig.logger.error("Filed to save favorites list to file {}", favoriteFile, e);
+            NEIClientConfig.logger.error("Failed to save favorites list to file {}", favoriteFile, e);
         }
     }
 

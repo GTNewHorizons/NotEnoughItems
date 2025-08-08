@@ -1,5 +1,9 @@
 package codechicken.nei.util;
 
+import java.util.Map;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.nbt.NBTBase;
@@ -51,5 +55,27 @@ public class NBTHelper {
 
     private static NBTBase get(NBTTagList tag, int idx) {
         return idx >= 0 && idx < tag.tagList.size() ? (NBTBase) tag.tagList.get(idx) : null;
+    }
+
+    public static String toString(NBTBase nbt) {
+
+        if (nbt instanceof NBTTagCompound nbtTagCompound) {
+            final Map<String, NBTBase> tagMap = (Map<String, NBTBase>) nbtTagCompound.tagMap;
+            return "{" + tagMap.entrySet().stream().sorted(Map.Entry.<String, NBTBase>comparingByKey())
+                    .map(nbtEntry -> nbtEntry.getKey() + ":" + toString(nbtEntry.getValue()))
+                    .collect(Collectors.joining(",")) + "}";
+        } else if (nbt instanceof NBTTagList list) {
+
+            if (list.tagList.isEmpty()) {
+                return "[]";
+            } else {
+                final StringJoiner arr = new StringJoiner(",");
+                list.tagList.forEach(c -> arr.add(toString((NBTBase) c)));
+                return "[" + arr.toString() + "]";
+            }
+
+        } else {
+            return nbt.toString();
+        }
     }
 }
