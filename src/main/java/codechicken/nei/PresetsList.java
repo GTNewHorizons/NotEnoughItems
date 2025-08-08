@@ -21,6 +21,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 
 import codechicken.core.CommonUtils;
+import codechicken.nei.SubsetWidget.SubsetTag;
 import codechicken.nei.api.API;
 import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.IRecipeFilter.IRecipeFilterProvider;
@@ -33,6 +34,7 @@ import codechicken.nei.util.NBTJson;
 public class PresetsList {
 
     public enum PresetMode {
+        SUBSET,
         HIDE,
         REMOVE,
         GROUP;
@@ -216,6 +218,8 @@ public class PresetsList {
         if (!preset.items.isEmpty()) {
             presets.add(preset);
         }
+
+        updateSubsets();
     }
 
     public static void savePresets() {
@@ -241,9 +245,24 @@ public class PresetsList {
 
         recipeFilter.cache = null;
         itemFilter.cache = null;
+        updateSubsets();
         CollapsibleItems.saveStates();
         CollapsibleItems.load();
         LayoutManager.markItemsDirty();
+    }
+
+    private static void updateSubsets() {
+        SubsetWidget.removeTag("Presets");
+
+        for (Preset preset : PresetsList.presets) {
+            if (preset.enabled && preset.mode == PresetMode.SUBSET) {
+                SubsetWidget.addTag(
+                        new SubsetTag(
+                                "Presets." + preset.name,
+                                stack -> preset.items.contains(Preset.getIdentifier(stack))));
+            }
+        }
+
     }
 
 }
