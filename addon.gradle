@@ -5,7 +5,7 @@ compileJava {
 
 generateGrammarSource {
     maxHeapSize = "128m"
-    arguments += ['-package', 'codechicken.nei.search', '-visitor', '-no-listener']
+    arguments += ['-lib', 'bin/main/codechicken/nei/search/', '-package', 'codechicken.nei.search', '-visitor', '-no-listener']
     outputDirectory = file("${projectDir}/build/generated/sources/search/antlr/")
 }
 

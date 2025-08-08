@@ -1,18 +1,20 @@
 package codechicken.nei.search;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.RuleNode;
 
 import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.SearchTokenParser;
 import codechicken.nei.api.ItemFilter;
 
-public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<ItemFilter> {
+public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVisitor<ItemFilter> {
 
     private final SearchTokenParser parser;
     private static final char MODNAME_SYMBOL = '@';
@@ -33,14 +35,9 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
         return new ItemList.EverythingItemFilter();
     }
 
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#searchExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    public ItemFilter visitSearchExpression(SearchExpressionParser.SearchExpressionContext ctx) {
-        return visitOrExpression(ctx.orExpression());
+    @Override
+    public ItemFilter visitChildren(RuleNode node) {
+        return visitChildren(node, null);
     }
 
     /**
@@ -50,11 +47,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
      * @return the visitor result
      */
     public ItemFilter visitOrExpression(SearchExpressionParser.OrExpressionContext ctx) {
-        List<ItemFilter> childrenFilters = ctx.sequenceExpression()
-            .stream()
-            .map(this::visit)
-            .collect(Collectors.toList());
-        return new ItemList.AnyMultiItemFilter(childrenFilters);
+        return visitChildren(ctx, ItemList.AnyMultiItemFilter::new);
     }
 
     /**
@@ -64,51 +57,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
      * @return the visitor result
      */
     public ItemFilter visitSequenceExpression(SearchExpressionParser.SequenceExpressionContext ctx) {
-        List<ItemFilter> childrenFilters = ctx.unaryExpression()
-            .stream()
-            .map(this::visit)
-            .collect(Collectors.toList());
-        return new ItemList.AllMultiItemFilter(childrenFilters);
-    }
-
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#unaryExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    public ItemFilter visitUnaryExpression(SearchExpressionParser.UnaryExpressionContext ctx) {
-        if (ctx.complexUnaryExpression() != null) {
-            return visitComplexUnaryExpression(ctx.complexUnaryExpression());
-        } else if (ctx.token() != null) {
-            return visitToken(ctx.token());
-        }
-        return new ItemList.NothingItemFilter();
-    }
-
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#complexUnaryExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    public ItemFilter visitComplexUnaryExpression(SearchExpressionParser.ComplexUnaryExpressionContext ctx) {
-        if (ctx.orExpression() != null) {
-            return visitOrExpression(ctx.orExpression());
-        } else if (ctx.modnameExpression() != null) {
-            return visitModnameExpression(ctx.modnameExpression());
-        } else if (ctx.tooltipExpression() != null) {
-            return visitTooltipExpression(ctx.tooltipExpression());
-        } else if (ctx.identifierExpression() != null) {
-            return visitIdentifierExpression(ctx.identifierExpression());
-        } else if (ctx.oredictExpression() != null) {
-            return visitOredictExpression(ctx.oredictExpression());
-        } else if (ctx.subsetExpression() != null) {
-            return visitSubsetExpression(ctx.subsetExpression());
-        } else if (ctx.negateExpression() != null) {
-            return visitNegateExpression(ctx.negateExpression());
-        }
-        return new ItemList.NothingItemFilter();
+        return visitChildren(ctx, ItemList.AllMultiItemFilter::new);
     }
 
     /**
@@ -241,6 +190,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
                 ctx.PLAIN_TEXT()
                     .getSymbol()
                     .getText()
+                    // Unescape everything in search expression
                     .replaceAll("\\\\(.)", "$1"));
         } else if (ctx.smartToken() != null) {
             return getTokenCleanText(ctx.smartToken());
@@ -253,39 +203,58 @@ public class SearchExpressionFilterVisitor extends SearchExpressionBaseVisitor<I
         int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
         if (ctx.DASH() != null) {
             cleanText = "-";
-        } else if (ctx.REGEX() != null) {
-            String regex = ctx.REGEX()
-                .getSymbol()
-                .getText();
-            // Allows to avoid forcing '/' at the end of REGEX
-            if (Pattern.compile("[^\\\\](?:\\\\\\\\)*/$")
-                .matcher(regex)
-                .find()) {
-                cleanText = regex.substring(regex.indexOf('/') + 1, regex.length() - 1);
-            } else {
-                cleanText = regex.substring(regex.indexOf('/') + 1);
+        } else if (ctx.regex() != null) {
+            if (ctx.regex().REGEX_CONTENT() != null) {
+                cleanText = ctx.regex().REGEX_CONTENT()
+                    .getSymbol()
+                    .getText();
+                // Replace spaces back in search expression
+                if (spaceModeEnabled == 1) {
+                    cleanText = cleanText.replaceAll("([^\\\\](?:\\\\\\\\)+)?\\\\ ", "$1 ");
+                }
             }
-            if (spaceModeEnabled == 1) {
-                cleanText = cleanText.replaceAll("([^\\\\](?:\\\\\\\\)+)?\\\\ ", "$1 ");
-            }
-        } else if (ctx.QUOTED() != null) {
-            String quoted = ctx.QUOTED()
-                .getSymbol()
-                .getText();
-            // Allows to avoid forcing '\"' at the end of QUOTED
-            if (Pattern.compile("[^\\\\]\"$")
-                .matcher(quoted)
-                .find()) {
-                cleanText = quoted.substring(1, quoted.length() - 1);
-            } else {
-                cleanText = quoted.substring(1);
-            }
-            cleanText = Pattern.quote(cleanText)
-                .replaceAll("\\\\\"", "\"");
-            if (spaceModeEnabled == 1) {
-                cleanText = cleanText.replaceAll("\\\\ ", " ");
+        } else if (ctx.quoted() != null) {
+            if (ctx.quoted().QUOTED_CONTENT() != null) {
+                cleanText = ctx.quoted().QUOTED_CONTENT()
+                    .getSymbol()
+                    .getText();
+                cleanText = Pattern.quote(cleanText)
+                // Unescape quotes in search expression
+                    .replaceAll("\\\\\"", "\"");
+                // Replace spaces back in search expression
+                if (spaceModeEnabled == 1) {
+                    cleanText = cleanText.replaceAll("\\\\ ", " ");
+                }
             }
         }
         return cleanText;
     }
+
+    private ItemFilter visitChildren(RuleNode node, Function<List<ItemFilter>, ItemFilter> filterConstructor) {
+        int childCount = node.getChildCount();
+        if (childCount == 0) {
+            return new ItemList.NothingItemFilter();
+        }
+        // By default return the first rule child filter
+        if (filterConstructor == null) {
+            for (int i = 0; i < childCount; i++) {
+                if (node.getChild(i) instanceof RuleNode) {
+                    return visit(node.getChild(i));
+                }
+            }
+        // Otherwise create a filter out of rule childrens' filters
+        } else {
+            List<ItemFilter> filters = new ArrayList<>();
+            for (int i = 0; i < childCount; i++) {
+                if (node.getChild(i) instanceof RuleNode) {
+                    filters.add(visit(node.getChild(i)));
+                }
+            }
+            if (!filters.isEmpty()) {
+                return filterConstructor.apply(filters);
+            }
+        }
+        return new ItemList.NothingItemFilter();
+    }
+
 }

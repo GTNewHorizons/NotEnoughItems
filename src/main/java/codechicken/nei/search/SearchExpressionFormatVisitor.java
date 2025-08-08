@@ -2,7 +2,6 @@ package codechicken.nei.search;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import net.minecraft.util.EnumChatFormatting;
 
@@ -14,7 +13,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.SearchTokenParser;
 
-public class SearchExpressionFormatVisitor extends SearchExpressionBaseVisitor<String> {
+public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVisitor<String> {
 
     private final SearchTokenParser parser;
     private static final char MODNAME_SYMBOL = '@';
@@ -33,6 +32,15 @@ public class SearchExpressionFormatVisitor extends SearchExpressionBaseVisitor<S
         HIGHLIGHT_MAP.put(SearchExpressionParser.LEFT_BRACKET, EnumChatFormatting.GRAY);
         HIGHLIGHT_MAP.put(SearchExpressionParser.RIGHT_BRACKET, EnumChatFormatting.GRAY);
         HIGHLIGHT_MAP.put(SearchExpressionParser.DASH, EnumChatFormatting.BLUE);
+        HIGHLIGHT_MAP.put(SearchExpressionParser.REGEX_LEFT, EnumChatFormatting.AQUA);
+        HIGHLIGHT_MAP.put(SearchExpressionParser.REGEX_RIGHT, EnumChatFormatting.AQUA);
+        HIGHLIGHT_MAP.put(SearchExpressionParser.QUOTE_LEFT, EnumChatFormatting.GOLD);
+        HIGHLIGHT_MAP.put(SearchExpressionParser.QUOTE_RIGHT, EnumChatFormatting.GOLD);
+        HIGHLIGHT_MAP.put(SearchExpressionParser.MODNAME_PREFIX, EnumChatFormatting.LIGHT_PURPLE);
+        HIGHLIGHT_MAP.put(SearchExpressionParser.TOOLTIP_PREFIX, EnumChatFormatting.YELLOW);
+        HIGHLIGHT_MAP.put(SearchExpressionParser.IDENTIFIER_PREFIX, EnumChatFormatting.GOLD);
+        HIGHLIGHT_MAP.put(SearchExpressionParser.OREDICT_PREFIX, EnumChatFormatting.AQUA);
+        HIGHLIGHT_MAP.put(SearchExpressionParser.SUBSET_PREFIX, EnumChatFormatting.DARK_PURPLE);
     }
 
     @Override
@@ -42,69 +50,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionBaseVisitor<S
 
     @Override
     public String visitChildren(RuleNode node) {
-        int childCount = node.getChildCount();
-        if (childCount == 0) {
-            return "";
-        }
-        if (childCount == 1) {
-            return formatChild(node.getChild(0));
-        }
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < childCount; i++) {
-            ParseTree child = node.getChild(i);
-            builder.append(formatChild(child));
-        }
-        return builder.toString();
-    }
-
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#modnameExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    public String visitModnameExpression(SearchExpressionParser.ModnameExpressionContext ctx) {
-        return formatPrefixedExpression(MODNAME_SYMBOL, ctx.token());
-    }
-
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#tooltipExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    public String visitTooltipExpression(SearchExpressionParser.TooltipExpressionContext ctx) {
-        return formatPrefixedExpression(TOOLTIP_SYMBOL, ctx.token());
-    }
-
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#identifierExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    public String visitIdentifierExpression(SearchExpressionParser.IdentifierExpressionContext ctx) {
-        return formatPrefixedExpression(IDENTIFIER_SYMBOL, ctx.token());
-    }
-
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#oredictExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    public String visitOredictExpression(SearchExpressionParser.OredictExpressionContext ctx) {
-        return formatPrefixedExpression(OREDICT_SYMBOL, ctx.token());
-    }
-
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#subsetExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    public String visitSubsetExpression(SearchExpressionParser.SubsetExpressionContext ctx) {
-        return formatPrefixedExpression(SUBSET_SYMBOL, ctx.token());
+        return visitChildren(node, null);
     }
 
     /**
@@ -114,7 +60,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionBaseVisitor<S
      * @return the visitor result
      */
     public String visitToken(SearchExpressionParser.TokenContext ctx) {
-        return getTokenCleanText(ctx);
+        return getTokenCleanText(ctx, ctx.format);
     }
 
     /**
@@ -124,19 +70,27 @@ public class SearchExpressionFormatVisitor extends SearchExpressionBaseVisitor<S
      * @return the visitor result
      */
     public String visitSmartToken(SearchExpressionParser.SmartTokenContext ctx) {
-        return getTokenCleanText(ctx);
+        return getTokenCleanText(ctx, ctx.format);
     }
 
-    private String formatPrefixedExpression(char prefix, SearchExpressionParser.TokenContext ctx) {
-        SearchTokenParser.ISearchParserProvider provider = parser.getProviderForDefaultPrefix(prefix);
-        if (provider == null) {
-            return "";
-        }
-        String cleanText = getTokenCleanText(ctx, provider.getHighlightedColor());
-        if (cleanText == null) {
-            return "";
-        }
-        return provider.getHighlightedColor() + String.valueOf(prefix) + cleanText;
+    /**
+     * Visit a parse tree produced by {@link SearchExpressionParser#regex}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    public String visitRegex(SearchExpressionParser.RegexContext ctx) {
+        return visitChildren(ctx, ctx.format);
+    }
+
+    /**
+     * Visit a parse tree produced by {@link SearchExpressionParser#quoted}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    public String visitQuoted(SearchExpressionParser.QuotedContext ctx) {
+        return visitChildren(ctx, ctx.format);
     }
 
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx) {
@@ -161,7 +115,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionBaseVisitor<S
             }
             return format + cleanText;
         } else if (ctx.smartToken() != null) {
-            return getTokenCleanText(ctx.smartToken(), format);
+            return visitSmartToken(ctx.smartToken());
         }
         return null;
     }
@@ -170,48 +124,18 @@ public class SearchExpressionFormatVisitor extends SearchExpressionBaseVisitor<S
         if (format == null) {
             format = EnumChatFormatting.RESET;
         }
+
         String cleanText = null;
         int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
         if (ctx.DASH() != null) {
             cleanText = format + "-";
-        } else if (ctx.REGEX() != null) {
-            String regex = ctx.REGEX()
-                .getSymbol()
-                .getText();
-            // Allows to avoid forcing '/' at the end of REGEX
-            int regexStartLength = regex.indexOf('/') + 1;
-            if (Pattern.compile("[^\\\\](?:\\\\\\\\)*/$")
-                .matcher(regex)
-                .find()) {
-                cleanText = EnumChatFormatting.AQUA + regex.substring(0, regexStartLength)
-                    + format
-                    + regex.substring(regexStartLength, regex.length() - 1)
-                    + EnumChatFormatting.AQUA
-                    + "/";
-            } else {
-                cleanText = EnumChatFormatting.AQUA + regex.substring(0, regexStartLength)
-                    + format
-                    + regex.substring(regexStartLength);
-            }
+        } else if (ctx.regex() != null) {
+            cleanText = visitRegex(ctx.regex());
             if (spaceModeEnabled == 1) {
                 cleanText = cleanText.replaceAll("([^\\\\](?:\\\\\\\\)+)?\\\\ ", "$1 ");
             }
-        } else if (ctx.QUOTED() != null) {
-            String quoted = ctx.QUOTED()
-                .getSymbol()
-                .getText();
-            // Allows to avoid forcing '\"' at the end of QUOTED
-            if (Pattern.compile("[^\\\\]\"$")
-                .matcher(quoted)
-                .find()) {
-                cleanText = EnumChatFormatting.GOLD + "\""
-                    + format
-                    + quoted.substring(1, quoted.length() - 1)
-                    + EnumChatFormatting.GOLD
-                    + "\"";
-            } else {
-                cleanText = EnumChatFormatting.GOLD + "\"" + format + quoted.substring(1);
-            }
+        } else if (ctx.quoted() != null) {
+            cleanText = visitQuoted(ctx.quoted());
             if (spaceModeEnabled == 1) {
                 cleanText = cleanText.replaceAll("\\\\ ", " ");
             }
@@ -219,7 +143,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionBaseVisitor<S
         return cleanText;
     }
 
-    private String formatChild(ParseTree child) {
+    private String formatChild(ParseTree child, EnumChatFormatting defaultFormat) {
         if (child instanceof TerminalNode) {
             TerminalNode node = (TerminalNode) child;
             int type = node.getSymbol()
@@ -229,11 +153,32 @@ public class SearchExpressionFormatVisitor extends SearchExpressionBaseVisitor<S
                 return format + node.getSymbol()
                     .getText();
             } else {
-                return node.getSymbol()
-                    .getText();
+                if (defaultFormat != null) {
+                    return defaultFormat + node.getSymbol()
+                        .getText();
+                } else {
+                    return node.getSymbol()
+                        .getText();
+                }
             }
         } else {
             return visit(child);
         }
+    }
+
+    private String visitChildren(RuleNode node, EnumChatFormatting defaultFormat) {
+        int childCount = node.getChildCount();
+        if (childCount == 0) {
+            return "";
+        }
+        if (childCount == 1) {
+            return formatChild(node.getChild(0), defaultFormat);
+        }
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < childCount; i++) {
+            ParseTree child = node.getChild(i);
+            builder.append(formatChild(child, defaultFormat));
+        }
+        return builder.toString();
     }
 }
