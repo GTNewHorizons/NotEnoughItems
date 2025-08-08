@@ -287,7 +287,8 @@ public abstract class ShortcutInputHandler {
                             recipe.getIngredients());
                     singleRecipe.setCustomRecipeId(recipe.getRecipeId());
 
-                    ItemPanels.bookmarkPanel.addRecipe(singleRecipe, BookmarkGrid.DEFAULT_GROUP_ID);
+                    ItemPanels.bookmarkPanel
+                            .addRecipe(singleRecipe, saveStackSize ? 1 : 0, BookmarkGrid.DEFAULT_GROUP_ID);
                 }
 
             } else {
@@ -473,6 +474,10 @@ public abstract class ShortcutInputHandler {
             }
 
             if (recipeId != null) {
+                hotkeys.put(
+                        NEIClientConfig
+                                .getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
+                        NEIClientUtils.translate("bookmark.add_item_with_recipe_and_count"));
                 hotkeys.put(
                         NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
                         NEIClientUtils.translate("bookmark.add_item_with_recipe"));

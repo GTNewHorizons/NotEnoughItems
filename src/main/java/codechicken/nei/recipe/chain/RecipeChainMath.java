@@ -116,18 +116,18 @@ public class RecipeChainMath {
         }
 
         for (Map.Entry<RecipeId, Long> entry : multipliers.entrySet()) {
-            if (!this.outputRecipes.containsKey(entry.getKey()) && this.preferredItems.values().stream()
-                    .noneMatch(resItem -> resItem.recipeId.equals(entry.getKey()))) {
-                this.outputRecipes.put(entry.getKey(), entry.getValue());
+            final RecipeId recipeId = entry.getKey();
+            final boolean isOutputRecipe = this.outputRecipes.containsKey(recipeId);
+            final boolean recipeInMiddle = this.preferredItems.values().stream()
+                    .anyMatch(resItem -> resItem.recipeId.equals(recipeId));
+
+            if (!isOutputRecipe && !recipeInMiddle) {
+                this.outputRecipes.put(recipeId, entry.getValue());
+            } else if (isOutputRecipe && recipeInMiddle) {
+                this.outputRecipes.put(recipeId, Math.max(0, entry.getValue() - 1));
             }
         }
 
-        for (Map.Entry<RecipeId, Long> entry : this.outputRecipes.entrySet()) {
-            if (entry.getValue() == 0 && this.preferredItems.values().stream()
-                    .noneMatch(prefItem -> prefItem.recipeId.equals(entry.getKey()))) {
-                entry.setValue(1L);
-            }
-        }
     }
 
     private void collectPreferredItems(RecipeId recipeId, Map<BookmarkItem, BookmarkItem> preferredItems,
