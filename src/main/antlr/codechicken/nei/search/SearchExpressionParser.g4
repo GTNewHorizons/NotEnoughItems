@@ -2,7 +2,6 @@ parser grammar SearchExpressionParser;
 
 // Antlr4 generates imports with .*
 @header {
-import net.minecraft.util.EnumChatFormatting;
 // CHECKSTYLE:OFF
 }
 
@@ -23,7 +22,7 @@ sequenceExpression
 
 unaryExpression
     : complexUnaryExpression
-    | token[EnumChatFormatting.RESET]
+    | token[-1]
     ;
 
 complexUnaryExpression
@@ -37,47 +36,47 @@ complexUnaryExpression
     ;
 
 negateExpression
-    : DASH smartToken[EnumChatFormatting.RESET]
+    : DASH smartToken[-1]
     | DASH complexUnaryExpression
     ;
 
 
 modnameExpression
-    : MODNAME_PREFIX token[EnumChatFormatting.LIGHT_PURPLE]
+    : MODNAME_PREFIX token[MODNAME_PREFIX]
     ;
 
 tooltipExpression
-    : TOOLTIP_PREFIX token[EnumChatFormatting.YELLOW]
+    : TOOLTIP_PREFIX token[TOOLTIP_PREFIX]
     ;
 
 identifierExpression
-    : IDENTIFIER_PREFIX token[EnumChatFormatting.GOLD]
+    : IDENTIFIER_PREFIX token[IDENTIFIER_PREFIX]
     ;
 
 oredictExpression
-    : OREDICT_PREFIX token[EnumChatFormatting.AQUA]
+    : OREDICT_PREFIX token[OREDICT_PREFIX]
     ;
 
 subsetExpression
-    : SUBSET_PREFIX token[EnumChatFormatting.DARK_PURPLE]
+    : SUBSET_PREFIX token[SUBSET_PREFIX]
     ;
 
-token[EnumChatFormatting format]
-    : smartToken[format]
+token[Integer parentType]
+    : smartToken[parentType]
     | PLAIN_TEXT
     ;
 
-smartToken[EnumChatFormatting format]
+smartToken[Integer parentType]
     : DASH
-    | regex[format]
-    | quoted[format]
+    | regex[parentType]
+    | quoted[parentType]
     ;
 
-regex[EnumChatFormatting format]
+regex[Integer parentType]
     : REGEX_LEFT REGEX_CONTENT REGEX_RIGHT?
     ;
 
-quoted[EnumChatFormatting format]
+quoted[Integer parentType]
     : QUOTE_LEFT QUOTED_CONTENT QUOTE_RIGHT?
     ;
 

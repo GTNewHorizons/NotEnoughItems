@@ -28,6 +28,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
         super();
         this.parser = parser;
         this.HIGHLIGHT_MAP = new HashMap<>();
+        HIGHLIGHT_MAP.put(-1, EnumChatFormatting.RESET);
         HIGHLIGHT_MAP.put(SearchExpressionParser.OR, EnumChatFormatting.GRAY);
         HIGHLIGHT_MAP.put(SearchExpressionParser.LEFT_BRACKET, EnumChatFormatting.GRAY);
         HIGHLIGHT_MAP.put(SearchExpressionParser.RIGHT_BRACKET, EnumChatFormatting.GRAY);
@@ -60,7 +61,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
      * @return the visitor result
      */
     public String visitToken(SearchExpressionParser.TokenContext ctx) {
-        return getTokenCleanText(ctx, ctx.format);
+        return getTokenCleanText(ctx, ctx.parentType);
     }
 
     /**
@@ -70,7 +71,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
      * @return the visitor result
      */
     public String visitSmartToken(SearchExpressionParser.SmartTokenContext ctx) {
-        return getTokenCleanText(ctx, ctx.format);
+        return getTokenCleanText(ctx, ctx.parentType);
     }
 
     /**
@@ -80,7 +81,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
      * @return the visitor result
      */
     public String visitRegex(SearchExpressionParser.RegexContext ctx) {
-        return visitChildren(ctx, ctx.format);
+        return visitChildren(ctx, ctx.parentType);
     }
 
     /**
@@ -90,21 +91,10 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
      * @return the visitor result
      */
     public String visitQuoted(SearchExpressionParser.QuotedContext ctx) {
-        return visitChildren(ctx, ctx.format);
+        return visitChildren(ctx, ctx.parentType);
     }
 
-    private String getTokenCleanText(SearchExpressionParser.TokenContext ctx) {
-        return getTokenCleanText(ctx, null);
-    }
-
-    private String getTokenCleanText(SearchExpressionParser.SmartTokenContext ctx) {
-        return getTokenCleanText(ctx, null);
-    }
-
-    private String getTokenCleanText(SearchExpressionParser.TokenContext ctx, EnumChatFormatting format) {
-        if (format == null) {
-            format = EnumChatFormatting.RESET;
-        }
+    private String getTokenCleanText(SearchExpressionParser.TokenContext ctx, Integer parentType) {
         if (ctx.PLAIN_TEXT() != null) {
             String cleanText = ctx.PLAIN_TEXT()
                 .getSymbol()
@@ -113,6 +103,13 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
             if (spaceModeEnabled == 1) {
                 cleanText = cleanText.replaceAll("\\\\ ", " ");
             }
+            EnumChatFormatting format = null;
+            if (parentType != null) {
+                format = HIGHLIGHT_MAP.get(parentType);
+            }
+            if (format == null) {
+                format = EnumChatFormatting.RESET;
+            }
             return format + cleanText;
         } else if (ctx.smartToken() != null) {
             return visitSmartToken(ctx.smartToken());
@@ -120,14 +117,17 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
         return null;
     }
 
-    private String getTokenCleanText(SearchExpressionParser.SmartTokenContext ctx, EnumChatFormatting format) {
-        if (format == null) {
-            format = EnumChatFormatting.RESET;
-        }
-
+    private String getTokenCleanText(SearchExpressionParser.SmartTokenContext ctx, Integer parentType) {
         String cleanText = null;
         int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
         if (ctx.DASH() != null) {
+            EnumChatFormatting format = null;
+            if (parentType != null) {
+                format = HIGHLIGHT_MAP.get(parentType);
+            }
+            if (format == null) {
+                format = EnumChatFormatting.RESET;
+            }
             cleanText = format + "-";
         } else if (ctx.regex() != null) {
             cleanText = visitRegex(ctx.regex());
@@ -143,7 +143,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
         return cleanText;
     }
 
-    private String formatChild(ParseTree child, EnumChatFormatting defaultFormat) {
+    private String formatChild(ParseTree child, Integer parentType) {
         if (child instanceof TerminalNode) {
             TerminalNode node = (TerminalNode) child;
             int type = node.getSymbol()
@@ -153,8 +153,11 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
                 return format + node.getSymbol()
                     .getText();
             } else {
-                if (defaultFormat != null) {
-                    return defaultFormat + node.getSymbol()
+                if (parentType != null) {
+                    format = HIGHLIGHT_MAP.get(parentType);
+                }
+                if (format != null) {
+                    return format + node.getSymbol()
                         .getText();
                 } else {
                     return node.getSymbol()
@@ -166,19 +169,20 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
         }
     }
 
-    private String visitChildren(RuleNode node, EnumChatFormatting defaultFormat) {
+    private String visitChildren(RuleNode node, Integer parentType) {
         int childCount = node.getChildCount();
         if (childCount == 0) {
             return "";
         }
         if (childCount == 1) {
-            return formatChild(node.getChild(0), defaultFormat);
+            return formatChild(node.getChild(0), parentType);
         }
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < childCount; i++) {
             ParseTree child = node.getChild(i);
-            builder.append(formatChild(child, defaultFormat));
+            builder.append(formatChild(child, parentType));
         }
         return builder.toString();
     }
 }
+

@@ -15,20 +15,14 @@ import net.minecraft.client.resources.Language;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-
 import codechicken.nei.ItemList.AllMultiItemFilter;
 import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.EverythingItemFilter;
 import codechicken.nei.ItemList.NegatedItemFilter;
 import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.search.SearchExpressionErrorListener;
 import codechicken.nei.search.SearchExpressionFilterVisitor;
-import codechicken.nei.search.SearchExpressionLexer;
-import codechicken.nei.search.SearchExpressionParser;
+import codechicken.nei.search.SearchExpressionUtils;
 
 public class SearchTokenParser {
 
@@ -201,17 +195,8 @@ public class SearchTokenParser {
             });
         } else {
             return this.filtersCache.computeIfAbsent(filterText, text -> {
-                final CharStream inputStream = CharStreams.fromString(text);
-                final SearchExpressionErrorListener errorListener = new SearchExpressionErrorListener(true);
-                final SearchExpressionLexer lexer = new SearchExpressionLexer(inputStream);
-                lexer.removeErrorListeners();
-                lexer.addErrorListener(errorListener);
-                final CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-                final SearchExpressionParser parser = new SearchExpressionParser(tokenStream);
-                parser.removeErrorListeners();
-                parser.addErrorListener(errorListener);
                 final SearchExpressionFilterVisitor visitor = new SearchExpressionFilterVisitor(this, true);
-                final ItemFilter searchToken = visitor.visitSearchExpression(parser.searchExpression());
+                final ItemFilter searchToken = SearchExpressionUtils.visitSearchExpression(text, visitor);
 
                 return new IsRegisteredItemFilter(searchToken);
             });

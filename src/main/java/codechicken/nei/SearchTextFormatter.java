@@ -5,16 +5,10 @@ import java.util.StringJoiner;
 
 import net.minecraft.util.EnumChatFormatting;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-
 import codechicken.nei.FormattedTextField.TextFormatter;
 import codechicken.nei.SearchTokenParser.SearchToken;
-import codechicken.nei.search.SearchExpressionErrorListener;
 import codechicken.nei.search.SearchExpressionFormatVisitor;
-import codechicken.nei.search.SearchExpressionLexer;
-import codechicken.nei.search.SearchExpressionParser;
+import codechicken.nei.search.SearchExpressionUtils;
 
 public class SearchTextFormatter implements TextFormatter {
 
@@ -32,18 +26,8 @@ public class SearchTextFormatter implements TextFormatter {
 
                 text = text.replaceAll(" ", "\\\\ ");
             }
-            final CharStream inputStream = CharStreams.fromString(text);
-            final SearchExpressionErrorListener errorListener = new SearchExpressionErrorListener(true);
-            final SearchExpressionLexer lexer = new SearchExpressionLexer(inputStream);
-            lexer.removeErrorListeners();
-            lexer.addErrorListener(errorListener);
-            final CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-            final SearchExpressionParser parser = new SearchExpressionParser(tokenStream);
-            parser.removeErrorListeners();
-            parser.addErrorListener(errorListener);
             final SearchExpressionFormatVisitor visitor = new SearchExpressionFormatVisitor(this.searchParser);
-            final String result = visitor.visitSearchExpression(parser.searchExpression());
-            return result;
+            return SearchExpressionUtils.visitSearchExpression(text, visitor);
         } else {
             final String[] parts = (text + "| ").split("\\|");
             StringJoiner formattedText = new StringJoiner(EnumChatFormatting.GRAY + "|");
