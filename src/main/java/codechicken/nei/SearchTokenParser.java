@@ -176,7 +176,7 @@ public class SearchTokenParser {
         int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
 
         if (spaceModeEnabled == 1 && patternMode == 3) {
-            filterText = filterText.replaceAll(" ", "\\\\ ");
+            filterText = filterText.replace(" ", "\\ ");
         }
 
         if (patternMode != 3) {

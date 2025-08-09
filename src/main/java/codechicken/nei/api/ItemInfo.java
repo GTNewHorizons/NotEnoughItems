@@ -58,13 +58,14 @@ import codechicken.nei.config.ArrayDumper;
 import codechicken.nei.config.HandlerDumper;
 import codechicken.nei.config.ItemPanelDumper;
 import codechicken.nei.config.RegistryDumper;
+import codechicken.nei.filter.IdentifierFilter;
+import codechicken.nei.filter.ModNameFilter;
+import codechicken.nei.filter.OreDictionaryFilter;
+import codechicken.nei.filter.TooltipFilter;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.BrewingRecipeHandler;
 import codechicken.nei.recipe.RecipeItemInputHandler;
-import codechicken.nei.search.IdentifierFilter;
-import codechicken.nei.search.ModNameFilter;
-import codechicken.nei.search.OreDictionaryFilter;
-import codechicken.nei.search.TooltipFilter;
+import codechicken.nei.search.SearchExpressionUtils;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -141,7 +142,11 @@ public class ItemInfo {
 
     private static void addSearchProviders() {
         API.addSearchProvider(
-                new SearchParserProvider('\0', "default", EnumChatFormatting.RESET, PatternItemFilter::new) {
+                new SearchParserProvider(
+                        '\0',
+                        "default",
+                        SearchExpressionUtils.HIGHLIGHTS.RESET.f,
+                        PatternItemFilter::new) {
 
                     @Override
                     public SearchMode getSearchMode() {
@@ -150,12 +155,29 @@ public class ItemInfo {
 
                 });
         API.addSearchProvider(
-                new SearchParserProvider('@', "modName", EnumChatFormatting.LIGHT_PURPLE, ModNameFilter::new));
+                new SearchParserProvider(
+                        '@',
+                        "modName",
+                        SearchExpressionUtils.HIGHLIGHTS.MODNAME.f,
+                        ModNameFilter::new));
         API.addSearchProvider(
-                new SearchParserProvider('$', "oreDict", EnumChatFormatting.AQUA, OreDictionaryFilter::new));
-        API.addSearchProvider(new SearchParserProvider('#', "tooltip", EnumChatFormatting.YELLOW, TooltipFilter::new));
+                new SearchParserProvider(
+                        '$',
+                        "oreDict",
+                        SearchExpressionUtils.HIGHLIGHTS.OREDICT.f,
+                        OreDictionaryFilter::new));
         API.addSearchProvider(
-                new SearchParserProvider('&', "identifier", EnumChatFormatting.GOLD, IdentifierFilter::new));
+                new SearchParserProvider(
+                        '#',
+                        "tooltip",
+                        SearchExpressionUtils.HIGHLIGHTS.TOOLTIP.f,
+                        TooltipFilter::new));
+        API.addSearchProvider(
+                new SearchParserProvider(
+                        '&',
+                        "identifier",
+                        SearchExpressionUtils.HIGHLIGHTS.IDENTIFIER.f,
+                        IdentifierFilter::new));
     }
 
     private static void addIDDumps() {

@@ -28,7 +28,7 @@ import codechicken.nei.ThreadOperationTimer.TimeoutException;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemInfo;
-import codechicken.nei.search.TooltipFilter;
+import codechicken.nei.filter.TooltipFilter;
 
 public class ItemList {
 

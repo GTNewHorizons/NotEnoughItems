@@ -1,4 +1,4 @@
-package codechicken.nei.search;
+package codechicken.nei.filter;
 
 import java.util.List;
 import java.util.regex.Pattern;

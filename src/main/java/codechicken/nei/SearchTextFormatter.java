@@ -23,14 +23,13 @@ public class SearchTextFormatter implements TextFormatter {
         if (patternMode == 3) {
             int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
             if (spaceModeEnabled == 1) {
-
-                text = text.replaceAll(" ", "\\\\ ");
+                text = text.replace(" ", "\\ ");
             }
-            final SearchExpressionFormatVisitor visitor = new SearchExpressionFormatVisitor(this.searchParser);
+            final SearchExpressionFormatVisitor visitor = new SearchExpressionFormatVisitor();
             return SearchExpressionUtils.visitSearchExpression(text, visitor);
         } else {
             final String[] parts = (text + "| ").split("\\|");
-            StringJoiner formattedText = new StringJoiner(EnumChatFormatting.GRAY + "|");
+            StringJoiner formattedText = new StringJoiner(SearchExpressionUtils.HIGHLIGHTS.OR + "|");
 
             for (int i = 0; i < parts.length - 1; i++) {
                 final String filterText = parts[i];
@@ -40,15 +39,14 @@ public class SearchTextFormatter implements TextFormatter {
 
                 for (SearchToken token : tokens) {
                     formattedPart.append(filterText.substring(startIndex, token.start));
-                    EnumChatFormatting tokenColor = EnumChatFormatting.RESET;
+                    EnumChatFormatting tokenColor = SearchExpressionUtils.HIGHLIGHTS.RESET.f;
 
                     if (token.firstChar != null) {
-                        tokenColor = searchParser.getProvider(token.firstChar)
-                            .getHighlightedColor();
+                        tokenColor = searchParser.getProvider(token.firstChar).getHighlightedColor();
                     }
 
                     if (token.ignore) {
-                        formattedPart.append(EnumChatFormatting.BLUE + "-");
+                        formattedPart.append(SearchExpressionUtils.HIGHLIGHTS.NEGATE + "-");
                     }
 
                     if (token.firstChar != null) {
@@ -56,7 +54,7 @@ public class SearchTextFormatter implements TextFormatter {
                     }
 
                     if (token.quotes) {
-                        formattedPart.append(EnumChatFormatting.GOLD + "\"");
+                        formattedPart.append(SearchExpressionUtils.HIGHLIGHTS.QUOTED + "\"");
                     }
 
                     if (!token.rawText.isEmpty()) {
@@ -64,7 +62,7 @@ public class SearchTextFormatter implements TextFormatter {
                     }
 
                     if (token.quotes) {
-                        formattedPart.append(EnumChatFormatting.GOLD + "\"");
+                        formattedPart.append(SearchExpressionUtils.HIGHLIGHTS.QUOTED + "\"");
                     }
 
                     startIndex = token.end;

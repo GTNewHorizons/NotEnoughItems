@@ -1,57 +1,30 @@
 package codechicken.nei.search;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import net.minecraft.util.EnumChatFormatting;
 
-import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import codechicken.nei.NEIClientConfig;
-import codechicken.nei.SearchTokenParser;
 
 public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVisitor<String> {
 
-    private final SearchTokenParser parser;
-    private static final char MODNAME_SYMBOL = '@';
-    private static final char TOOLTIP_SYMBOL = '#';
-    private static final char IDENTIFIER_SYMBOL = '&';
-    private static final char OREDICT_SYMBOL = '$';
-    private static final char SUBSET_SYMBOL = '%';
-    private static final char DASH = '-';
-    private final Map<Integer, EnumChatFormatting> HIGHLIGHT_MAP;
-
-    public SearchExpressionFormatVisitor(SearchTokenParser parser) {
-        super();
-        this.parser = parser;
-        this.HIGHLIGHT_MAP = new HashMap<>();
-        HIGHLIGHT_MAP.put(-1, EnumChatFormatting.RESET);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.OR, EnumChatFormatting.GRAY);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.LEFT_BRACKET, EnumChatFormatting.GRAY);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.RIGHT_BRACKET, EnumChatFormatting.GRAY);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.DASH, EnumChatFormatting.BLUE);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.REGEX_LEFT, EnumChatFormatting.AQUA);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.REGEX_RIGHT, EnumChatFormatting.AQUA);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.QUOTE_LEFT, EnumChatFormatting.GOLD);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.QUOTE_RIGHT, EnumChatFormatting.GOLD);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.MODNAME_PREFIX, EnumChatFormatting.LIGHT_PURPLE);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.TOOLTIP_PREFIX, EnumChatFormatting.YELLOW);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.IDENTIFIER_PREFIX, EnumChatFormatting.GOLD);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.OREDICT_PREFIX, EnumChatFormatting.AQUA);
-        HIGHLIGHT_MAP.put(SearchExpressionParser.SUBSET_PREFIX, EnumChatFormatting.DARK_PURPLE);
-    }
-
-    @Override
-    public String visitErrorNode(ErrorNode node) {
-        return "";
-    }
+    private static final Pattern REGEX_ESCAPED_SPACE_PATTERN = Pattern.compile("([^\\\\](?:\\\\\\\\)+)?\\\\ ");
+    private static final Pattern ESCAPED_SPACE_PATTERN = Pattern.compile("\\\\ ");
 
     @Override
     public String visitChildren(RuleNode node) {
-        return visitChildren(node, null);
+        if (node instanceof ParserRuleContext) {
+            return visitChildren((ParserRuleContext) node, null);
+        } else {
+            return defaultResult();
+        }
     }
 
     /**
@@ -94,21 +67,22 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
         return visitChildren(ctx, ctx.parentType);
     }
 
+    @Override
+    protected String defaultResult() {
+        return "";
+    }
+
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx, Integer parentType) {
         if (ctx.PLAIN_TEXT() != null) {
-            String cleanText = ctx.PLAIN_TEXT()
-                .getSymbol()
-                .getText();
+            String cleanText = ctx.PLAIN_TEXT().getSymbol().getText();
             int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+            // Unescape spaces
             if (spaceModeEnabled == 1) {
-                cleanText = cleanText.replaceAll("\\\\ ", " ");
+                cleanText = ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll(" ");
             }
-            EnumChatFormatting format = null;
+            EnumChatFormatting format = EnumChatFormatting.RESET;
             if (parentType != null) {
-                format = HIGHLIGHT_MAP.get(parentType);
-            }
-            if (format == null) {
-                format = EnumChatFormatting.RESET;
+                format = SearchExpressionUtils.getHighlight(parentType);
             }
             return format + cleanText;
         } else if (ctx.smartToken() != null) {
@@ -121,23 +95,20 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
         String cleanText = null;
         int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
         if (ctx.DASH() != null) {
-            EnumChatFormatting format = null;
+            EnumChatFormatting format = EnumChatFormatting.RESET;
             if (parentType != null) {
-                format = HIGHLIGHT_MAP.get(parentType);
-            }
-            if (format == null) {
-                format = EnumChatFormatting.RESET;
+                format = SearchExpressionUtils.getHighlight(parentType);
             }
             cleanText = format + "-";
         } else if (ctx.regex() != null) {
             cleanText = visitRegex(ctx.regex());
             if (spaceModeEnabled == 1) {
-                cleanText = cleanText.replaceAll("([^\\\\](?:\\\\\\\\)+)?\\\\ ", "$1 ");
+                cleanText = REGEX_ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll("$1 ");
             }
         } else if (ctx.quoted() != null) {
             cleanText = visitQuoted(ctx.quoted());
             if (spaceModeEnabled == 1) {
-                cleanText = cleanText.replaceAll("\\\\ ", " ");
+                cleanText = ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll(" ");
             }
         }
         return cleanText;
@@ -146,43 +117,25 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
     private String formatChild(ParseTree child, Integer parentType) {
         if (child instanceof TerminalNode) {
             TerminalNode node = (TerminalNode) child;
-            int type = node.getSymbol()
-                .getType();
-            EnumChatFormatting format = HIGHLIGHT_MAP.get(type);
-            if (format != null) {
-                return format + node.getSymbol()
-                    .getText();
-            } else {
-                if (parentType != null) {
-                    format = HIGHLIGHT_MAP.get(parentType);
-                }
-                if (format != null) {
-                    return format + node.getSymbol()
-                        .getText();
-                } else {
-                    return node.getSymbol()
-                        .getText();
-                }
-            }
+            int type = node.getSymbol().getType();
+            String format = Optional.ofNullable(
+                    // check if highlight is defined for the token
+                    Optional.ofNullable(SearchExpressionUtils.getHighlight(type))
+                            // check if highlight is defined for the parent token
+                            .orElse(SearchExpressionUtils.getHighlight(parentType))
+            // use default highlight otherwise
+            ).map(EnumChatFormatting::toString).orElse("");
+
+            return format + node.getSymbol().getText();
         } else {
             return visit(child);
         }
     }
 
-    private String visitChildren(RuleNode node, Integer parentType) {
-        int childCount = node.getChildCount();
-        if (childCount == 0) {
-            return "";
+    private String visitChildren(ParserRuleContext node, Integer parentType) {
+        if (node.children != null && !node.children.isEmpty()) {
+            return node.children.stream().map(child -> formatChild(child, parentType)).collect(Collectors.joining());
         }
-        if (childCount == 1) {
-            return formatChild(node.getChild(0), parentType);
-        }
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < childCount; i++) {
-            ParseTree child = node.getChild(i);
-            builder.append(formatChild(child, parentType));
-        }
-        return builder.toString();
+        return defaultResult();
     }
 }
-
