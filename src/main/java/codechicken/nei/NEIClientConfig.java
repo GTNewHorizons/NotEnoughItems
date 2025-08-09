@@ -491,7 +491,7 @@ public class NEIClientConfig {
         API.addOption(new OptionCycled("inventory.search.widgetAutofocus", 3, true));
 
         tag.getTag("inventory.search.patternMode").setComment("Search Mode").getIntValue(1);
-        API.addOption(new OptionCycled("inventory.search.patternMode", 3, true) {
+        API.addOption(new OptionCycled("inventory.search.patternMode", 4, true) {
 
             @Override
             public boolean onClick(int button) {

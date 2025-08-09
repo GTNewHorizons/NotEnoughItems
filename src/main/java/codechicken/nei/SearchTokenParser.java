@@ -21,6 +21,8 @@ import codechicken.nei.ItemList.EverythingItemFilter;
 import codechicken.nei.ItemList.NegatedItemFilter;
 import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.api.ItemFilter;
+import codechicken.nei.search.SearchExpressionFilterVisitor;
+import codechicken.nei.search.SearchExpressionUtils;
 
 public class SearchTokenParser {
 
@@ -56,6 +58,8 @@ public class SearchTokenParser {
     public static interface ISearchParserProvider {
 
         public ItemFilter getFilter(String searchText);
+
+        public ItemFilter getFilter(Pattern pattern);
 
         public static List<Language> getAllLanguages() {
             return new ArrayList<>(Minecraft.getMinecraft().getLanguageManager().getLanguages());
@@ -157,23 +161,46 @@ public class SearchTokenParser {
                 .findFirst().orElse(null);
     }
 
+    public ISearchParserProvider getProviderForDefaultPrefix(char ch) {
+        return getProviders().stream()
+                .filter(provider -> provider.getSearchMode() == SearchMode.PREFIX && provider.getPrefix() == ch)
+                .findFirst().orElse(null);
+    }
+
     public synchronized ItemFilter getFilter(String filterText) {
         filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
+        if (filterText == null || filterText.isEmpty()) {
+            return new EverythingItemFilter();
+        }
+        int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+        int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
 
-        return this.filtersCache.computeIfAbsent(filterText, text -> {
-            final String[] parts = text.split("\\|");
-            final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText).filter(s -> s != null)
-                    .collect(Collectors.toList());
+        if (spaceModeEnabled == 1 && patternMode == 3) {
+            filterText = filterText.replace(" ", "\\ ");
+        }
 
-            if (searchTokens.isEmpty()) {
-                return new EverythingItemFilter();
-            } else if (searchTokens.size() == 1) {
-                return new IsRegisteredItemFilter(searchTokens.get(0));
-            } else {
-                return new IsRegisteredItemFilter(new AnyMultiItemFilter(searchTokens));
-            }
+        if (patternMode != 3) {
+            return this.filtersCache.computeIfAbsent(filterText, text -> {
+                final String[] parts = text.split("\\|");
+                final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText)
+                        .filter(s -> s != null).collect(Collectors.toList());
 
-        });
+                if (searchTokens.isEmpty()) {
+                    return new EverythingItemFilter();
+                } else if (searchTokens.size() == 1) {
+                    return new IsRegisteredItemFilter(searchTokens.get(0));
+                } else {
+                    return new IsRegisteredItemFilter(new AnyMultiItemFilter(searchTokens));
+                }
+            });
+        } else {
+            return this.filtersCache.computeIfAbsent(filterText, text -> {
+                final SearchExpressionFilterVisitor visitor = new SearchExpressionFilterVisitor(this, true);
+                final ItemFilter searchToken = SearchExpressionUtils.visitSearchExpression(text, visitor);
+
+                return new IsRegisteredItemFilter(searchToken);
+            });
+        }
 
     }
 

@@ -58,7 +58,11 @@ public class SearchField extends TextField implements ItemFilterProvider {
         @Override
         public ItemFilter getFilter(String searchText) {
             Pattern pattern = SearchField.getPattern(searchText);
+            return getFilter(pattern);
+        }
 
+        @Override
+        public ItemFilter getFilter(Pattern pattern) {
             if (pattern != null) {
                 return this.createFilter(pattern);
             }
@@ -305,6 +309,10 @@ public class SearchField extends TextField implements ItemFilterProvider {
             case 2:
                 text = text.replaceAll("[{}()\\[\\].+*?^$\\\\|]", "\\\\$0");
                 break;
+            case 3:
+                text = text.replaceAll("\"", "\\\\$0");
+                text = "\"" + text + "\"";
+                return text;
             default:
                 break;
         }
