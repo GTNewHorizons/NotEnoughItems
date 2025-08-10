@@ -25,7 +25,7 @@ public class SearchTextFormatter implements TextFormatter {
             if (spaceModeEnabled == 1) {
                 text = text.replace(" ", "\\ ");
             }
-            final SearchExpressionFormatVisitor visitor = new SearchExpressionFormatVisitor();
+            final SearchExpressionFormatVisitor visitor = new SearchExpressionFormatVisitor(searchParser);
             return SearchExpressionUtils.visitSearchExpression(text, visitor);
         } else {
             final String[] parts = (text + "| ").split("\\|");
@@ -39,7 +39,7 @@ public class SearchTextFormatter implements TextFormatter {
 
                 for (SearchToken token : tokens) {
                     formattedPart.append(filterText.substring(startIndex, token.start));
-                    EnumChatFormatting tokenColor = SearchExpressionUtils.HIGHLIGHTS.RESET.f;
+                    EnumChatFormatting tokenColor = EnumChatFormatting.RESET;
 
                     if (token.firstChar != null) {
                         tokenColor = searchParser.getProvider(token.firstChar).getHighlightedColor();

@@ -129,6 +129,7 @@ public class SearchTokenParser {
 
     public void clearCache() {
         this.filtersCache.clear();
+        updateRedefinedPrefixes();
     }
 
     protected List<ISearchParserProvider> getProviders() {
@@ -158,8 +159,12 @@ public class SearchTokenParser {
         return providersCache.providers;
     }
 
+    public boolean hasRedefinedPrefix(char ch) {
+        return redefinedPrefixes.contains(ch);
+    }
+
     public ISearchParserProvider getProvider(char ch) {
-        if (!redefinedPrefixes.contains(ch)) {
+        if (!hasRedefinedPrefix(ch)) {
             return null;
         }
         return getProviders().stream()
@@ -169,10 +174,10 @@ public class SearchTokenParser {
                 .findFirst().orElse(null);
     }
 
-    public ISearchParserProvider getProviderForDefaultPrefix(char ch) {
+    public List<ItemFilter> getAlwaysProvidersFilters(String searchText) {
         return getProviders().stream()
-                .filter(provider -> provider.getSearchMode() == SearchMode.PREFIX && provider.getPrefix() == ch)
-                .findFirst().orElse(null);
+                .filter(provider -> provider.getSearchMode() == SearchTokenParser.SearchMode.ALWAYS)
+                .map(provider -> provider.getFilter(searchText)).collect(Collectors.toList());
     }
 
     public synchronized ItemFilter getFilter(String filterText) {

@@ -65,7 +65,6 @@ import codechicken.nei.filter.TooltipFilter;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.BrewingRecipeHandler;
 import codechicken.nei.recipe.RecipeItemInputHandler;
-import codechicken.nei.search.SearchExpressionUtils;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -142,11 +141,7 @@ public class ItemInfo {
 
     private static void addSearchProviders() {
         API.addSearchProvider(
-                new SearchParserProvider(
-                        '\0',
-                        "default",
-                        SearchExpressionUtils.HIGHLIGHTS.RESET.f,
-                        PatternItemFilter::new) {
+                new SearchParserProvider('\0', "default", EnumChatFormatting.RESET, PatternItemFilter::new) {
 
                     @Override
                     public SearchMode getSearchMode() {
@@ -155,29 +150,12 @@ public class ItemInfo {
 
                 });
         API.addSearchProvider(
-                new SearchParserProvider(
-                        '@',
-                        "modName",
-                        SearchExpressionUtils.HIGHLIGHTS.MODNAME.f,
-                        ModNameFilter::new));
+                new SearchParserProvider('@', "modName", EnumChatFormatting.LIGHT_PURPLE, ModNameFilter::new));
         API.addSearchProvider(
-                new SearchParserProvider(
-                        '$',
-                        "oreDict",
-                        SearchExpressionUtils.HIGHLIGHTS.OREDICT.f,
-                        OreDictionaryFilter::new));
+                new SearchParserProvider('$', "oreDict", EnumChatFormatting.AQUA, OreDictionaryFilter::new));
+        API.addSearchProvider(new SearchParserProvider('#', "tooltip", EnumChatFormatting.YELLOW, TooltipFilter::new));
         API.addSearchProvider(
-                new SearchParserProvider(
-                        '#',
-                        "tooltip",
-                        SearchExpressionUtils.HIGHLIGHTS.TOOLTIP.f,
-                        TooltipFilter::new));
-        API.addSearchProvider(
-                new SearchParserProvider(
-                        '&',
-                        "identifier",
-                        SearchExpressionUtils.HIGHLIGHTS.IDENTIFIER.f,
-                        IdentifierFilter::new));
+                new SearchParserProvider('&', "identifier", EnumChatFormatting.GOLD, IdentifierFilter::new));
     }
 
     private static void addIDDumps() {

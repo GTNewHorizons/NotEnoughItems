@@ -22,17 +22,11 @@ public class SearchExpressionUtils {
 
     public static enum HIGHLIGHTS {
 
-        RESET(EnumChatFormatting.RESET, -1),
         OR(EnumChatFormatting.GRAY, SearchExpressionParser.OR),
         BRACKETS(EnumChatFormatting.GRAY, SearchExpressionParser.LEFT_BRACKET, SearchExpressionParser.RIGHT_BRACKET),
         NEGATE(EnumChatFormatting.BLUE, SearchExpressionParser.DASH),
         REGEX(EnumChatFormatting.AQUA, SearchExpressionParser.REGEX_LEFT, SearchExpressionParser.REGEX_RIGHT),
-        QUOTED(EnumChatFormatting.GOLD, SearchExpressionParser.QUOTE_LEFT, SearchExpressionParser.QUOTE_RIGHT),
-        MODNAME(EnumChatFormatting.LIGHT_PURPLE, SearchExpressionParser.MODNAME_PREFIX),
-        TOOLTIP(EnumChatFormatting.YELLOW, SearchExpressionParser.TOOLTIP_PREFIX),
-        IDENTIFIER(EnumChatFormatting.GOLD, SearchExpressionParser.IDENTIFIER_PREFIX),
-        OREDICT(EnumChatFormatting.AQUA, SearchExpressionParser.OREDICT_PREFIX),
-        SUBSET(EnumChatFormatting.DARK_PURPLE, SearchExpressionParser.SUBSET_PREFIX);
+        QUOTED(EnumChatFormatting.GOLD, SearchExpressionParser.QUOTE_LEFT, SearchExpressionParser.QUOTE_RIGHT);
 
         public final EnumChatFormatting f;
         public final int[] parserTypes;

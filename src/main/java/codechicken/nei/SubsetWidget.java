@@ -36,7 +36,6 @@ import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerTooltipHandler;
-import codechicken.nei.search.SearchExpressionUtils;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class SubsetWidget extends Button implements ItemFilterProvider, IContainerTooltipHandler {
@@ -382,7 +381,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
         }
 
         public EnumChatFormatting getHighlightedColor() {
-            return SearchExpressionUtils.HIGHLIGHTS.SUBSET.f;
+            return EnumChatFormatting.DARK_PURPLE;
         }
 
         @Override

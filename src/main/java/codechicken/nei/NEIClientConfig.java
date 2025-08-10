@@ -495,8 +495,11 @@ public class NEIClientConfig {
 
             @Override
             public boolean onClick(int button) {
+                if (!super.onClick(button)) {
+                    return false;
+                }
                 SearchField.searchParser.clearCache();
-                return super.onClick(button);
+                return true;
             }
 
         });
@@ -526,7 +529,6 @@ public class NEIClientConfig {
                     SearchField.searchParser.prefixRedefinitions.clear();
                     SearchField.searchParser.prefixRedefinitions.put('%', '@');
                     SearchField.searchParser.prefixRedefinitions.put('@', '%');
-                    SearchField.searchParser.updateRedefinedPrefixes();
                     SearchField.searchParser.clearCache();
                 } else {
                     NEIClientConfig.setIntSetting("inventory.search.spaceMode", 0);
@@ -537,7 +539,6 @@ public class NEIClientConfig {
                     NEIClientConfig.setIntSetting("inventory.search.subsetsSearchMode", 1);
                     tag.getTag("inventory.search.prefixRedefinitions").setValue("{}");
                     SearchField.searchParser.prefixRedefinitions.clear();
-                    SearchField.searchParser.updateRedefinedPrefixes();
                     SearchField.searchParser.clearCache();
                 }
 
@@ -568,8 +569,11 @@ public class NEIClientConfig {
 
             @Override
             public boolean onClick(int button) {
+                if (!super.onClick(button)) {
+                    return false;
+                }
                 SearchField.searchParser.clearCache();
-                return super.onClick(button);
+                return true;
             }
 
             @Override
@@ -593,8 +597,11 @@ public class NEIClientConfig {
 
             @Override
             public boolean onClick(int button) {
+                if (!super.onClick(button)) {
+                    return false;
+                }
                 SearchField.searchParser.clearCache();
-                return super.onClick(button);
+                return true;
             }
 
             @Override
@@ -617,8 +624,11 @@ public class NEIClientConfig {
 
             @Override
             public boolean onClick(int button) {
+                if (!super.onClick(button)) {
+                    return false;
+                }
                 SearchField.searchParser.clearCache();
-                return super.onClick(button);
+                return true;
             }
 
             @Override
@@ -641,8 +651,11 @@ public class NEIClientConfig {
 
             @Override
             public boolean onClick(int button) {
+                if (!super.onClick(button)) {
+                    return false;
+                }
                 SearchField.searchParser.clearCache();
-                return super.onClick(button);
+                return true;
             }
 
             @Override
@@ -665,8 +678,11 @@ public class NEIClientConfig {
 
             @Override
             public boolean onClick(int button) {
+                if (!super.onClick(button)) {
+                    return false;
+                }
                 SearchField.searchParser.clearCache();
-                return super.onClick(button);
+                return true;
             }
 
             @Override

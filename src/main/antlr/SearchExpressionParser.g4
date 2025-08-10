@@ -22,61 +22,44 @@ sequenceExpression
 
 unaryExpression
     : complexUnaryExpression
-    | token[-1]
+    | token['\0']
     ;
 
 complexUnaryExpression
     : LEFT_BRACKET orExpression RIGHT_BRACKET?
-    | modnameExpression
-    | tooltipExpression
-    | identifierExpression
-    | oredictExpression
-    | subsetExpression
+    | prefixedExpression
     | negateExpression
     ;
 
 negateExpression
-    : DASH smartToken[-1]
+    : DASH smartToken['\0']
     | DASH complexUnaryExpression
     ;
 
-
-modnameExpression
-    : MODNAME_PREFIX token[MODNAME_PREFIX]
+prefixedExpression
+    locals [
+        Character prefix
+    ]
+    : prefixToken=PREFIX { $prefix =  $prefixToken.getText().charAt(0); } token[$prefix]
     ;
 
-tooltipExpression
-    : TOOLTIP_PREFIX token[TOOLTIP_PREFIX]
-    ;
-
-identifierExpression
-    : IDENTIFIER_PREFIX token[IDENTIFIER_PREFIX]
-    ;
-
-oredictExpression
-    : OREDICT_PREFIX token[OREDICT_PREFIX]
-    ;
-
-subsetExpression
-    : SUBSET_PREFIX token[SUBSET_PREFIX]
-    ;
-
-token[Integer parentType]
-    : smartToken[parentType]
+token[Character prefix]
+    : smartToken[prefix]
     | PLAIN_TEXT
     ;
 
-smartToken[Integer parentType]
+smartToken[Character prefix]
     : DASH
-    | regex[parentType]
-    | quoted[parentType]
+    | regex[prefix]
+    | quoted[prefix]
     ;
 
-regex[Integer parentType]
+regex[Character prefix]
     : REGEX_LEFT REGEX_CONTENT REGEX_RIGHT?
     ;
 
-quoted[Integer parentType]
+quoted[Character prefix]
     : QUOTE_LEFT QUOTED_CONTENT QUOTE_RIGHT?
     ;
+
 

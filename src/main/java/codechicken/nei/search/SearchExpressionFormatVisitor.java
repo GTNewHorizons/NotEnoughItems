@@ -12,11 +12,19 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import codechicken.nei.NEIClientConfig;
+import codechicken.nei.SearchTokenParser;
+import codechicken.nei.SearchTokenParser.ISearchParserProvider;
 
 public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVisitor<String> {
 
     private static final Pattern REGEX_ESCAPED_SPACE_PATTERN = Pattern.compile("([^\\\\](?:\\\\\\\\)+)?\\\\ ");
     private static final Pattern ESCAPED_SPACE_PATTERN = Pattern.compile("\\\\ ");
+
+    private final SearchTokenParser searchParser;
+
+    public SearchExpressionFormatVisitor(SearchTokenParser searchParser) {
+        this.searchParser = searchParser;
+    }
 
     @Override
     public String visitChildren(RuleNode node) {
@@ -28,6 +36,18 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
     }
 
     /**
+     * Visit a parse tree produced by {@link SearchExpressionParser#prefixedExpression}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    @Override
+    public String visitPrefixedExpression(SearchExpressionParser.PrefixedExpressionContext ctx) {
+        EnumChatFormatting format = getFormatting(ctx.prefix, null);
+        return format + String.valueOf(ctx.prefix) + visitToken(ctx.token());
+    }
+
+    /**
      * Visit a parse tree produced by {@link SearchExpressionParser#token}.
      *
      * @param ctx the parse tree
@@ -35,7 +55,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
      */
     @Override
     public String visitToken(SearchExpressionParser.TokenContext ctx) {
-        return getTokenCleanText(ctx, ctx.parentType);
+        return getTokenCleanText(ctx, ctx.prefix);
     }
 
     /**
@@ -46,7 +66,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
      */
     @Override
     public String visitSmartToken(SearchExpressionParser.SmartTokenContext ctx) {
-        return getTokenCleanText(ctx, ctx.parentType);
+        return getTokenCleanText(ctx, ctx.prefix);
     }
 
     /**
@@ -57,7 +77,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
      */
     @Override
     public String visitRegex(SearchExpressionParser.RegexContext ctx) {
-        return visitChildren(ctx, ctx.parentType);
+        return visitChildren(ctx, ctx.prefix);
     }
 
     /**
@@ -68,7 +88,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
      */
     @Override
     public String visitQuoted(SearchExpressionParser.QuotedContext ctx) {
-        return visitChildren(ctx, ctx.parentType);
+        return visitChildren(ctx, ctx.prefix);
     }
 
     @Override
@@ -76,7 +96,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
         return "";
     }
 
-    private String getTokenCleanText(SearchExpressionParser.TokenContext ctx, Integer parentType) {
+    private String getTokenCleanText(SearchExpressionParser.TokenContext ctx, Character prefix) {
         if (ctx.PLAIN_TEXT() != null) {
             String cleanText = ctx.PLAIN_TEXT().getSymbol().getText();
             int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
@@ -84,10 +104,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
             if (spaceModeEnabled == 1) {
                 cleanText = ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll(" ");
             }
-            EnumChatFormatting format = EnumChatFormatting.RESET;
-            if (parentType != null) {
-                format = SearchExpressionUtils.getHighlight(parentType);
-            }
+            EnumChatFormatting format = getFormatting(prefix, EnumChatFormatting.RESET);
             return format + cleanText;
         } else if (ctx.smartToken() != null) {
             return visitSmartToken(ctx.smartToken());
@@ -95,14 +112,11 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
         return null;
     }
 
-    private String getTokenCleanText(SearchExpressionParser.SmartTokenContext ctx, Integer parentType) {
+    private String getTokenCleanText(SearchExpressionParser.SmartTokenContext ctx, Character prefix) {
         String cleanText = null;
         int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
         if (ctx.DASH() != null) {
-            EnumChatFormatting format = EnumChatFormatting.RESET;
-            if (parentType != null) {
-                format = SearchExpressionUtils.getHighlight(parentType);
-            }
+            EnumChatFormatting format = getFormatting(prefix, EnumChatFormatting.RESET);
             cleanText = format + "-";
         } else if (ctx.regex() != null) {
             cleanText = visitRegex(ctx.regex());
@@ -118,15 +132,15 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
         return cleanText;
     }
 
-    private String formatChild(ParseTree child, Integer parentType) {
+    private String formatChild(ParseTree child, Character prefix) {
         if (child instanceof TerminalNode) {
             TerminalNode node = (TerminalNode) child;
             int type = node.getSymbol().getType();
             String format = Optional.ofNullable(
                     // check if highlight is defined for the token
                     Optional.ofNullable(SearchExpressionUtils.getHighlight(type))
-                            // check if highlight is defined for the parent token
-                            .orElse(SearchExpressionUtils.getHighlight(parentType))
+                            // check if highlight is defined for the prefix
+                            .orElse(getFormatting(prefix, null))
             // use default highlight otherwise
             ).map(EnumChatFormatting::toString).orElse("");
 
@@ -136,10 +150,23 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
         }
     }
 
-    private String visitChildren(ParserRuleContext node, Integer parentType) {
+    private String visitChildren(ParserRuleContext node, Character prefix) {
         if (node.children != null && !node.children.isEmpty()) {
-            return node.children.stream().map(child -> formatChild(child, parentType)).collect(Collectors.joining());
+            return node.children.stream().map(child -> formatChild(child, prefix)).collect(Collectors.joining());
         }
         return defaultResult();
+    }
+
+    private EnumChatFormatting getFormatting(Character prefix, EnumChatFormatting defaultFormatting) {
+        if (prefix != null) {
+            if (prefix == '\0') {
+                return EnumChatFormatting.RESET;
+            }
+            ISearchParserProvider provider = searchParser.getProvider(prefix);
+            if (provider != null) {
+                return provider.getHighlightedColor();
+            }
+        }
+        return defaultFormatting;
     }
 }

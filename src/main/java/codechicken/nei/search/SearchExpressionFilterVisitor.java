@@ -11,27 +11,21 @@ import org.antlr.v4.runtime.tree.RuleNode;
 
 import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
-import codechicken.nei.SearchField;
 import codechicken.nei.SearchTokenParser;
 import codechicken.nei.api.ItemFilter;
 
 public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVisitor<ItemFilter> {
 
-    private final SearchTokenParser parser;
-    private static final char MODNAME_SYMBOL = '@';
-    private static final char TOOLTIP_SYMBOL = '#';
-    private static final char IDENTIFIER_SYMBOL = '&';
-    private static final char OREDICT_SYMBOL = '$';
-    private static final char SUBSET_SYMBOL = '%';
+    private final SearchTokenParser searchParser;
 
     private static final Pattern REGEX_ESCAPED_SPACE_PATTERN = Pattern.compile("([^\\\\](?:\\\\\\\\)+)?\\\\ ");
     private static final Pattern PLAIN_TEXT_ESCAPED_PATTERN = Pattern.compile("\\\\(.)");
     private static final Pattern ESCAPED_QUOTE_PATTERN = Pattern.compile("\\\\\"");
     private static final Pattern ESCAPED_SPACE_PATTERN = Pattern.compile("\\\\ ");
 
-    public SearchExpressionFilterVisitor(SearchTokenParser parser) {
+    public SearchExpressionFilterVisitor(SearchTokenParser searchParser) {
         super();
-        this.parser = parser;
+        this.searchParser = searchParser;
     }
 
     @Override
@@ -83,50 +77,16 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
      * @return the visitor result
      */
     @Override
-    public ItemFilter visitModnameExpression(SearchExpressionParser.ModnameExpressionContext ctx) {
-        return getFilterForPrefixedExpression(MODNAME_SYMBOL, ctx.token());
-    }
-
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#tooltipExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    public ItemFilter visitTooltipExpression(SearchExpressionParser.TooltipExpressionContext ctx) {
-        return getFilterForPrefixedExpression(TOOLTIP_SYMBOL, ctx.token());
-    }
-
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#identifierExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    @Override
-    public ItemFilter visitIdentifierExpression(SearchExpressionParser.IdentifierExpressionContext ctx) {
-        return getFilterForPrefixedExpression(IDENTIFIER_SYMBOL, ctx.token());
-    }
-
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#oredictExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    @Override
-    public ItemFilter visitOredictExpression(SearchExpressionParser.OredictExpressionContext ctx) {
-        return getFilterForPrefixedExpression(OREDICT_SYMBOL, ctx.token());
-    }
-
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#subsetExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    public ItemFilter visitSubsetExpression(SearchExpressionParser.SubsetExpressionContext ctx) {
-        return getFilterForPrefixedExpression(SUBSET_SYMBOL, ctx.token());
+    public ItemFilter visitPrefixedExpression(SearchExpressionParser.PrefixedExpressionContext ctx) {
+        if (ctx.token() != null) {
+            String cleanText = getTokenCleanText(ctx.token());
+            SearchTokenParser.ISearchParserProvider provider = searchParser.getProvider(ctx.token().prefix);
+            if (cleanText == null || provider == null) {
+                return defaultResult();
+            }
+            return provider.getFilter(cleanText);
+        }
+        return defaultResult();
     }
 
     /**
@@ -139,10 +99,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
     public ItemFilter visitToken(SearchExpressionParser.TokenContext ctx) {
         String cleanText = getTokenCleanText(ctx);
         if (cleanText != null) {
-            Pattern pattern = SearchField.getPattern(cleanText);
-            if (pattern != null) {
-                return new ItemList.PatternItemFilter(pattern);
-            }
+            return getAlwaysProvidersFilter(cleanText);
         }
         return defaultResult();
     }
@@ -157,10 +114,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
     public ItemFilter visitSmartToken(SearchExpressionParser.SmartTokenContext ctx) {
         String cleanText = getTokenCleanText(ctx);
         if (cleanText != null) {
-            Pattern pattern = SearchField.getPattern(cleanText);
-            if (pattern != null) {
-                return new ItemList.PatternItemFilter(pattern);
-            }
+            return getAlwaysProvidersFilter(cleanText);
         }
         return defaultResult();
     }
@@ -168,15 +122,6 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
     @Override
     protected ItemFilter defaultResult() {
         return new ItemList.NothingItemFilter();
-    }
-
-    private ItemFilter getFilterForPrefixedExpression(char prefix, SearchExpressionParser.TokenContext ctx) {
-        String cleanText = getTokenCleanText(ctx);
-        SearchTokenParser.ISearchParserProvider provider = parser.getProviderForDefaultPrefix(prefix);
-        if (cleanText == null || provider == null) {
-            return defaultResult();
-        }
-        return provider.getFilter(cleanText);
     }
 
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx) {
@@ -243,6 +188,10 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
             }
         }
         return defaultResult();
+    }
+
+    private ItemFilter getAlwaysProvidersFilter(String searchText) {
+        return new ItemList.AnyMultiItemFilter(searchParser.getAlwaysProvidersFilters(searchText));
     }
 
 }
