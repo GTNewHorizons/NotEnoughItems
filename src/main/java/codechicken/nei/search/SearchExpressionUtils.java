@@ -9,6 +9,9 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
+import codechicken.nei.NEIClientConfig;
+import codechicken.nei.SearchTokenParser;
+
 public class SearchExpressionUtils {
 
     private static final Map<Integer, EnumChatFormatting> HIGHLIGHT_MAP = new HashMap<>();
@@ -46,16 +49,22 @@ public class SearchExpressionUtils {
         return HIGHLIGHT_MAP.get(parserType);
     }
 
-    public static final <T> T visitSearchExpression(String text, SearchExpressionParserBaseVisitor<T> visitor) {
+    public static final <T> T visitSearchExpression(String text, SearchTokenParser searchParser,
+            SearchExpressionParserBaseVisitor<T> visitor) {
+        final boolean doLogExceptions = NEIClientConfig.getBooleanSetting("inventory.search.logSearchExceptions");
         final CharStream inputStream = CharStreams.fromString(text);
-        final SearchExpressionErrorListener errorListener = new SearchExpressionErrorListener(true);
-        final SearchExpressionLexer lexer = new SearchExpressionLexer(inputStream);
+        final SearchExpressionErrorListener errorListener = new SearchExpressionErrorListener();
+        final SearchExpressionLexer lexer = new SearchExpressionLexer(inputStream, searchParser);
         lexer.removeErrorListeners();
-        lexer.addErrorListener(errorListener);
+        if (doLogExceptions) {
+            lexer.addErrorListener(errorListener);
+        }
         final CommonTokenStream tokenStream = new CommonTokenStream(lexer);
         final SearchExpressionParser parser = new SearchExpressionParser(tokenStream);
         parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
+        if (doLogExceptions) {
+            parser.addErrorListener(errorListener);
+        }
         return visitor.visitSearchExpression(parser.searchExpression());
     }
 }

@@ -3,18 +3,27 @@ lexer grammar SearchExpressionLexer;
 // Antlr4 generates imports with .*
 @header {
 // CHECKSTYLE:OFF
-import codechicken.nei.SearchField;
+import codechicken.nei.SearchTokenParser;
+}
+
+@members {
+private SearchTokenParser searchParser;
+
+public SearchExpressionLexer(CharStream input, SearchTokenParser searchParser) {
+    this(input);
+    this.searchParser = searchParser;
+}
 }
 
 // Lexer rules
 REGEX_LEFT        : 'r'? '/' -> pushMode(REGEX) ;
 QUOTE_LEFT        : '"' -> pushMode(QUOTED) ;
 DASH              : '-' ;
-PREFIX            : CLEAN_SYMBOL {SearchField.searchParser.hasRedefinedPrefix(getText().charAt(0))}? ;
+PREFIX            : CLEAN_SYMBOL {searchParser.hasRedefinedPrefix(getText().charAt(0))}? ;
 OR                : '|' ;
 LEFT_BRACKET      : '\\(' ;
 RIGHT_BRACKET     : '\\)' ;
-PLAIN_TEXT        : (CLEAN_SYMBOL | ESCAPED_SPECIAL_SYMBOL)+ {!SearchField.searchParser.hasRedefinedPrefix(getText().charAt(0))}? ;
+PLAIN_TEXT        : (CLEAN_SYMBOL | ESCAPED_SPECIAL_SYMBOL)+ {!searchParser.hasRedefinedPrefix(getText().charAt(0))}? ;
 NEWLINE_OR_TAB    : [\t\r\n] -> skip ;
 SPACE             : ' ' ;
 

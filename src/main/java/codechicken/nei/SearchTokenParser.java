@@ -211,7 +211,7 @@ public class SearchTokenParser {
         } else {
             return this.filtersCache.computeIfAbsent(filterText, text -> {
                 final SearchExpressionFilterVisitor visitor = new SearchExpressionFilterVisitor(this);
-                final ItemFilter searchToken = SearchExpressionUtils.visitSearchExpression(text, visitor);
+                final ItemFilter searchToken = SearchExpressionUtils.visitSearchExpression(text, this, visitor);
 
                 return new IsRegisteredItemFilter(searchToken);
             });
