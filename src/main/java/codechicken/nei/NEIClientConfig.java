@@ -526,6 +526,7 @@ public class NEIClientConfig {
                     SearchField.searchParser.prefixRedefinitions.clear();
                     SearchField.searchParser.prefixRedefinitions.put('%', '@');
                     SearchField.searchParser.prefixRedefinitions.put('@', '%');
+                    SearchField.searchParser.updateRedefinedPrefixes();
                     SearchField.searchParser.clearCache();
                 } else {
                     NEIClientConfig.setIntSetting("inventory.search.spaceMode", 0);
@@ -536,6 +537,7 @@ public class NEIClientConfig {
                     NEIClientConfig.setIntSetting("inventory.search.subsetsSearchMode", 1);
                     tag.getTag("inventory.search.prefixRedefinitions").setValue("{}");
                     SearchField.searchParser.prefixRedefinitions.clear();
+                    SearchField.searchParser.updateRedefinedPrefixes();
                     SearchField.searchParser.clearCache();
                 }
 
@@ -692,6 +694,7 @@ public class NEIClientConfig {
             };
             Map<Character, Character> charMap = new Gson().fromJson(prefixRedefinitions, typeToken.getType());
             SearchField.searchParser.prefixRedefinitions.putAll(charMap);
+            SearchField.searchParser.updateRedefinedPrefixes();
         } catch (JsonParseException e) {
             logger.warn("Failed to convert prefix redefinitions from JSON to CharToCharMap:", e);
         }

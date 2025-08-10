@@ -58,6 +58,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
         @Override
         public ItemFilter getFilter(String searchText) {
             Pattern pattern = SearchField.getPattern(searchText);
+
             if (pattern != null) {
                 return this.createFilter(pattern);
             }

@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
@@ -103,19 +106,23 @@ public class SearchTokenParser {
 
     protected final LRUCache<String, ItemFilter> filtersCache = new LRUCache<>(20);
     protected final List<ISearchParserProvider> searchProviders;
+    protected final Set<Character> redefinedPrefixes = new HashSet<>();
     protected final ProvidersCache providersCache = new ProvidersCache();
     protected final Map<Character, Character> prefixRedefinitions = new HashMap<>();
 
     public SearchTokenParser(List<ISearchParserProvider> searchProviders) {
         this.searchProviders = searchProviders;
+        updateRedefinedPrefixes();
     }
 
     public SearchTokenParser() {
         this(new ArrayList<>());
+        updateRedefinedPrefixes();
     }
 
     public void addProvider(ISearchParserProvider provider) {
         this.searchProviders.add(provider);
+        updateRedefinedPrefixes(provider);
         this.providersCache.clear();
         this.filtersCache.clear();
     }
@@ -152,6 +159,9 @@ public class SearchTokenParser {
     }
 
     public ISearchParserProvider getProvider(char ch) {
+        if (!redefinedPrefixes.contains(ch)) {
+            return null;
+        }
         return getProviders().stream()
                 .filter(
                         provider -> provider.getSearchMode() == SearchMode.PREFIX
@@ -260,19 +270,28 @@ public class SearchTokenParser {
     }
 
     private String getPrefixes() {
-        StringBuilder prefixes = new StringBuilder().append('\0');
-
-        for (ISearchParserProvider provider : getProviders()) {
-            if (provider.getSearchMode() == SearchMode.PREFIX) {
-                prefixes.append(getRedefinedPrefix(provider.getPrefix()));
-            }
-        }
-
-        return prefixes.toString();
+        return this.redefinedPrefixes.stream().collect(
+                Collector
+                        .of(StringBuilder::new, StringBuilder::append, StringBuilder::append, StringBuilder::toString));
     }
 
     public char getRedefinedPrefix(char prefix) {
         return this.prefixRedefinitions.getOrDefault(prefix, prefix);
+    }
+
+    public void updateRedefinedPrefixes() {
+        this.redefinedPrefixes.clear();
+        this.redefinedPrefixes.addAll(
+                getProviders().stream().filter(provider -> provider.getSearchMode() == SearchMode.PREFIX)
+                        .map(ISearchParserProvider::getPrefix).map(this::getRedefinedPrefix)
+                        .collect(Collectors.toSet()));
+        this.redefinedPrefixes.add('\0');
+    }
+
+    public void updateRedefinedPrefixes(ISearchParserProvider provider) {
+        if (provider.getSearchMode() == SearchMode.PREFIX) {
+            this.redefinedPrefixes.add(getRedefinedPrefix(provider.getPrefix()));
+        }
     }
 
     private ItemFilter parseSearchText(String filterText) {
