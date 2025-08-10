@@ -187,8 +187,8 @@ public class SearchTokenParser {
         if (filterText == null || filterText.isEmpty()) {
             return new EverythingItemFilter();
         }
-        int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
-        int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
+        final int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+        final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
 
         if (spaceModeEnabled == 1 && patternMode == 3) {
             filterText = SearchTokenParser.SPACE_PATTERN.matcher(filterText).replaceAll("\\\\ ");

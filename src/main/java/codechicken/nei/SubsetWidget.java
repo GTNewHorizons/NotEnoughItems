@@ -359,7 +359,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
     private static class DefaultParserProvider implements ISearchParserProvider {
 
         public ItemFilter getFilter(String searchText) {
-            int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
+            final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
             if (patternMode != 3) {
                 searchText = searchText.replaceAll("\\s+", "").toLowerCase();
             }
@@ -391,7 +391,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
 
         private boolean matches(String name, String searchText, int patternMode) {
             if (patternMode == 3) {
-                Pattern pattern = SearchField.getPattern(searchText, patternMode);
+                final Pattern pattern = SearchField.getPattern(searchText, patternMode);
                 return pattern.matcher(name).find();
             } else {
                 return name.contains(searchText);
