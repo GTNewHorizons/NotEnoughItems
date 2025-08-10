@@ -3,7 +3,6 @@ package codechicken.nei.search;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -12,6 +11,7 @@ import org.antlr.v4.runtime.tree.RuleNode;
 
 import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
+import codechicken.nei.SearchField;
 import codechicken.nei.SearchTokenParser;
 import codechicken.nei.api.ItemFilter;
 
@@ -29,12 +29,9 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
     private static final Pattern ESCAPED_QUOTE_PATTERN = Pattern.compile("\\\\\"");
     private static final Pattern ESCAPED_SPACE_PATTERN = Pattern.compile("\\\\ ");
 
-    private final boolean logSearchExceptions;
-
-    public SearchExpressionFilterVisitor(SearchTokenParser parser, boolean logSearchExceptions) {
+    public SearchExpressionFilterVisitor(SearchTokenParser parser) {
         super();
         this.parser = parser;
-        this.logSearchExceptions = logSearchExceptions;
     }
 
     @Override
@@ -52,6 +49,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
      * @param ctx the parse tree
      * @return the visitor result
      */
+    @Override
     public ItemFilter visitOrExpression(SearchExpressionParser.OrExpressionContext ctx) {
         return visitChildren(ctx, ItemList.AnyMultiItemFilter::new);
     }
@@ -62,6 +60,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
      * @param ctx the parse tree
      * @return the visitor result
      */
+    @Override
     public ItemFilter visitSequenceExpression(SearchExpressionParser.SequenceExpressionContext ctx) {
         return visitChildren(ctx, ItemList.AllMultiItemFilter::new);
     }
@@ -72,13 +71,9 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
      * @param ctx the parse tree
      * @return the visitor result
      */
+    @Override
     public ItemFilter visitNegateExpression(SearchExpressionParser.NegateExpressionContext ctx) {
-        if (ctx.complexUnaryExpression() != null) {
-            return new ItemList.NegatedItemFilter(visitComplexUnaryExpression(ctx.complexUnaryExpression()));
-        } else if (ctx.smartToken() != null) {
-            return new ItemList.NegatedItemFilter(visitSmartToken(ctx.smartToken()));
-        }
-        return defaultResult();
+        return new ItemList.NegatedItemFilter(visitChildren(ctx));
     }
 
     /**
@@ -87,6 +82,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
      * @param ctx the parse tree
      * @return the visitor result
      */
+    @Override
     public ItemFilter visitModnameExpression(SearchExpressionParser.ModnameExpressionContext ctx) {
         return getFilterForPrefixedExpression(MODNAME_SYMBOL, ctx.token());
     }
@@ -107,6 +103,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
      * @param ctx the parse tree
      * @return the visitor result
      */
+    @Override
     public ItemFilter visitIdentifierExpression(SearchExpressionParser.IdentifierExpressionContext ctx) {
         return getFilterForPrefixedExpression(IDENTIFIER_SYMBOL, ctx.token());
     }
@@ -117,6 +114,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
      * @param ctx the parse tree
      * @return the visitor result
      */
+    @Override
     public ItemFilter visitOredictExpression(SearchExpressionParser.OredictExpressionContext ctx) {
         return getFilterForPrefixedExpression(OREDICT_SYMBOL, ctx.token());
     }
@@ -137,10 +135,11 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
      * @param ctx the parse tree
      * @return the visitor result
      */
+    @Override
     public ItemFilter visitToken(SearchExpressionParser.TokenContext ctx) {
         String cleanText = getTokenCleanText(ctx);
         if (cleanText != null) {
-            Pattern pattern = getPattern(cleanText);
+            Pattern pattern = SearchField.getPattern(cleanText);
             if (pattern != null) {
                 return new ItemList.PatternItemFilter(pattern);
             }
@@ -154,10 +153,11 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
      * @param ctx the parse tree
      * @return the visitor result
      */
+    @Override
     public ItemFilter visitSmartToken(SearchExpressionParser.SmartTokenContext ctx) {
         String cleanText = getTokenCleanText(ctx);
         if (cleanText != null) {
-            Pattern pattern = getPattern(cleanText);
+            Pattern pattern = SearchField.getPattern(cleanText);
             if (pattern != null) {
                 return new ItemList.PatternItemFilter(pattern);
             }
@@ -167,32 +167,16 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
 
     @Override
     protected ItemFilter defaultResult() {
-        return new ItemList.EverythingItemFilter();
-    }
-
-    private Pattern getPattern(String cleanText) {
-        if (cleanText == null) {
-            return null;
-        }
-        try {
-            Pattern pattern = Pattern
-                    .compile(cleanText, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-            return pattern;
-        } catch (PatternSyntaxException e) {
-            if (logSearchExceptions) {
-                NEIClientConfig.logger.error("Invalid pattern syntax when parsing " + cleanText);
-            }
-            return null;
-        }
+        return new ItemList.NothingItemFilter();
     }
 
     private ItemFilter getFilterForPrefixedExpression(char prefix, SearchExpressionParser.TokenContext ctx) {
-        Pattern pattern = getPattern(getTokenCleanText(ctx));
+        String cleanText = getTokenCleanText(ctx);
         SearchTokenParser.ISearchParserProvider provider = parser.getProviderForDefaultPrefix(prefix);
-        if (pattern == null || provider == null) {
+        if (cleanText == null || provider == null) {
             return defaultResult();
         }
-        return provider.getFilter(pattern);
+        return provider.getFilter(cleanText);
     }
 
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx) {

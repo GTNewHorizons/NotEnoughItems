@@ -59,8 +59,6 @@ public class SearchTokenParser {
 
         public ItemFilter getFilter(String searchText);
 
-        public ItemFilter getFilter(Pattern pattern);
-
         public static List<Language> getAllLanguages() {
             return new ArrayList<>(Minecraft.getMinecraft().getLanguageManager().getLanguages());
         }
@@ -195,7 +193,7 @@ public class SearchTokenParser {
             });
         } else {
             return this.filtersCache.computeIfAbsent(filterText, text -> {
-                final SearchExpressionFilterVisitor visitor = new SearchExpressionFilterVisitor(this, true);
+                final SearchExpressionFilterVisitor visitor = new SearchExpressionFilterVisitor(this);
                 final ItemFilter searchToken = SearchExpressionUtils.visitSearchExpression(text, visitor);
 
                 return new IsRegisteredItemFilter(searchToken);

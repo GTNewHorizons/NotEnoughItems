@@ -33,6 +33,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
      * @param ctx the parse tree
      * @return the visitor result
      */
+    @Override
     public String visitToken(SearchExpressionParser.TokenContext ctx) {
         return getTokenCleanText(ctx, ctx.parentType);
     }
@@ -43,6 +44,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
      * @param ctx the parse tree
      * @return the visitor result
      */
+    @Override
     public String visitSmartToken(SearchExpressionParser.SmartTokenContext ctx) {
         return getTokenCleanText(ctx, ctx.parentType);
     }
@@ -53,6 +55,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
      * @param ctx the parse tree
      * @return the visitor result
      */
+    @Override
     public String visitRegex(SearchExpressionParser.RegexContext ctx) {
         return visitChildren(ctx, ctx.parentType);
     }
@@ -63,6 +66,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
      * @param ctx the parse tree
      * @return the visitor result
      */
+    @Override
     public String visitQuoted(SearchExpressionParser.QuotedContext ctx) {
         return visitChildren(ctx, ctx.parentType);
     }

@@ -359,27 +359,16 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
 
     private static class DefaultParserProvider implements ISearchParserProvider {
 
-        public ItemFilter getFilter(Pattern pattern) {
-            final AnyMultiItemFilter filter = new AnyMultiItemFilter();
-            final Set<ItemStack> filteredItems = new HashSet<>();
-
-            for (SubsetTag tag : tags.values()) {
-                if (tag.filter != null && pattern.matcher(tag.path).find()) {
-                    filteredItems.addAll(tag.items);
-                    filter.filters.add(tag.filter);
-                }
-            }
-
-            return stack -> filteredItems.contains(stack) || !ItemList.items.contains(stack) && filter.matches(stack);
-        }
-
         public ItemFilter getFilter(String searchText) {
-            final String pathPart = searchText.replaceAll("\\s+", "").toLowerCase();
+            int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
+            if (patternMode != 3) {
+                searchText = searchText.replaceAll("\\s+", "").toLowerCase();
+            }
             final AnyMultiItemFilter filter = new AnyMultiItemFilter();
             final Set<ItemStack> filteredItems = new HashSet<>();
 
             for (SubsetTag tag : tags.values()) {
-                if (tag.filter != null && tag.path.contains(pathPart)) {
+                if (tag.filter != null && matches(tag.path, searchText, patternMode)) {
                     filteredItems.addAll(tag.items);
                     filter.filters.add(tag.filter);
                 }
@@ -399,6 +388,15 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
         @Override
         public SearchMode getSearchMode() {
             return SearchMode.fromInt(NEIClientConfig.getIntSetting("inventory.search.subsetsSearchMode"));
+        }
+
+        private boolean matches(String name, String searchText, int patternMode) {
+            if (patternMode == 3) {
+                Pattern pattern = SearchField.getPattern(searchText, patternMode);
+                return pattern.matcher(name).find();
+            } else {
+                return name.contains(searchText);
+            }
         }
     }
 

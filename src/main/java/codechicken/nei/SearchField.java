@@ -58,11 +58,6 @@ public class SearchField extends TextField implements ItemFilterProvider {
         @Override
         public ItemFilter getFilter(String searchText) {
             Pattern pattern = SearchField.getPattern(searchText);
-            return getFilter(pattern);
-        }
-
-        @Override
-        public ItemFilter getFilter(Pattern pattern) {
             if (pattern != null) {
                 return this.createFilter(pattern);
             }
@@ -276,7 +271,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
             default:
                 break;
         }
-
+        // regex and extended+
         if (!search.isEmpty()) {
             try {
                 return Pattern.compile(search, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
