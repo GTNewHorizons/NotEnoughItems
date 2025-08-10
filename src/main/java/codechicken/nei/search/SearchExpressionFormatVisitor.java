@@ -35,57 +35,22 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
         }
     }
 
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#prefixedExpression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
     @Override
     public String visitPrefixedExpression(SearchExpressionParser.PrefixedExpressionContext ctx) {
-        EnumChatFormatting format = getFormatting(ctx.prefix, null);
+        final EnumChatFormatting format = getFormatting(ctx.prefix, null);
         return format + String.valueOf(ctx.prefix) + visitToken(ctx.token());
     }
 
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#token}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
     @Override
     public String visitToken(SearchExpressionParser.TokenContext ctx) {
         return getTokenCleanText(ctx, ctx.prefix);
     }
 
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#smartToken}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    @Override
-    public String visitSmartToken(SearchExpressionParser.SmartTokenContext ctx) {
-        return getTokenCleanText(ctx, ctx.prefix);
-    }
-
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#regex}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
     @Override
     public String visitRegex(SearchExpressionParser.RegexContext ctx) {
         return visitChildren(ctx, ctx.prefix);
     }
 
-    /**
-     * Visit a parse tree produced by {@link SearchExpressionParser#quoted}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
     @Override
     public String visitQuoted(SearchExpressionParser.QuotedContext ctx) {
         return visitChildren(ctx, ctx.prefix);
@@ -97,27 +62,16 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
     }
 
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx, Character prefix) {
+        String cleanText = null;
+        final int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
         if (ctx.PLAIN_TEXT() != null) {
-            String cleanText = ctx.PLAIN_TEXT().getSymbol().getText();
-            int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+            cleanText = ctx.PLAIN_TEXT().getSymbol().getText();
             // Unescape spaces
             if (spaceModeEnabled == 1) {
                 cleanText = ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll(" ");
             }
-            EnumChatFormatting format = getFormatting(prefix, EnumChatFormatting.RESET);
+            final EnumChatFormatting format = getFormatting(prefix, EnumChatFormatting.RESET);
             return format + cleanText;
-        } else if (ctx.smartToken() != null) {
-            return visitSmartToken(ctx.smartToken());
-        }
-        return null;
-    }
-
-    private String getTokenCleanText(SearchExpressionParser.SmartTokenContext ctx, Character prefix) {
-        String cleanText = null;
-        int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
-        if (ctx.DASH() != null) {
-            EnumChatFormatting format = getFormatting(prefix, EnumChatFormatting.RESET);
-            cleanText = format + "-";
         } else if (ctx.regex() != null) {
             cleanText = visitRegex(ctx.regex());
             if (spaceModeEnabled == 1) {
@@ -134,9 +88,9 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
 
     private String formatChild(ParseTree child, Character prefix) {
         if (child instanceof TerminalNode) {
-            TerminalNode node = (TerminalNode) child;
-            int type = node.getSymbol().getType();
-            String format = Optional.ofNullable(
+            final TerminalNode node = (TerminalNode) child;
+            final int type = node.getSymbol().getType();
+            final String format = Optional.ofNullable(
                     // check if highlight is defined for the token
                     Optional.ofNullable(SearchExpressionUtils.getHighlight(type))
                             // check if highlight is defined for the prefix
@@ -162,7 +116,7 @@ public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVis
             if (prefix == '\0') {
                 return EnumChatFormatting.RESET;
             }
-            ISearchParserProvider provider = searchParser.getProvider(prefix);
+            final ISearchParserProvider provider = searchParser.getProvider(prefix);
             if (provider != null) {
                 return provider.getHighlightedColor();
             }

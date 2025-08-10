@@ -18,11 +18,11 @@ PLAIN_TEXT        : (CLEAN_SYMBOL | ESCAPED_SPECIAL_SYMBOL)+ {!SearchField.searc
 NEWLINE_OR_TAB    : [\t\r\n] -> skip ;
 SPACE             : ' ' ;
 
-fragment SPECIAL_SYMBOL         : [|/\\ "] ;
+fragment SPECIAL_SYMBOL         : [-|/\\ "] ;
 fragment ESCAPED_SPECIAL_SYMBOL : '\\' SPECIAL_SYMBOL ;
 
 // Thanks to antlr4 regression have to specify everything manually
-fragment CLEAN_SYMBOL           : ~[|/\\ "] ;
+fragment CLEAN_SYMBOL           : ~[-|/\\ "] ;
 
 mode REGEX;
 

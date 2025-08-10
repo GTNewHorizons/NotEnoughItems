@@ -21,19 +21,14 @@ sequenceExpression
     ;
 
 unaryExpression
-    : complexUnaryExpression
-    | token['\0']
-    ;
-
-complexUnaryExpression
     : LEFT_BRACKET orExpression RIGHT_BRACKET?
     | prefixedExpression
     | negateExpression
+    | token['\0']
     ;
 
 negateExpression
-    : DASH smartToken['\0']
-    | DASH complexUnaryExpression
+    : DASH unaryExpression
     ;
 
 prefixedExpression
@@ -44,14 +39,9 @@ prefixedExpression
     ;
 
 token[Character prefix]
-    : smartToken[prefix]
-    | PLAIN_TEXT
-    ;
-
-smartToken[Character prefix]
-    : DASH
-    | regex[prefix]
+    : regex[prefix]
     | quoted[prefix]
+    | PLAIN_TEXT
     ;
 
 regex[Character prefix]

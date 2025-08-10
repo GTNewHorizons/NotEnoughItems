@@ -104,6 +104,8 @@ public class SearchTokenParser {
         }
     }
 
+    public static final Pattern SPACE_PATTERN = Pattern.compile(" ");
+
     protected final LRUCache<String, ItemFilter> filtersCache = new LRUCache<>(20);
     protected final List<ISearchParserProvider> searchProviders;
     protected final Set<Character> redefinedPrefixes = new HashSet<>();
@@ -189,7 +191,7 @@ public class SearchTokenParser {
         int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
 
         if (spaceModeEnabled == 1 && patternMode == 3) {
-            filterText = filterText.replace(" ", "\\ ");
+            filterText = SearchTokenParser.SPACE_PATTERN.matcher(filterText).replaceAll("\\\\ ");
         }
 
         if (patternMode != 3) {

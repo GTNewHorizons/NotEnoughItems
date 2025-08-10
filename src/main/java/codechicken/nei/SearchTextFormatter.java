@@ -19,11 +19,11 @@ public class SearchTextFormatter implements TextFormatter {
     }
 
     public String format(String text) {
-        int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
+        final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
         if (patternMode == 3) {
-            int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+            final int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
             if (spaceModeEnabled == 1) {
-                text = text.replace(" ", "\\ ");
+                text = SearchTokenParser.SPACE_PATTERN.matcher(text).replaceAll("\\\\ ");
             }
             final SearchExpressionFormatVisitor visitor = new SearchExpressionFormatVisitor(searchParser);
             return SearchExpressionUtils.visitSearchExpression(text, visitor);
