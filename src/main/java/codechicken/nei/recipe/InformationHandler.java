@@ -8,12 +8,9 @@ import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import net.minecraftforge.oredict.OreDictionary;
 
 import codechicken.nei.PositionedStack;
 
@@ -21,14 +18,6 @@ public class InformationHandler extends TemplateRecipeHandler {
 
     private static final List<InformationPage> ITEM_INFO = new ArrayList<>();
     private ItemStack currentStack;
-
-    static {
-        addInformationPage(new ItemStack(Items.stick), "infopage.stick.1");
-        addInformationPage(new ItemStack(Items.stick), "infopage.stick.2");
-        addInformationPage(new ItemStack(Blocks.stone), "infopage.stone");
-        addInformationPage(new ItemStack(Blocks.log, 1, 3), "infopage.wood.jungle");
-        addInformationPage(new ItemStack(Blocks.log, 1, OreDictionary.WILDCARD_VALUE), "infopage.wood");
-    }
 
     public static void addInformationPage(ItemStack stack, String description) {
         if (stack == null || stack.getItem() == null || description.isEmpty()) return;
