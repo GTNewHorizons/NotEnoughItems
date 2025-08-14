@@ -93,7 +93,9 @@ public class InformationHandler extends TemplateRecipeHandler {
 
         @Override
         public List<PositionedStack> getIngredients() {
-            return Collections.singletonList(new PositionedStack(page.item, 75, 2));
+            PositionedStack stack = new PositionedStack(page.item, 75, 2);
+            stack.setPermutationToRender((cycleticks / 20) % stack.getFilteredPermutations().size());
+            return Collections.singletonList(stack);
         }
 
         public InformationPage getPage() {
