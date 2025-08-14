@@ -1,7 +1,6 @@
 package codechicken.nei.config;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -139,7 +138,8 @@ public class IMCHandler {
             return;
         }
         final int priority = tag.getInteger("priority");
-        RecipeCatalysts.addOrPut(RecipeCatalysts.catalystsAdderFromIMC, handlerID, new CatalystInfo(itemStack, priority));
+        RecipeCatalysts
+                .addOrPut(RecipeCatalysts.catalystsAdderFromIMC, handlerID, new CatalystInfo(itemStack, priority));
         NEIClientConfig.logger.info("Added catalyst `{}` to handler {}", itemStack.getDisplayName(), handlerID);
     }
 
@@ -160,9 +160,7 @@ public class IMCHandler {
             return;
         }
 
-        RecipeCatalysts.catalystsRemoverFromIMC
-                .computeIfAbsent(handlerID, k -> new ArrayList<>())
-                .add(itemStack);
+        RecipeCatalysts.catalystsRemoverFromIMC.computeIfAbsent(handlerID, k -> new ArrayList<>()).add(itemStack);
         NEIClientConfig.logger.info("Removed catalyst `{}` from handler {}", itemStack.getDisplayName(), handlerID);
     }
 
