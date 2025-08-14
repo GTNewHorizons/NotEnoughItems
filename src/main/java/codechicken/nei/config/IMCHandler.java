@@ -134,21 +134,12 @@ public class IMCHandler {
             NEIClientConfig.logger.warn("Missing handlerID for registerCatalystInfo!");
             return;
         }
-        final String itemName = tag.getString("itemName");
-        final String nbtInfo = tag.hasKey("nbtInfo") ? tag.getString("nbtInfo") : null;
-        if (itemName.isEmpty()) {
-            NEIClientConfig.logger.warn("Missing itemName for registerCatalystInfo in `{}`!", handlerID);
-            return;
-        }
-        final ItemStack itemStack = NEIServerUtils.getModdedItem(itemName, nbtInfo);
+        final ItemStack itemStack = getItemStackFromIMC(message, "registerCatalystInfo");
         if (itemStack == null) {
-            NEIClientConfig.logger.warn("Cannot find item `{}`!", itemName);
             return;
         }
         final int priority = tag.getInteger("priority");
-
-        RecipeCatalysts
-                .addOrPut(RecipeCatalysts.catalystsAdderFromIMC, handlerID, new CatalystInfo(itemStack, priority));
+        RecipeCatalysts.addOrPut(RecipeCatalysts.catalystsAdderFromIMC, handlerID, new CatalystInfo(itemStack, priority));
         NEIClientConfig.logger.info("Added catalyst `{}` to handler {}", itemStack.getDisplayName(), handlerID);
     }
 
@@ -158,33 +149,21 @@ public class IMCHandler {
             return;
         }
 
-        NEIClientConfig.logger.info("Processing removeCatalystInfo from {}", message.getSender());
         final NBTTagCompound tag = message.getNBTValue();
         final String handlerID = tag.getString("handlerID");
         if (handlerID.isEmpty()) {
-            NEIClientConfig.logger.warn("Missing handlerID for registerCatalystInfo!");
+            NEIClientConfig.logger.warn("Missing handlerID for removeCatalystInfo!");
             return;
         }
-        final String itemName = tag.getString("itemName");
-        final String nbtInfo = tag.hasKey("nbtInfo") ? tag.getString("nbtInfo") : null;
-        if (itemName.isEmpty()) {
-            NEIClientConfig.logger.warn("Missing itemName for registerCatalystInfo in `{}`!", handlerID);
-            return;
-        }
-        final ItemStack itemStack = NEIServerUtils.getModdedItem(itemName, nbtInfo);
+        final ItemStack itemStack = getItemStackFromIMC(message, "removeCatalystInfo");
         if (itemStack == null) {
-            NEIClientConfig.logger.warn("Cannot find item `{}`!", itemName);
             return;
         }
 
-        if (RecipeCatalysts.catalystsRemoverFromIMC.containsKey(handlerID)) {
-            RecipeCatalysts.catalystsRemoverFromIMC.get(handlerID).add(itemStack);
-        } else {
-            RecipeCatalysts.catalystsRemoverFromIMC
-                    .put(handlerID, new ArrayList<>(Collections.singletonList(itemStack)));
-        }
-        NEIClientConfig.logger
-                .info(String.format("Removed catalyst `%s` from handler %s", itemStack.getDisplayName(), handlerID));
+        RecipeCatalysts.catalystsRemoverFromIMC
+                .computeIfAbsent(handlerID, k -> new ArrayList<>())
+                .add(itemStack);
+        NEIClientConfig.logger.info("Removed catalyst `{}` from handler {}", itemStack.getDisplayName(), handlerID);
     }
 
     private static void handleAddItemInfo(IMCMessage message) {
