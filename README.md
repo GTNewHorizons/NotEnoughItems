@@ -22,6 +22,64 @@ If you have issues with NEI outside of the GTNH modpack you may report them in t
 * Cycle between Recipe, Utility, and Cheat mode by ctrl clicking on the Wrench Icon
 * GT5u Tools/Items and GT6 tools should now properly work with the Overlay Recipe Transfer
 
+### Information Handler
+Want to add some information about a block or item without making a massive tooltip for it? You can add information about any block or item by registering it in the Information Handler.
+
+Matching information pages are displayed when either the uses or recipes of an item are searched.
+
+If multiple mods add pages to the same item, they will all appear together as if one mod added them with the Multiple Page Format.
+
+Your mod can call:
+```java
+FMLInterModComms.sendMessage("NotEnoughItems", "addItemInfo", nbt);
+```
+Where nbt is an NBTTagCompound formatted as described below.
+
+| Tag              | Type                 | Description                                                                                                                                                                                |
+|------------------|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `itemName`       | String               | The registry name of the item in the format `modid:itemname` or `modid:itemname:meta`. Setting meta to OreDictionary.WILDCARD_VALUE (32767) will match *any metadata* value for that item. |
+| `nbtInfo`        | String               | *(Optional)* Extra NBT data to display for the item, as an SNBT-like string. Currently not used for matching.                                                                              |
+| `page` / `pages` | String / String List | The actual text to display. See below for differences between single and multi-page messages.<br/>Both formats will automatically translate provided strings.                              |
+
+#### Single Page Format
+
+Use the `"page"` string tag when you only want to add one page of information:
+```java
+NBTTagCompound tag = new NBTTagCompound();
+tag.setString("itemName", "minecraft:stone");
+tag.setString("page", "Stone is a common block.\nIt drops cobblestone unless mined with Silk Touch.");
+
+FMLInterModComms.sendMessage("NotEnoughItems", "addItemInfo", tag);
+```
+
+#### Multiple Page Format
+
+Use the `"pages"` tag as an `NBTTagList` of strings when you want more than one page:
+```java
+NBTTagCompound tag = new NBTTagCompound();
+tag.setString("itemName", "minecraft:diamond_sword");
+
+NBTTagList pages = new NBTTagList();
+pages.appendTag(new NBTTagString("A powerful melee weapon."));
+pages.appendTag(new NBTTagString("Can be enchanted for extra effects."));
+
+tag.setTag("pages", pages);
+
+FMLInterModComms.sendMessage("NotEnoughItems", "addItemInfo", tag);
+```
+* Each list entry is one page.
+* Pages will appear in NEI with buttons to scroll through them.
+
+#### Item Matching
+
+`itemName` must match the registered name of the item.
+
+If your item has subtypes (metadata), either:
+
+* Include the metadata in the itemName string: "modid:itemname:3", or
+* Omit the metadata to apply to only meta 0, or
+* Set the meta to OreDictionary.WILDCARD_VALUE (32767) to match all subtypes.
+
 ## Other items of note:
 
 * Remove TMI style

@@ -513,6 +513,8 @@ nei.recipe.favorite=Favorite
 nei.recipe.favorite.bookmark_recipe=Save Recipe Tree
 nei.recipe.favorite.change_result_index=Change Output
 
+nei.recipe.information=Information
+
 nei.itemsort.minecraft=Minecraft
 nei.itemsort.minecraft.tip=Sorts items from vanilla minecraft first
 nei.itemsort.mod=Mod
@@ -580,3 +582,8 @@ nei.presets.mode.group.tip=Create custom collapsible items group
 nei.presets.mode.group.char=G
 
 nei.itemzoom.toggle=Use %s to toggle Item Zoom
+infopage.stick.1=Brown and sticky.\n\nIf dropped in water, it will become wet and sticky.
+infopage.stick.2=Made from wood.
+infopage.stone=May break your bones if paired with a Stick.
+infopage.wood=Wood is a vital resource for crafting and building. The stuff doesn't just grow on trees!
+infopage.wood.jungle=Exotic wood found in tropical climates.

@@ -5,6 +5,7 @@ codechicken.nei.recipe.FurnaceRecipeHandler,Minecraft,minecraft:furnace,,minecra
 codechicken.nei.recipe.ShapedRecipeHandler,Minecraft,minecraft:crafting_table,,minecraft,FALSE,,,65,166,5,,,,,,
 codechicken.nei.recipe.ShapelessRecipeHandler,Minecraft,minecraft:crafting_table,,minecraft,FALSE,,,65,166,5,,,,,,
 codechicken.nei.recipe.FuelRecipeHandler,Minecraft,,,minecraft,FALSE,,,65,166,5,nei:textures/nei_tabbed_sprites.png,80,0,14,14,
+codechicken.nei.recipe.InformationHandler,NEI,,,nei,FALSE,,,65,166,1,nei:textures/nei_tabbed_sprites.png,96,0,16,16,
 advsolar.client.nei.MTRecipeHandler,Advanced Solar Panels,AdvancedSolarPanel:BlockMolecularTransformer,,AdvancedSolarPanel,TRUE,,,68,,5,,,,,,
 appeng.integration.modules.NEIHelpers.NEIAEShapedRecipeHandler,Applied Energistics 2,appliedenergistics2:item.ItemMultiPart:380,,appliedenergistics2,TRUE,,,65,,5,,,,,,
 appeng.integration.modules.NEIHelpers.NEIAEShapelessRecipeHandler,Applied Energistics 2,appliedenergistics2:item.ItemMultiPart:380,,appliedenergistics2,TRUE,,,65,,5,,,,,,
