@@ -1,6 +1,8 @@
 package codechicken.nei.recipe;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import net.minecraft.client.gui.inventory.GuiBrewingStand;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -79,6 +81,12 @@ public class RecipeInfo {
         return overlayMap.get(new OverlayKey(gui.getClass(), ident));
     }
 
+    public static List<String> getOverlayHandlerIdents(GuiContainer gui) {
+        final Class<? extends GuiContainer> classz = gui.getClass();
+        return overlayMap.keySet().stream().filter(key -> key.ident != null && key.guiClass.equals(classz))
+                .map(key -> key.ident).collect(Collectors.toList());
+    }
+
     public static IStackPositioner getStackPositioner(GuiContainer gui, String ident) {
         return positionerMap.get(new OverlayKey(gui.getClass(), ident));
     }
@@ -114,7 +122,5 @@ public class RecipeInfo {
 
         API.registerRecipeHandler(new ProfilerRecipeHandler(true));
         API.registerUsageHandler(new ProfilerRecipeHandler(false));
-        API.registerRecipeHandler(new ItemsHistoryHandler());
-        API.registerUsageHandler(new ItemsHistoryHandler());
     }
 }

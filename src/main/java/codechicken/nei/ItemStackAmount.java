@@ -104,6 +104,16 @@ public class ItemStackAmount {
         return this.itemMap.isEmpty();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj instanceof ItemStackAmount items) {
+            return this.itemMap.equals(items.itemMap);
+        }
+
+        return false;
+    }
+
     public static ItemStackAmount of(ItemStackAmount map) {
         ItemStackAmount result = new ItemStackAmount();
         result.itemMap.putAll(map.itemMap);
