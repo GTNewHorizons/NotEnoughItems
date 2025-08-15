@@ -231,8 +231,8 @@ public class StackInfo {
                 if (stack.getItem() != null && !ItemInfo.isHidden(stack)
                         && (stack.getItemDamage() < result.getItemDamage()
                                 || stack.getItemDamage() == result.getItemDamage()
-                                        && Item.itemRegistry.getNameForObject(stack.getItem()).compareTo(
-                                                Item.itemRegistry.getNameForObject(result.getItem())) == -1)) {
+                                        && Item.itemRegistry.getNameForObject(stack.getItem())
+                                                .compareTo(Item.itemRegistry.getNameForObject(result.getItem())) < 0)) {
                     result = stack;
                 }
             }

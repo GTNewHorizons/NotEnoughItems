@@ -40,9 +40,9 @@ public class Recipe {
             this.handlerName = handlerName;
             this.ingredients = ingredients;
 
-            if (!isSharpedRecipe()) {
+            if (!isShapedRecipe()) {
                 // sort to ignore ingredients position in shapeless recipes
-                Collections.sort(this.ingredients, Comparator.comparing(StackInfo::getItemStackGUID));
+                this.ingredients.sort(Comparator.comparing(StackInfo::getItemStackGUID));
             }
         }
 
@@ -123,9 +123,9 @@ public class Recipe {
                 return false;
             }
 
-            if (isSharpedRecipe()) {
+            if (isShapedRecipe()) {
                 for (int index = 0; index < stacks.size(); index++) {
-                    if (!containsWithNBT(stacks.get(index), Arrays.asList(this.ingredients.get(index)))) {
+                    if (!containsWithNBT(stacks.get(index), Collections.singletonList(this.ingredients.get(index)))) {
                         return false;
                     }
                 }
@@ -168,7 +168,7 @@ public class Recipe {
             return stack;
         }
 
-        public boolean isSharpedRecipe() {
+        public boolean isShapedRecipe() {
             return this.handlerName.equals("codechicken.nei.recipe.ShapedRecipeHandler")
                     || this.handlerName.equals("fox.spiteful.avaritia.compat.nei.ExtremeShapedRecipeHandler");
         }

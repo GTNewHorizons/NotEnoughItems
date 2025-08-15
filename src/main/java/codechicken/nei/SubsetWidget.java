@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
@@ -26,7 +27,6 @@ import net.minecraft.util.EnumChatFormatting;
 import org.lwjgl.opengl.GL11;
 
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 
 import codechicken.core.gui.GuiScrollSlot;
 import codechicken.lib.gui.GuiDraw;
@@ -562,22 +562,22 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
 
     private static void parseFile(String resource, List<String> itemStrings) {
         final JsonParser parser = new JsonParser();
-        final String subsetNamespace = resource.substring(0, resource.lastIndexOf('.'));
+        final int dotIndex = resource.lastIndexOf('.');
+        final String subsetNamespace = dotIndex > 0 ? resource.substring(0, dotIndex) : resource;
         SubsetTag processedTag = new SubsetTag(subsetNamespace, new ItemStackSet());
 
         for (String itemStr : itemStrings) {
             try {
                 if (itemStr.startsWith("; ")) {
-                    final String handlerName = itemStr.substring(2);
-                    String recipeName = handlerName;
                     addTag(processedTag);
-                    IRecipeHandler recipeHandler = GuiCraftingRecipe.craftinghandlers.stream()
-                            .filter(handler -> handlerName.equals(getHandlerName(handler))).findAny().orElse(null);
 
-                    if (recipeHandler == null) {
-                        recipeHandler = GuiCraftingRecipe.serialCraftingHandlers.stream()
-                                .filter(handler -> handlerName.equals(getHandlerName(handler))).findAny().orElse(null);
-                    }
+                    final String handlerName = itemStr.substring(2);
+                    final IRecipeHandler recipeHandler = Stream
+                            .concat(
+                                    GuiCraftingRecipe.craftinghandlers.stream(),
+                                    GuiCraftingRecipe.serialCraftingHandlers.stream())
+                            .filter(handler -> handlerName.equals(getHandlerName(handler))).findFirst().orElse(null);
+                    String recipeName = handlerName;
 
                     if (recipeHandler != null) {
                         recipeName = recipeHandler.getRecipeName().trim();
@@ -587,13 +587,21 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
                             subsetNamespace + "." + recipeName.replace(".", ""),
                             new ItemStackSet());
                 } else {
-                    ((ItemStackSet) processedTag.filter)
-                            .add(StackInfo.loadFromNBT((NBTTagCompound) NBTJson.toNbt(parser.parse(itemStr))));
+                    final NBTBase nbt = NBTJson.toNbt(parser.parse(itemStr));
+
+                    if (nbt instanceof NBTTagCompound tag) {
+                        ((ItemStackSet) processedTag.filter).add(StackInfo.loadFromNBT(tag));
+                    } else {
+                        throw new IllegalArgumentException(
+                                "Expected NBTTagCompound but got " + nbt.getClass().getSimpleName());
+                    }
                 }
-            } catch (IllegalArgumentException | JsonSyntaxException | IllegalStateException e) {
-                NEIClientConfig.logger.error("Failed to load collapsible items from json string:\n{}", itemStr);
+            } catch (Exception e) {
+                NEIClientConfig.logger.error("Failed to load custom subset items from json string:\n{}", itemStr);
             }
         }
+
+        addTag(processedTag);
     }
 
     private static String getHandlerName(ICraftingHandler handler) {

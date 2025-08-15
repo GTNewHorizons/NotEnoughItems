@@ -1,18 +1,20 @@
 package codechicken.nei.commands;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import net.minecraft.command.CommandBase;
@@ -62,13 +64,13 @@ public class CommandRecipeId extends CommandBase {
             final Set<String> prevRecipes = loadFileContent(this.prevFile);
             final Set<String> currRecipes = loadFileContent(this.currFile);
             final Set<String> notAllowedRecipes = prevRecipes.stream().filter(recipe -> !currRecipes.contains(recipe))
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(TreeSet::new));
             final List<String> subsetsList = new ArrayList<>();
 
-            for (Map.Entry<String, Set<String>> entry : generateSubsets(notAllowedRecipes).entrySet()) {
-                subsetsList.add("; " + entry.getKey());
-                subsetsList.addAll(entry.getValue());
-            }
+            generateSubsets(notAllowedRecipes).forEach((handlerName, recipes) -> {
+                subsetsList.add("; " + handlerName);
+                subsetsList.addAll(recipes);
+            });
 
             saveFile(this.diffFile, subsetsList);
             saveFile(getFile("not-allowed-recipes"), new ArrayList<>(notAllowedRecipes));
@@ -87,7 +89,7 @@ public class CommandRecipeId extends CommandBase {
 
         private Map<String, Set<String>> generateSubsets(Set<String> notAllowedRecipes) {
             final JsonParser parser = new JsonParser();
-            final Map<String, Set<String>> subsetsBuilder = new HashMap<>();
+            final Map<String, Set<String>> subsetsBuilder = new TreeMap<>();
 
             for (String recipeStr : notAllowedRecipes) {
                 try {
@@ -96,7 +98,7 @@ public class CommandRecipeId extends CommandBase {
                     if (nbtRecipe.hasKey("result")) {
                         final NBTTagCompound nbtStack = nbtRecipe.getCompoundTag("result");
                         nbtStack.removeTag("Count");
-                        subsetsBuilder.computeIfAbsent(nbtRecipe.getString("handlerName"), rn -> new HashSet<>())
+                        subsetsBuilder.computeIfAbsent(nbtRecipe.getString("handlerName"), rn -> new TreeSet<>())
                                 .add(NBTJson.toJson(nbtStack));
                     } else {
                         NEIClientConfig.logger.error("Found Broken RecipeId {}", recipeStr);
@@ -147,19 +149,16 @@ public class CommandRecipeId extends CommandBase {
             NEIClientConfig.logger.info("Start processing recipe handlers!");
             sendChatInfoMessage(sender, "nei.chat.recipeid.dump.start");
 
-            try {
-                if (!this.currFile.exists()) this.currFile.createNewFile();
-
-                final PrintWriter recipes = new PrintWriter(this.currFile);
+            try (BufferedWriter writer = Files.newBufferedWriter(currFile.toPath(), StandardCharsets.UTF_8)) {
                 int total = ItemList.items.size();
                 int count = 0;
 
                 for (ItemStack stack : ItemList.items) {
 
-                    if ((count % 100) == 0) {
+                    if (count % 1000 == 0) {
                         NEIClientConfig.logger.info(
                                 "({}/{}). Processing {} crafting recipes...",
-                                count++,
+                                count,
                                 total,
                                 stack.getDisplayName());
                     }
@@ -167,12 +166,12 @@ public class CommandRecipeId extends CommandBase {
                     count++;
 
                     for (ICraftingHandler handler : getCraftingHandlers(stack)) {
-                        for (int index = 0; index < handler.numRecipes(); index++) {
+                        for (int index = 0, num = handler.numRecipes(); index < num; index++) {
                             try {
                                 final Recipe recipe = Recipe.of(handler, index);
-                                if (recipe != null
-                                        && (!recipe.getIngredients().isEmpty() && !recipe.getResults().isEmpty())) {
-                                    recipes.println(NBTJson.toJson(recipe.getRecipeId().toJsonObject()));
+                                if (!recipe.getIngredients().isEmpty() && !recipe.getResults().isEmpty()) {
+                                    writer.write(NBTJson.toJson(recipe.getRecipeId().toJsonObject()));
+                                    writer.newLine();
                                 }
                             } catch (Exception ex) {
                                 NEIClientConfig.logger.error(
@@ -185,7 +184,6 @@ public class CommandRecipeId extends CommandBase {
                     }
                 }
 
-                recipes.close();
             } catch (Exception e) {
                 NEIClientConfig.logger.error("Error dumping RecipeId", e);
             }
