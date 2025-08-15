@@ -17,3 +17,10 @@ sourceSets {
         java.srcDirs += ["build/generated/sources/search/antlr/"]
     }
 }
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}

@@ -21,17 +21,14 @@ QUOTE_LEFT        : '"' -> pushMode(QUOTED) ;
 DASH              : '-' ;
 PREFIX            : CLEAN_SYMBOL {searchParser.hasRedefinedPrefix(getText().charAt(0))}? ;
 OR                : '|' ;
-LEFT_BRACKET      : '\\(' ;
-RIGHT_BRACKET     : '\\)' ;
-PLAIN_TEXT        : (CLEAN_SYMBOL | ESCAPED_SPECIAL_SYMBOL)+ {!searchParser.hasRedefinedPrefix(getText().charAt(0))}? ;
+LEFT_BRACKET      : '{' ;
+RIGHT_BRACKET     : '}' ;
+PLAIN_TEXT        : (CLEAN_SYMBOL | ESCAPED_SYMBOL)+ {!searchParser.hasRedefinedPrefix(getText().charAt(0))}? ;
 NEWLINE_OR_TAB    : [\t\r\n] -> skip ;
 SPACE             : ' ' ;
 
-fragment SPECIAL_SYMBOL         : [-|/\\ "] ;
-fragment ESCAPED_SPECIAL_SYMBOL : '\\' SPECIAL_SYMBOL ;
-
-// Thanks to antlr4 regression have to specify everything manually
-fragment CLEAN_SYMBOL           : ~[-|/\\ "] ;
+fragment ESCAPED_SYMBOL         : '\\' . ;
+fragment CLEAN_SYMBOL           : ~[-{}|/\\ "] ;
 
 mode REGEX;
 

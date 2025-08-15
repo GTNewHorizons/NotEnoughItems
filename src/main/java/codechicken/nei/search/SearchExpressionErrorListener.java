@@ -12,7 +12,7 @@ public class SearchExpressionErrorListener extends BaseErrorListener {
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
             String msg, RecognitionException e) {
         NEIClientConfig.logger
-                .error("NEI Search Pattern exception on line " + line + " char " + charPositionInLine + ": " + msg);
+                .error("NEI Search grammar exception on line " + line + " char " + charPositionInLine + ": " + msg);
     }
 
 }

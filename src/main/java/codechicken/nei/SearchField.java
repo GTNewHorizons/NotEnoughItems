@@ -273,10 +273,16 @@ public class SearchField extends TextField implements ItemFilterProvider {
                 break;
         }
         // regex and extended+
+        final boolean doLogExceptions = NEIClientConfig.getBooleanSetting("inventory.search.logSearchExceptions");
         if (!search.isEmpty()) {
             try {
                 return Pattern.compile(search, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-            } catch (PatternSyntaxException ignored) {}
+            } catch (PatternSyntaxException e) {
+                if (doLogExceptions) {
+                    NEIClientConfig.logger
+                            .error("NEI Search pattern exception when parsing: " + search + ": " + e.getMessage());
+                }
+            }
         }
 
         return null;

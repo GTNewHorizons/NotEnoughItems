@@ -129,16 +129,27 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
                     }
                     return Stream.empty();
                 }).collect(Collectors.toList());
-                if (!filters.isEmpty()) {
-                    return filterConstructor.apply(filters);
-                }
+                return constructFilter(filters, filterConstructor);
             }
         }
         return defaultResult();
     }
 
     private ItemFilter getAlwaysProvidersFilter(String searchText) {
-        return new ItemList.AnyMultiItemFilter(searchParser.getAlwaysProvidersFilters(searchText));
+        final List<ItemFilter> filters = searchParser.getAlwaysProvidersFilters(searchText);
+        return constructFilter(filters, ItemList.AnyMultiItemFilter::new);
+    }
+
+    private ItemFilter constructFilter(List<ItemFilter> filters, Function<List<ItemFilter>, ItemFilter> constructor) {
+        if (!filters.isEmpty()) {
+            // Propagate the result up
+            if (filters.size() == 1) {
+                return filters.get(0);
+            }
+            return constructor.apply(filters);
+        } else {
+            return defaultResult();
+        }
     }
 
 }

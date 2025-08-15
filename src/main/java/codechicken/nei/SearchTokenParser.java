@@ -88,7 +88,7 @@ public class SearchTokenParser {
         }
     }
 
-    private static class IsRegisteredItemFilter implements ItemFilter {
+    public static class IsRegisteredItemFilter implements ItemFilter {
 
         public ItemFilter filter;
 
