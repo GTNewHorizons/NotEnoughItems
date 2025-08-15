@@ -580,3 +580,5 @@ nei.presets.mode.remove.char=R
 nei.presets.mode.group=Group
 nei.presets.mode.group.tip=Create custom collapsible items group
 nei.presets.mode.group.char=G
+
+nei.itemzoom.toggle=Use %s to toggle Item Zoom
