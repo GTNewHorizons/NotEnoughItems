@@ -5,13 +5,17 @@ import static net.minecraftforge.oredict.OreDictionary.itemMatches;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import codechicken.nei.NEIClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 
+import codechicken.nei.ClientHandler;
+import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 
 public class InformationHandler extends TemplateRecipeHandler {
@@ -111,6 +115,33 @@ public class InformationHandler extends TemplateRecipeHandler {
         public InformationPage(ItemStack item, String info) {
             this.item = item;
             this.info = info;
+        }
+    }
+
+    public static void load() {
+        ClientHandler.loadSettingsFile(
+                "informationpages.cfg",
+                lines -> parseFile(lines.collect(Collectors.toCollection(ArrayList::new))));
+    }
+
+    private static void parseFile(List<String> lines) {
+        for (String rawLine : lines) {
+            if (rawLine == null) continue;
+
+            String line = rawLine.trim();
+            if (line.isEmpty() || line.startsWith("#")) continue;
+
+            int sepIndex = line.indexOf('=');
+            if (sepIndex == -1) {
+                NEIClientConfig.logger.warn("[NEI Info] Invalid line (no '=') in config: {}", line);
+                continue;
+            }
+
+            String key = line.substring(0, sepIndex).trim();
+            String description = line.substring(sepIndex + 1).trim();
+            ItemStack item = NEIServerUtils.getModdedItem(key, null);
+
+            addInformationPage(item, description);
         }
     }
 }

@@ -58,6 +58,7 @@ import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
 import codechicken.nei.recipe.RecipeInfo;
 import codechicken.nei.util.NEIKeyboardUtils;
@@ -899,6 +900,7 @@ public class NEIClientConfig {
             LayoutManager.load();
             NEIController.load();
             BookmarkContainerInfo.load();
+            InformationHandler.load();
             mainNEIConfigLoaded = true;
 
             new Thread("NEI Plugin Loader") {
