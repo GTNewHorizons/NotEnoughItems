@@ -22,7 +22,7 @@ If you have issues with NEI outside of the GTNH modpack you may report them in t
 * Cycle between Recipe, Utility, and Cheat mode by ctrl clicking on the Wrench Icon
 * GT5u Tools/Items and GT6 tools should now properly work with the Overlay Recipe Transfer
 
-### Information Handler
+### Information Page Handler
 Want to add some information about a block or item without making a massive tooltip for it? You can add information about any block or item by registering it in the Information Handler.
 
 Matching information pages are displayed when either the uses or recipes of an item are searched.
@@ -79,6 +79,10 @@ If your item has subtypes (metadata), either:
 * Include the metadata in the itemName string: "modid:itemname:3", or
 * Omit the metadata to apply to only meta 0, or
 * Set the meta to OreDictionary.WILDCARD_VALUE (32767) to match all subtypes.
+
+#### Item Information Config File
+
+If you're a modpack creator and want to make custom item information pages, they can easily be made in `config/NEI/informationpages.cfg`.
 
 ## Other items of note:
 
