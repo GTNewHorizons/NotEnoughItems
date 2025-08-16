@@ -33,10 +33,10 @@ FMLInterModComms.sendMessage("NotEnoughItems", "addItemInfo", nbt);
 ```
 Where nbt is an NBTTagCompound formatted as described below.
 
-| Tag              | Type                    | Description                                                                                                                                                                                                                |
-|------------------|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `filter`         | String                  | A string filter to match what items should return this information page.<br/>modname:itemname, metadata, Ore Dictionary tags, and regex can all be used. The full format may be seen in `config/NEI/collapsibleitems.cfg`. |
-| `page` / `pages` | String / List\<String\> | The actual text to display. See below for differences between single and multi-page messages.<br/>Both formats will automatically translate provided strings.                                                              |
+| Tag              | Type                       | Description                                                                                                                                                                                                                |
+|------------------|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `filter`         | String                     | A string filter to match what items should return this information page.<br/>modname:itemname, metadata, Ore Dictionary tags, and regex can all be used. The full format may be seen in `config/NEI/collapsibleitems.cfg`. |
+| `page` / `pages` | String / String NBTTagList | The actual text to display. See below for differences between single and multi-page messages.<br/>Both formats will automatically translate provided strings.                                                              |
 
 #### Single Page Format
 
