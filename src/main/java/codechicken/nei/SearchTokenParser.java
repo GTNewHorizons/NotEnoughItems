@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
@@ -21,6 +24,8 @@ import codechicken.nei.ItemList.EverythingItemFilter;
 import codechicken.nei.ItemList.NegatedItemFilter;
 import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.api.ItemFilter;
+import codechicken.nei.search.SearchExpressionFilterVisitor;
+import codechicken.nei.search.SearchExpressionUtils;
 
 public class SearchTokenParser {
 
@@ -83,7 +88,7 @@ public class SearchTokenParser {
         }
     }
 
-    private static class IsRegisteredItemFilter implements ItemFilter {
+    public static class IsRegisteredItemFilter implements ItemFilter {
 
         public ItemFilter filter;
 
@@ -99,27 +104,34 @@ public class SearchTokenParser {
         }
     }
 
+    public static final Pattern SPACE_PATTERN = Pattern.compile(" ");
+
     protected final LRUCache<String, ItemFilter> filtersCache = new LRUCache<>(20);
     protected final List<ISearchParserProvider> searchProviders;
+    protected final Set<Character> redefinedPrefixes = new HashSet<>();
     protected final ProvidersCache providersCache = new ProvidersCache();
     protected final Map<Character, Character> prefixRedefinitions = new HashMap<>();
 
     public SearchTokenParser(List<ISearchParserProvider> searchProviders) {
         this.searchProviders = searchProviders;
+        updateRedefinedPrefixes();
     }
 
     public SearchTokenParser() {
         this(new ArrayList<>());
+        updateRedefinedPrefixes();
     }
 
     public void addProvider(ISearchParserProvider provider) {
         this.searchProviders.add(provider);
+        updateRedefinedPrefixes(provider);
         this.providersCache.clear();
         this.filtersCache.clear();
     }
 
     public void clearCache() {
         this.filtersCache.clear();
+        updateRedefinedPrefixes();
     }
 
     protected List<ISearchParserProvider> getProviders() {
@@ -149,7 +161,14 @@ public class SearchTokenParser {
         return providersCache.providers;
     }
 
+    public boolean hasRedefinedPrefix(char ch) {
+        return redefinedPrefixes.contains(ch);
+    }
+
     public ISearchParserProvider getProvider(char ch) {
+        if (!hasRedefinedPrefix(ch)) {
+            return null;
+        }
         return getProviders().stream()
                 .filter(
                         provider -> provider.getSearchMode() == SearchMode.PREFIX
@@ -157,23 +176,46 @@ public class SearchTokenParser {
                 .findFirst().orElse(null);
     }
 
+    public List<ItemFilter> getAlwaysProvidersFilters(String searchText) {
+        return getProviders().stream()
+                .filter(provider -> provider.getSearchMode() == SearchTokenParser.SearchMode.ALWAYS)
+                .map(provider -> provider.getFilter(searchText)).collect(Collectors.toList());
+    }
+
     public synchronized ItemFilter getFilter(String filterText) {
         filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
+        if (filterText == null || filterText.isEmpty()) {
+            return new EverythingItemFilter();
+        }
+        final int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+        final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
 
-        return this.filtersCache.computeIfAbsent(filterText, text -> {
-            final String[] parts = text.split("\\|");
-            final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText).filter(s -> s != null)
-                    .collect(Collectors.toList());
+        if (spaceModeEnabled == 1 && patternMode == 3) {
+            filterText = SearchTokenParser.SPACE_PATTERN.matcher(filterText).replaceAll("\\\\ ");
+        }
 
-            if (searchTokens.isEmpty()) {
-                return new EverythingItemFilter();
-            } else if (searchTokens.size() == 1) {
-                return new IsRegisteredItemFilter(searchTokens.get(0));
-            } else {
-                return new IsRegisteredItemFilter(new AnyMultiItemFilter(searchTokens));
-            }
+        if (patternMode != 3) {
+            return this.filtersCache.computeIfAbsent(filterText, text -> {
+                final String[] parts = text.split("\\|");
+                final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText)
+                        .filter(s -> s != null).collect(Collectors.toList());
 
-        });
+                if (searchTokens.isEmpty()) {
+                    return new EverythingItemFilter();
+                } else if (searchTokens.size() == 1) {
+                    return new IsRegisteredItemFilter(searchTokens.get(0));
+                } else {
+                    return new IsRegisteredItemFilter(new AnyMultiItemFilter(searchTokens));
+                }
+            });
+        } else {
+            return this.filtersCache.computeIfAbsent(filterText, text -> {
+                final SearchExpressionFilterVisitor visitor = new SearchExpressionFilterVisitor(this);
+                final ItemFilter searchToken = SearchExpressionUtils.visitSearchExpression(text, this, visitor);
+
+                return new IsRegisteredItemFilter(searchToken);
+            });
+        }
 
     }
 
@@ -235,19 +277,28 @@ public class SearchTokenParser {
     }
 
     private String getPrefixes() {
-        StringBuilder prefixes = new StringBuilder().append('\0');
-
-        for (ISearchParserProvider provider : getProviders()) {
-            if (provider.getSearchMode() == SearchMode.PREFIX) {
-                prefixes.append(getRedefinedPrefix(provider.getPrefix()));
-            }
-        }
-
-        return prefixes.toString();
+        return this.redefinedPrefixes.stream().collect(
+                Collector
+                        .of(StringBuilder::new, StringBuilder::append, StringBuilder::append, StringBuilder::toString));
     }
 
     public char getRedefinedPrefix(char prefix) {
         return this.prefixRedefinitions.getOrDefault(prefix, prefix);
+    }
+
+    public void updateRedefinedPrefixes() {
+        this.redefinedPrefixes.clear();
+        this.redefinedPrefixes.addAll(
+                getProviders().stream().filter(provider -> provider.getSearchMode() == SearchMode.PREFIX)
+                        .map(ISearchParserProvider::getPrefix).map(this::getRedefinedPrefix)
+                        .collect(Collectors.toSet()));
+        this.redefinedPrefixes.add('\0');
+    }
+
+    public void updateRedefinedPrefixes(ISearchParserProvider provider) {
+        if (provider.getSearchMode() == SearchMode.PREFIX) {
+            this.redefinedPrefixes.add(getRedefinedPrefix(provider.getPrefix()));
+        }
     }
 
     private ItemFilter parseSearchText(String filterText) {

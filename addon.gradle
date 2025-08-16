@@ -1,3 +1,26 @@
 compileJava {
     options.encoding = "UTF-8"
 }
+
+
+generateGrammarSource {
+    maxHeapSize = "128m"
+    arguments += ['-package', 'codechicken.nei.search', '-visitor', '-no-listener']
+    outputDirectory = file("${projectDir}/build/generated/sources/search/antlr/codechicken/nei/search/")
+}
+
+compileJava.dependsOn generateGrammarSource
+sourcesJar.dependsOn generateGrammarSource
+
+sourceSets {
+    main {
+        java.srcDirs += ["build/generated/sources/search/antlr/"]
+    }
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
