@@ -176,28 +176,20 @@ public class IMCHandler {
     }
 
     private static void addMultipleInfoPages(IMCMessage message) {
-        ItemStack itemStack = getItemStackFromIMC(message, "addItemInfo (multiple pages)");
-        if (itemStack == null) {
-            return;
-        }
-
         final NBTTagCompound tag = message.getNBTValue();
+        final String filter = tag.getString("filter");
         final NBTTagList pages = tag.getTagList("pages", 8); // 8 = TAG_String
         for (int i = 0; i < pages.tagCount(); i++) {
             String page = pages.getStringTagAt(i);
-            InformationHandler.addInformationPage(itemStack, page);
+            InformationHandler.addInformationPage(filter, page);
         }
     }
 
     private static void addSingleInfoPage(IMCMessage message) {
-        ItemStack itemStack = getItemStackFromIMC(message, "addItemInfo (single page)");
-        if (itemStack == null) {
-            return;
-        }
-
         final NBTTagCompound tag = message.getNBTValue();
+        String filter = tag.getString("filter");
         String page = tag.getString("page");
-        InformationHandler.addInformationPage(itemStack, page);
+        InformationHandler.addInformationPage(filter, page);
     }
 
     private static ItemStack getItemStackFromIMC(IMCMessage message, String logAction) {

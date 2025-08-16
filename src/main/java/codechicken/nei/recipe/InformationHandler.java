@@ -15,20 +15,27 @@ import codechicken.nei.ClientHandler;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
+import codechicken.nei.api.ItemFilter;
+import codechicken.nei.util.ItemStackFilterParser;
 
 public class InformationHandler extends TemplateRecipeHandler {
 
     private static final List<InformationPage> ITEM_INFO = new ArrayList<>();
-    private ItemStack currentStack;
 
-    public static void addInformationPage(ItemStack stack, String description) {
-        if (stack == null || stack.getItem() == null || description.isEmpty()) return;
-        ITEM_INFO.add(new InformationPage(stack, description));
+    public static void addInformationPage(String filter, String description) {
+        if (filter.isEmpty() || description.isEmpty()) return;
+        ITEM_INFO.add(new InformationPage(filter, description));
+    }
+
+    public static void populateStacks(ItemStack stack) {
+        for (InformationPage page : ITEM_INFO) {
+            page.addItem(stack);
+        }
     }
 
     @Override
     public void drawExtras(int recipe) {
-        CachedInfoRecipe page = (CachedInfoRecipe) this.arecipes.get(recipe);
+        CachedInfoPage page = (CachedInfoPage) this.arecipes.get(recipe);
         drawWrappedText(StatCollector.translateToLocal(page.getPage().info).replace("\\n", "\n"), 4, 24);
     }
 
@@ -38,6 +45,12 @@ public class InformationHandler extends TemplateRecipeHandler {
         for (String line : lines) {
             font.drawString(line, x, y, 0);
             y += 10;
+        }
+    }
+
+    public static void clearCache() {
+        for (InformationPage page : ITEM_INFO) {
+            page.items.clear();
         }
     }
 
@@ -53,24 +66,19 @@ public class InformationHandler extends TemplateRecipeHandler {
 
     @Override
     public void loadCraftingRecipes(ItemStack result) {
-        currentStack = result.copy();
-        currentStack.stackSize = 1;
         for (InformationPage page : ITEM_INFO) {
-            if (itemMatches(page.item, result, false)) {
-                arecipes.add(new CachedInfoRecipe(page));
+            for (ItemStack stack : page.items) {
+                if (itemMatches(stack, result, false)) {
+                    arecipes.add(new CachedInfoPage(page));
+                    break;
+                }
             }
         }
     }
 
     @Override
     public void loadUsageRecipes(ItemStack ingredient) {
-        currentStack = ingredient.copy();
-        currentStack.stackSize = 1;
-        for (InformationPage page : ITEM_INFO) {
-            if (itemMatches(page.item, ingredient, false)) {
-                arecipes.add(new CachedInfoRecipe(page));
-            }
-        }
+        loadCraftingRecipes(ingredient);
     }
 
     @Override
@@ -78,14 +86,14 @@ public class InformationHandler extends TemplateRecipeHandler {
         return "nei:textures/gui/recipebg.png";
     }
 
-    private class CachedInfoRecipe extends CachedRecipe {
+    private class CachedInfoPage extends CachedRecipe {
 
         private final InformationPage page;
         private final PositionedStack stack;
 
-        public CachedInfoRecipe(InformationPage page) {
+        public CachedInfoPage(InformationPage page) {
             this.page = page;
-            stack = new PositionedStack(page.item, 75, 2);
+            stack = new PositionedStack(page.items, 75, 2);
         }
 
         @Override
@@ -106,12 +114,20 @@ public class InformationHandler extends TemplateRecipeHandler {
 
     private static class InformationPage {
 
-        ItemStack item;
-        String info;
+        final List<ItemStack> items = new ArrayList<>();
+        final String info;
+        final ItemFilter filter;
 
-        public InformationPage(ItemStack item, String info) {
-            this.item = item;
+        public InformationPage(String filter, String info) {
+            this.filter = ItemStackFilterParser.parse(filter.trim());
             this.info = info;
+        }
+
+        /**
+         * Adds the item stack if it matches the filter.
+         */
+        public void addItem(ItemStack stack) {
+            if (filter.matches(stack)) items.add(stack);
         }
     }
 
@@ -131,11 +147,9 @@ public class InformationHandler extends TemplateRecipeHandler {
                 continue;
             }
 
-            String key = line.substring(0, sepIndex).trim();
+            String filter = line.substring(0, sepIndex).trim();
             String description = line.substring(sepIndex + 1).trim();
-            ItemStack item = NEIClientUtils.getModdedItem(key, null);
-
-            addInformationPage(item, description);
+            addInformationPage(filter, description);
         }
     }
 }
