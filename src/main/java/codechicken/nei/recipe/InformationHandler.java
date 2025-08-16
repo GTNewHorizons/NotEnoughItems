@@ -3,19 +3,17 @@ package codechicken.nei.recipe;
 import static net.minecraftforge.oredict.OreDictionary.itemMatches;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 
 import codechicken.nei.ClientHandler;
 import codechicken.nei.NEIClientConfig;
-import codechicken.nei.NEIServerUtils;
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
 
 public class InformationHandler extends TemplateRecipeHandler {
@@ -31,9 +29,7 @@ public class InformationHandler extends TemplateRecipeHandler {
     @Override
     public void drawExtras(int recipe) {
         CachedInfoRecipe page = (CachedInfoRecipe) this.arecipes.get(recipe);
-        if (page != null && !page.getIngredients().isEmpty()) {
-            drawWrappedText(StatCollector.translateToLocal(page.getPage().info).replace("\\n", "\n"), 4, 24);
-        }
+        drawWrappedText(StatCollector.translateToLocal(page.getPage().info).replace("\\n", "\n"), 4, 24);
     }
 
     private void drawWrappedText(String text, int x, int y) {
@@ -47,7 +43,7 @@ public class InformationHandler extends TemplateRecipeHandler {
 
     @Override
     public String getRecipeName() {
-        return StatCollector.translateToLocal("nei.recipe.information");
+        return NEIClientUtils.translate("recipe.information");
     }
 
     @Override
@@ -79,15 +75,17 @@ public class InformationHandler extends TemplateRecipeHandler {
 
     @Override
     public String getGuiTexture() {
-        return new ResourceLocation("nei", "textures/gui/recipebg.png").toString();
+        return "nei:textures/gui/recipebg.png";
     }
 
     private class CachedInfoRecipe extends CachedRecipe {
 
         private final InformationPage page;
+        private final PositionedStack stack;
 
         public CachedInfoRecipe(InformationPage page) {
             this.page = page;
+            stack = new PositionedStack(page.item, 75, 2);
         }
 
         @Override
@@ -96,10 +94,9 @@ public class InformationHandler extends TemplateRecipeHandler {
         }
 
         @Override
-        public List<PositionedStack> getIngredients() {
-            PositionedStack stack = new PositionedStack(page.item, 75, 2);
+        public PositionedStack getIngredient() {
             stack.setPermutationToRender((cycleticks / 20) % stack.getFilteredPermutations().size());
-            return Collections.singletonList(stack);
+            return stack;
         }
 
         public InformationPage getPage() {
@@ -126,10 +123,7 @@ public class InformationHandler extends TemplateRecipeHandler {
 
     private static void parseFile(List<String> lines) {
         for (String rawLine : lines) {
-            if (rawLine == null) continue;
-
             String line = rawLine.trim();
-            if (line.isEmpty() || line.startsWith("#")) continue;
 
             int sepIndex = line.indexOf('=');
             if (sepIndex == -1) {
@@ -139,7 +133,7 @@ public class InformationHandler extends TemplateRecipeHandler {
 
             String key = line.substring(0, sepIndex).trim();
             String description = line.substring(sepIndex + 1).trim();
-            ItemStack item = NEIServerUtils.getModdedItem(key, null);
+            ItemStack item = NEIClientUtils.getModdedItem(key, null);
 
             addInformationPage(item, description);
         }
