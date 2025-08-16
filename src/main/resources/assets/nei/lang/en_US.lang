@@ -520,6 +520,8 @@ nei.recipe.favorite=Favorite
 nei.recipe.favorite.bookmark_recipe=Save Recipe Tree
 nei.recipe.favorite.change_result_index=Change Output
 
+nei.recipe.information=Information
+
 nei.itemsort.minecraft=Minecraft
 nei.itemsort.minecraft.tip=Sorts items from vanilla minecraft first
 nei.itemsort.mod=Mod
