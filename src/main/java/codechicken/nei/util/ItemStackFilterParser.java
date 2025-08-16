@@ -26,9 +26,9 @@ import cpw.mods.fml.common.registry.GameData;
  * @formatter:off
  *
  * parts:
- * modname:itemid          - identify
- * <modname:itemid(:meta)> - strict identify
- * $orename                - ore dictionary
+ * modname:itemid          - identify: matches any part of the target, so minecraft:lava matches minecraft:lava_bucket
+ * <modname:itemid(:meta)> - strict item identify, use meta 32767 for all subtypes
+ * $orename                - ore dictionary: matches any part of the target, so $ingot matches ingotIron, ingotGold, etc.
  * tag.color=red           - tag
  * 0 or 0-12               - damage
  *
