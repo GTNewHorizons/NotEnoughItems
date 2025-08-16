@@ -13,8 +13,8 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
 
 import codechicken.lib.gui.GuiDraw;
-import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
+import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.BookmarksGridSlot;
@@ -52,6 +52,12 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
             final GuiCraftingRecipe gui = new GuiCraftingRecipe(handlers, "recipeId".equals(outputId));
 
             if (open) {
+
+                if (NEIClientConfig.showHistoryPanelWidget() && "item".equals(outputId)
+                        && results[0] instanceof ItemStack stack) {
+                    ItemPanels.itemPanel.historyPanel.addItem(stack);
+                }
+
                 mc.displayGuiScreen(gui);
             }
 
@@ -123,8 +129,18 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
             recipeId = panelSlot.getRecipeId();
         }
 
-        if (recipeId == null) {
-            recipeId = FavoriteRecipes.getFavorite(stackover);
+        ItemsGridSlot itemSlot = ItemPanels.itemPanel.getSlotMouseOver(mouseover.x, mouseover.y);
+
+        if (itemSlot == null) {
+            itemSlot = ItemPanels.itemPanel.historyPanel.getSlotMouseOver(mouseover.x, mouseover.y);
+        }
+
+        if (itemSlot == null) {
+            itemSlot = ItemPanels.itemPanel.craftablesPanel.getSlotMouseOver(mouseover.x, mouseover.y);
+        }
+
+        if (itemSlot != null) {
+            return itemSlot.getRecipeId();
         }
 
         return recipeId;

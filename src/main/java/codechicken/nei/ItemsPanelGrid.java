@@ -14,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.recipe.Recipe.RecipeId;
 
 public class ItemsPanelGrid extends ItemsGrid<ItemsPanelGrid.ItemsPanelGridSlot, ItemsPanelGrid.MouseContext> {
 
@@ -35,6 +36,11 @@ public class ItemsPanelGrid extends ItemsGrid<ItemsPanelGrid.ItemsPanelGridSlot,
 
         public ItemStack getBGItem() {
             return this.bgItemStack;
+        }
+
+        @Override
+        public RecipeId getRecipeId() {
+            return FavoriteRecipes.getFavorite(this.item);
         }
 
         @Override

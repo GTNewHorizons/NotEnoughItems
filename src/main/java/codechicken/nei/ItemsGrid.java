@@ -20,6 +20,7 @@ import org.lwjgl.opengl.GL30;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.StackInfo;
 
 public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends ItemsGrid.MouseContext> {
@@ -170,6 +171,10 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
         }
 
         public <M extends MouseContext> void afterDraw(Rectangle4i rect, M mouseContext) {}
+
+        public RecipeId getRecipeId() {
+            return null;
+        }
 
         public void drawItem(Rectangle4i rect) {
             drawItem(getItemStack(), rect);

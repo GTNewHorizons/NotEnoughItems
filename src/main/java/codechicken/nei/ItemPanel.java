@@ -32,7 +32,8 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
     }
 
     public ItemHistoryPanel historyPanel = new ItemHistoryPanel();
-    public Button toggleGroups;
+    public ItemCraftablesPanel craftablesPanel = new ItemCraftablesPanel();
+    protected Button toggleGroups;
 
     @Deprecated
     public static class ItemPanelSlot extends ItemsPanelGridSlot {
@@ -82,6 +83,11 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
         super.init();
 
         toggleGroups = new Button("G") {
+
+            @Override
+            public String getRenderLabel() {
+                return NEIClientUtils.translate("itempanel.collapsed.button");
+            }
 
             @Override
             public String getButtonTip() {
@@ -141,26 +147,38 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
     }
 
     protected int resizeFooter(GuiContainer gui) {
-        if (!NEIClientConfig.showItemQuantityWidget() && NEIClientConfig.isSearchWidgetCentered()
-                && !NEIClientConfig.showHistoryPanelWidget()) {
+        int footerY = y + h;
+        int footerHeight = 0;
+
+        if (grid.getPerPage() == 0) {
             return 0;
+        }
+
+        if (NEIClientConfig.showItemQuantityWidget() || !NEIClientConfig.isSearchWidgetCentered()) {
+            footerY = LayoutManager.quantity.y;
+            footerHeight = LayoutManager.quantity.h + PanelWidget.PADDING;
         }
 
         if (NEIClientConfig.showHistoryPanelWidget()) {
             historyPanel.x = x;
-            historyPanel.w = w;
-            historyPanel.h = 8 + ItemsGrid.SLOT_SIZE * NEIClientConfig.getIntSetting("inventory.history.useRows");
 
-            if (NEIClientConfig.showItemQuantityWidget() || !NEIClientConfig.isSearchWidgetCentered()) {
-                historyPanel.y = LayoutManager.quantity.y - historyPanel.h - PanelWidget.PADDING;
-                return LayoutManager.quantity.h + historyPanel.h + PanelWidget.PADDING * 2;
-            } else {
-                historyPanel.y = y + h - historyPanel.h;
-                return historyPanel.h + PanelWidget.PADDING;
+            if (historyPanel.setPanelWidth(w) != 0) {
+                footerY = historyPanel.y = footerY - historyPanel.h;
+                footerHeight += historyPanel.h;
+            }
+
+        }
+
+        if (NEIClientConfig.showCraftablesPanelWidget()) {
+            craftablesPanel.x = x;
+
+            if (craftablesPanel.setPanelWidth(w) != 0) {
+                footerY = craftablesPanel.y = footerY - craftablesPanel.h;
+                footerHeight += craftablesPanel.h;
             }
         }
 
-        return LayoutManager.quantity.h + PanelWidget.PADDING;
+        return footerHeight;
     }
 
     @Override
@@ -168,20 +186,27 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
         super.setVisible();
 
         if (grid.getPerPage() > 0) {
+
             if (!CollapsibleItems.isEmpty() && !grid.isEmpty()) {
                 LayoutManager.addWidget(toggleGroups);
             }
 
-            if (NEIClientConfig.showHistoryPanelWidget() && (!grid.isEmpty() || !historyPanel.isEmpty())) {
+            if (NEIClientConfig.showCraftablesPanelWidget()) {
+                LayoutManager.addWidget(craftablesPanel);
+            }
+
+            if (NEIClientConfig.showHistoryPanelWidget()) {
                 LayoutManager.addWidget(historyPanel);
             }
+
         }
     }
 
     @Override
     public void resize(GuiContainer gui) {
         super.resize(gui);
-        historyPanel.resize(gui);
+        this.historyPanel.resize(gui);
+        this.craftablesPanel.resize(gui);
     }
 
     protected ItemStack getDraggedStackWithQuantity(ItemStack itemStack) {

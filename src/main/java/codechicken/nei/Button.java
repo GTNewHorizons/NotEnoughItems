@@ -15,7 +15,7 @@ public abstract class Button extends Widget {
     }
 
     public int contentWidth() {
-        return getRenderIcon() == null ? getStringWidth(label) : getRenderIcon().width;
+        return getRenderIcon() == null ? getStringWidth(getRenderLabel()) : getRenderIcon().width;
     }
 
     @Override

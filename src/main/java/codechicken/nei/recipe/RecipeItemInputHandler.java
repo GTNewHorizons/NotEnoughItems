@@ -11,6 +11,7 @@ import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
+import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.api.ShortcutInputHandler;
 import codechicken.nei.bookmark.BookmarksGridSlot;
@@ -100,9 +101,20 @@ public class RecipeItemInputHandler implements IContainerInputHandler, IContaine
             return null;
         }
 
-        if (ItemPanels.itemPanel.contains(mousex, mousey)
-                || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey)) {
-            return NEIClientConfig.showRecipeTooltipInPanel() ? FavoriteRecipes.getFavorite(itemstack) : null;
+        if (NEIClientConfig.showRecipeTooltipInPanel()) {
+            ItemsGridSlot panelSlot = ItemPanels.itemPanel.getSlotMouseOver(mousex, mousey);
+
+            if (panelSlot == null) {
+                panelSlot = ItemPanels.itemPanel.historyPanel.getSlotMouseOver(mousex, mousey);
+            }
+
+            if (panelSlot == null) {
+                panelSlot = ItemPanels.itemPanel.craftablesPanel.getSlotMouseOver(mousex, mousey);
+            }
+
+            if (panelSlot != null) {
+                return panelSlot.getRecipeId();
+            }
         }
 
         if (gui instanceof GuiRecipe<?>guiRecipe
