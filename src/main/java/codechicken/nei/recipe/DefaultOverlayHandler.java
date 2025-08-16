@@ -82,21 +82,20 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         assignIngredSlots(gui, ingredients, assignedIngredients);
         multiplier = Math.min(multiplier == 0 ? 64 : multiplier, calculateRecipeQuantity(assignedIngredients));
 
-        if (multiplier != 0) {
-            moveIngredients(gui, assignedIngredients, (int) multiplier);
-        }
+        moveIngredients(gui, assignedIngredients, Math.max(1, multiplier));
 
-        return multiplier;
+        return assignedIngredients.stream().anyMatch(distrib -> distrib.distrib.distributed == 0) ? 0 : multiplier;
     }
 
     @Override
     public boolean canFillCraftingGrid(GuiContainer firstGui, IRecipeHandler handler, int recipeIndex) {
-        return presenceOverlay(firstGui, handler, recipeIndex).stream().allMatch(state -> state.isPresent());
+        return true;
     }
 
     @Override
     public boolean canCraft(GuiContainer firstGui, IRecipeHandler handler, int recipeIndex) {
-        return canFillCraftingGrid(firstGui, handler, recipeIndex);
+        return canFillCraftingGrid(firstGui, handler, recipeIndex)
+                && presenceOverlay(firstGui, handler, recipeIndex).stream().allMatch(state -> state.isPresent());
     }
 
     @Override
@@ -227,6 +226,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
 
         for (IngredientDistribution distrib : assignedIngredients) {
             final DistributedIngred istack = distrib.distrib;
+            if (istack.distributed == 0) continue;
             if (istack.numSlots == 0) return 0;
 
             final int maxStackSize = istack.stack.getMaxStackSize();
@@ -318,8 +318,10 @@ public class DefaultOverlayHandler implements IOverlayHandler {
                 }
             }
 
-            if (biggestIngred == null) // not enough ingreds
-                return null;
+            if (biggestIngred == null) {
+                biggestIngred = new DistributedIngred(posstack.item);
+                permutation = InventoryUtils.copyStack(posstack.item, 0);
+            }
 
             biggestIngred.distributed += permutation.stackSize;
             assignedIngredients.add(new IngredientDistribution(biggestIngred, permutation));
