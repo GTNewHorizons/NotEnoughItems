@@ -155,6 +155,10 @@ public class GuiOverlayButton extends GuiRecipeButton {
                 NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
                 NEIClientUtils.translate("recipe.overlay.bookmarkRecipe"));
 
+        hotkeys.put(
+                NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
+                NEIClientUtils.translate("recipe.overlay.bookmarkRecipeAndCount"));
+
         return hotkeys;
     }
 
@@ -309,7 +313,8 @@ public class GuiOverlayButton extends GuiRecipeButton {
         final Recipe recipe = getRecipe();
 
         if (!ItemPanels.bookmarkPanel.removeRecipe(recipe.getRecipeId(), BookmarkGrid.DEFAULT_GROUP_ID)) {
-            ItemPanels.bookmarkPanel.addRecipe(recipe, BookmarkGrid.DEFAULT_GROUP_ID);
+            ItemPanels.bookmarkPanel
+                    .addRecipe(recipe, NEIClientUtils.controlKey() ? 1 : 0, BookmarkGrid.DEFAULT_GROUP_ID);
         }
     }
 
