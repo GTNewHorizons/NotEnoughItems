@@ -1,8 +1,7 @@
 package codechicken.nei.recipe;
 
-import static net.minecraftforge.oredict.OreDictionary.itemMatches;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -67,11 +66,8 @@ public class InformationHandler extends TemplateRecipeHandler {
     @Override
     public void loadCraftingRecipes(ItemStack result) {
         for (InformationPage page : ITEM_INFO) {
-            for (ItemStack stack : page.items) {
-                if (itemMatches(stack, result, false)) {
-                    arecipes.add(new CachedInfoPage(page));
-                    break;
-                }
+            if (page.filter.matches(result)) {
+                arecipes.add(new CachedInfoPage(page));
             }
         }
     }
@@ -102,9 +98,8 @@ public class InformationHandler extends TemplateRecipeHandler {
         }
 
         @Override
-        public PositionedStack getIngredient() {
-            stack.setPermutationToRender((cycleticks / 20) % stack.getFilteredPermutations().size());
-            return stack;
+        public List<PositionedStack> getIngredients() {
+            return getCycledIngredients(cycleticks / 20, Collections.singletonList(this.stack));
         }
 
         public InformationPage getPage() {
