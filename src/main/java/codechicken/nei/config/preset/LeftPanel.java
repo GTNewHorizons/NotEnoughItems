@@ -86,6 +86,7 @@ public class LeftPanel extends GuiWidget {
     protected Label modeLabel = new Label(NEIClientUtils.translate("presets.mode"), false);
 
     protected CheckboxButton modeHide;
+    protected CheckboxButton modeSubset;
     protected CheckboxButton modeRemove;
     protected CheckboxButton modeGroup;
 
@@ -111,6 +112,19 @@ public class LeftPanel extends GuiWidget {
             @Override
             protected void onChange() {
                 preset.mode = this.checked ? PresetMode.HIDE : null;
+            }
+        };
+
+        modeSubset = new CheckboxButton(NEIClientUtils.translate("presets.mode.subset")) {
+
+            @Override
+            public boolean isChecked() {
+                return preset.mode == PresetMode.SUBSET;
+            }
+
+            @Override
+            protected void onChange() {
+                preset.mode = this.checked ? PresetMode.SUBSET : null;
             }
         };
 
@@ -162,6 +176,10 @@ public class LeftPanel extends GuiWidget {
 
         if (modeHide.contains(x, y)) {
             modeHide.handleClick(x, y, button);
+        }
+
+        if (modeSubset.contains(x, y)) {
+            modeSubset.handleClick(x, y, button);
         }
 
         if (modeRemove.contains(x, y)) {
@@ -248,7 +266,7 @@ public class LeftPanel extends GuiWidget {
 
     @Override
     public void update() {
-        int CHECKBOX_WIDTH = (this.width - 12) / 3;
+        int CHECKBOX_WIDTH = (this.width - 12) / 4;
         nameLabel.x = this.x + 2;
         nameLabel.y = this.y + 4;
         nameLabel.w = this.width;
@@ -269,12 +287,13 @@ public class LeftPanel extends GuiWidget {
         modeLabel.w = this.width;
         modeLabel.h = 10;
 
-        modeHide.w = modeRemove.w = modeGroup.w = CHECKBOX_WIDTH;
-        modeHide.h = modeRemove.h = modeGroup.h = INPUT_HEIGHT;
-        modeHide.y = modeRemove.y = modeGroup.y = modeLabel.y + modeLabel.h;
+        modeHide.w = modeSubset.w = modeRemove.w = modeGroup.w = CHECKBOX_WIDTH;
+        modeHide.h = modeSubset.h = modeRemove.h = modeGroup.h = INPUT_HEIGHT;
+        modeHide.y = modeSubset.y = modeRemove.y = modeGroup.y = modeLabel.y + modeLabel.h;
 
         modeHide.x = this.x + 1;
-        modeRemove.x = modeHide.x + modeHide.w + 6;
+        modeSubset.x = modeHide.x + modeHide.w + 6;
+        modeRemove.x = modeSubset.x + modeSubset.w + 6;
         modeGroup.x = modeRemove.x + modeRemove.w + 6;
 
         grid.setGridSize(
@@ -292,6 +311,7 @@ public class LeftPanel extends GuiWidget {
 
         modeLabel.draw(mousex, mousey);
         modeHide.draw(mousex, mousey);
+        modeSubset.draw(mousex, mousey);
         modeRemove.draw(mousex, mousey);
         modeGroup.draw(mousex, mousey);
 
@@ -326,6 +346,8 @@ public class LeftPanel extends GuiWidget {
 
         } else if (modeHide.contains(mousex, mousey)) {
             tooltip.add(NEIClientUtils.translate("presets.mode.hide.tip"));
+        } else if (modeSubset.contains(mousex, mousey)) {
+            tooltip.add(NEIClientUtils.translate("presets.mode.subset.tip"));
         } else if (modeRemove.contains(mousex, mousey)) {
             tooltip.add(NEIClientUtils.translate("presets.mode.remove.tip"));
         } else if (modeGroup.contains(mousex, mousey)) {

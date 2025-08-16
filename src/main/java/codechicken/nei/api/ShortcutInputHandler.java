@@ -24,6 +24,7 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.SearchField;
 import codechicken.nei.bookmark.BookmarkGrid;
+import codechicken.nei.bookmark.BookmarkGroup;
 import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.recipe.AutoCraftingManager;
@@ -378,15 +379,56 @@ public abstract class ShortcutInputHandler {
         final RecipeId recipeId = getHotkeyRecipeId(gui, mousex, mousey, stack, slot);
 
         if (slot != null) {
-            hotkeys.put(
-                    NEIClientConfig.getKeyName("gui.bookmark"),
-                    NEIClientUtils.translate(slot.isIngredient() ? "bookmark.remove_item" : "bookmark.remove_recipe"));
+            final BookmarkGroup group = slot.getGroup();
 
-            if (slot.isIngredient()) {
+            if (group.crafting != null && group.collapsed) {
                 hotkeys.put(
                         NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
-                        NEIClientUtils.translate("bookmark.remove_recipe"));
-            }
+                        NEIClientUtils.translate("bookmark.group.remove_recipe"));
+            } else if (slot.getRecipeId() == null) {
+                hotkeys.put(
+                        NEIClientConfig.getKeyName("gui.bookmark"),
+                        NEIClientUtils.translate("bookmark.remove_item"));
+            } else if (group.crafting != null && group.crafting.recipeRelations.entrySet().stream().anyMatch(
+                    entry -> entry.getKey().equals(slot.getRecipeId())
+                            || entry.getValue().contains(slot.getRecipeId()))) {
+                                hotkeys.put(
+                                        NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                                        NEIClientUtils.translate("bookmark.remove_recipe"));
+                            } else {
+                                hotkeys.put(
+                                        NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                                        NEIClientUtils.translate("bookmark.remove_recipe"));
+
+                                if (slot.isIngredient()) {
+                                    hotkeys.put(
+                                            NEIClientConfig.getKeyName("gui.bookmark"),
+                                            NEIClientUtils.translate("bookmark.remove_item"));
+
+                                    hotkeys.put(
+                                            NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                                            NEIClientUtils.translate("bookmark.remove_recipe"));
+                                } else {
+                                    final BookmarkItem item = slot.getBookmarkItem();
+
+                                    if (ItemPanels.bookmarkPanel.getGrid().createChainItems(groupId).values().stream()
+                                            .noneMatch(
+                                                    m -> !m.isIngredient && !m.equals(item) && item.equalsRecipe(m))) {
+                                        hotkeys.put(
+                                                NEIClientConfig.getKeyName("gui.bookmark"),
+                                                NEIClientUtils.translate("bookmark.remove_recipe"));
+                                    } else {
+                                        hotkeys.put(
+                                                NEIClientConfig.getKeyName("gui.bookmark"),
+                                                NEIClientUtils.translate("bookmark.remove_item"));
+                                        hotkeys.put(
+                                                NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                                                NEIClientUtils.translate("bookmark.remove_recipe"));
+                                    }
+
+                                }
+
+                            }
 
             if (BookmarkContainerInfo.getBookmarkContainerHandler(gui) != null) {
                 hotkeys.put(
