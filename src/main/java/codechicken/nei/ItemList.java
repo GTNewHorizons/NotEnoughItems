@@ -293,7 +293,7 @@ public class ItemList {
         @Override
         @SuppressWarnings("unchecked")
         public void execute() {
-            if (!NEIClientConfig.isEnabled()) return;
+            if (!NEIClientConfig.isEnabled() || NEIClientUtils.mc().thePlayer == null) return;
 
             ThreadOperationTimer timer = getTimer(NEIClientConfig.getItemLoadingTimeout());
             LayoutManager.itemsLoaded = true;
