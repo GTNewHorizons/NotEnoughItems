@@ -359,7 +359,7 @@ public class BookmarkStorage {
             IOUtils.writeLines(strings, "\n", output, StandardCharsets.UTF_8);
             NEIClientConfig.world.nbt.setTag("bookmark", navigation);
         } catch (IOException e) {
-            NEIClientConfig.logger.error("Filed to save bookmarks list to file {}", bookmarkFile, e);
+            NEIClientConfig.logger.error("Failed to save bookmarks list to file {}", bookmarkFile, e);
         }
     }
 

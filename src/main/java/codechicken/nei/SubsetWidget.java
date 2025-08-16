@@ -1,6 +1,7 @@
 package codechicken.nei;
 
 import java.awt.Point;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -14,15 +15,19 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.opengl.GL11;
+
+import com.google.gson.JsonParser;
 
 import codechicken.core.gui.GuiScrollSlot;
 import codechicken.lib.gui.GuiDraw;
@@ -36,6 +41,12 @@ import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerTooltipHandler;
+import codechicken.nei.recipe.GuiCraftingRecipe;
+import codechicken.nei.recipe.GuiRecipeTab;
+import codechicken.nei.recipe.ICraftingHandler;
+import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.util.NBTJson;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class SubsetWidget extends Button implements ItemFilterProvider, IContainerTooltipHandler {
@@ -546,6 +557,68 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
         if (ItemList.loadFinished) {
             updateState.restart();
         }
+    }
+
+    public static void loadCustomSubsets() {
+        File dir = new File(NEIClientConfig.configDir, "subsets");
+
+        if (!dir.exists() || !dir.isDirectory()) {
+            return;
+        }
+
+        Stream.of(dir.listFiles()).filter(file -> !file.isDirectory()).forEach(file -> {
+            ClientHandler.loadSettingsFile(
+                    "subsets/" + file.getName(),
+                    lines -> parseFile(file.getName(), lines.collect(Collectors.toList())));
+        });
+    }
+
+    private static void parseFile(String resource, List<String> itemStrings) {
+        final JsonParser parser = new JsonParser();
+        final int dotIndex = resource.lastIndexOf('.');
+        final String subsetNamespace = dotIndex > 0 ? resource.substring(0, dotIndex) : resource;
+        SubsetTag processedTag = new SubsetTag(subsetNamespace, new ItemStackSet());
+
+        for (String itemStr : itemStrings) {
+            try {
+                if (itemStr.startsWith("; ")) {
+                    addTag(processedTag);
+
+                    final String handlerName = itemStr.substring(2);
+                    final IRecipeHandler recipeHandler = Stream
+                            .concat(
+                                    GuiCraftingRecipe.craftinghandlers.stream(),
+                                    GuiCraftingRecipe.serialCraftingHandlers.stream())
+                            .filter(handler -> handlerName.equals(getHandlerName(handler))).findFirst().orElse(null);
+                    String recipeName = handlerName;
+
+                    if (recipeHandler != null) {
+                        recipeName = recipeHandler.getRecipeName().trim();
+                    }
+
+                    processedTag = new SubsetTag(
+                            subsetNamespace + "." + recipeName.replace(".", ""),
+                            new ItemStackSet());
+                } else {
+                    final NBTBase nbt = NBTJson.toNbt(parser.parse(itemStr));
+
+                    if (nbt instanceof NBTTagCompound tag) {
+                        ((ItemStackSet) processedTag.filter).add(StackInfo.loadFromNBT(tag));
+                    } else {
+                        throw new IllegalArgumentException(
+                                "Expected NBTTagCompound but got " + nbt.getClass().getSimpleName());
+                    }
+                }
+            } catch (Exception e) {
+                NEIClientConfig.logger.error("Failed to load custom subset items from json string:\n{}", itemStr);
+            }
+        }
+
+        addTag(processedTag);
+    }
+
+    private static String getHandlerName(ICraftingHandler handler) {
+        return GuiRecipeTab.getHandlerInfo(handler).getHandlerName();
     }
 
     public static void loadHidden() {
