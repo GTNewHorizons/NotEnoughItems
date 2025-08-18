@@ -712,11 +712,9 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
             final ItemStack stack = items.get((items.size() - scroll + stackIndex) % items.size());
 
             if (NEIClientConfig.useJEIStyledCycledIngredients()) {
-                for (PositionedStack pStack : getIngredientStacks(recipe)) {
-                    if (pStack.containsWithNBT(stack)) {
-                        pStack.setPermutationToRender(stack);
-                    }
-                }
+                Stream.concat(getIngredientStacks(recipe).stream(), getOtherStacks(recipe).stream())
+                        .filter(pStack -> pStack.containsWithNBT(stack))
+                        .forEach(pStack -> pStack.setPermutationToRender(stack));
             } else {
                 overStack.setPermutationToRender(stack);
             }
