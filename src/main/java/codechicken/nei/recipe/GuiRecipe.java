@@ -34,6 +34,7 @@ import codechicken.nei.PositionedStack;
 import codechicken.nei.RecipeSearchField;
 import codechicken.nei.RestartableTask;
 import codechicken.nei.SearchField;
+import codechicken.nei.SearchTokenParser;
 import codechicken.nei.VisiblityData;
 import codechicken.nei.api.IGuiContainerOverlay;
 import codechicken.nei.api.INEIGuiHandler;
@@ -49,6 +50,8 @@ import codechicken.nei.guihook.IGuiClientSide;
 import codechicken.nei.guihook.IGuiHandleMouseWheel;
 import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.search.RecipeSearchExpressionFilterVisitor;
+import codechicken.nei.search.SearchExpressionUtils;
 import codechicken.nei.util.NEIMouseUtils;
 
 public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer implements IGuiContainerOverlay,
@@ -168,6 +171,165 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
     }
 
+    public static class AnyRecipeFilter {
+
+        protected ItemFilter filter;
+
+        public AnyRecipeFilter(ItemFilter filter) {
+            this.filter = filter;
+        }
+
+        protected boolean matchPositionedStack(List<PositionedStack> items) {
+            boolean allStacksNull = true;
+            for (PositionedStack pStack : items) {
+                if (pStack != null) {
+                    allStacksNull = false;
+                    if (matchPositionedStack(pStack)) {
+                        return true;
+                    }
+                }
+            }
+            return allStacksNull ? true : false;
+        }
+
+        protected boolean matchPositionedStack(PositionedStack pStack) {
+            // only happens in result
+            if (pStack == null) {
+                return true;
+            }
+
+            for (ItemStack stack : pStack.items) {
+                if (filter.matches(stack)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+    }
+
+    public static class AllRecipeFilter {
+
+        protected ItemFilter filter;
+
+        public AllRecipeFilter(ItemFilter filter) {
+            this.filter = filter;
+        }
+
+        protected boolean matchPositionedStack(List<PositionedStack> items) {
+            for (PositionedStack pStack : items) {
+                if (!matchPositionedStack(pStack)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        protected boolean matchPositionedStack(PositionedStack pStack) {
+            if (pStack != null) {
+                for (ItemStack stack : pStack.items) {
+                    if (!filter.matches(stack)) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+    }
+
+    public static class IngredientsItemRecipeFilter extends AnyRecipeFilter implements IRecipeFilter {
+
+        public IngredientsItemRecipeFilter(ItemFilter filter) {
+            super(filter);
+        }
+
+        @Override
+        public boolean matches(IRecipeHandler handler, List<PositionedStack> ingredients, PositionedStack result,
+                List<PositionedStack> others) {
+
+            return matchPositionedStack(ingredients);
+        }
+
+    }
+
+    public static class AllIngredientsItemRecipeFilter extends AllRecipeFilter implements IRecipeFilter {
+
+        public AllIngredientsItemRecipeFilter(ItemFilter filter) {
+            super(filter);
+        }
+
+        @Override
+        public boolean matches(IRecipeHandler handler, List<PositionedStack> ingredients, PositionedStack result,
+                List<PositionedStack> others) {
+
+            return matchPositionedStack(ingredients);
+        }
+
+    }
+
+    public static class ResultItemRecipeFilter extends AnyRecipeFilter implements IRecipeFilter {
+
+        public ResultItemRecipeFilter(ItemFilter filter) {
+            super(filter);
+        }
+
+        @Override
+        public boolean matches(IRecipeHandler handler, List<PositionedStack> ingredients, PositionedStack result,
+                List<PositionedStack> others) {
+
+            return matchPositionedStack(result);
+        }
+
+    }
+
+    public static class AllResultItemRecipeFilter extends AllRecipeFilter implements IRecipeFilter {
+
+        public AllResultItemRecipeFilter(ItemFilter filter) {
+            super(filter);
+        }
+
+        @Override
+        public boolean matches(IRecipeHandler handler, List<PositionedStack> ingredients, PositionedStack result,
+                List<PositionedStack> others) {
+
+            return matchPositionedStack(result);
+        }
+
+    }
+
+    public static class OthersItemRecipeFilter extends AnyRecipeFilter implements IRecipeFilter {
+
+        public OthersItemRecipeFilter(ItemFilter filter) {
+            super(filter);
+        }
+
+        @Override
+        public boolean matches(IRecipeHandler handler, List<PositionedStack> ingredients, PositionedStack result,
+                List<PositionedStack> others) {
+
+            return matchPositionedStack(others);
+        }
+
+    }
+
+    public static class AllOthersItemRecipeFilter extends AllRecipeFilter implements IRecipeFilter {
+
+        public AllOthersItemRecipeFilter(ItemFilter filter) {
+            super(filter);
+        }
+
+        @Override
+        public boolean matches(IRecipeHandler handler, List<PositionedStack> ingredients, PositionedStack result,
+                List<PositionedStack> others) {
+
+            return matchPositionedStack(others);
+        }
+
+    }
+
     public static class AllMultiRecipeFilter implements IRecipeFilter {
 
         public List<IRecipeFilter> filters;
@@ -214,7 +376,17 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                         searchHandler.setSearchIndices(null);
                         guiRecipe.changePage(0);
                     } else {
-                        final IRecipeFilter filter = new ItemRecipeFilter(GuiRecipe.searchField.getFilter());
+                        IRecipeFilter filter = null;
+                        if (NEIClientConfig.getIntSetting("inventory.search.patternMode") != 3) {
+                            filter = new ItemRecipeFilter(GuiRecipe.searchField.getFilter());
+                        } else {
+                            String text = GuiRecipe.searchField.text();
+                            SearchTokenParser searchParser = SearchField.searchParser;
+                            RecipeSearchExpressionFilterVisitor visitor = new RecipeSearchExpressionFilterVisitor(
+                                    searchParser);
+                            // TODO: learn to cache through .getFilter(), maybe make an another method like that
+                            filter = SearchExpressionUtils.visitSearchExpression(text, searchParser, visitor);
+                        }
                         final List<Integer> filtered = searchHandler.getSearchResult(filter);
 
                         if (filtered == null) {

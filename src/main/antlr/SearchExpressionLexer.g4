@@ -16,19 +16,22 @@ public SearchExpressionLexer(CharStream input, SearchTokenParser searchParser) {
 }
 
 // Lexer rules
-REGEX_LEFT        : 'r'? '/' -> pushMode(REGEX) ;
-QUOTE_LEFT        : '"' -> pushMode(QUOTED) ;
-DASH              : '-' ;
-PREFIX            : CLEAN_SYMBOL {searchParser.hasRedefinedPrefix(getText().charAt(0))}? ;
-OR                : '|' ;
-LEFT_BRACKET      : '{' ;
-RIGHT_BRACKET     : '}' ;
-PLAIN_TEXT        : (CLEAN_SYMBOL | ESCAPED_SYMBOL)+ {!searchParser.hasRedefinedPrefix(getText().charAt(0))}? ;
-NEWLINE_OR_TAB    : [\t\r\n] -> skip ;
-SPACE             : ' ' ;
+REGEX_LEFT         : 'r'? '/' -> pushMode(REGEX) ;
+QUOTE_LEFT         : '"' -> pushMode(QUOTED) ;
+DASH               : '-' ;
+RECIPE_INGREDIENTS : '<&' | '<' ;
+RECIPE_RESULT      : '>&' | '>' ;
+RECIPE_OTHERS      : '^&' | '^' ;
+PREFIX             : CLEAN_SYMBOL {searchParser.hasRedefinedPrefix(getText().charAt(0))}? ;
+OR                 : '|' ;
+LEFT_BRACKET       : '{' ;
+RIGHT_BRACKET      : '}' ;
+PLAIN_TEXT         : (CLEAN_SYMBOL | ESCAPED_SYMBOL)+ {!searchParser.hasRedefinedPrefix(getText().charAt(0))}? ;
+NEWLINE_OR_TAB     : [\t\r\n] -> skip ;
+SPACE              : ' ' ;
 
 fragment ESCAPED_SYMBOL         : '\\' . ;
-fragment CLEAN_SYMBOL           : ~[-{}|/\\ "] ;
+fragment CLEAN_SYMBOL           : ~[-<>^{}|/\\ "] ;
 
 mode REGEX;
 
