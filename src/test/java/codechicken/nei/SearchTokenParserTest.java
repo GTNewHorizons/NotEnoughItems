@@ -25,10 +25,12 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.FieldSource;
 import org.mockito.MockedStatic;
 
-import codechicken.nei.ItemList.PatternItemFilter;
 import codechicken.nei.SearchField.SearchParserProvider;
 import codechicken.nei.api.ItemFilter;
+import codechicken.nei.filter.AllMultiItemFilter;
+import codechicken.nei.filter.AnyMultiItemFilter;
 import codechicken.nei.filter.IdentifierFilter;
+import codechicken.nei.filter.PatternItemFilter;
 
 @DisplayName("Search expression")
 public class SearchTokenParserTest {
@@ -388,20 +390,20 @@ public class SearchTokenParserTest {
     }
 
     private static String printFilterContents(ItemFilter filter) {
-        if (filter instanceof ItemList.AnyMultiItemFilter) {
+        if (filter instanceof AnyMultiItemFilter) {
             return "ANY: ("
-                    + ((ItemList.AnyMultiItemFilter) filter).filters.stream()
-                            .map(SearchTokenParserTest::printFilterContents).collect(Collectors.joining(","))
+                    + ((AnyMultiItemFilter) filter).filters.stream().map(SearchTokenParserTest::printFilterContents)
+                            .collect(Collectors.joining(","))
                     + ")";
         }
-        if (filter instanceof ItemList.AllMultiItemFilter) {
+        if (filter instanceof AllMultiItemFilter) {
             return "ALL: ("
-                    + ((ItemList.AllMultiItemFilter) filter).filters.stream()
-                            .map(SearchTokenParserTest::printFilterContents).collect(Collectors.joining(","))
+                    + ((AllMultiItemFilter) filter).filters.stream().map(SearchTokenParserTest::printFilterContents)
+                            .collect(Collectors.joining(","))
                     + ")";
         }
-        if (filter instanceof ItemList.PatternItemFilter) {
-            return "pattern(" + ((ItemList.PatternItemFilter) filter).pattern + ")";
+        if (filter instanceof PatternItemFilter) {
+            return "pattern(" + ((PatternItemFilter) filter).pattern + ")";
         }
         return filter.toString();
     }

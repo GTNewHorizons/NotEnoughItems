@@ -13,10 +13,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.oredict.OreDictionary;
 
-import codechicken.nei.ItemList.AllMultiItemFilter;
-import codechicken.nei.ItemList.AnyMultiItemFilter;
-import codechicken.nei.ItemList.NegatedItemFilter;
 import codechicken.nei.api.ItemFilter;
+import codechicken.nei.filter.AllMultiItemFilter;
+import codechicken.nei.filter.AnyMultiItemFilter;
+import codechicken.nei.filter.NegatedItemFilter;
 import cpw.mods.fml.common.registry.FMLControlledNamespacedRegistry;
 import cpw.mods.fml.common.registry.GameData;
 

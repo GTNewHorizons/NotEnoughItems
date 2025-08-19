@@ -1,7 +1,6 @@
 package codechicken.nei;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,14 +10,12 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -28,6 +25,7 @@ import codechicken.nei.ThreadOperationTimer.TimeoutException;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.filter.AllMultiItemFilter;
 import codechicken.nei.filter.TooltipFilter;
 import codechicken.nei.recipe.InformationHandler;
 
@@ -54,117 +52,6 @@ public class ItemList {
      * Unlike {@link LayoutManager#itemsLoaded}, this indicates whether item loading is actually finished or not.
      */
     public static boolean loadFinished;
-
-    public static class EverythingItemFilter implements ItemFilter {
-
-        @Override
-        public boolean matches(ItemStack item) {
-            return true;
-        }
-    }
-
-    public static class NothingItemFilter implements ItemFilter {
-
-        @Override
-        public boolean matches(ItemStack item) {
-            return false;
-        }
-    }
-
-    public static class NegatedItemFilter implements ItemFilter {
-
-        public ItemFilter filter;
-
-        public NegatedItemFilter(ItemFilter filter) {
-            this.filter = filter;
-        }
-
-        @Override
-        public boolean matches(ItemStack item) {
-            return this.filter == null || !this.filter.matches(item);
-        }
-    }
-
-    public static class PatternItemFilter implements ItemFilter {
-
-        public Pattern pattern;
-
-        public PatternItemFilter(Pattern pattern) {
-            this.pattern = pattern;
-        }
-
-        @Override
-        public boolean matches(ItemStack item) {
-            String displayName = EnumChatFormatting.getTextWithoutFormattingCodes(item.getDisplayName());
-
-            if (displayName != null && !displayName.isEmpty() && pattern.matcher(displayName).find()) {
-                return true;
-            }
-
-            if (item.hasDisplayName()) {
-                displayName = EnumChatFormatting
-                        .getTextWithoutFormattingCodes(item.getItem().getItemStackDisplayName(item));
-
-                return displayName != null && !displayName.isEmpty() && pattern.matcher(displayName).find();
-            }
-
-            return false;
-        }
-    }
-
-    public static class AllMultiItemFilter implements ItemFilter {
-
-        public List<ItemFilter> filters;
-
-        public AllMultiItemFilter(List<ItemFilter> filters) {
-            this.filters = filters;
-        }
-
-        public AllMultiItemFilter(ItemFilter... filters) {
-            this(new LinkedList<>(Arrays.asList(filters)));
-        }
-
-        public AllMultiItemFilter() {
-            this(new LinkedList<>());
-        }
-
-        @Override
-        public boolean matches(ItemStack item) {
-            for (ItemFilter filter : filters) try {
-                if (filter != null && !filter.matches(item)) return false;
-            } catch (Exception e) {
-                NEIClientConfig.logger
-                        .error("Exception filtering " + item + " with " + filter + " (" + e.getMessage() + ")", e);
-            }
-
-            return true;
-        }
-    }
-
-    public static class AnyMultiItemFilter implements ItemFilter {
-
-        public List<ItemFilter> filters;
-
-        public AnyMultiItemFilter(List<ItemFilter> filters) {
-            this.filters = filters;
-        }
-
-        public AnyMultiItemFilter() {
-            this(new LinkedList<>());
-        }
-
-        @Override
-        public boolean matches(ItemStack item) {
-            for (ItemFilter filter : filters) try {
-                if (filter != null && filter.matches(item)) return true;
-            } catch (Exception e) {
-                NEIClientConfig.logger
-                        .error("Exception filtering " + item + " with " + filter + " (" + e.getMessage() + ")", e);
-            }
-
-            return false;
-        }
-    }
 
     public static interface ItemsLoadedCallback {
 

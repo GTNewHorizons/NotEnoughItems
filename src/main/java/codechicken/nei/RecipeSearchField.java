@@ -3,10 +3,10 @@ package codechicken.nei;
 import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.nei.SearchField.GuiSearchField;
-import codechicken.nei.api.IRecipeFilter;
-import codechicken.nei.api.IRecipeFilter.RecipeFilterProvider;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
+import codechicken.nei.api.RecipeFilter;
+import codechicken.nei.api.RecipeFilter.RecipeFilterProvider;
 import codechicken.nei.util.TextHistory;
 
 public abstract class RecipeSearchField extends TextField implements ItemFilterProvider, RecipeFilterProvider {
@@ -67,7 +67,7 @@ public abstract class RecipeSearchField extends TextField implements ItemFilterP
     }
 
     @Override
-    public IRecipeFilter getRecipeFilter() {
+    public RecipeFilter getRecipeFilter() {
         return ((GuiSearchField) field).getRecipeFilter();
     }
 

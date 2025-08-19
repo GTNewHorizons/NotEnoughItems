@@ -5,11 +5,11 @@ import java.util.List;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.IRecipeHandler;
 
-public interface IRecipeFilter {
+public interface RecipeFilter {
 
     public static interface RecipeFilterProvider {
 
-        public IRecipeFilter getRecipeFilter();
+        public RecipeFilter getRecipeFilter();
     }
 
     public boolean matches(IRecipeHandler handler, List<PositionedStack> ingredients, PositionedStack result,

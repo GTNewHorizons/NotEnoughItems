@@ -22,10 +22,10 @@ import com.google.gson.JsonSyntaxException;
 
 import codechicken.core.CommonUtils;
 import codechicken.nei.api.API;
-import codechicken.nei.api.IRecipeFilter;
-import codechicken.nei.api.IRecipeFilter.RecipeFilterProvider;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
+import codechicken.nei.api.RecipeFilter;
+import codechicken.nei.api.RecipeFilter.RecipeFilterProvider;
 import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.NBTJson;
@@ -66,11 +66,11 @@ public class PresetsList {
         }
     }
 
-    protected static class RecipesFilter implements RecipeFilterProvider, IRecipeFilter {
+    protected static class PresetRecipeFilter implements RecipeFilterProvider, RecipeFilter {
 
         public Set<String> cache;
 
-        public IRecipeFilter getRecipeFilter() {
+        public RecipeFilter getRecipeFilter() {
 
             if (cache == null) {
                 cache = PresetsList.presets.stream().filter(p -> p.enabled && p.mode == PresetMode.REMOVE)
@@ -143,7 +143,7 @@ public class PresetsList {
     }
 
     public static final List<Preset> presets = new ArrayList<>();
-    protected static RecipesFilter recipeFilter = new RecipesFilter();
+    protected static PresetRecipeFilter recipeFilter = new PresetRecipeFilter();
     protected static ItemPanelFilter itemFilter = new ItemPanelFilter();
 
     static {

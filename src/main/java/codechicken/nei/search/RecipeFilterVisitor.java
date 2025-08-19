@@ -3,21 +3,21 @@ package codechicken.nei.search;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import codechicken.nei.ItemList;
 import codechicken.nei.SearchTokenParser;
-import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.recipe.GuiRecipe;
-import codechicken.nei.recipe.GuiRecipe.AllIngredientsItemRecipeFilter;
-import codechicken.nei.recipe.GuiRecipe.AllOthersItemRecipeFilter;
-import codechicken.nei.recipe.GuiRecipe.AllResultItemRecipeFilter;
-import codechicken.nei.recipe.GuiRecipe.IngredientsItemRecipeFilter;
-import codechicken.nei.recipe.GuiRecipe.OthersItemRecipeFilter;
-import codechicken.nei.recipe.GuiRecipe.ResultItemRecipeFilter;
+import codechicken.nei.api.RecipeFilter;
+import codechicken.nei.filter.AllIngredientsRecipeFilter;
+import codechicken.nei.filter.AllMultiRecipeFilter;
+import codechicken.nei.filter.AllOthersRecipeFilter;
+import codechicken.nei.filter.AllResultRecipeFilter;
+import codechicken.nei.filter.AnyIngredientsRecipeFilter;
+import codechicken.nei.filter.AnyItemRecipeFilter;
+import codechicken.nei.filter.AnyOthersRecipeFilter;
+import codechicken.nei.filter.AnyResultRecipeFilter;
+import codechicken.nei.filter.EverythingItemFilter;
 
-public class RecipeFilterVisitor extends SearchExpressionParserBaseVisitor<IRecipeFilter> {
+public class RecipeFilterVisitor extends SearchExpressionParserBaseVisitor<RecipeFilter> {
 
     private final ItemFilterVisitor itemFilterVisitor;
 
@@ -27,39 +27,41 @@ public class RecipeFilterVisitor extends SearchExpressionParserBaseVisitor<IReci
     }
 
     @Override
-    public IRecipeFilter visitRecipeSearchExpression(SearchExpressionParser.RecipeSearchExpressionContext ctx) {
+    public RecipeFilter visitRecipeSearchExpression(SearchExpressionParser.RecipeSearchExpressionContext ctx) {
         if (ctx.searchExpression() != null) {
-            List<IRecipeFilter> filters = new ArrayList<>();
-            filters.add(getFilterByType(0, ctx, IngredientsItemRecipeFilter::new, AllIngredientsItemRecipeFilter::new));
-            filters.add(getFilterByType(1, ctx, ResultItemRecipeFilter::new, AllResultItemRecipeFilter::new));
-            filters.add(getFilterByType(2, ctx, OthersItemRecipeFilter::new, AllOthersItemRecipeFilter::new));
-            return new GuiRecipe.AllMultiRecipeFilter(filters);
+            final List<RecipeFilter> filters = new ArrayList<>();
+            filters.add(getFilterByType(0, ctx, AnyIngredientsRecipeFilter::new, AllIngredientsRecipeFilter::new));
+            filters.add(getFilterByType(1, ctx, AnyResultRecipeFilter::new, AllResultRecipeFilter::new));
+            filters.add(getFilterByType(2, ctx, AnyOthersRecipeFilter::new, AllOthersRecipeFilter::new));
+            return new AllMultiRecipeFilter(filters);
         }
         return defaultResult();
     }
 
     @Override
-    protected IRecipeFilter defaultResult() {
-        return new GuiRecipe.ItemRecipeFilter(new ItemList.EverythingItemFilter());
+    protected RecipeFilter defaultResult() {
+        return new AnyItemRecipeFilter(new EverythingItemFilter());
     }
 
-    private IRecipeFilter getFilterByType(int type, SearchExpressionParser.RecipeSearchExpressionContext ctx,
-            Function<ItemFilter, IRecipeFilter> createAnyFilter, Function<ItemFilter, IRecipeFilter> createAllFilter) {
-        List<IRecipeFilter> filters = ctx.searchExpression().stream()
-                .filter(searchExpressionCtx -> searchExpressionCtx.type == type).map(searchExpressionCtx -> {
-                    ItemFilter itemFilter = itemFilterVisitor.visitSearchExpression(searchExpressionCtx);
-                    if (searchExpressionCtx.allRecipe) {
-                        return createAllFilter.apply(itemFilter);
-                    } else {
-                        return createAnyFilter.apply(itemFilter);
-                    }
-                }).collect(Collectors.toList());
+    private RecipeFilter getFilterByType(int type, SearchExpressionParser.RecipeSearchExpressionContext ctx,
+            Function<ItemFilter, RecipeFilter> createAnyFilter, Function<ItemFilter, RecipeFilter> createAllFilter) {
+        final List<RecipeFilter> filters = new ArrayList<>();
+        for (final SearchExpressionParser.SearchExpressionContext searchExpressionCtx : ctx.searchExpression()) {
+            if (searchExpressionCtx.type == type) {
+                final ItemFilter itemFilter = itemFilterVisitor.visitSearchExpression(searchExpressionCtx);
+                if (searchExpressionCtx.allRecipe) {
+                    filters.add(createAllFilter.apply(itemFilter));
+                } else {
+                    filters.add(createAnyFilter.apply(itemFilter));
+                }
+            }
+        }
         if (filters.isEmpty()) {
             return defaultResult();
         } else if (filters.size() == 1) {
             return filters.get(0);
         }
-        return new GuiRecipe.AllMultiRecipeFilter(filters);
+        return new AllMultiRecipeFilter(filters);
     }
 
 }
