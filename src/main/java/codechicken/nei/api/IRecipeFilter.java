@@ -7,9 +7,9 @@ import codechicken.nei.recipe.IRecipeHandler;
 
 public interface IRecipeFilter {
 
-    public static interface IRecipeFilterProvider {
+    public static interface RecipeFilterProvider {
 
-        public IRecipeFilter getFilter();
+        public IRecipeFilter getRecipeFilter();
     }
 
     public boolean matches(IRecipeHandler handler, List<PositionedStack> ingredients, PositionedStack result,

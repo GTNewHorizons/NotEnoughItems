@@ -16,6 +16,8 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.SearchTokenParser.ISearchParserProvider;
 import codechicken.nei.SearchTokenParser.SearchMode;
+import codechicken.nei.api.IRecipeFilter;
+import codechicken.nei.api.IRecipeFilter.RecipeFilterProvider;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.recipe.StackInfo;
@@ -88,7 +90,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
         }
     }
 
-    public static class GuiSearchField extends FormattedTextField {
+    public static class GuiSearchField extends FormattedTextField implements ItemFilterProvider, RecipeFilterProvider {
 
         protected final SearchTokenParser searchParser;
 
@@ -104,12 +106,22 @@ public class SearchField extends TextField implements ItemFilterProvider {
             setPlaceholder(NEIClientUtils.translate("inventory.search.placeholder"));
         }
 
+        @Override
         public ItemFilter getFilter() {
             return getFilter(getText());
         }
 
+        @Override
+        public IRecipeFilter getRecipeFilter() {
+            return getRecipeFilter(getText());
+        }
+
         public ItemFilter getFilter(String filterText) {
             return this.searchParser.getFilter(filterText);
+        }
+
+        public IRecipeFilter getRecipeFilter(String filterText) {
+            return this.searchParser.getRecipeFilter(filterText);
         }
 
     }

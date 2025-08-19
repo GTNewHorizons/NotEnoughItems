@@ -34,12 +34,11 @@ import codechicken.nei.PositionedStack;
 import codechicken.nei.RecipeSearchField;
 import codechicken.nei.RestartableTask;
 import codechicken.nei.SearchField;
-import codechicken.nei.SearchTokenParser;
 import codechicken.nei.VisiblityData;
 import codechicken.nei.api.IGuiContainerOverlay;
 import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.api.IRecipeFilter;
-import codechicken.nei.api.IRecipeFilter.IRecipeFilterProvider;
+import codechicken.nei.api.IRecipeFilter.RecipeFilterProvider;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.TaggedInventoryArea;
 import codechicken.nei.drawable.DrawableBuilder;
@@ -50,8 +49,6 @@ import codechicken.nei.guihook.IGuiClientSide;
 import codechicken.nei.guihook.IGuiHandleMouseWheel;
 import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
 import codechicken.nei.recipe.Recipe.RecipeId;
-import codechicken.nei.search.RecipeSearchExpressionFilterVisitor;
-import codechicken.nei.search.SearchExpressionUtils;
 import codechicken.nei.util.NEIMouseUtils;
 
 public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer implements IGuiContainerOverlay,
@@ -71,7 +68,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private static final int BUTTON_WIDTH = 13;
     private static final int BUTTON_HEIGHT = 12;
 
-    public static final List<IRecipeFilterProvider> recipeFilterers = new LinkedList<>();
+    public static final List<RecipeFilterProvider> recipeFilterers = new LinkedList<>();
 
     protected boolean limitToOneRecipe = false;
     protected AcceptsFollowingTooltipLineHandler acceptsFollowingTooltipLineHandler;
@@ -376,17 +373,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                         searchHandler.setSearchIndices(null);
                         guiRecipe.changePage(0);
                     } else {
-                        IRecipeFilter filter = null;
-                        if (NEIClientConfig.getIntSetting("inventory.search.patternMode") != 3) {
-                            filter = new ItemRecipeFilter(GuiRecipe.searchField.getFilter());
-                        } else {
-                            String text = GuiRecipe.searchField.text();
-                            SearchTokenParser searchParser = SearchField.searchParser;
-                            RecipeSearchExpressionFilterVisitor visitor = new RecipeSearchExpressionFilterVisitor(
-                                    searchParser);
-                            // TODO: learn to cache through .getFilter(), maybe make an another method like that
-                            filter = SearchExpressionUtils.visitSearchExpression(text, searchParser, visitor);
-                        }
+                        final IRecipeFilter filter = GuiRecipe.searchField.getRecipeFilter();
                         final List<Integer> filtered = searchHandler.getSearchResult(filter);
 
                         if (filtered == null) {
@@ -717,8 +704,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         final AllMultiRecipeFilter recipeFilter = new AllMultiRecipeFilter();
 
         synchronized (recipeFilterers) {
-            for (IRecipeFilterProvider p : recipeFilterers) {
-                IRecipeFilter filter = p.getFilter();
+            for (RecipeFilterProvider p : recipeFilterers) {
+                IRecipeFilter filter = p.getRecipeFilter();
                 if (filter != null) {
                     recipeFilter.filters.add(filter);
                 }

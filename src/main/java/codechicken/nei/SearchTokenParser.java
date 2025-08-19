@@ -23,8 +23,11 @@ import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.EverythingItemFilter;
 import codechicken.nei.ItemList.NegatedItemFilter;
 import codechicken.nei.ItemList.NothingItemFilter;
+import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.search.SearchExpressionFilterVisitor;
+import codechicken.nei.recipe.GuiRecipe;
+import codechicken.nei.search.ItemFilterVisitor;
+import codechicken.nei.search.RecipeFilterVisitor;
 import codechicken.nei.search.SearchExpressionUtils;
 
 public class SearchTokenParser {
@@ -210,12 +213,32 @@ public class SearchTokenParser {
             });
         } else {
             return this.filtersCache.computeIfAbsent(filterText, text -> {
-                final SearchExpressionFilterVisitor visitor = new SearchExpressionFilterVisitor(this);
+                final ItemFilterVisitor visitor = new ItemFilterVisitor(this);
                 final ItemFilter searchToken = SearchExpressionUtils.visitSearchExpression(text, this, visitor);
 
                 return new IsRegisteredItemFilter(searchToken);
             });
         }
+
+    }
+
+    public synchronized IRecipeFilter getRecipeFilter(String filterText) {
+        final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
+        if (patternMode != 3) {
+            return new GuiRecipe.ItemRecipeFilter(getFilter(filterText));
+        }
+        filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
+        if (filterText == null || filterText.isEmpty()) {
+            return new GuiRecipe.ItemRecipeFilter(new EverythingItemFilter());
+        }
+        final int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+
+        if (spaceModeEnabled == 1) {
+            filterText = SearchTokenParser.SPACE_PATTERN.matcher(filterText).replaceAll("\\\\ ");
+        }
+
+        final RecipeFilterVisitor visitor = new RecipeFilterVisitor(this);
+        return SearchExpressionUtils.visitSearchExpression(filterText, this, visitor);
 
     }
 

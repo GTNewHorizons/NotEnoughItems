@@ -14,7 +14,7 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.SearchTokenParser;
 import codechicken.nei.api.ItemFilter;
 
-public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVisitor<ItemFilter> {
+public class ItemFilterVisitor extends SearchExpressionParserBaseVisitor<ItemFilter> {
 
     private final SearchTokenParser searchParser;
 
@@ -23,7 +23,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
     private static final Pattern ESCAPED_QUOTE_PATTERN = Pattern.compile("\\\\\"");
     private static final Pattern ESCAPED_SPACE_PATTERN = Pattern.compile("\\\\ ");
 
-    public SearchExpressionFilterVisitor(SearchTokenParser searchParser) {
+    public ItemFilterVisitor(SearchTokenParser searchParser) {
         super();
         this.searchParser = searchParser;
     }

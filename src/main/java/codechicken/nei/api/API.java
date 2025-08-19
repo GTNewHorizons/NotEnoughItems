@@ -29,7 +29,7 @@ import codechicken.nei.SearchField.ISearchProvider;
 import codechicken.nei.SearchTokenParser.ISearchParserProvider;
 import codechicken.nei.SubsetWidget;
 import codechicken.nei.SubsetWidget.SubsetTag;
-import codechicken.nei.api.IRecipeFilter.IRecipeFilterProvider;
+import codechicken.nei.api.IRecipeFilter.RecipeFilterProvider;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.config.Option;
 import codechicken.nei.config.OptionKeyBind;
@@ -284,7 +284,7 @@ public class API {
         NEIInfo.modeHandlers.add(handler);
     }
 
-    public static void addRecipeFilter(IRecipeFilterProvider filterProvider) {
+    public static void addRecipeFilter(RecipeFilterProvider filterProvider) {
         synchronized (GuiRecipe.recipeFilterers) {
             GuiRecipe.recipeFilterers.add(filterProvider);
         }
