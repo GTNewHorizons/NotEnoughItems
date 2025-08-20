@@ -1,20 +1,23 @@
 package codechicken.nei.search;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 
-import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.SearchTokenParser;
 import codechicken.nei.api.ItemFilter;
+import codechicken.nei.filter.AllMultiItemFilter;
+import codechicken.nei.filter.AnyMultiItemFilter;
+import codechicken.nei.filter.NegatedItemFilter;
+import codechicken.nei.filter.NothingItemFilter;
 
-public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVisitor<ItemFilter> {
+public class ItemFilterVisitor extends SearchExpressionParserBaseVisitor<ItemFilter> {
 
     private final SearchTokenParser searchParser;
 
@@ -23,7 +26,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
     private static final Pattern ESCAPED_QUOTE_PATTERN = Pattern.compile("\\\\\"");
     private static final Pattern ESCAPED_SPACE_PATTERN = Pattern.compile("\\\\ ");
 
-    public SearchExpressionFilterVisitor(SearchTokenParser searchParser) {
+    public ItemFilterVisitor(SearchTokenParser searchParser) {
         super();
         this.searchParser = searchParser;
     }
@@ -39,17 +42,17 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
 
     @Override
     public ItemFilter visitOrExpression(SearchExpressionParser.OrExpressionContext ctx) {
-        return visitChildren(ctx, ItemList.AnyMultiItemFilter::new);
+        return visitChildren(ctx, AnyMultiItemFilter::new);
     }
 
     @Override
     public ItemFilter visitSequenceExpression(SearchExpressionParser.SequenceExpressionContext ctx) {
-        return visitChildren(ctx, ItemList.AllMultiItemFilter::new);
+        return visitChildren(ctx, AllMultiItemFilter::new);
     }
 
     @Override
     public ItemFilter visitNegateExpression(SearchExpressionParser.NegateExpressionContext ctx) {
-        return new ItemList.NegatedItemFilter(visitChildren(ctx));
+        return new NegatedItemFilter(visitChildren(ctx));
     }
 
     @Override
@@ -76,7 +79,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
 
     @Override
     protected ItemFilter defaultResult() {
-        return new ItemList.NothingItemFilter();
+        return new NothingItemFilter();
     }
 
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx) {
@@ -115,20 +118,20 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
         if (node.children != null && !node.children.isEmpty()) {
             // By default return any found rule child filter (there should be only one)
             if (filterConstructor == null) {
-                return node.children.stream().flatMap(child -> {
+                for (final ParseTree child : node.children) {
                     if (child instanceof RuleNode) {
-                        return Stream.of(visit(child));
+                        return visit(child);
                     }
-                    return Stream.empty();
-                }).findAny().orElse(defaultResult());
+                }
+                return defaultResult();
                 // Otherwise create a filter out of rule childrens' filters
             } else {
-                final List<ItemFilter> filters = node.children.stream().flatMap(child -> {
+                final List<ItemFilter> filters = new ArrayList<>();
+                for (final ParseTree child : node.children) {
                     if (child instanceof RuleNode) {
-                        return Stream.of(visit(child));
+                        filters.add(visit(child));
                     }
-                    return Stream.empty();
-                }).collect(Collectors.toList());
+                }
                 return constructFilter(filters, filterConstructor);
             }
         }
@@ -137,7 +140,7 @@ public class SearchExpressionFilterVisitor extends SearchExpressionParserBaseVis
 
     private ItemFilter getAlwaysProvidersFilter(String searchText) {
         final List<ItemFilter> filters = searchParser.getAlwaysProvidersFilters(searchText);
-        return constructFilter(filters, ItemList.AnyMultiItemFilter::new);
+        return constructFilter(filters, AnyMultiItemFilter::new);
     }
 
     private ItemFilter constructFilter(List<ItemFilter> filters, Function<List<ItemFilter>, ItemFilter> constructor) {

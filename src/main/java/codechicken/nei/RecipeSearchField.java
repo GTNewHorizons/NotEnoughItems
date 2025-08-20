@@ -4,9 +4,12 @@ import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.nei.SearchField.GuiSearchField;
 import codechicken.nei.api.ItemFilter;
+import codechicken.nei.api.ItemFilter.ItemFilterProvider;
+import codechicken.nei.api.RecipeFilter;
+import codechicken.nei.api.RecipeFilter.RecipeFilterProvider;
 import codechicken.nei.util.TextHistory;
 
-public abstract class RecipeSearchField extends TextField {
+public abstract class RecipeSearchField extends TextField implements ItemFilterProvider, RecipeFilterProvider {
 
     private static final TextHistory history = new TextHistory();
 
@@ -58,8 +61,14 @@ public abstract class RecipeSearchField extends TextField {
         return EnumChatFormatting.getTextWithoutFormattingCodes(s);
     }
 
+    @Override
     public ItemFilter getFilter() {
         return ((GuiSearchField) field).getFilter();
+    }
+
+    @Override
+    public RecipeFilter getRecipeFilter() {
+        return ((GuiSearchField) field).getRecipeFilter();
     }
 
     @Override

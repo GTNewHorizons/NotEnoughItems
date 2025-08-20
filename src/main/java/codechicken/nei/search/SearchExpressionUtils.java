@@ -25,6 +25,8 @@ public class SearchExpressionUtils {
 
     public static enum HIGHLIGHTS {
 
+        RECIPE(EnumChatFormatting.GREEN, SearchExpressionParser.RECIPE_INGREDIENTS,
+                SearchExpressionParser.RECIPE_RESULT, SearchExpressionParser.RECIPE_OTHERS),
         OR(EnumChatFormatting.GRAY, SearchExpressionParser.OR),
         BRACKETS(EnumChatFormatting.GRAY, SearchExpressionParser.LEFT_BRACKET, SearchExpressionParser.RIGHT_BRACKET),
         NEGATE(EnumChatFormatting.BLUE, SearchExpressionParser.DASH),
@@ -49,8 +51,8 @@ public class SearchExpressionUtils {
         return HIGHLIGHT_MAP.get(parserType);
     }
 
-    public static final <T> T visitSearchExpression(String text, SearchTokenParser searchParser,
-            SearchExpressionParserBaseVisitor<T> visitor) {
+    private static final <T> SearchExpressionParser createSearchExpressionParser(String text,
+            SearchTokenParser searchParser, SearchExpressionParserBaseVisitor<T> visitor) {
         final boolean doLogExceptions = NEIClientConfig.getBooleanSetting("inventory.search.logSearchExceptions");
         final CharStream inputStream = CharStreams.fromString(text);
         final SearchExpressionErrorListener errorListener = new SearchExpressionErrorListener();
@@ -65,6 +67,12 @@ public class SearchExpressionUtils {
         if (doLogExceptions) {
             parser.addErrorListener(errorListener);
         }
-        return visitor.visitSearchExpression(parser.searchExpression());
+        return parser;
+    }
+
+    public static final <T> T visitSearchExpression(String text, SearchTokenParser searchParser,
+            SearchExpressionParserBaseVisitor<T> visitor) {
+        SearchExpressionParser parser = createSearchExpressionParser(text, searchParser, visitor);
+        return visitor.visitRecipeSearchExpression(parser.recipeSearchExpression());
     }
 }
