@@ -17,8 +17,8 @@ import net.minecraft.client.resources.Language;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
+import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.api.RecipeFilter;
 import codechicken.nei.filter.AllMultiItemFilter;
 import codechicken.nei.filter.AnyItemRecipeFilter;
 import codechicken.nei.filter.AnyMultiItemFilter;
@@ -182,7 +182,7 @@ public class SearchTokenParser {
     public List<ItemFilter> getAlwaysProvidersFilters(String searchText) {
         final List<ItemFilter> filters = new ArrayList<>();
         for (ISearchParserProvider provider : getProviders()) {
-            if (provider.getSearchMode() == SearchTokenParser.SearchMode.ALWAYS) {
+            if (provider.getSearchMode() == SearchMode.ALWAYS) {
                 filters.add(provider.getFilter(searchText));
             }
         }
@@ -195,12 +195,8 @@ public class SearchTokenParser {
         if (filterText == null || filterText.isEmpty()) {
             return new EverythingItemFilter();
         }
-        final int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+        final int spaceMode = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
         final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
-
-        if (spaceModeEnabled == 1 && patternMode == 3) {
-            filterText = SearchTokenParser.SPACE_PATTERN.matcher(filterText).replaceAll("\\\\ ");
-        }
 
         if (patternMode != 3) {
             return this.filtersCache.computeIfAbsent(filterText, text -> {
@@ -217,9 +213,12 @@ public class SearchTokenParser {
                 }
             });
         } else {
+            if (spaceMode == 1) {
+                filterText = SearchTokenParser.SPACE_PATTERN.matcher(filterText).replaceAll("\\\\ ");
+            }
             return this.filtersCache.computeIfAbsent(filterText, text -> {
                 final ItemFilterVisitor visitor = new ItemFilterVisitor(this);
-                final ItemFilter searchToken = SearchExpressionUtils.visitSearchExpression(text, this, visitor);
+                final ItemFilter searchToken = SearchExpressionUtils.visitSearchExpression(text, visitor);
 
                 return new IsRegisteredItemFilter(searchToken);
             });
@@ -227,7 +226,7 @@ public class SearchTokenParser {
 
     }
 
-    public synchronized RecipeFilter getRecipeFilter(String filterText) {
+    public synchronized IRecipeFilter getRecipeFilter(String filterText) {
         final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
         if (patternMode != 3) {
             return new AnyItemRecipeFilter(getFilter(filterText));
@@ -243,7 +242,7 @@ public class SearchTokenParser {
         }
 
         final RecipeFilterVisitor visitor = new RecipeFilterVisitor(this);
-        return SearchExpressionUtils.visitSearchExpression(filterText, this, visitor);
+        return SearchExpressionUtils.visitSearchExpression(filterText, visitor);
 
     }
 

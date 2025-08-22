@@ -371,14 +371,17 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
 
         public ItemFilter getFilter(String searchText) {
             final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
+            Pattern pattern = null;
             if (patternMode != 3) {
                 searchText = searchText.replaceAll("\\s+", "").toLowerCase();
+            } else {
+                pattern = SearchField.getPattern(searchText, patternMode);
             }
             final AnyMultiItemFilter filter = new AnyMultiItemFilter();
             final Set<ItemStack> filteredItems = new HashSet<>();
 
             for (SubsetTag tag : tags.values()) {
-                if (tag.filter != null && matches(tag.path, searchText, patternMode)) {
+                if (tag.filter != null && matches(tag.path, searchText, pattern)) {
                     filteredItems.addAll(tag.items);
                     filter.filters.add(tag.filter);
                 }
@@ -400,9 +403,8 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
             return SearchMode.fromInt(NEIClientConfig.getIntSetting("inventory.search.subsetsSearchMode"));
         }
 
-        private boolean matches(String name, String searchText, int patternMode) {
-            if (patternMode == 3) {
-                final Pattern pattern = SearchField.getPattern(searchText, patternMode);
+        private boolean matches(String name, String searchText, Pattern pattern) {
+            if (pattern != null) {
                 return pattern.matcher(name).find();
             } else {
                 return name.contains(searchText);

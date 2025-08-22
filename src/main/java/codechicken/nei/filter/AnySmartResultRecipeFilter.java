@@ -3,11 +3,11 @@ package codechicken.nei.filter;
 import java.util.List;
 
 import codechicken.nei.PositionedStack;
+import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.api.RecipeFilter;
 import codechicken.nei.recipe.IRecipeHandler;
 
-public class AnySmartResultRecipeFilter extends AnyRecipeFilter implements RecipeFilter {
+public class AnySmartResultRecipeFilter extends AnyRecipeFilter implements IRecipeFilter {
 
     public AnySmartResultRecipeFilter(ItemFilter filter) {
         super(filter);

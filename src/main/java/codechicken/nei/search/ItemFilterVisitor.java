@@ -17,9 +17,7 @@ import codechicken.nei.filter.AnyMultiItemFilter;
 import codechicken.nei.filter.NegatedItemFilter;
 import codechicken.nei.filter.NothingItemFilter;
 
-public class ItemFilterVisitor extends SearchExpressionParserBaseVisitor<ItemFilter> {
-
-    private final SearchTokenParser searchParser;
+public class ItemFilterVisitor extends AbstractSearchExpressionVisitor<ItemFilter> {
 
     private static final Pattern REGEX_ESCAPED_SPACE_PATTERN = Pattern.compile("([^\\\\](?:\\\\\\\\)+)?\\\\ ");
     private static final Pattern PLAIN_TEXT_ESCAPED_PATTERN = Pattern.compile("\\\\(.)");
@@ -27,8 +25,7 @@ public class ItemFilterVisitor extends SearchExpressionParserBaseVisitor<ItemFil
     private static final Pattern ESCAPED_SPACE_PATTERN = Pattern.compile("\\\\ ");
 
     public ItemFilterVisitor(SearchTokenParser searchParser) {
-        super();
-        this.searchParser = searchParser;
+        super(searchParser);
     }
 
     @Override

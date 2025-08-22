@@ -15,10 +15,10 @@ import net.minecraftforge.fluids.FluidStack;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.SearchTokenParser.ISearchParserProvider;
 import codechicken.nei.SearchTokenParser.SearchMode;
+import codechicken.nei.api.IRecipeFilter;
+import codechicken.nei.api.IRecipeFilter.IRecipeFilterProvider;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
-import codechicken.nei.api.RecipeFilter;
-import codechicken.nei.api.RecipeFilter.RecipeFilterProvider;
 import codechicken.nei.filter.NothingItemFilter;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.TextHistory;
@@ -90,7 +90,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
         }
     }
 
-    public static class GuiSearchField extends FormattedTextField implements ItemFilterProvider, RecipeFilterProvider {
+    public static class GuiSearchField extends FormattedTextField implements ItemFilterProvider, IRecipeFilterProvider {
 
         protected final SearchTokenParser searchParser;
 
@@ -112,7 +112,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
         }
 
         @Override
-        public RecipeFilter getRecipeFilter() {
+        public IRecipeFilter getRecipeFilter() {
             return getRecipeFilter(getText());
         }
 
@@ -120,7 +120,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
             return this.searchParser.getFilter(filterText);
         }
 
-        public RecipeFilter getRecipeFilter(String filterText) {
+        public IRecipeFilter getRecipeFilter(String filterText) {
             return this.searchParser.getRecipeFilter(filterText);
         }
 

@@ -15,15 +15,13 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.SearchTokenParser;
 import codechicken.nei.SearchTokenParser.ISearchParserProvider;
 
-public class SearchExpressionFormatVisitor extends SearchExpressionParserBaseVisitor<String> {
+public class SearchExpressionFormatVisitor extends AbstractSearchExpressionVisitor<String> {
 
     private static final Pattern REGEX_ESCAPED_SPACE_PATTERN = Pattern.compile("([^\\\\](?:\\\\\\\\)+)?\\\\ ");
     private static final Pattern ESCAPED_SPACE_PATTERN = Pattern.compile("\\\\ ");
 
-    private final SearchTokenParser searchParser;
-
     public SearchExpressionFormatVisitor(SearchTokenParser searchParser) {
-        this.searchParser = searchParser;
+        super(searchParser);
     }
 
     @Override

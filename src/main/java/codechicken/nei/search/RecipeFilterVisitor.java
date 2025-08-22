@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.function.Function;
 
 import codechicken.nei.SearchTokenParser;
+import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.api.RecipeFilter;
 import codechicken.nei.filter.AllIngredientsRecipeFilter;
 import codechicken.nei.filter.AllMultiRecipeFilter;
 import codechicken.nei.filter.AllOthersRecipeFilter;
@@ -17,19 +17,19 @@ import codechicken.nei.filter.AnyOthersRecipeFilter;
 import codechicken.nei.filter.AnySmartResultRecipeFilter;
 import codechicken.nei.filter.EverythingItemFilter;
 
-public class RecipeFilterVisitor extends SearchExpressionParserBaseVisitor<RecipeFilter> {
+public class RecipeFilterVisitor extends AbstractSearchExpressionVisitor<IRecipeFilter> {
 
     private final ItemFilterVisitor itemFilterVisitor;
 
     public RecipeFilterVisitor(SearchTokenParser searchParser) {
-        super();
+        super(searchParser);
         itemFilterVisitor = new ItemFilterVisitor(searchParser);
     }
 
     @Override
-    public RecipeFilter visitRecipeSearchExpression(SearchExpressionParser.RecipeSearchExpressionContext ctx) {
+    public IRecipeFilter visitRecipeSearchExpression(SearchExpressionParser.RecipeSearchExpressionContext ctx) {
         if (ctx.recipeClauseExpression() != null) {
-            final List<RecipeFilter> filters = new ArrayList<>();
+            final List<IRecipeFilter> filters = new ArrayList<>();
             for (SearchExpressionParser.RecipeClauseExpressionContext clauseCtx : ctx.recipeClauseExpression()) {
                 filters.add(createRecipeFilter(clauseCtx.searchExpression()));
             }
@@ -39,11 +39,11 @@ public class RecipeFilterVisitor extends SearchExpressionParserBaseVisitor<Recip
     }
 
     @Override
-    protected RecipeFilter defaultResult() {
+    protected IRecipeFilter defaultResult() {
         return new AnyItemRecipeFilter(new EverythingItemFilter());
     }
 
-    private RecipeFilter createRecipeFilter(SearchExpressionParser.SearchExpressionContext ctx) {
+    private IRecipeFilter createRecipeFilter(SearchExpressionParser.SearchExpressionContext ctx) {
         if (ctx == null) {
             return defaultResult();
         }
@@ -75,8 +75,8 @@ public class RecipeFilterVisitor extends SearchExpressionParserBaseVisitor<Recip
         }
     }
 
-    private RecipeFilter getAllOrAnyFilter(boolean allRecipe, ItemFilter itemFilter,
-            Function<ItemFilter, RecipeFilter> createAnyFilter, Function<ItemFilter, RecipeFilter> createAllFilter) {
+    private IRecipeFilter getAllOrAnyFilter(boolean allRecipe, ItemFilter itemFilter,
+            Function<ItemFilter, IRecipeFilter> createAnyFilter, Function<ItemFilter, IRecipeFilter> createAllFilter) {
         if (allRecipe) {
             return createAllFilter.apply(itemFilter);
         } else {
@@ -84,7 +84,7 @@ public class RecipeFilterVisitor extends SearchExpressionParserBaseVisitor<Recip
         }
     }
 
-    private RecipeFilter constructFilter(List<RecipeFilter> filters) {
+    private IRecipeFilter constructFilter(List<IRecipeFilter> filters) {
         if (!filters.isEmpty()) {
             // Propagate the result up
             if (filters.size() == 1) {

@@ -51,8 +51,13 @@ public class SearchExpressionUtils {
         return HIGHLIGHT_MAP.get(parserType);
     }
 
-    private static final <T> SearchExpressionParser createSearchExpressionParser(String text,
-            SearchTokenParser searchParser, SearchExpressionParserBaseVisitor<T> visitor) {
+    public static <T> T visitSearchExpression(String text, AbstractSearchExpressionVisitor<T> visitor) {
+        SearchExpressionParser parser = createSearchExpressionParser(text, visitor.getSearchParser(), visitor);
+        return visitor.visitRecipeSearchExpression(parser.recipeSearchExpression());
+    }
+
+    private static <T> SearchExpressionParser createSearchExpressionParser(String text, SearchTokenParser searchParser,
+            SearchExpressionParserBaseVisitor<T> visitor) {
         final boolean doLogExceptions = NEIClientConfig.getBooleanSetting("inventory.search.logSearchExceptions");
         final CharStream inputStream = CharStreams.fromString(text);
         final SearchExpressionErrorListener errorListener = new SearchExpressionErrorListener();
@@ -70,9 +75,4 @@ public class SearchExpressionUtils {
         return parser;
     }
 
-    public static final <T> T visitSearchExpression(String text, SearchTokenParser searchParser,
-            SearchExpressionParserBaseVisitor<T> visitor) {
-        SearchExpressionParser parser = createSearchExpressionParser(text, searchParser, visitor);
-        return visitor.visitRecipeSearchExpression(parser.recipeSearchExpression());
-    }
 }

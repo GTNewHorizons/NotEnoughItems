@@ -26,7 +26,7 @@ public class SearchTextFormatter implements TextFormatter {
                 text = SearchTokenParser.SPACE_PATTERN.matcher(text).replaceAll("\\\\ ");
             }
             final SearchExpressionFormatVisitor visitor = new SearchExpressionFormatVisitor(searchParser);
-            return SearchExpressionUtils.visitSearchExpression(text, searchParser, visitor);
+            return SearchExpressionUtils.visitSearchExpression(text, visitor);
         } else {
             final String[] parts = (text + "| ").split("\\|");
             StringJoiner formattedText = new StringJoiner(SearchExpressionUtils.HIGHLIGHTS.OR + "|");

@@ -9,7 +9,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import codechicken.nei.ItemList;
-import codechicken.nei.api.RecipeFilter;
+import codechicken.nei.api.IRecipeFilter;
 
 class SearchRecipeHandler<H extends IRecipeHandler> {
 
@@ -26,7 +26,7 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
             this.filteredRecipes = new ArrayList<>();
         } else {
             final Stream<Integer> items = IntStream.range(0, this.original.numRecipes()).boxed();
-            final RecipeFilter filter = this.searchingAvailable() ? GuiRecipe.getRecipeListFilter() : null;
+            final IRecipeFilter filter = this.searchingAvailable() ? GuiRecipe.getRecipeListFilter() : null;
 
             if (filter == null) {
                 this.filteredRecipes = items.collect(Collectors.toCollection(ArrayList::new));
@@ -37,7 +37,7 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
         }
     }
 
-    protected static boolean mathRecipe(IRecipeHandler handler, int recipe, RecipeFilter filter) {
+    protected static boolean mathRecipe(IRecipeHandler handler, int recipe, IRecipeFilter filter) {
         return filter.matches(
                 handler,
                 handler.getIngredientStacks(recipe),
@@ -54,7 +54,7 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
     }
 
     public static int findFirst(IRecipeHandler handler, IntPredicate predicate) {
-        final RecipeFilter filter = searchingAvailable(handler) ? GuiRecipe.getRecipeListFilter() : null;
+        final IRecipeFilter filter = searchingAvailable(handler) ? GuiRecipe.getRecipeListFilter() : null;
         int refIndex = -1;
 
         for (int recipeIndex = 0; recipeIndex < handler.numRecipes(); recipeIndex++) {
@@ -70,7 +70,7 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
         return -1;
     }
 
-    public List<Integer> getSearchResult(RecipeFilter filter) {
+    public List<Integer> getSearchResult(IRecipeFilter filter) {
 
         if (filteredRecipes.isEmpty() || !this.searchingAvailable()) {
             return null;

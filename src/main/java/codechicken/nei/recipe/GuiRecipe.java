@@ -37,9 +37,9 @@ import codechicken.nei.SearchField;
 import codechicken.nei.VisiblityData;
 import codechicken.nei.api.IGuiContainerOverlay;
 import codechicken.nei.api.INEIGuiHandler;
+import codechicken.nei.api.IRecipeFilter;
+import codechicken.nei.api.IRecipeFilter.IRecipeFilterProvider;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.api.RecipeFilter;
-import codechicken.nei.api.RecipeFilter.RecipeFilterProvider;
 import codechicken.nei.api.TaggedInventoryArea;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
@@ -69,7 +69,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private static final int BUTTON_WIDTH = 13;
     private static final int BUTTON_HEIGHT = 12;
 
-    public static final List<RecipeFilterProvider> recipeFilterers = new LinkedList<>();
+    public static final List<IRecipeFilterProvider> recipeFilterers = new LinkedList<>();
 
     protected boolean limitToOneRecipe = false;
     protected AcceptsFollowingTooltipLineHandler acceptsFollowingTooltipLineHandler;
@@ -135,7 +135,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                         searchHandler.setSearchIndices(null);
                         guiRecipe.changePage(0);
                     } else {
-                        final RecipeFilter filter = GuiRecipe.searchField.getRecipeFilter();
+                        final IRecipeFilter filter = GuiRecipe.searchField.getRecipeFilter();
                         final List<Integer> filtered = searchHandler.getSearchResult(filter);
 
                         if (filtered == null) {
@@ -458,7 +458,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
     }
 
-    public static RecipeFilter getRecipeListFilter() {
+    public static IRecipeFilter getRecipeListFilter() {
         if (recipeFilterers.isEmpty()) {
             return null;
         }
@@ -466,8 +466,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         final AllMultiRecipeFilter recipeFilter = new AllMultiRecipeFilter();
 
         synchronized (recipeFilterers) {
-            for (RecipeFilterProvider p : recipeFilterers) {
-                RecipeFilter filter = p.getRecipeFilter();
+            for (IRecipeFilterProvider p : recipeFilterers) {
+                IRecipeFilter filter = p.getRecipeFilter();
                 if (filter != null) {
                     recipeFilter.filters.add(filter);
                 }
