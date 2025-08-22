@@ -207,11 +207,11 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         return false;
     }
 
-    public boolean addRecipe(Recipe recipe, int groupId) {
+    public boolean addRecipe(Recipe recipe, int multiplier, int groupId) {
         final RecipeId recipeId = recipe.getRecipeId();
 
         if (recipe != null && this.grid.getGroup(groupId) != null && !this.grid.existsRecipe(recipeId, groupId)) {
-            this.grid.addRecipe(recipe, groupId);
+            this.grid.addRecipe(recipe, multiplier, groupId);
             return true;
         }
 
@@ -234,7 +234,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             if (item instanceof Recipe recipe) {
 
                 if (uniqueRecipe.add(recipe.getRecipeId())) {
-                    this.grid.addRecipe(recipe, groupId);
+                    this.grid.addRecipe(recipe, 1, groupId);
                 }
 
             } else if (item instanceof RecipeId recipeId) {
@@ -305,18 +305,20 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         final RecipeId recipeId = slot.getRecipeId();
         final BookmarkGroup group = slot.getGroup();
 
-        if (recipeId == null || !removeFullRecipe) {
-            this.grid.removeRecipe(slot.itemIndex, removeFullRecipe);
+        if (group.crafting != null && group.collapsed) {
+
+            if (!removeFullRecipe) {
+                return true;
+            }
+
+            this.grid.removeGroup(groupId);
             return true;
         }
 
-        if (group.crafting != null && group.collapsed && removeFullRecipe) {
-            this.grid.removeGroup(groupId);
-            return true;
-        } else if (group.crafting != null) {
+        if (recipeId != null && group.crafting != null) {
             Set<RecipeId> recipes = group.crafting.recipeRelations.getOrDefault(recipeId, Collections.emptySet());
 
-            if (removeFullRecipe && recipes.isEmpty()) {
+            if (recipes.isEmpty()) {
                 for (Map.Entry<RecipeId, Set<RecipeId>> entry : group.crafting.recipeRelations.entrySet()) {
                     if (entry.getValue().contains(recipeId)) {
                         recipes = entry.getValue();
@@ -326,14 +328,23 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             }
 
             if (!recipes.isEmpty()) {
-                boolean removed = false;
 
+                if (!removeFullRecipe) {
+                    return true;
+                }
+
+                boolean removed = false;
                 for (RecipeId relRecipeId : recipes) {
                     removed = this.grid.removeRecipe(relRecipeId, groupId) || removed;
                 }
 
                 return removed;
             }
+        }
+
+        if (recipeId == null || !removeFullRecipe) {
+            this.grid.removeRecipe(slot.itemIndex, removeFullRecipe);
+            return true;
         }
 
         return this.grid.removeRecipe(recipeId, groupId);
@@ -435,7 +446,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     protected int resizeHeader(GuiContainer gui) {
         final LayoutStyleMinecraft layout = (LayoutStyleMinecraft) LayoutManager.getLayoutStyle();
         final int rows = (int) Math.ceil((double) layout.buttonCount / layout.numButtons);
-        final int diff = rows * 19 + getMarginTop(gui) - y;
+        final int diff = rows * 19 + PADDING - y;
 
         if (diff > 0) {
             y += diff;
@@ -493,24 +504,31 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         }
     }
 
-    protected String getPositioningSettingName() {
-        return "world.panels.bookmarks";
-    }
+    public Rectangle4i calculateBounds() {
+        final GuiContainer gui = NEIClientUtils.getGuiContainer();
+        final int width = (gui.width - gui.xSize) / 2 - PADDING * 2;
+        final Rectangle4i bounds = new Rectangle4i(
+                PADDING,
+                PADDING,
+                (gui.width - 176) / 2 - PADDING * 2,
+                gui.height - PADDING * 2);
 
-    public int getMarginLeft(GuiContainer gui) {
-        return PADDING;
-    }
+        int paddingLeft = (int) Math
+                .ceil(bounds.w * NEIClientConfig.getSetting("world.panels.bookmarks.left").getIntValue() / 100000.0);
+        int paddingTop = (int) Math
+                .ceil(bounds.h * NEIClientConfig.getSetting("world.panels.bookmarks.top").getIntValue() / 100000.0);
+        int paddingRight = (int) Math
+                .ceil(bounds.w * NEIClientConfig.getSetting("world.panels.bookmarks.right").getIntValue() / 100000.0);
+        int paddingBottom = (int) Math
+                .ceil(bounds.h * NEIClientConfig.getSetting("world.panels.bookmarks.bottom").getIntValue() / 100000.0);
 
-    public int getMarginTop(GuiContainer gui) {
-        return PADDING;
-    }
+        bounds.h = Math.max(ItemsGrid.SLOT_SIZE, bounds.h - paddingTop - paddingBottom);
+        bounds.y = bounds.y + Math.min(paddingTop, bounds.h - ItemsGrid.SLOT_SIZE);
 
-    public int getWidth(GuiContainer gui) {
-        return gui.width - (gui.xSize + gui.width) / 2 - PADDING * 2;
-    }
+        bounds.w = Math.max(ItemsGrid.SLOT_SIZE, Math.min(bounds.w - paddingLeft - paddingRight, width - paddingLeft));
+        bounds.x = bounds.x + Math.min(paddingLeft, bounds.w - ItemsGrid.SLOT_SIZE);
 
-    public int getHeight(GuiContainer gui) {
-        return gui.height - getMarginTop(gui) - PADDING;
+        return bounds;
     }
 
     protected ItemStack getDraggedStackWithQuantity(ItemStack itemStack) {
@@ -1195,7 +1213,10 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                     && !handlerName.isEmpty()
                     && ingredients != null
                     && !ingredients.isEmpty()) {
-                addRecipe(Recipe.of(Arrays.asList(stack), handlerName, ingredients), BookmarkGrid.DEFAULT_GROUP_ID);
+                addRecipe(
+                        Recipe.of(Arrays.asList(stack), handlerName, ingredients),
+                        saveSize ? 1 : 0,
+                        BookmarkGrid.DEFAULT_GROUP_ID);
             } else {
                 addItem(stack, saveSize);
             }
@@ -1209,7 +1230,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
     @Deprecated
     public void addRecipe(BookmarkRecipe recipe, boolean saveSize, int groupId) {
-        addRecipe(recipe.getRecipe(), groupId);
+        addRecipe(recipe.getRecipe(), saveSize ? 1 : 0, groupId);
     }
 
     @Deprecated

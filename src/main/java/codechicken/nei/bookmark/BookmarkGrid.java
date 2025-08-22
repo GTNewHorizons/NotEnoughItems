@@ -866,7 +866,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         onItemsChanged();
     }
 
-    public void addRecipe(Recipe recipe, int groupId) {
+    public void addRecipe(Recipe recipe, int multiplier, int groupId) {
         final RecipeId recipeId = recipe.getRecipeId();
         final List<ItemStack> results = recipe.getResults().stream().map(res -> res.getItemStack())
                 .collect(Collectors.toList());
@@ -874,15 +874,19 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
                 .collect(Collectors.toList());
 
         for (ItemStack stack : ItemStackAmount.of(results).values()) {
-            this.addItem(BookmarkItem.of(groupId, stack, StackInfo.getAmount(stack), recipeId, false), true);
+            long factor = StackInfo.getAmount(stack);
+            this.addItem(
+                    BookmarkItem.of(groupId, StackInfo.withAmount(stack, factor * multiplier), factor, recipeId, false),
+                    true);
         }
 
         for (ItemStack stack : ItemStackAmount.of(ingredients).values()) {
+            long factor = StackInfo.getAmount(stack);
             this.addItem(
                     BookmarkItem.of(
                             groupId,
-                            stack,
-                            StackInfo.getAmount(stack),
+                            StackInfo.withAmount(stack, factor * multiplier),
+                            factor,
                             recipeId,
                             true,
                             BookmarkItem.generatePermutations(stack, recipe)),
@@ -904,7 +908,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
 
         if (item.recipeId != null && removeFullRecipe) {
             removeRecipe(item.recipeId, item.groupId);
-        } else {
+        } else if (itemIndex >= 0) {
             this.bookmarkItems.remove(itemIndex);
             onItemsChanged();
         }
@@ -1116,16 +1120,16 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
                 if (item.factor > 0
                         && outputRecipes.stream().anyMatch(recipeId -> item.equalsRecipe(recipeId, targetGroupId))) {
                     final long multiplier = recipeMultipliers.getOrDefault(item.recipeId, (long) Integer.MAX_VALUE);
-                    final boolean isOutputRecipe = group.crafting != null
-                            && !group.crafting.recipeInMiddle.contains(item.recipeId);
+                    final boolean recipeInMiddle = group.crafting != null
+                            && group.crafting.recipeInMiddle.contains(item.recipeId);
 
                     recipeMultipliers.put(
                             item.recipeId,
                             Math.min(
                                     shiftMultiplier(
-                                            Math.max(isOutputRecipe ? 1 : 0, item.getMultiplier()),
+                                            Math.max(recipeInMiddle ? 1 : 0, item.getMultiplier()),
                                             shift,
-                                            isOutputRecipe ? 1 : 0),
+                                            recipeInMiddle ? 1 : 0),
                                     multiplier));
                     items.add(item);
                 }
@@ -1148,16 +1152,16 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         } else if (targetItem.recipeId != null) {
             final RecipeId recipeId = this.gridGenerator.itemToRecipe
                     .getOrDefault(targetItemIndex, targetItem.recipeId);
-            final boolean isOutputRecipe = group.crafting != null && !group.crafting.recipeInMiddle.contains(recipeId);
+            final boolean recipeInMiddle = group.crafting != null && group.crafting.recipeInMiddle.contains(recipeId);
             long multiplier = Integer.MAX_VALUE;
 
             for (BookmarkItem item : this.bookmarkItems) {
                 if (item.equalsRecipe(recipeId, targetItem.groupId) && item.factor > 0) {
                     multiplier = Math.min(
                             shiftMultiplier(
-                                    Math.max(isOutputRecipe ? 1 : 0, item.getMultiplier()),
+                                    Math.max(recipeInMiddle ? 1 : 0, item.getMultiplier()),
                                     shift,
-                                    isOutputRecipe ? 1 : 0),
+                                    recipeInMiddle ? 1 : 0),
                             multiplier);
                 }
             }

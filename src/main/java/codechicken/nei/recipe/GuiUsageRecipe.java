@@ -8,6 +8,7 @@ import java.util.Set;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 
+import codechicken.nei.ItemPanels;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.recipe.Recipe.RecipeId;
@@ -34,6 +35,11 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
             final RecipeId recipeId = getCurrentRecipeId(mc.currentScreen);
             final GuiUsageRecipe gui = new GuiUsageRecipe(handlers);
 
+            if (NEIClientConfig.showHistoryPanelWidget() && "item".equals(inputId)
+                    && ingredients[0] instanceof ItemStack stack) {
+                ItemPanels.itemPanel.historyPanel.addItem(stack);
+            }
+
             mc.displayGuiScreen(gui);
             gui.openTargetRecipe(recipeId);
             return true;
@@ -51,8 +57,8 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
         final RecipeHandlerQuery<IUsageHandler> recipeQuery = new RecipeHandlerQuery<>(
                 h -> getUsageOrCatalystHandler(h, inputId, ingredients),
-                usagehandlers,
-                serialUsageHandlers,
+                GuiUsageRecipe.usagehandlers,
+                GuiUsageRecipe.serialUsageHandlers,
                 "Error while looking up usage recipe",
                 "inputId: " + inputId,
                 "ingredients: " + Arrays.toString(ingredients));

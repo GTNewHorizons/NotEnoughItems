@@ -207,6 +207,10 @@ public class GuiPresetList extends GuiOptionPane {
                 modeName = EnumChatFormatting.GOLD + NEIClientUtils.translate("presets.mode.hide.char")
                         + EnumChatFormatting.RESET;
                 break;
+            case SUBSET:
+                modeName = EnumChatFormatting.DARK_PURPLE + NEIClientUtils.translate("presets.mode.subset.char")
+                        + EnumChatFormatting.RESET;
+                break;
             case REMOVE:
                 modeName = EnumChatFormatting.RED + NEIClientUtils.translate("presets.mode.remove.char")
                         + EnumChatFormatting.RESET;
