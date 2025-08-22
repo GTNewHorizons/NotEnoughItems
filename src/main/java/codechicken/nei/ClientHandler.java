@@ -147,6 +147,7 @@ public class ClientHandler {
         loadHeightHackHandlers();
         loadHiddenHandlers();
         loadEnableAutoFocus();
+        loadGuiCraftablesBlacklist();
         ItemInfo.preInit();
         StackInfo.loadGuidFilters();
     }
@@ -208,8 +209,13 @@ public class ClientHandler {
     public static void loadEnableAutoFocus() {
         loadSettingsFile(
                 "enableautofocus.cfg",
-                lines -> AutoFocusWidget.enableAutoFocusPrefixes = lines
-                        .collect(Collectors.toCollection(ArrayList::new)));
+                lines -> AutoFocusWidget.enableAutoFocusPrefixes = lines.collect(Collectors.toList()));
+    }
+
+    public static void loadGuiCraftablesBlacklist() {
+        loadSettingsFile(
+                "guicraftablesblacklist.cfg",
+                lines -> ItemCraftablesPanel.guiBlacklist = lines.collect(Collectors.toList()));
     }
 
     public static void loadHiddenItems() {
