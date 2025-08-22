@@ -70,8 +70,6 @@ public class ItemHistoryPanel extends AbstractSubpanel<ItemsGrid<ItemsGridSlot, 
         final int useRows = NEIClientConfig.getIntSetting("inventory.history.useRows");
         final int rows = (int) Math.min(Math.ceil(this.grid.size() * 1f / columns), useRows);
 
-        System.out.println("rows: " + rows + " " + columns + " " + this.grid.size() + "    " + width);
-
         this.w = width;
         this.h = 8 + ItemsGrid.SLOT_SIZE * Math.max(rows, 1);
 
