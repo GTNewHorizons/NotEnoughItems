@@ -711,7 +711,6 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.search.logSearchExceptions").setComment("Search exceptions for extended+")
                 .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.search.logSearchExceptions", true));
 
         String prefixRedefinitions = tag.getTag("inventory.search.prefixRedefinitions").setComment(
                 "Redefine search prefixes by providing a char-to-char map (JSON). The keys are the original prefixes, the values the new ones. Example: { \"$\": \"€\", \"#\": \"+\", \"@\": \"°\", \"%\": \"!\" }")
