@@ -139,6 +139,13 @@ nei.chat.chunkoverlay.3=Chunk Overlay: GT Ore Veins
 nei.chat.item_link.text=<%s> §6Click to add bookmark: %s
 nei.chat.bookmark_added.text=Bookmark added!
 
+nei.chat.recipeid.many_params=Too many parameters! Usage: %s
+nei.chat.recipeid.not_found=File %s not found!
+nei.chat.recipeid.diff.start=Start processing recipe diff!
+nei.chat.recipeid.diff.finish=Finished processing recipe diff!
+nei.chat.recipeid.dump.start=Start processing recipe handlers!
+nei.chat.recipeid.dump.finish=Finished processing recipe handlers!
+
 nei.options=NEI Options
 nei.options.back=Back
 nei.options.save=Save
@@ -516,6 +523,8 @@ nei.recipe.overlay.bookmarkRecipe=Save with Recipe
 nei.recipe.favorite=Favorite
 nei.recipe.favorite.bookmark_recipe=Save Recipe Tree
 nei.recipe.favorite.change_result_index=Change Output
+
+nei.recipe.information=Information
 
 nei.itemsort.minecraft=Minecraft
 nei.itemsort.minecraft.tip=Sorts items from vanilla minecraft first

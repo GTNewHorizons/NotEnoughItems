@@ -109,6 +109,8 @@ public class RecipeInfo {
         API.registerUsageHandler(new BrewingRecipeHandler());
         API.registerRecipeHandler(new FuelRecipeHandler());
         API.registerUsageHandler(new FuelRecipeHandler());
+        API.registerRecipeHandler(new InformationHandler());
+        API.registerUsageHandler(new InformationHandler());
 
         API.registerGuiOverlay(GuiCrafting.class, "crafting");
         API.registerGuiOverlay(GuiInventory.class, "crafting2x2", 63, 20);
