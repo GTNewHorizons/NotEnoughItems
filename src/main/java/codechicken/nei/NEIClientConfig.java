@@ -58,6 +58,7 @@ import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
 import codechicken.nei.recipe.RecipeInfo;
 import codechicken.nei.util.NEIKeyboardUtils;
@@ -260,15 +261,21 @@ public class NEIClientConfig {
         tag.getTag("inventory.history.enabled").setComment("Enable/disable History Panel").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.history.enabled", true));
 
-        tag.getTag("inventory.history.historyColor").setComment("Color of the history area display")
-                .getHexValue(0xee555555);
-        API.addOption(new OptionIntegerField("inventory.history.historyColor", 0, OptionIntegerField.UNSIGNED_INT_MAX));
+        tag.getTag("inventory.history.color").setComment("Color of the history area display").getHexValue(0xee555555);
+        API.addOption(new OptionIntegerField("inventory.history.color", 0, OptionIntegerField.UNSIGNED_INT_MAX));
 
         tag.getTag("inventory.history.useRows").setComment("Rows used in historical areas").getIntValue(2);
         API.addOption(new OptionIntegerField("inventory.history.useRows", 1, 5));
 
-        tag.getTag("inventory.history.splittingMode").getIntValue(1);
-        API.addOption(new OptionCycled("inventory.history.splittingMode", 2, true));
+        tag.getTag("inventory.craftables.enabled").setComment("Enable/disable Craftables Panel").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.craftables.enabled", true));
+
+        tag.getTag("inventory.craftables.color").setComment("Color of the craftables area display")
+                .getHexValue(0xee555555);
+        API.addOption(new OptionIntegerField("inventory.craftables.color", 0, OptionIntegerField.UNSIGNED_INT_MAX));
+
+        tag.getTag("inventory.craftables.useRows").setComment("Rows used in craftables areas").getIntValue(2);
+        API.addOption(new OptionIntegerField("inventory.craftables.useRows", 1, 5));
 
         tag.getTag("inventory.collapsibleItems.enabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.collapsibleItems.enabled", true) {
@@ -390,6 +397,8 @@ public class NEIClientConfig {
         });
         tag.getTag("inventory.hotkeysHelpText").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.hotkeysHelpText", true));
+        tag.getTag("inventory.showHotkeys").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.showHotkeys", true));
 
         tag.getTag("loadPluginsInParallel").getBooleanValue(true);
         tag.getTag("itemLoadingTimeout").getIntValue(500);
@@ -743,6 +752,7 @@ public class NEIClientConfig {
         API.addHashBind("gui.hide", Keyboard.KEY_O);
         API.addHashBind("gui.search", Keyboard.KEY_F);
         API.addKeyBind("gui.bookmark", Keyboard.KEY_A);
+        API.addHashBind("gui.favorite", Keyboard.KEY_F + NEIClientUtils.SHIFT_HASH);
         API.addHashBind("gui.remove_recipe", Keyboard.KEY_A + NEIClientUtils.SHIFT_HASH);
         API.addKeyBind("gui.bookmark_pull_items", Keyboard.KEY_V);
         API.addKeyBind("gui.overlay", Keyboard.KEY_S);
@@ -769,6 +779,7 @@ public class NEIClientConfig {
         API.addKeyBind("world.creative", 0);
         API.addHashBind("gui.copy_name", Keyboard.KEY_C + NEIClientUtils.CTRL_HASH);
         API.addHashBind("gui.copy_oredict", Keyboard.KEY_D + NEIClientUtils.CTRL_HASH);
+        API.addHashBind("gui.chat_link_item", Keyboard.KEY_L + NEIClientUtils.CTRL_HASH);
     }
 
     public static OptionList getOptionList() {
@@ -856,7 +867,7 @@ public class NEIClientConfig {
         final int hash = getKeyBinding(string);
 
         if (hash != Keyboard.CHAR_NONE && Keyboard.getEventKeyState()) {
-            return KeyManager.keyStates.containsKey(string) ? hash == Keyboard.getEventKey()
+            return KeyManager.keyStates.containsKey(string) ? Keyboard.isKeyDown(hash)
                     : hash == NEIClientUtils.getKeyHash();
         }
 
@@ -898,6 +909,7 @@ public class NEIClientConfig {
             LayoutManager.load();
             NEIController.load();
             BookmarkContainerInfo.load();
+            InformationHandler.load();
             mainNEIConfigLoaded = true;
 
             new Thread("NEI Plugin Loader") {
@@ -920,6 +932,7 @@ public class NEIClientConfig {
                     });
 
                     RecipeCatalysts.loadCatalystInfo();
+                    SubsetWidget.loadCustomSubsets();
                     SubsetWidget.loadHidden();
                     CollapsibleItems.load();
                     ItemSorter.loadConfig();
@@ -1159,6 +1172,10 @@ public class NEIClientConfig {
 
     public static boolean showHistoryPanelWidget() {
         return getBooleanSetting("inventory.history.enabled");
+    }
+
+    public static boolean showCraftablesPanelWidget() {
+        return getBooleanSetting("inventory.craftables.enabled");
     }
 
     public static int getGridRenderingCacheMode() {

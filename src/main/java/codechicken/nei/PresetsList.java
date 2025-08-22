@@ -240,7 +240,7 @@ public class PresetsList {
         try (FileOutputStream output = new FileOutputStream(presetsFile)) {
             IOUtils.writeLines(strings, "\n", output, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            NEIClientConfig.logger.error("Filed to save presets list to file {}", presetsFile, e);
+            NEIClientConfig.logger.error("Failed to save presets list to file {}", presetsFile, e);
         }
 
         recipeFilter.cache = null;

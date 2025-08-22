@@ -105,6 +105,7 @@ public class BookmarksGridSlot extends ItemsGridSlot {
         return this.bookmarkItem;
     }
 
+    @Override
     public RecipeId getRecipeId() {
         return this.bookmarkItem.recipeId;
     }

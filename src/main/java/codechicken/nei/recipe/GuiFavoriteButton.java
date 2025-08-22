@@ -119,7 +119,7 @@ public class GuiFavoriteButton extends GuiRecipeButton {
     public void lastKeyTyped(GuiRecipe<?> gui, char keyChar, int keyID) {
 
         if (NEIClientConfig.isKeyHashDown("gui.bookmark") && NEIClientUtils.shiftKey()) {
-            ItemPanels.bookmarkPanel.addGroup(getRecipesTree(getRecipe()), BookmarkViewMode.TODO_LIST, true);
+            saveRecipeInBookmark();
         }
 
     }
@@ -178,6 +178,10 @@ public class GuiFavoriteButton extends GuiRecipeButton {
                 true);
 
         return true;
+    }
+
+    public void saveRecipeInBookmark() {
+        ItemPanels.bookmarkPanel.addGroup(getRecipesTree(getRecipe()), BookmarkViewMode.TODO_LIST, true);
     }
 
     private List<Recipe> getRecipesTree(Recipe mainRecipe) {

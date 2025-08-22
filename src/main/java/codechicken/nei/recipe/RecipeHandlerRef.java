@@ -30,7 +30,7 @@ public class RecipeHandlerRef {
 
     public static RecipeHandlerRef of(RecipeId recipeId) {
 
-        if (recipeId.getResult() != null && !recipeId.getIngredients().isEmpty()) {
+        if (recipeId != null && recipeId.getResult() != null && !recipeId.getIngredients().isEmpty()) {
             return recipeRefCache.computeIfAbsent(recipeId, ri -> {
                 final List<ICraftingHandler> handlers = GuiCraftingRecipe
                         .getCraftingHandlers("recipeId", recipeId.getResult(), recipeId);

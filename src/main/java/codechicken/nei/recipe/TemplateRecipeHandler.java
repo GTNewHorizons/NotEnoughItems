@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.init.Blocks;
@@ -711,11 +712,9 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
             final ItemStack stack = items.get((items.size() - scroll + stackIndex) % items.size());
 
             if (NEIClientConfig.useJEIStyledCycledIngredients()) {
-                for (PositionedStack pStack : getIngredientStacks(recipe)) {
-                    if (pStack.containsWithNBT(stack)) {
-                        pStack.setPermutationToRender(stack);
-                    }
-                }
+                Stream.concat(getIngredientStacks(recipe).stream(), getOtherStacks(recipe).stream())
+                        .filter(pStack -> pStack.containsWithNBT(stack))
+                        .forEach(pStack -> pStack.setPermutationToRender(stack));
             } else {
                 overStack.setPermutationToRender(stack);
             }
@@ -738,14 +737,9 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     private PositionedStack getIngredientMouseOver(int mousex, int mousey, int recipe) {
-
-        for (PositionedStack pStack : getIngredientStacks(recipe)) {
-            if ((new Rectangle4i(pStack.relx, pStack.rely, 18, 18)).contains(mousex, mousey)) {
-                return pStack;
-            }
-        }
-
-        return null;
+        return Stream.concat(getIngredientStacks(recipe).stream(), getOtherStacks(recipe).stream())
+                .filter(pStack -> new Rectangle4i(pStack.relx, pStack.rely, 18, 18).contains(mousex, mousey))
+                .findFirst().orElse(null);
     }
 
     private boolean transferRect(GuiRecipe<?> gui, int recipe, boolean usage) {

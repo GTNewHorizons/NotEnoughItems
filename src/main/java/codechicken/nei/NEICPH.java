@@ -186,6 +186,12 @@ public class NEICPH implements IClientPacketHandler {
         packet.sendToServer();
     }
 
+    public static void sendChatLink(ItemStack stackover) {
+        PacketCustom packet = new PacketCustom(channel, C2S.SEND_CHAT_ITEM_LINK);
+        packet.writeItemStack(stackover);
+        packet.sendToServer();
+    }
+
     public static void sendOpenEnchantmentWindow() {
         PacketCustom packet = new PacketCustom(channel, C2S.REQUEST_ENCHANTMENT_GUI);
         packet.sendToServer();

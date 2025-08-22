@@ -52,7 +52,7 @@ public class LayoutStyleMinecraft extends LayoutStyle {
     public void layout(GuiContainer gui, VisiblityData visiblity) {
         reset();
 
-        leftSize = ItemPanels.bookmarkPanel.getWidth(gui);
+        leftSize = (gui.width - gui.xSize) / 2 - 4;
         numButtons = Math.max(leftSize / 20, 1);
 
         LayoutManager.delete.state = 0x4;

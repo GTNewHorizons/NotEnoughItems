@@ -17,6 +17,7 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.event.ClickEvent;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -80,6 +81,18 @@ public class NEIServerUtils {
         player.heal(20);
         player.getFoodStats().addStats(20, 1);
         player.extinguish();
+    }
+
+    public static void sendChatItemLink(EntityPlayerMP sender, ItemStack stackover) {
+        ServerUtils.sendChatToAll(
+                new ChatComponentTranslation(
+                        "nei.chat.item_link.text",
+                        sender.getDisplayName(),
+                        stackover.func_151000_E().setChatStyle(
+                                stackover.func_151000_E().getChatStyle().setChatClickEvent(
+                                        new ClickEvent(
+                                                ClickEvent.Action.RUN_COMMAND,
+                                                "/nei_bookmark " + stackover.writeToNBT(new NBTTagCompound()))))));
     }
 
     public static long getTime(World world) {

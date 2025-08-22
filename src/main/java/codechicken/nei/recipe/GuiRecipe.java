@@ -462,8 +462,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         if (!cacheKey.equals(this.recipePageCacheKey)) {
             this.recipePageCacheKey = cacheKey;
 
-            for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
-                final int recipeIndex = indices.get(refIndex);
+            for (final int recipeIndex : indices) {
                 for (PositionedStack pStack : handler.original.getIngredientStacks(recipeIndex)) {
                     pStack.setPermutationToRender(pStack.getFilteredPermutations().get(0));
                 }
@@ -472,7 +471,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             final int xOffset = (limitToOneRecipe ? 0 : guiLeft) + xSize - BORDER_PADDING;
             final int yOffset = (limitToOneRecipe ? -BUTTON_HEIGHT : guiTop - 18) + getRefIndexPosition(0).y;
             final int height = handlerInfo.getHeight() - yShift;
-            final boolean showFavorites = NEIClientConfig.favoritesEnabled();
+            final boolean showFavorites = NEIClientConfig.favoritesEnabled() && handlerInfo.getShowFavoritesButton();
+            final boolean showOverlay = handlerInfo.getShowOverlayButton();
             final UpdateRecipeButtonsEvent.Pre preEvent = new UpdateRecipeButtonsEvent.Pre(
                     this,
                     xOffset,
@@ -484,7 +484,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             if (MinecraftForge.EVENT_BUS.post(preEvent)) {
                 buttons = preEvent.buttonList;
             } else {
-
                 for (int refIndex = 0; refIndex < indices.size(); refIndex++) {
                     final int recipeIndex = indices.get(refIndex);
 
@@ -493,20 +492,19 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                         continue;
                     }
 
-                    GuiRecipeButton button = new GuiOverlayButton(
-                            firstGui,
-                            RecipeHandlerRef.of(handler.original, recipeIndex),
-                            xOffset - GuiRecipeButton.BUTTON_WIDTH,
-                            yOffset + height * (refIndex + 1));
-
-                    buttons.add(button);
-
-                    if (showFavorites) {
+                    int x = xOffset - GuiRecipeButton.BUTTON_WIDTH;
+                    int y = yOffset + height * (refIndex + 1);
+                    if (showOverlay) {
                         buttons.add(
-                                new GuiFavoriteButton(
+                                new GuiOverlayButton(
+                                        firstGui,
                                         RecipeHandlerRef.of(handler.original, recipeIndex),
-                                        button.xPosition,
-                                        button.yPosition - button.height - 1));
+                                        x,
+                                        y));
+                        y -= GuiRecipeButton.BUTTON_HEIGHT + 1;
+                    }
+                    if (showFavorites) {
+                        buttons.add(new GuiFavoriteButton(RecipeHandlerRef.of(handler.original, recipeIndex), x, y));
                     }
 
                 }
@@ -520,6 +518,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
             if (!showFavorites) {
                 buttons.removeIf(GuiFavoriteButton.class::isInstance);
+            }
+
+            if (!showOverlay) {
+                buttons.removeIf(GuiOverlayButton.class::isInstance);
             }
 
             /** compatibility with old format */
