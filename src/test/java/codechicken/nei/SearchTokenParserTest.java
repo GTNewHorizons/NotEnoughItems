@@ -29,8 +29,8 @@ import codechicken.nei.SearchField.SearchParserProvider;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.filter.AllMultiItemFilter;
 import codechicken.nei.filter.AnyMultiItemFilter;
-import codechicken.nei.filter.IdentifierFilter;
 import codechicken.nei.filter.PatternItemFilter;
+import codechicken.nei.search.IdentifierFilter;
 
 @DisplayName("Search expression")
 public class SearchTokenParserTest {

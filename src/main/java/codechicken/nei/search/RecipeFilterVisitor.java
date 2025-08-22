@@ -10,11 +10,11 @@ import codechicken.nei.api.RecipeFilter;
 import codechicken.nei.filter.AllIngredientsRecipeFilter;
 import codechicken.nei.filter.AllMultiRecipeFilter;
 import codechicken.nei.filter.AllOthersRecipeFilter;
-import codechicken.nei.filter.AllResultRecipeFilter;
+import codechicken.nei.filter.AllSmartResultRecipeFilter;
 import codechicken.nei.filter.AnyIngredientsRecipeFilter;
 import codechicken.nei.filter.AnyItemRecipeFilter;
 import codechicken.nei.filter.AnyOthersRecipeFilter;
-import codechicken.nei.filter.AnyResultRecipeFilter;
+import codechicken.nei.filter.AnySmartResultRecipeFilter;
 import codechicken.nei.filter.EverythingItemFilter;
 
 public class RecipeFilterVisitor extends SearchExpressionParserBaseVisitor<RecipeFilter> {
@@ -28,12 +28,12 @@ public class RecipeFilterVisitor extends SearchExpressionParserBaseVisitor<Recip
 
     @Override
     public RecipeFilter visitRecipeSearchExpression(SearchExpressionParser.RecipeSearchExpressionContext ctx) {
-        if (ctx.searchExpression() != null) {
+        if (ctx.recipeClauseExpression() != null) {
             final List<RecipeFilter> filters = new ArrayList<>();
-            filters.add(getFilterByType(0, ctx, AnyIngredientsRecipeFilter::new, AllIngredientsRecipeFilter::new));
-            filters.add(getFilterByType(1, ctx, AnyResultRecipeFilter::new, AllResultRecipeFilter::new));
-            filters.add(getFilterByType(2, ctx, AnyOthersRecipeFilter::new, AllOthersRecipeFilter::new));
-            return new AllMultiRecipeFilter(filters);
+            for (SearchExpressionParser.RecipeClauseExpressionContext clauseCtx : ctx.recipeClauseExpression()) {
+                filters.add(createRecipeFilter(clauseCtx.searchExpression()));
+            }
+            return constructFilter(filters);
         }
         return defaultResult();
     }
@@ -43,25 +43,57 @@ public class RecipeFilterVisitor extends SearchExpressionParserBaseVisitor<Recip
         return new AnyItemRecipeFilter(new EverythingItemFilter());
     }
 
-    private RecipeFilter getFilterByType(int type, SearchExpressionParser.RecipeSearchExpressionContext ctx,
-            Function<ItemFilter, RecipeFilter> createAnyFilter, Function<ItemFilter, RecipeFilter> createAllFilter) {
-        final List<RecipeFilter> filters = new ArrayList<>();
-        for (final SearchExpressionParser.SearchExpressionContext searchExpressionCtx : ctx.searchExpression()) {
-            if (searchExpressionCtx.type == type) {
-                final ItemFilter itemFilter = itemFilterVisitor.visitSearchExpression(searchExpressionCtx);
-                if (searchExpressionCtx.allRecipe) {
-                    filters.add(createAllFilter.apply(itemFilter));
-                } else {
-                    filters.add(createAnyFilter.apply(itemFilter));
-                }
-            }
-        }
-        if (filters.isEmpty()) {
+    private RecipeFilter createRecipeFilter(SearchExpressionParser.SearchExpressionContext ctx) {
+        if (ctx == null) {
             return defaultResult();
-        } else if (filters.size() == 1) {
-            return filters.get(0);
         }
-        return new AllMultiRecipeFilter(filters);
+        final ItemFilter itemFilter = itemFilterVisitor.visitSearchExpression(ctx);
+        switch (ctx.type) {
+            case 0:
+                return getAllOrAnyFilter(
+                        ctx.allRecipe,
+                        itemFilter,
+                        AnyIngredientsRecipeFilter::new,
+                        AllIngredientsRecipeFilter::new);
+            case 1:
+                return getAllOrAnyFilter(
+                        ctx.allRecipe,
+                        itemFilter,
+                        AnySmartResultRecipeFilter::new,
+                        AllSmartResultRecipeFilter::new);
+            case 2:
+                return getAllOrAnyFilter(
+                        ctx.allRecipe,
+                        itemFilter,
+                        AnyOthersRecipeFilter::new,
+                        AllOthersRecipeFilter::new);
+            // Doesn't support all by default
+            case 3:
+                return getAllOrAnyFilter(ctx.allRecipe, itemFilter, AnyItemRecipeFilter::new, AnyItemRecipeFilter::new);
+            default:
+                return defaultResult();
+        }
+    }
+
+    private RecipeFilter getAllOrAnyFilter(boolean allRecipe, ItemFilter itemFilter,
+            Function<ItemFilter, RecipeFilter> createAnyFilter, Function<ItemFilter, RecipeFilter> createAllFilter) {
+        if (allRecipe) {
+            return createAllFilter.apply(itemFilter);
+        } else {
+            return createAnyFilter.apply(itemFilter);
+        }
+    }
+
+    private RecipeFilter constructFilter(List<RecipeFilter> filters) {
+        if (!filters.isEmpty()) {
+            // Propagate the result up
+            if (filters.size() == 1) {
+                return filters.get(0);
+            }
+            return new AllMultiRecipeFilter(filters);
+        } else {
+            return defaultResult();
+        }
     }
 
 }

@@ -7,17 +7,21 @@ import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.RecipeFilter;
 import codechicken.nei.recipe.IRecipeHandler;
 
-public class AllResultRecipeFilter extends AllRecipeFilter implements RecipeFilter {
+public class AllSmartResultRecipeFilter extends AllRecipeFilter implements RecipeFilter {
 
-    public AllResultRecipeFilter(ItemFilter filter) {
+    public AllSmartResultRecipeFilter(ItemFilter filter) {
         super(filter);
     }
 
     @Override
     public boolean matches(IRecipeHandler handler, List<PositionedStack> ingredients, PositionedStack result,
             List<PositionedStack> others) {
-
-        return allMatch(result);
+        if (result != null) {
+            return allMatch(result);
+        } else {
+            // GT recipes use others as a result
+            return allMatch(others);
+        }
     }
 
 }
