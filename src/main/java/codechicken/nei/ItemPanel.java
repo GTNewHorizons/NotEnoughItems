@@ -8,6 +8,7 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemsPanelGrid.ItemsPanelGridSlot;
 import codechicken.nei.util.NEIMouseUtils;
 
@@ -32,7 +33,8 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
     }
 
     public ItemHistoryPanel historyPanel = new ItemHistoryPanel();
-    public Button toggleGroups;
+    public ItemCraftablesPanel craftablesPanel = new ItemCraftablesPanel();
+    protected Button toggleGroups;
 
     @Deprecated
     public static class ItemPanelSlot extends ItemsPanelGridSlot {
@@ -84,6 +86,11 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
         toggleGroups = new Button("G") {
 
             @Override
+            public String getRenderLabel() {
+                return NEIClientUtils.translate("itempanel.collapsed.button");
+            }
+
+            @Override
             public String getButtonTip() {
                 return NEIClientUtils.translate("itempanel.collapsed.button.tip");
             }
@@ -108,24 +115,31 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
         return String.format("%d/%d", getPage(), Math.max(1, getNumPages()));
     }
 
-    protected String getPositioningSettingName() {
-        return "world.panels.items";
-    }
+    public Rectangle4i calculateBounds() {
+        final GuiContainer gui = NEIClientUtils.getGuiContainer();
+        final int width = (gui.width - gui.xSize) / 2 - PADDING * 2;
+        final Rectangle4i bounds = new Rectangle4i(
+                (gui.width + gui.xSize) / 2 + PADDING,
+                PADDING,
+                (gui.width - 176) / 2 - PADDING * 2,
+                gui.height - PADDING * 2);
 
-    public int getMarginLeft(GuiContainer gui) {
-        return (gui.width + gui.xSize) / 2 + PADDING;
-    }
+        int paddingLeft = (int) Math
+                .ceil(bounds.w * NEIClientConfig.getSetting("world.panels.items.left").getIntValue() / 100000.0);
+        int paddingTop = (int) Math
+                .ceil(bounds.h * NEIClientConfig.getSetting("world.panels.items.top").getIntValue() / 100000.0);
+        int paddingRight = (int) Math
+                .ceil(bounds.w * NEIClientConfig.getSetting("world.panels.items.right").getIntValue() / 100000.0);
+        int paddingBottom = (int) Math
+                .ceil(bounds.h * NEIClientConfig.getSetting("world.panels.items.bottom").getIntValue() / 100000.0);
 
-    public int getMarginTop(GuiContainer gui) {
-        return PADDING;
-    }
+        bounds.h = Math.max(ItemsGrid.SLOT_SIZE, bounds.h - paddingTop - paddingBottom);
+        bounds.y = bounds.y + Math.min(paddingTop, bounds.h - ItemsGrid.SLOT_SIZE);
 
-    public int getWidth(GuiContainer gui) {
-        return gui.width - (gui.xSize + gui.width) / 2 - PADDING * 2;
-    }
+        bounds.w = Math.max(ItemsGrid.SLOT_SIZE, Math.min(bounds.w - paddingLeft - paddingRight, width - paddingRight));
+        bounds.x = bounds.x + Math.max(0, width - bounds.w - paddingRight);
 
-    public int getHeight(GuiContainer gui) {
-        return gui.height - getMarginTop(gui) - PADDING;
+        return bounds;
     }
 
     @Override
@@ -141,26 +155,38 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
     }
 
     protected int resizeFooter(GuiContainer gui) {
-        if (!NEIClientConfig.showItemQuantityWidget() && NEIClientConfig.isSearchWidgetCentered()
-                && !NEIClientConfig.showHistoryPanelWidget()) {
+        int footerY = y + h;
+        int footerHeight = 0;
+
+        if (grid.getPerPage() == 0) {
             return 0;
+        }
+
+        if (NEIClientConfig.showItemQuantityWidget() || !NEIClientConfig.isSearchWidgetCentered()) {
+            footerY = LayoutManager.quantity.y;
+            footerHeight = LayoutManager.quantity.h + PanelWidget.PADDING;
         }
 
         if (NEIClientConfig.showHistoryPanelWidget()) {
             historyPanel.x = x;
-            historyPanel.w = w;
-            historyPanel.h = 8 + ItemsGrid.SLOT_SIZE * NEIClientConfig.getIntSetting("inventory.history.useRows");
 
-            if (NEIClientConfig.showItemQuantityWidget() || !NEIClientConfig.isSearchWidgetCentered()) {
-                historyPanel.y = LayoutManager.quantity.y - historyPanel.h - PanelWidget.PADDING;
-                return LayoutManager.quantity.h + historyPanel.h + PanelWidget.PADDING * 2;
-            } else {
-                historyPanel.y = y + h - historyPanel.h;
-                return historyPanel.h + PanelWidget.PADDING;
+            if (historyPanel.setPanelWidth(w) != 0) {
+                footerY = historyPanel.y = footerY - historyPanel.h;
+                footerHeight += historyPanel.h;
+            }
+
+        }
+
+        if (NEIClientConfig.showCraftablesPanelWidget()) {
+            craftablesPanel.x = x;
+
+            if (craftablesPanel.setPanelWidth(w) != 0) {
+                footerY = craftablesPanel.y = footerY - craftablesPanel.h;
+                footerHeight += craftablesPanel.h;
             }
         }
 
-        return LayoutManager.quantity.h + PanelWidget.PADDING;
+        return footerHeight;
     }
 
     @Override
@@ -168,20 +194,27 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
         super.setVisible();
 
         if (grid.getPerPage() > 0) {
+
             if (!CollapsibleItems.isEmpty() && !grid.isEmpty()) {
                 LayoutManager.addWidget(toggleGroups);
             }
 
-            if (NEIClientConfig.showHistoryPanelWidget() && (!grid.isEmpty() || !historyPanel.isEmpty())) {
+            if (NEIClientConfig.showCraftablesPanelWidget()) {
+                LayoutManager.addWidget(craftablesPanel);
+            }
+
+            if (NEIClientConfig.showHistoryPanelWidget()) {
                 LayoutManager.addWidget(historyPanel);
             }
+
         }
     }
 
     @Override
     public void resize(GuiContainer gui) {
         super.resize(gui);
-        historyPanel.resize(gui);
+        this.historyPanel.resize(gui);
+        this.craftablesPanel.resize(gui);
     }
 
     protected ItemStack getDraggedStackWithQuantity(ItemStack itemStack) {

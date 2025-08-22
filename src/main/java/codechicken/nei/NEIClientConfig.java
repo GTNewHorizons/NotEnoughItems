@@ -58,6 +58,7 @@ import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
 import codechicken.nei.recipe.RecipeInfo;
 import codechicken.nei.util.NEIKeyboardUtils;
@@ -260,15 +261,21 @@ public class NEIClientConfig {
         tag.getTag("inventory.history.enabled").setComment("Enable/disable History Panel").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.history.enabled", true));
 
-        tag.getTag("inventory.history.historyColor").setComment("Color of the history area display")
-                .getHexValue(0xee555555);
-        API.addOption(new OptionIntegerField("inventory.history.historyColor", 0, OptionIntegerField.UNSIGNED_INT_MAX));
+        tag.getTag("inventory.history.color").setComment("Color of the history area display").getHexValue(0xee555555);
+        API.addOption(new OptionIntegerField("inventory.history.color", 0, OptionIntegerField.UNSIGNED_INT_MAX));
 
         tag.getTag("inventory.history.useRows").setComment("Rows used in historical areas").getIntValue(2);
         API.addOption(new OptionIntegerField("inventory.history.useRows", 1, 5));
 
-        tag.getTag("inventory.history.splittingMode").getIntValue(1);
-        API.addOption(new OptionCycled("inventory.history.splittingMode", 2, true));
+        tag.getTag("inventory.craftables.enabled").setComment("Enable/disable Craftables Panel").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.craftables.enabled", true));
+
+        tag.getTag("inventory.craftables.color").setComment("Color of the craftables area display")
+                .getHexValue(0xee555555);
+        API.addOption(new OptionIntegerField("inventory.craftables.color", 0, OptionIntegerField.UNSIGNED_INT_MAX));
+
+        tag.getTag("inventory.craftables.useRows").setComment("Rows used in craftables areas").getIntValue(2);
+        API.addOption(new OptionIntegerField("inventory.craftables.useRows", 1, 5));
 
         tag.getTag("inventory.collapsibleItems.enabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.collapsibleItems.enabled", true) {
@@ -900,6 +907,7 @@ public class NEIClientConfig {
             LayoutManager.load();
             NEIController.load();
             BookmarkContainerInfo.load();
+            InformationHandler.load();
             mainNEIConfigLoaded = true;
 
             new Thread("NEI Plugin Loader") {
@@ -922,6 +930,7 @@ public class NEIClientConfig {
                     });
 
                     RecipeCatalysts.loadCatalystInfo();
+                    SubsetWidget.loadCustomSubsets();
                     SubsetWidget.loadHidden();
                     CollapsibleItems.load();
                     ItemSorter.loadConfig();
@@ -1161,6 +1170,10 @@ public class NEIClientConfig {
 
     public static boolean showHistoryPanelWidget() {
         return getBooleanSetting("inventory.history.enabled");
+    }
+
+    public static boolean showCraftablesPanelWidget() {
+        return getBooleanSetting("inventory.craftables.enabled");
     }
 
     public static int getGridRenderingCacheMode() {

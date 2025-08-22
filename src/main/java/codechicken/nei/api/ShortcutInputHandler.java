@@ -19,6 +19,7 @@ import codechicken.nei.BookmarkContainerInfo;
 import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemQuantityField;
+import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -286,7 +287,8 @@ public abstract class ShortcutInputHandler {
                             recipe.getIngredients());
                     singleRecipe.setCustomRecipeId(recipe.getRecipeId());
 
-                    ItemPanels.bookmarkPanel.addRecipe(singleRecipe, BookmarkGrid.DEFAULT_GROUP_ID);
+                    ItemPanels.bookmarkPanel
+                            .addRecipe(singleRecipe, saveStackSize ? 1 : 0, BookmarkGrid.DEFAULT_GROUP_ID);
                 }
 
             } else {
@@ -321,25 +323,38 @@ public abstract class ShortcutInputHandler {
         final GuiContainer gui = NEIClientUtils.getGuiContainer();
         Recipe recipe = null;
 
-        if (useFavorites && (ItemPanels.itemPanel.contains(mousex, mousey)
-                || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey))) {
-            recipe = Recipe.of(FavoriteRecipes.getFavorite(stackover));
+        if (useFavorites) {
+            ItemsGridSlot itemSlot = ItemPanels.itemPanel.getSlotMouseOver(mousex, mousey);
 
-            if (recipe != null) {
-
-                recipe.getIngredients().stream().forEach(ingr -> {
-                    final List<ItemStack> permutations = ingr.getPermutations();
-                    for (int index = 0; index < permutations.size(); index++) {
-                        if (FavoriteRecipes.contains(permutations.get(index))) {
-                            ingr.setActiveIndex(index);
-                            break;
-                        }
-                    }
-                });
-
+            if (itemSlot == null) {
+                itemSlot = ItemPanels.itemPanel.historyPanel.getSlotMouseOver(mousex, mousey);
             }
 
-        } else if (gui instanceof GuiRecipe guiRecipe) {
+            if (itemSlot == null) {
+                itemSlot = ItemPanels.itemPanel.craftablesPanel.getSlotMouseOver(mousex, mousey);
+            }
+
+            if (itemSlot != null) {
+                final RecipeId recipeId = itemSlot.getRecipeId();
+
+                if (recipeId != null && (recipe = Recipe.of(recipeId)) != null) {
+
+                    recipe.getIngredients().stream().forEach(ingr -> {
+                        final List<ItemStack> permutations = ingr.getPermutations();
+                        for (int index = 0; index < permutations.size(); index++) {
+                            if (FavoriteRecipes.contains(permutations.get(index))) {
+                                ingr.setActiveIndex(index);
+                                break;
+                            }
+                        }
+                    });
+
+                }
+
+            }
+        }
+
+        if (gui instanceof GuiRecipe guiRecipe) {
             recipe = guiRecipe.getFocusedRecipe();
         }
 
@@ -431,6 +446,10 @@ public abstract class ShortcutInputHandler {
             }
 
             if (recipeId != null) {
+                hotkeys.put(
+                        NEIClientConfig
+                                .getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
+                        NEIClientUtils.translate("bookmark.add_item_with_recipe_and_count"));
                 hotkeys.put(
                         NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
                         NEIClientUtils.translate("bookmark.add_item_with_recipe"));
@@ -539,17 +558,29 @@ public abstract class ShortcutInputHandler {
 
         if (slot != null) {
             return slot.isIngredient() ? null : slot.getRecipeId();
-        } else if (ItemPanels.itemPanel.contains(mousex, mousey)
-                || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey)) {
-                    return FavoriteRecipes.getFavorite(stack);
-                } else
-            if (gui instanceof GuiRecipe guiRecipe) {
-                final Recipe focusedRecipe = guiRecipe.getFocusedRecipe();
+        }
 
-                if (focusedRecipe != null) {
-                    return focusedRecipe.getRecipeId();
-                }
+        ItemsGridSlot itemSlot = ItemPanels.itemPanel.getSlotMouseOver(mousex, mousey);
+
+        if (itemSlot == null) {
+            itemSlot = ItemPanels.itemPanel.historyPanel.getSlotMouseOver(mousex, mousey);
+        }
+
+        if (itemSlot == null) {
+            itemSlot = ItemPanels.itemPanel.craftablesPanel.getSlotMouseOver(mousex, mousey);
+        }
+
+        if (itemSlot != null) {
+            return itemSlot.getRecipeId();
+        }
+
+        if (gui instanceof GuiRecipe guiRecipe) {
+            final Recipe focusedRecipe = guiRecipe.getFocusedRecipe();
+
+            if (focusedRecipe != null) {
+                return focusedRecipe.getRecipeId();
             }
+        }
 
         return null;
     }

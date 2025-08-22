@@ -86,13 +86,27 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
         if (outputId.equals("crafting") && getClass() == ShapedRecipeHandler.class) {
             for (IRecipe irecipe : (List<IRecipe>) CraftingManager.getInstance().getRecipeList()) {
                 CachedShapedRecipe recipe = null;
-                if (irecipe instanceof ShapedRecipes) recipe = new CachedShapedRecipe((ShapedRecipes) irecipe);
-                else if (irecipe instanceof ShapedOreRecipe) recipe = forgeShapedRecipe((ShapedOreRecipe) irecipe);
 
-                if (recipe == null) continue;
+                if (irecipe instanceof ShapedRecipes shaped) {
+                    recipe = new CachedShapedRecipe(shaped);
+                } else if (irecipe instanceof ShapedOreRecipe shaped) {
+                    recipe = forgeShapedRecipe(shaped);
+                }
 
-                recipe.computeVisuals();
-                arecipes.add(recipe);
+                if (recipe != null) {
+                    recipe.computeVisuals();
+                    arecipes.add(recipe);
+                }
+            }
+        } else if (outputId.equals("crafting2x2") && getClass() == ShapedRecipeHandler.class) {
+            for (IRecipe irecipe : (List<IRecipe>) CraftingManager.getInstance().getRecipeList()) {
+
+                if (irecipe instanceof ShapedRecipes shaped && shaped.recipeWidth <= 2 && shaped.recipeHeight <= 2) {
+                    CachedShapedRecipe recipe = new CachedShapedRecipe(shaped);
+                    recipe.computeVisuals();
+                    arecipes.add(recipe);
+                }
+
             }
         } else {
             super.loadCraftingRecipes(outputId, results);

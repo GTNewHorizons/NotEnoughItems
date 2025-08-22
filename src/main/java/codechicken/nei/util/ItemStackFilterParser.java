@@ -9,6 +9,7 @@ import java.util.regex.PatternSyntaxException;
 import java.util.stream.IntStream;
 
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.oredict.OreDictionary;
@@ -16,6 +17,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import codechicken.nei.ItemList.AllMultiItemFilter;
 import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.NegatedItemFilter;
+import codechicken.nei.NEIServerUtils;
 import codechicken.nei.api.ItemFilter;
 import cpw.mods.fml.common.registry.FMLControlledNamespacedRegistry;
 import cpw.mods.fml.common.registry.GameData;
@@ -24,10 +26,11 @@ import cpw.mods.fml.common.registry.GameData;
  * @formatter:off
  *
  * parts:
- * modname:itemid    - identify
- * $orename          - ore dictionary
- * tag.color=red     - tag
- * 0 or 0-12         - damage
+ * modname:itemid          - identify: matches any part of the target, so minecraft:lava matches minecraft:lava_bucket
+ * <modname:itemid(:meta)> - strict item identify, use meta 32767 for all subtypes
+ * $orename                - ore dictionary: matches any part of the target, so $ingot matches ingotIron, ingotGold, etc.
+ * tag.color=red           - tag
+ * 0 or 0-12               - damage
  *
  * modifiers:
  * ! - logical not. exclude items that match the following expression (!minecraft:portal)
@@ -85,7 +88,7 @@ public class ItemStackFilterParser {
 
         for (String rule : token.split(",")) {
             boolean ignore = rule.startsWith("!");
-            ItemFilter filter = null;
+            ItemFilter filter;
 
             if (ignore) {
                 rule = rule.substring(1);
@@ -97,6 +100,8 @@ public class ItemStackFilterParser {
                 filter = getTagFilter(rule.substring(4));
             } else if (Pattern.matches("^\\d+(-\\d+)?$", rule)) {
                 filter = getDamageFilter(rule);
+            } else if (rule.startsWith("<") && rule.endsWith(">")){
+                filter = getStrictIdentifierFilter(rule.substring(1, rule.length() - 1));
             } else {
                 filter = getStringIdentifierFilter(rule);
             }
@@ -189,6 +194,12 @@ public class ItemStackFilterParser {
         }
 
         return stack -> matcher.test(stack.getItemDamage());
+    }
+
+    private static ItemFilter getStrictIdentifierFilter(String rule) {
+        ItemStack item = NEIServerUtils.getModdedItem(rule, null);
+
+        return stack -> OreDictionary.itemMatches(item, stack, false);
     }
 
     protected static ItemFilter getStringIdentifierFilter(String rule) {

@@ -155,6 +155,10 @@ public class GuiOverlayButton extends GuiRecipeButton {
                 NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
                 NEIClientUtils.translate("recipe.overlay.bookmarkRecipe"));
 
+        hotkeys.put(
+                NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
+                NEIClientUtils.translate("recipe.overlay.bookmarkRecipeAndCount"));
+
         return hotkeys;
     }
 
@@ -171,7 +175,7 @@ public class GuiOverlayButton extends GuiRecipeButton {
         DrawableResource icon = ICON_OVERLAY;
 
         if (this.hasOverlay && (!this.requireShiftForOverlayRecipe || NEIClientUtils.shiftKey())) {
-            icon = canFillCraftingGrid() ? ICON_FILL : ICON_FILL_ERROR;
+            icon = this.missedMaterialsTooltipLineHandler == null ? ICON_FILL : ICON_FILL_ERROR;
         }
 
         final int iconX = this.xPosition + (this.width - icon.width - 1) / 2;
@@ -309,7 +313,8 @@ public class GuiOverlayButton extends GuiRecipeButton {
         final Recipe recipe = getRecipe();
 
         if (!ItemPanels.bookmarkPanel.removeRecipe(recipe.getRecipeId(), BookmarkGrid.DEFAULT_GROUP_ID)) {
-            ItemPanels.bookmarkPanel.addRecipe(recipe, BookmarkGrid.DEFAULT_GROUP_ID);
+            ItemPanels.bookmarkPanel
+                    .addRecipe(recipe, NEIClientUtils.controlKey() ? 1 : 0, BookmarkGrid.DEFAULT_GROUP_ID);
         }
     }
 

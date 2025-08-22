@@ -28,6 +28,7 @@ import codechicken.nei.ThreadOperationTimer.TimeoutException;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.search.TooltipFilter;
 
 public class ItemList {
@@ -289,11 +290,11 @@ public class ItemList {
                     .collect(Collectors.toList());
         }
 
-        // For optimization it generate itemslist, permutations, orders & collapsibleitems
+        // Generate itemlist, permutations, orders, collapsibleitems, and informationhandler stacks
         @Override
         @SuppressWarnings("unchecked")
         public void execute() {
-            if (!NEIClientConfig.isEnabled()) return;
+            if (!NEIClientConfig.isEnabled() || NEIClientUtils.mc().thePlayer == null) return;
 
             ThreadOperationTimer timer = getTimer(NEIClientConfig.getItemLoadingTimeout());
             LayoutManager.itemsLoaded = true;
@@ -303,6 +304,7 @@ public class ItemList {
             ItemSorter.instance.ordering.clear();
             CollapsibleItems.clearCache();
             TooltipFilter.clearCache();
+            InformationHandler.clearCache();
 
             List<ItemStack> items = new ArrayList<>();
             ListMultimap<Item, ItemStack> itemMap = ArrayListMultimap.create();
@@ -329,6 +331,7 @@ public class ItemList {
 
                             CollapsibleItems.putItem(stack);
                             TooltipFilter.getSearchTooltip(stack);
+                            InformationHandler.populateStacks(stack);
                         }
                     }
 
