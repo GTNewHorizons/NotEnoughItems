@@ -179,9 +179,10 @@ public class RecipeChainDetails {
             if (itemIndex >= 0 && this.calculatedItems.containsKey(itemIndex)) {
                 final BookmarkItem item = entry.getValue();
                 if (this.recipeInMiddle.contains(item.recipeId)) {
-                    this.calculatedItems.get(itemIndex).setRealAmount(item.amount);
+                    this.calculatedItems.get(itemIndex)
+                            .setRealAmount(Math.max(0, item.factor * (item.getMultiplier() - 1)));
                 } else {
-                    this.calculatedItems.get(itemIndex).setRealAmount(Math.max(item.factor, item.amount));
+                    this.calculatedItems.get(itemIndex).setRealAmount(item.amount);
                 }
             }
         }

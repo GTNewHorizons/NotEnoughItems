@@ -97,7 +97,7 @@ public class HandlerDumper extends DataDumper {
             }
             writer.close();
         } catch (IOException e) {
-            NEIClientConfig.logger.error("Filed to save dump handler list to file {}", file, e);
+            NEIClientConfig.logger.error("Failed to save dump handler list to file {}", file, e);
         }
     }
 
