@@ -5,6 +5,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.util.ResourceLocation;
 
 import codechicken.nei.Image;
+import org.lwjgl.opengl.GL11;
 
 public class DrawableResource extends Image {
 
@@ -44,7 +45,7 @@ public class DrawableResource extends Image {
 
     public void draw(int xOffset, int yOffset, int maskTop, int maskBottom, int maskLeft, int maskRight) {
         Minecraft.getMinecraft().getTextureManager().bindTexture(this.resourceLocation);
-
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
         final int x = xOffset + this.paddingLeft + maskLeft;
         final int y = yOffset + this.paddingTop + maskTop;
         final int textureX = this.x + maskLeft;
@@ -53,5 +54,6 @@ public class DrawableResource extends Image {
         final int height = this.height - maskBottom - maskTop;
         // drawModalRectWithCustomSizedTexture
         Gui.func_146110_a(x, y, textureX, textureY, width, height, textureWidth, textureHeight);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
     }
 }
