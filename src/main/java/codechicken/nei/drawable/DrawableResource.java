@@ -4,8 +4,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.util.ResourceLocation;
 
-import codechicken.nei.Image;
 import org.lwjgl.opengl.GL11;
+
+import codechicken.nei.Image;
 
 public class DrawableResource extends Image {
 
