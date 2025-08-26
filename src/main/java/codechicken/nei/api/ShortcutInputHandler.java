@@ -145,9 +145,9 @@ public abstract class ShortcutInputHandler {
             final int button = Mouse.getEventButton();
 
             if (button == 0) {
-                return GuiCraftingRecipe.openRecipeGui("item", stackover);
+                return GuiCraftingRecipe.openRecipeGui("item", stackover.copy());
             } else if (button == 1) {
-                return GuiUsageRecipe.openRecipeGui("item", stackover);
+                return GuiUsageRecipe.openRecipeGui("item", stackover.copy());
             }
         }
 
@@ -305,10 +305,9 @@ public abstract class ShortcutInputHandler {
 
                     if (!saveStackSize) {
                         stackover = StackInfo.withAmount(stackover, 0);
-                    } else if (ItemPanels.itemPanel.contains(mousePos.x, mousePos.y)
-                            || ItemPanels.itemPanel.historyPanel.contains(mousePos.x, mousePos.y)) {
-                                stackover = ItemQuantityField.prepareStackWithQuantity(stackover, 0);
-                            }
+                    } else if (ItemPanels.itemPanel.containsWithSubpanels(mousePos.x, mousePos.y)) {
+                        stackover = ItemQuantityField.prepareStackWithQuantity(stackover, 0);
+                    }
 
                     ItemPanels.bookmarkPanel
                             .addItem(stackover, existsRecipe ? recipeId : null, BookmarkGrid.DEFAULT_GROUP_ID);
@@ -380,7 +379,8 @@ public abstract class ShortcutInputHandler {
         return ItemPanels.bookmarkPanel.pullBookmarkItems(math, shift);
     }
 
-    public static Map<String, String> handleHotkeys(GuiContainer gui, int mousex, int mousey, ItemStack stack) {
+    public static Map<String, String> handleHotkeys(int mousex, int mousey, ItemStack stack) {
+        final GuiContainer gui = NEIClientUtils.getGuiContainer();
         final int groupId = ItemPanels.bookmarkPanel.getHoveredGroupId(true);
         final Map<String, String> hotkeys = new HashMap<>();
 

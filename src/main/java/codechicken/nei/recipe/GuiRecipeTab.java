@@ -42,10 +42,9 @@ public abstract class GuiRecipeTab extends Widget {
     public static HashMap<String, HandlerInfo> handlerAdderFromIMC = new HashMap<>();
     public static Set<String> handlerRemoverFromIMC = new HashSet<>();
 
-    private final GuiRecipe<?> guiRecipe;
-    private final IRecipeHandler handler;
-    private final String handlerName;
-    private final String handlerID;
+    protected final IRecipeHandler handler;
+    protected final String handlerName;
+    protected final String handlerID;
 
     private boolean selected;
 
@@ -61,7 +60,7 @@ public abstract class GuiRecipeTab extends Widget {
 
     protected abstract int getForegroundIconY();
 
-    public GuiRecipeTab(GuiRecipe<?> guiRecipe, IRecipeHandler handler, int x, int y) {
+    public GuiRecipeTab(IRecipeHandler handler, int x, int y) {
         super();
         this.x = x;
         this.y = y;
@@ -69,7 +68,6 @@ public abstract class GuiRecipeTab extends Widget {
         this.h = getHeight();
         this.handler = handler;
         this.handlerName = handler.getHandlerId();
-        this.guiRecipe = guiRecipe;
         this.selected = false;
 
         if (handler instanceof TemplateRecipeHandler) {
@@ -154,16 +152,10 @@ public abstract class GuiRecipeTab extends Widget {
         }
     }
 
-    public boolean onButtonPress(boolean rightclick) {
-        int newIdx = guiRecipe.currenthandlers.indexOf(handler);
-        if (newIdx == -1) return false;
+    public abstract boolean onButtonPress(boolean rightclick);
 
-        guiRecipe.setRecipePage(newIdx);
-        return true;
-    }
-
-    public void setSelected(IRecipeHandler current) {
-        selected = handler == current;
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 
     public static HandlerInfo getHandlerInfo(IRecipeHandler handler) {
@@ -273,6 +265,8 @@ public abstract class GuiRecipeTab extends Widget {
                     NEIClientConfig.logger.info("Error setting handler dimensions for " + handler);
                 }
 
+                info.setCustomScroll(
+                        record.isSet("useCustomScroll") ? Boolean.parseBoolean(record.get("useCustomScroll")) : false);
                 handlerMap.put(handler, info);
                 NEIClientConfig.logger.info("Loaded " + handler);
             }
