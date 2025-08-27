@@ -24,6 +24,7 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
+import codechicken.nei.Button;
 import codechicken.nei.ClientHandler;
 import codechicken.nei.FormattedTextField;
 import codechicken.nei.LayoutManager;
@@ -125,6 +126,7 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
     private IntegerField handlerHeight;
     private IntegerField handlerWidth;
     private IntegerField maxRecipesPerPage;
+    private Button useCustomScroll;
 
     private Point dragPoint = null;
     public boolean showWidget = false;
@@ -164,6 +166,17 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
             }
         };
 
+        this.maxRecipesPerPage = new IntegerField("maxRecipesPerPage", HandlerInfo.DEFAULT_MAX_PER_PAGE) {
+
+            @Override
+            public void onTextChange(String oldText) {
+                if (getInteger() != handlerInfo.getMaxRecipesPerPage()) {
+                    handlerInfo.setHandlerDimensions(handlerInfo.getHeight(), handlerInfo.getWidth(), getInteger());
+                    updatePatch(4, getInteger(), this.defaultValue);
+                }
+            }
+        };
+
         this.handlerHeight = new IntegerField("handlerHeight", HandlerInfo.DEFAULT_HEIGHT) {
 
             @Override
@@ -192,19 +205,28 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
             }
         };
 
-        this.maxRecipesPerPage = new IntegerField("maxRecipesPerPage", HandlerInfo.DEFAULT_MAX_PER_PAGE) {
+        this.useCustomScroll = new Button() {
+
+            {
+                this.h = LINE_HEIGHT;
+                this.z = 2;
+            }
+
+            public String getRenderLabel() {
+                return handlerInfo.useCustomScroll() ? "On" : "Off";
+            }
 
             @Override
-            public void onTextChange(String oldText) {
-                if (getInteger() != handlerInfo.getMaxRecipesPerPage()) {
-                    handlerInfo.setHandlerDimensions(handlerInfo.getHeight(), handlerInfo.getWidth(), getInteger());
-                    updatePatch(4, getInteger(), this.defaultValue);
-                }
+            public boolean onButtonPress(boolean rightclick) {
+                handlerInfo.setCustomScroll(!handlerInfo.useCustomScroll());
+                updatePatch(6, handlerInfo.useCustomScroll() ? 1 : 0, 0);
+                return true;
             }
+
         };
 
         this.w = WINDOW_WIDTH;
-        this.h = 10 + 12 * LINE_HEIGHT;
+        this.h = 10 + 13 * LINE_HEIGHT;
         this.x = 10;
         this.y = 50;
         this.z = 1;
@@ -214,7 +236,7 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
         final String handlerKey = getHandlerID(handler);
 
         if (!patches.containsKey(handlerKey)) {
-            patches.put(handlerKey, new String[] { handlerKey, null, null, null, null, null });
+            patches.put(handlerKey, new String[] { handlerKey, null, null, null, null, null, null });
         }
 
         if (value == defaultValue) {
@@ -253,7 +275,7 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
                 0xffffff);
     }
 
-    private void drawControl(String keyLabel, TextField field, int topShift, int spaceWidth) {
+    private void drawControl(String keyLabel, Widget field, int topShift, int spaceWidth) {
         drawKeyLabel(keyLabel, topShift);
 
         field.x = this.x + INLINE_PADDING + LABEL_WIDTH + spaceWidth;
@@ -299,13 +321,16 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
             drawControl("yShift", this.yShift, topShift, spaceWidth);
             topShift += LINE_HEIGHT;
 
+            drawControl("Per Page", this.maxRecipesPerPage, topShift, spaceWidth);
+            topShift += LINE_HEIGHT;
+
             drawControl("Height", this.handlerHeight, topShift, spaceWidth);
             topShift += LINE_HEIGHT;
 
             drawControl("Width", this.handlerWidth, topShift, spaceWidth);
             topShift += LINE_HEIGHT;
 
-            drawControl("Per Page", this.maxRecipesPerPage, topShift, spaceWidth);
+            drawControl("Use Custom Scroll", this.useCustomScroll, topShift, spaceWidth);
             topShift += LINE_HEIGHT;
 
             GL11.glScaled(1, 1, 1 / 2f);
@@ -334,6 +359,7 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
             LayoutManager.addWidget(this.handlerHeight);
             LayoutManager.addWidget(this.handlerWidth);
             LayoutManager.addWidget(this.maxRecipesPerPage);
+            LayoutManager.addWidget(this.useCustomScroll);
         }
     }
 
@@ -367,14 +393,21 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
 
         if (this.handler != null) {
             final int spaceWidth = GuiDraw.fontRenderer.getStringWidth(": ");
+            final int leftShift = this.x + INLINE_PADDING;
 
-            if (mx >= this.x + INLINE_PADDING + LABEL_WIDTH + spaceWidth
-                    && mx < this.x + WINDOW_WIDTH - INLINE_PADDING) {
+            if (mx >= leftShift && mx < this.x + WINDOW_WIDTH - INLINE_PADDING) {
                 int topShift = this.y + BORDER_PADDING + 12 + 6;
 
                 for (Map.Entry<String, String> entry : getDetailsInfo().entrySet()) {
                     if (my >= topShift && my < topShift + LINE_HEIGHT) {
-                        tooltip.add(String.valueOf(entry.getValue()));
+
+                        if (mx < leftShift + LABEL_WIDTH + spaceWidth) {
+                            tooltip.add(String.valueOf(entry.getKey()));
+                        } else {
+                            tooltip.add(String.valueOf(entry.getValue()));
+                        }
+
+                        break;
                     }
                     topShift += LINE_HEIGHT;
                 }
@@ -477,7 +510,7 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
     }
 
     public void drawGuiPlaceholder(NEIRecipeWidget widget) {
-        if (!this.showWidget) return;
+        if (!showWidget) return;
 
         NEIClientUtils.gl2DRenderContext(() -> {
 
@@ -551,13 +584,15 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
                 if (GuiRecipeTab.handlerMap.containsKey(handler)) {
                     final HandlerInfo info = GuiRecipeTab.handlerMap.get(handler);
                     final int yShift = intOrDefault(parts[1], info.getYShift());
-                    final int imageHeight = intOrDefault(parts[2], info.getHeight());
-                    final int imageWidth = intOrDefault(parts[3], info.getWidth());
+                    final int height = intOrDefault(parts[2], info.getHeight());
+                    final int width = intOrDefault(parts[3], info.getWidth());
                     final int maxRecipesPerPage = intOrDefault(parts[4], info.getMaxRecipesPerPage());
                     final int order = intOrDefault(parts[5], NEIClientConfig.handlerOrdering.getOrDefault(handler, 0));
+                    final boolean useCustomScroll = intOrDefault(parts[6], info.useCustomScroll() ? 1 : 0) == 1;
 
                     info.setYShift(yShift);
-                    info.setHandlerDimensions(imageHeight, imageWidth, maxRecipesPerPage);
+                    info.setHandlerDimensions(height, width, maxRecipesPerPage);
+                    info.setCustomScroll(useCustomScroll);
                     NEIClientConfig.handlerOrdering.put(handler, order);
                 }
 

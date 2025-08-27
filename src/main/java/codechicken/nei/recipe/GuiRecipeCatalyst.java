@@ -73,6 +73,10 @@ public class GuiRecipeCatalyst extends Widget {
         this.w = columns * SLOT_SIZE + 2 + BORDER_PADDING * 2;
         this.h = rows * SLOT_SIZE + 2 + BORDER_PADDING * 2;
 
+        if (rows == 0 || columns == 0) {
+            return;
+        }
+
         int index = 0;
         for (PositionedStack pStack : this.items) {
 

@@ -232,7 +232,7 @@ com.djgiannuzz.thaumcraftneiplugin.nei.recipehandler.ArcaneShapedRecipeHandler,T
 com.djgiannuzz.thaumcraftneiplugin.nei.recipehandler.ArcaneShapelessRecipeHandler,Thaumcraft,Thaumcraft:blockTable:15,,Thaumcraft,TRUE,,,140,,2,,,,,,,
 com.djgiannuzz.thaumcraftneiplugin.nei.recipehandler.CrucibleRecipeHandler,Thaumcraft,Thaumcraft:blockMetalDevice,,Thaumcraft,TRUE,,,140,,2,,,,,,Using R on an item you get from the crucible basically never works,
 com.djgiannuzz.thaumcraftneiplugin.nei.recipehandler.InfusionRecipeHandler,Thaumcraft,Thaumcraft:blockStoneDevice:2,,Thaumcraft,TRUE,,,140,,2,,,,,,,
-ru.timeconqueror.tcneiadditions.nei.arcaneworkbench.ArcaneCraftingShapedHandler,Thaumcraft,Thaumcraft:blockTable:15,,Thaumcraft,TRUE,,,140,,2,,,,,,,
+ru.timeconqueror.tcneiadditions.nei.arcaneworkbench.ArcaneCraftingShapedHandler,Thaumcraft,Thaumcraft:blockTable:15,,Thaumcraft,TRUE,,4,138,,2,,,,,,,
 ru.timeconqueror.tcneiadditions.nei.AspectCombinationHandler,Thaumcraft,Thaumcraft:ItemResearchNotes,,Thaumcraft,TRUE,,,130,,2,,,,,,In sets of 5. Each one is ~30 height,
 ru.timeconqueror.tcneiadditions.nei.AspectFromItemStackHandler,Thaumcraft,Thaumcraft:ItemResearchNotes,,Thaumcraft,TRUE,,,140,,2,,,,,,,
 tconstruct.plugins.nei.RecipeHandlerAlloying,Tinker's Construct,TConstruct:Smeltery,,TConstruct,TRUE,,,65,,5,,,,,,,

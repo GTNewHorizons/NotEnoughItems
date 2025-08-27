@@ -96,8 +96,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private SearchRecipeHandler<H> handler;
     private HandlerInfo handlerInfo;
 
-    private int yShift = 0;
-
     protected static final RestartableTask updateFilter = new RestartableTask("NEI Recipe Filtering") {
 
         @Override
@@ -353,6 +351,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         if (!cacheKey.equals(this.recipePageCacheKey)) {
             this.recipePageCacheKey = cacheKey;
 
+            final boolean recipeGrow = this.handlerInfo.useCustomScroll()
+                    && this.handlerInfo.getMaxRecipesPerPage() <= 1;
             final List<Widget> widgets = new ArrayList<>();
             int shiftY = 0;
 
@@ -360,6 +360,12 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 final NEIRecipeWidget widget = RecipeHandlerRef.of(this.handler.original, recipeIndex)
                         .getRecipeWidget();
                 widget.setLocation(Math.max(0, (this.container.w - widget.w) / 2), shiftY);
+
+                if (recipeGrow) {
+                    widget.h = Math.min(
+                            this.handlerInfo.getHeight() + this.handlerInfo.getYShift(),
+                            this.container.getVisibleHeight());
+                }
 
                 widgets.add(widget);
                 shiftY += widget.h;
