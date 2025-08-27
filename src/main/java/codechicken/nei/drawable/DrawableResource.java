@@ -4,6 +4,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.util.ResourceLocation;
 
+import org.lwjgl.opengl.GL11;
+
 import codechicken.nei.Image;
 
 public class DrawableResource extends Image {
@@ -43,12 +45,14 @@ public class DrawableResource extends Image {
     }
 
     public void draw(int xOffset, int yOffset, int maskTop, int maskBottom, int maskLeft, int maskRight) {
-        Minecraft.getMinecraft().getTextureManager().bindTexture(this.resourceLocation);
-
+        final boolean is2DTexture = GL11.glGetBoolean(GL11.GL_TEXTURE_2D);
         final int width = this.width - maskRight - maskLeft;
         final int height = this.height - maskBottom - maskTop;
 
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        Minecraft.getMinecraft().getTextureManager().bindTexture(this.resourceLocation);
         drawModalRectWithCustomSizedTexture(xOffset + maskLeft, yOffset + maskTop, maskLeft, maskTop, width, height);
+        if (!is2DTexture) GL11.glDisable(GL11.GL_TEXTURE_2D);
     }
 
     public void draw(int xOffset, int yOffset, int width, int height, int sliceLeft, int sliceRight, int sliceTop,
@@ -61,12 +65,14 @@ public class DrawableResource extends Image {
         final int tileHeight = height - sliceTop - sliceBottom;
 
         if (middleWidth > 0 && middleHeight > 0 && tileWidth > 0 && tileHeight > 0) {
-            Minecraft.getMinecraft().getTextureManager().bindTexture(this.resourceLocation);
-
+            final boolean is2DTexture = GL11.glGetBoolean(GL11.GL_TEXTURE_2D);
             final int tileWidthCount = tileWidth / middleWidth;
             final int remainderWidth = tileWidth - (tileWidthCount * middleWidth);
             final int tileHeightCount = tileHeight / middleHeight;
             final int remainderHeight = tileHeight - (tileHeightCount * middleHeight);
+
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            Minecraft.getMinecraft().getTextureManager().bindTexture(this.resourceLocation);
 
             // middle parts
             for (int tileW = 0; tileW <= tileWidthCount; tileW++) {
@@ -178,6 +184,8 @@ public class DrawableResource extends Image {
                         sliceRight,
                         sliceBottom);
             }
+
+            if (!is2DTexture) GL11.glDisable(GL11.GL_TEXTURE_2D);
         }
     }
 
