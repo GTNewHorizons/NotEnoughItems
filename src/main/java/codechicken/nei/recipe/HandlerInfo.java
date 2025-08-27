@@ -125,11 +125,11 @@ public class HandlerInfo {
         this.showOverlayButton = showOverlayButton;
     }
 
-    public boolean useCustomScroll() {
+    public boolean getUseCustomScroll() {
         return this.useCustomScroll;
     }
 
-    public void setCustomScroll(boolean useCustomScroll) {
+    public void setUseCustomScroll(boolean useCustomScroll) {
         this.useCustomScroll = useCustomScroll;
     }
 
@@ -165,8 +165,8 @@ public class HandlerInfo {
             return this;
         }
 
-        public Builder setCustomScroll(boolean useCustomScroll) {
-            info.setCustomScroll(useCustomScroll);
+        public Builder setUseCustomScroll(boolean useCustomScroll) {
+            info.setUseCustomScroll(useCustomScroll);
             return this;
         }
 

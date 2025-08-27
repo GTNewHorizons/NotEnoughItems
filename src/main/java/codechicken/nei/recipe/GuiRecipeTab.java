@@ -265,7 +265,7 @@ public abstract class GuiRecipeTab extends Widget {
                     NEIClientConfig.logger.info("Error setting handler dimensions for " + handler);
                 }
 
-                info.setCustomScroll(
+                info.setUseCustomScroll(
                         record.isSet("useCustomScroll") ? Boolean.parseBoolean(record.get("useCustomScroll")) : false);
                 handlerMap.put(handler, info);
                 NEIClientConfig.logger.info("Loaded " + handler);

@@ -213,13 +213,13 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
             }
 
             public String getRenderLabel() {
-                return handlerInfo.useCustomScroll() ? "On" : "Off";
+                return handlerInfo.getUseCustomScroll() ? "On" : "Off";
             }
 
             @Override
             public boolean onButtonPress(boolean rightclick) {
-                handlerInfo.setCustomScroll(!handlerInfo.useCustomScroll());
-                updatePatch(6, handlerInfo.useCustomScroll() ? 1 : 0, 0);
+                handlerInfo.setUseCustomScroll(!handlerInfo.getUseCustomScroll());
+                updatePatch(6, handlerInfo.getUseCustomScroll() ? 1 : 0, 0);
                 return true;
             }
 
@@ -588,11 +588,11 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
                     final int width = intOrDefault(parts[3], info.getWidth());
                     final int maxRecipesPerPage = intOrDefault(parts[4], info.getMaxRecipesPerPage());
                     final int order = intOrDefault(parts[5], NEIClientConfig.handlerOrdering.getOrDefault(handler, 0));
-                    final boolean useCustomScroll = intOrDefault(parts[6], info.useCustomScroll() ? 1 : 0) == 1;
+                    final boolean useCustomScroll = intOrDefault(parts[6], info.getUseCustomScroll() ? 1 : 0) == 1;
 
                     info.setYShift(yShift);
                     info.setHandlerDimensions(height, width, maxRecipesPerPage);
-                    info.setCustomScroll(useCustomScroll);
+                    info.setUseCustomScroll(useCustomScroll);
                     NEIClientConfig.handlerOrdering.put(handler, order);
                 }
 

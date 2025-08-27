@@ -98,7 +98,7 @@ public class IMCHandler {
         }
 
         // true if not set to false
-        info.setCustomScroll(tag.hasKey("useCustomScroll") && tag.getBoolean("useCustomScroll"));
+        info.setUseCustomScroll(tag.hasKey("useCustomScroll") && tag.getBoolean("useCustomScroll"));
         info.setShowFavoritesButton(!tag.hasKey("showFavoritesButton") || tag.getBoolean("showFavoritesButton"));
         info.setShowOverlayButton(!tag.hasKey("showOverlayButton") || tag.getBoolean("showOverlayButton"));
 

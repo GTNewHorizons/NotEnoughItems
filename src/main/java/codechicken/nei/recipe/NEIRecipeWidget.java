@@ -51,7 +51,8 @@ public class NEIRecipeWidget extends Widget {
     public void update() {
         this.w = this.handlerInfo.getWidth();
 
-        if (this.showAsWidget || !this.handlerInfo.useCustomScroll() || this.handlerInfo.getMaxRecipesPerPage() > 1) {
+        if (this.showAsWidget || !this.handlerInfo.getUseCustomScroll()
+                || this.handlerInfo.getMaxRecipesPerPage() > 1) {
             this.h = this.handlerInfo.getHeight() + this.handlerInfo.getYShift();
         }
 
