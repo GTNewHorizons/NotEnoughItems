@@ -165,6 +165,11 @@ public class HandlerInfo {
             return this;
         }
 
+        public Builder setCustomScroll(boolean useCustomScroll) {
+            info.setCustomScroll(useCustomScroll);
+            return this;
+        }
+
         public Builder setShiftY(int shiftY) {
             info.setYShift(shiftY);
             return this;
