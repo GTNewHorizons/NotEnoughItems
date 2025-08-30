@@ -528,7 +528,9 @@ public class NEIClientUtils extends NEIServerUtils {
     }
 
     public static void drawRect(double left, double top, double width, double height, Color color) {
-        Tessellator tessellator = Tessellator.instance;
+        final boolean is2DTexture = GL11.glGetBoolean(GL11.GL_TEXTURE_2D);
+        final boolean isBlend = GL11.glGetBoolean(GL11.GL_BLEND);
+        final Tessellator tessellator = Tessellator.instance;
 
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -540,8 +542,9 @@ public class NEIClientUtils extends NEIServerUtils {
         tessellator.addVertex(left + width, top, 0.0D);
         tessellator.addVertex(left, top, 0.0D);
         tessellator.draw();
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glColor4f(1, 1, 1, 1);
+        if (is2DTexture) GL11.glEnable(GL11.GL_TEXTURE_2D);
+        if (!isBlend) GL11.glDisable(GL11.GL_BLEND);
     }
 
     public static void drawNEIOverlayText(String text, Rectangle4i rect, float scale, int color, boolean shadow,

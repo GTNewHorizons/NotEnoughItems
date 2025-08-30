@@ -1,6 +1,7 @@
 package codechicken.nei;
 
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.item.ItemStack;
 
@@ -13,8 +14,6 @@ public abstract class Widget {
     public abstract void draw(int mx, int my);
 
     public void postDraw(int mx, int my) {}
-
-    public void postDrawTooltips(int mx, int my, List<String> tooltip) {}
 
     public boolean handleClick(int mx, int my, int button) {
         return true;
@@ -38,6 +37,10 @@ public abstract class Widget {
         return false;
     }
 
+    public Map<String, String> handleHotkeys(int mousex, int mousey, Map<String, String> hotkeys) {
+        return hotkeys;
+    }
+
     public void update() {}
 
     public Rectangle4i bounds() {
@@ -58,6 +61,14 @@ public abstract class Widget {
         return tooltip;
     }
 
+    public List<String> handleItemTooltip(ItemStack itemstack, int mousex, int mousey, List<String> tooltip) {
+        return tooltip;
+    }
+
+    public boolean isFocused() {
+        return false;
+    }
+
     public void loseFocus() {}
 
     public void gainFocus() {}
@@ -67,4 +78,5 @@ public abstract class Widget {
     public int z;
     public int w;
     public int h;
+
 }
