@@ -200,7 +200,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
         }
 
         public String name() {
-            int idx = this.fullname.indexOf('.');
+            int idx = this.fullname.lastIndexOf('.');
             return idx < 0 ? this.fullname : this.fullname.substring(idx + 1);
         }
 
