@@ -889,7 +889,7 @@ public class NEIClientConfig {
         final int hash = getKeyBinding(string);
 
         if (hash != Keyboard.CHAR_NONE && Keyboard.getEventKeyState()) {
-            return KeyManager.keyStates.containsKey(string) ? Keyboard.isKeyDown(hash)
+            return KeyManager.keyStates.containsKey(string) ? Keyboard.isKeyDown(NEIKeyboardUtils.unhash(hash))
                     : hash == NEIClientUtils.getKeyHash();
         }
 
