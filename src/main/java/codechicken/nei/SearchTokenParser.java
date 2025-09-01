@@ -14,13 +14,13 @@ import net.minecraft.client.resources.Language;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
+import codechicken.nei.ItemList.AllMultiItemFilter;
+import codechicken.nei.ItemList.AnyMultiItemFilter;
+import codechicken.nei.ItemList.EverythingItemFilter;
 import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.filter.AllMultiItemFilter;
 import codechicken.nei.filter.AllMultiRecipeFilter;
-import codechicken.nei.filter.AnyMultiItemFilter;
 import codechicken.nei.filter.AnyMultiRecipeFilter;
-import codechicken.nei.filter.EverythingItemFilter;
 import codechicken.nei.filter.RecipeFilter;
 import codechicken.nei.filter.RecipeFilter.FilterContext;
 import codechicken.nei.search.ItemFilterVisitor;

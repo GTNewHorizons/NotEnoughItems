@@ -13,13 +13,13 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fluids.FluidStack;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.SearchTokenParser.ISearchParserProvider;
 import codechicken.nei.SearchTokenParser.SearchMode;
 import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.IRecipeFilter.IRecipeFilterProvider;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
-import codechicken.nei.filter.NothingItemFilter;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.TextHistory;
 

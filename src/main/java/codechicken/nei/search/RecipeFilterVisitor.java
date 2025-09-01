@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import codechicken.nei.ItemList.EverythingItemFilter;
 import codechicken.nei.SearchTokenParser;
 import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.filter.AllMultiRecipeFilter;
 import codechicken.nei.filter.AllOthersRecipeFilter;
 import codechicken.nei.filter.AnyOthersRecipeFilter;
-import codechicken.nei.filter.EverythingItemFilter;
 import codechicken.nei.filter.RecipeFilter;
 import codechicken.nei.filter.RecipeFilter.FilterContext;
 

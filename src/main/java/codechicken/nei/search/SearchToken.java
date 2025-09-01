@@ -3,14 +3,14 @@ package codechicken.nei.search;
 import java.util.ArrayList;
 import java.util.List;
 
+import codechicken.nei.ItemList.AllMultiItemFilter;
+import codechicken.nei.ItemList.AnyMultiItemFilter;
+import codechicken.nei.ItemList.NegatedItemFilter;
+import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.SearchTokenParser;
 import codechicken.nei.SearchTokenParser.ISearchParserProvider;
 import codechicken.nei.SearchTokenParser.SearchMode;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.filter.AllMultiItemFilter;
-import codechicken.nei.filter.AnyMultiItemFilter;
-import codechicken.nei.filter.NegatedItemFilter;
-import codechicken.nei.filter.NothingItemFilter;
 
 public class SearchToken {
 
