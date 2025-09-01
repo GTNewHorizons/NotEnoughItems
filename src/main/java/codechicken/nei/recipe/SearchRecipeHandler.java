@@ -37,12 +37,8 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
         }
     }
 
-    protected static boolean mathRecipe(IRecipeHandler handler, int recipe, IRecipeFilter filter) {
-        return filter.matches(
-                handler,
-                handler.getIngredientStacks(recipe),
-                handler.getResultStack(recipe),
-                handler.getOtherStacks(recipe));
+    protected static boolean mathRecipe(IRecipeHandler handler, int recipeIndex, IRecipeFilter filter) {
+        return filter.matches(handler, recipeIndex);
     }
 
     public boolean searchingAvailable() {

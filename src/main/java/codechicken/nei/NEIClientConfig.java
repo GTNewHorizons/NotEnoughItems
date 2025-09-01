@@ -561,7 +561,7 @@ public class NEIClientConfig {
 
             @Override
             public boolean onClick(int button) {
-                // SearchField.searchParser.clearCache();
+                SearchField.searchParser.clearCache();
                 return super.onClick(button);
             }
 

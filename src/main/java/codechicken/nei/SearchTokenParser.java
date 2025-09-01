@@ -1,16 +1,13 @@
 package codechicken.nei;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.Language;
@@ -20,14 +17,16 @@ import net.minecraft.util.EnumChatFormatting;
 import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.filter.AllMultiItemFilter;
-import codechicken.nei.filter.AnyItemRecipeFilter;
+import codechicken.nei.filter.AllMultiRecipeFilter;
 import codechicken.nei.filter.AnyMultiItemFilter;
+import codechicken.nei.filter.AnyMultiRecipeFilter;
 import codechicken.nei.filter.EverythingItemFilter;
-import codechicken.nei.filter.NegatedItemFilter;
-import codechicken.nei.filter.NothingItemFilter;
+import codechicken.nei.filter.RecipeFilter;
+import codechicken.nei.filter.RecipeFilter.FilterContext;
 import codechicken.nei.search.ItemFilterVisitor;
 import codechicken.nei.search.RecipeFilterVisitor;
 import codechicken.nei.search.SearchExpressionUtils;
+import codechicken.nei.search.SearchToken;
 
 public class SearchTokenParser {
 
@@ -44,20 +43,6 @@ public class SearchTokenParser {
                 default -> NEVER;
             };
         }
-    }
-
-    public static class SearchToken {
-
-        public boolean ignore = false;
-        public boolean quotes = false;
-        public Character firstChar = null;
-
-        public String[] words;
-
-        public String rawText = "";
-        public int start = 0;
-        public int end = 0;
-
     }
 
     public static interface ISearchParserProvider {
@@ -109,6 +94,7 @@ public class SearchTokenParser {
     public static final Pattern SPACE_PATTERN = Pattern.compile(" ");
 
     protected final LRUCache<String, ItemFilter> filtersCache = new LRUCache<>(20);
+    protected final LRUCache<String, IRecipeFilter> recipesCache = new LRUCache<>(20);
     protected final List<ISearchParserProvider> searchProviders;
     protected final Set<Character> redefinedPrefixes = new HashSet<>();
     protected final ProvidersCache providersCache = new ProvidersCache();
@@ -129,14 +115,16 @@ public class SearchTokenParser {
         updateRedefinedPrefixes(provider);
         this.providersCache.clear();
         this.filtersCache.clear();
+        this.recipesCache.clear();
     }
 
     public void clearCache() {
         this.filtersCache.clear();
+        this.recipesCache.clear();
         updateRedefinedPrefixes();
     }
 
-    protected List<ISearchParserProvider> getProviders() {
+    public List<ISearchParserProvider> getProviders() {
         Language currentLanguage = Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage();
 
         if (!currentLanguage.getLanguageCode().equals(providersCache.languageCode)) {
@@ -192,17 +180,39 @@ public class SearchTokenParser {
 
     public synchronized ItemFilter getFilter(String filterText) {
         filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
+
         if (filterText == null || filterText.isEmpty()) {
             return new EverythingItemFilter();
         }
-        final int spaceMode = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+
         final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
 
         if (patternMode != 3) {
             return this.filtersCache.computeIfAbsent(filterText, text -> {
-                final String[] parts = text.split("\\|");
-                final List<ItemFilter> searchTokens = Arrays.stream(parts).map(this::parseSearchText)
-                        .filter(s -> s != null).collect(Collectors.toList());
+                final List<ItemFilter> searchTokens = new ArrayList<>();
+
+                for (String[] subQuery : splitByDelimiters(text, "|", false)) {
+
+                    if (subQuery[1].isEmpty()) {
+                        continue;
+                    }
+
+                    final List<ItemFilter> tokens = new ArrayList<>();
+
+                    for (SearchToken token : splitSearchText(subQuery[1])) {
+                        final ItemFilter result = token.getFilter(this);
+
+                        if (result != null) {
+                            tokens.add(result);
+                        }
+                    }
+
+                    if (tokens.size() == 1) {
+                        searchTokens.add(tokens.get(0));
+                    } else if (!tokens.isEmpty()) {
+                        searchTokens.add(new AllMultiItemFilter(tokens));
+                    }
+                }
 
                 if (searchTokens.isEmpty()) {
                     return new EverythingItemFilter();
@@ -213,92 +223,233 @@ public class SearchTokenParser {
                 }
             });
         } else {
-            if (spaceMode == 1) {
-                filterText = SearchTokenParser.SPACE_PATTERN.matcher(filterText).replaceAll("\\\\ ");
-            }
             return this.filtersCache.computeIfAbsent(filterText, text -> {
-                final ItemFilterVisitor visitor = new ItemFilterVisitor(this);
-                final ItemFilter searchToken = SearchExpressionUtils.visitSearchExpression(text, visitor);
+                final int spaceMode = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
 
-                return new IsRegisteredItemFilter(searchToken);
+                if (spaceMode == 1) {
+                    text = SearchTokenParser.SPACE_PATTERN.matcher(text).replaceAll("\\\\ ");
+                }
+
+                return new IsRegisteredItemFilter(
+                        SearchExpressionUtils.visitSearchExpression(text, new ItemFilterVisitor(this)));
             });
         }
 
     }
 
     public synchronized IRecipeFilter getRecipeFilter(String filterText) {
-        final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
-        if (patternMode != 3) {
-            return new AnyItemRecipeFilter(getFilter(filterText));
-        }
         filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
+
         if (filterText == null || filterText.isEmpty()) {
-            return new AnyItemRecipeFilter(new EverythingItemFilter());
-        }
-        final int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
-
-        if (spaceModeEnabled == 1) {
-            filterText = SearchTokenParser.SPACE_PATTERN.matcher(filterText).replaceAll("\\\\ ");
+            return new RecipeFilter(FilterContext.ANY, true, new EverythingItemFilter());
         }
 
-        final RecipeFilterVisitor visitor = new RecipeFilterVisitor(this);
-        return SearchExpressionUtils.visitSearchExpression(filterText, visitor);
+        final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
+
+        if (patternMode != 3) {
+            return this.recipesCache.computeIfAbsent(filterText, input -> {
+                final List<IRecipeFilter> searchTokens = new ArrayList<>();
+
+                for (String[] orQueryPart : splitByDelimiters(input, "|", false)) {
+
+                    if (orQueryPart[1].isEmpty()) {
+                        continue;
+                    }
+
+                    final List<IRecipeFilter> contextList = new ArrayList<>();
+
+                    for (String[] contextQuery : splitByDelimiters(orQueryPart[1], "<>", false)) {
+
+                        if (contextQuery[1].isEmpty()) {
+                            continue;
+                        }
+
+                        final List<IRecipeFilter> tokens = new ArrayList<>();
+                        FilterContext context = FilterContext.ANY;
+
+                        if (!contextQuery[0].isEmpty()) {
+                            context = FilterContext.fromChar(contextQuery[0].charAt(0));
+                            contextQuery[0] = contextQuery[0].substring(1);
+                        }
+
+                        for (SearchToken token : splitSearchText(contextQuery[0] + contextQuery[1])) {
+                            final ItemFilter result = token.getFilter(this);
+                            if (result != null) {
+                                tokens.add(
+                                        new RecipeFilter(context, token.ignore == null || token.ignore != '!', result));
+                            }
+                        }
+
+                        if (tokens.size() == 1) {
+                            contextList.add(tokens.get(0));
+                        } else if (!tokens.isEmpty()) {
+                            contextList.add(new AllMultiRecipeFilter(tokens));
+                        }
+                    }
+
+                    if (contextList.size() == 1) {
+                        searchTokens.add(contextList.get(0));
+                    } else if (!contextList.isEmpty()) {
+                        searchTokens.add(new AllMultiRecipeFilter(contextList));
+                    }
+                }
+
+                if (searchTokens.isEmpty()) {
+                    return new RecipeFilter(FilterContext.ANY, true, new EverythingItemFilter());
+                } else if (searchTokens.size() == 1) {
+                    return searchTokens.get(0);
+                } else {
+                    return new AnyMultiRecipeFilter(searchTokens);
+                }
+            });
+
+        } else {
+            return this.recipesCache.computeIfAbsent(filterText, text -> {
+                final int spaceMode = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+
+                if (spaceMode == 1) {
+                    text = SearchTokenParser.SPACE_PATTERN.matcher(text).replaceAll("\\\\ ");
+                }
+
+                return SearchExpressionUtils.visitSearchExpression(text, new RecipeFilterVisitor(this));
+            });
+        }
 
     }
 
     public List<SearchToken> splitSearchText(String filterText) {
-
         if (filterText.isEmpty()) {
             return Collections.emptyList();
         }
 
         final List<SearchToken> tokens = new ArrayList<>();
-        final String prefixes = getPrefixes();
         final int spaceMode = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
-        // The regular expression first tries to match a string that starts with a space or the beginning of the string,
-        // followed by a sequence of characters that do not contain special characters -"@#$%&, and ends with a space
-        // and the characters -"@#$%& or the end of the string.
-        final String patternPart1 = "(?<tokenA>(^|\\s+)(?:[^" + Pattern.quote(" -\"" + prefixes)
-                + "]).+?(?=\\s+["
-                + Pattern.quote("-\"" + prefixes)
-                + "]|$))";
-        // If the first condition is not met, it tries to match a sequence of - characters, followed by @#$%&
-        // characters, then either a quoted string or non-space characters.
-        final String patternPart2 = "((?<ignore>-*)(?<firstChar>[" + Pattern.quote(prefixes)
-                + "]*)(?<tokenB>\\\".*?(?:\\\"|$)|\\S+\\s*))";
-        final Pattern pattern = Pattern.compile(spaceMode == 0 ? patternPart2 : (patternPart1 + "|" + patternPart2));
-        final Matcher filterMatcher = pattern.matcher(filterText);
+        final String prefixes = getPrefixes();
+        SearchToken lastToken = null;
+        int lastEnd = 0;
 
-        while (filterMatcher.find()) {
-            String firstChar = filterMatcher.group("firstChar");
-            SearchToken token = new SearchToken();
-            token.start = filterMatcher.start();
-            token.end = filterMatcher.end();
-            token.ignore = "-".equals(filterMatcher.group("ignore"));
-            token.rawText = spaceMode == 0 ? null : filterMatcher.group("tokenA");
+        for (String[] part : splitByDelimiters(filterText, "-!" + prefixes, true)) {
+            final SearchToken token = createToken(lastEnd, part, prefixes);
+            final int length = part[0].length() + part[1].length();
 
-            if (firstChar != null && !firstChar.isEmpty()) {
-                token.firstChar = firstChar.charAt(0);
+            if (token.isSimpleFilter() && token.rawText.isEmpty()) {
+                lastEnd += length;
+                continue;
             }
 
-            if (token.rawText == null) { // spaceMode == 0
-                token.rawText = filterMatcher.group("tokenB");
-                token.quotes = token.rawText.length() > 1 && token.rawText.startsWith("\"")
-                        && token.rawText.endsWith("\"");
+            if (spaceMode == 0) { // and
+                tokens.add(lastToken = token);
+            } else if (spaceMode == 1) { // space
 
-                if (token.quotes) {
-                    token.rawText = token.rawText.substring(1, token.rawText.length() - 1);
+                if (lastToken != null && lastToken.isSimpleFilter() && token.isSimpleFilter()) {
+                    lastToken.rawText = filterText.substring(lastToken.start, token.end).trim();
+                    lastToken.words[0] = lastToken.rawText;
+                    lastToken.end = token.end;
+                } else {
+                    tokens.add(lastToken = token);
                 }
 
-                token.words = new String[] { token.rawText.trim() };
-            } else if (spaceMode == 2) {
-                token.words = token.rawText.trim().split("\\s+");
-            } else {
-                token.words = new String[] { token.rawText.trim() };
+            } else if (spaceMode == 2) { // and-x
+
+                if (lastToken != null && lastToken.isSimpleFilter() && token.isSimpleFilter()) {
+                    final String[] newWords = new String[lastToken.words.length + token.words.length];
+
+                    System.arraycopy(lastToken.words, 0, newWords, 0, lastToken.words.length);
+                    System.arraycopy(token.words, 0, newWords, lastToken.words.length, token.words.length);
+
+                    lastToken.words = newWords;
+                    lastToken.rawText = filterText.substring(lastToken.start, token.end).trim();
+                    lastToken.end = token.end;
+                } else {
+                    tokens.add(lastToken = token);
+                }
+
             }
 
-            tokens.add(token);
+            lastEnd += length;
         }
+
+        return tokens;
+    }
+
+    private SearchToken createToken(int lastEnd, String[] part, String prefixes) {
+        final SearchToken token = new SearchToken();
+        String pref = part[0];
+        String query = part[1].trim();
+
+        token.start = lastEnd;
+        token.end = lastEnd + pref.length() + query.length();
+
+        if (pref.startsWith("-")) {
+            token.ignore = '-';
+            pref = pref.substring(1);
+        } else if (pref.startsWith("!")) {
+            token.ignore = '!';
+            pref = pref.substring(1);
+        }
+
+        if (!pref.isEmpty()) {
+            char firstChar = pref.charAt(0);
+
+            if (prefixes.indexOf(firstChar) >= 0) {
+                token.firstChar = firstChar;
+                pref = pref.substring(1);
+            }
+        }
+
+        String text = pref + query;
+        token.quotes = text.length() > 1 && text.startsWith("\"") && text.endsWith("\"");
+
+        if (token.quotes) {
+            text = text.substring(1, text.length() - 1);
+        }
+
+        token.rawText = text;
+        token.words = new String[] { token.quotes ? text.replaceAll("\\\\\"", "\"") : text };
+        return token;
+    }
+
+    public List<String[]> splitByDelimiters(String input, String delimiters, boolean space) {
+
+        if (delimiters == null || delimiters.isEmpty()) {
+            return Collections.singletonList(new String[] { "", input });
+        }
+
+        final List<String[]> tokens = new ArrayList<>();
+        final int length = input.length();
+        boolean insideQuotes = false;
+        String token = "";
+        int lastEnd = 0;
+        int index = 0;
+
+        while (index < length) {
+            final char ch = input.charAt(index);
+
+            if (!insideQuotes && delimiters.indexOf(ch) >= 0) {
+
+                if (lastEnd == index) {
+                    token += String.valueOf(ch);
+                } else {
+                    tokens.add(new String[] { token, input.substring(lastEnd, index) });
+                    token = String.valueOf(ch);
+                }
+
+                lastEnd = index + 1;
+            } else if (!insideQuotes && space && ch != ' ' && (index > 0 && input.charAt(index - 1) == ' ')) {
+                tokens.add(new String[] { token, input.substring(lastEnd, index) });
+                token = "";
+
+                lastEnd = index;
+            }
+
+            if (ch == '"' && (index == 0 || input.charAt(index - 1) != '\\')) {
+                insideQuotes = !insideQuotes;
+            }
+
+            index++;
+        }
+
+        tokens.add(new String[] { token, input.substring(lastEnd) });
 
         return tokens;
     }
@@ -331,65 +482,4 @@ public class SearchTokenParser {
         }
     }
 
-    private ItemFilter parseSearchText(String filterText) {
-
-        if (filterText.isEmpty()) {
-            return null;
-        }
-
-        final AllMultiItemFilter searchTokens = new AllMultiItemFilter();
-        final List<SearchToken> tokens = splitSearchText(filterText);
-
-        for (SearchToken token : tokens) {
-            if (!token.rawText.isEmpty()) {
-                ItemFilter result = parseToken(token);
-
-                if (token.ignore) {
-                    searchTokens.filters.add(new NegatedItemFilter(result));
-                } else {
-                    searchTokens.filters.add(result);
-                }
-            } else if (!token.ignore) {
-                searchTokens.filters.add(new NothingItemFilter());
-            }
-        }
-
-        return searchTokens;
-    }
-
-    private ItemFilter parseToken(SearchToken token) {
-        final ISearchParserProvider provider = token.firstChar == null ? null : this.getProvider(token.firstChar);
-
-        if (provider == null || provider.getSearchMode() == SearchMode.NEVER) {
-            final List<ItemFilter> filters = new ArrayList<>();
-
-            for (ISearchParserProvider _provider : getProviders()) {
-                if (_provider.getSearchMode() == SearchMode.ALWAYS) {
-                    AllMultiItemFilter filter = generateFilters(_provider, token.words);
-
-                    if (!filter.filters.isEmpty()) {
-                        filters.add(filter);
-                    }
-                }
-            }
-
-            return filters.isEmpty() ? new NothingItemFilter() : new AnyMultiItemFilter(filters);
-        } else {
-            return generateFilters(provider, token.words);
-        }
-    }
-
-    private AllMultiItemFilter generateFilters(ISearchParserProvider provider, String[] words) {
-        final AllMultiItemFilter filters = new AllMultiItemFilter();
-
-        for (String work : words) {
-            final ItemFilter filter = provider.getFilter(work);
-
-            if (filter != null) {
-                filters.filters.add(filter);
-            }
-        }
-
-        return filters;
-    }
 }

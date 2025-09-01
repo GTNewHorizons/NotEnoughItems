@@ -7,15 +7,12 @@ import java.util.function.Function;
 import codechicken.nei.SearchTokenParser;
 import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.filter.AllIngredientsRecipeFilter;
 import codechicken.nei.filter.AllMultiRecipeFilter;
 import codechicken.nei.filter.AllOthersRecipeFilter;
-import codechicken.nei.filter.AllSmartResultRecipeFilter;
-import codechicken.nei.filter.AnyIngredientsRecipeFilter;
-import codechicken.nei.filter.AnyItemRecipeFilter;
 import codechicken.nei.filter.AnyOthersRecipeFilter;
-import codechicken.nei.filter.AnySmartResultRecipeFilter;
 import codechicken.nei.filter.EverythingItemFilter;
+import codechicken.nei.filter.RecipeFilter;
+import codechicken.nei.filter.RecipeFilter.FilterContext;
 
 public class RecipeFilterVisitor extends AbstractSearchExpressionVisitor<IRecipeFilter> {
 
@@ -40,7 +37,7 @@ public class RecipeFilterVisitor extends AbstractSearchExpressionVisitor<IRecipe
 
     @Override
     protected IRecipeFilter defaultResult() {
-        return new AnyItemRecipeFilter(new EverythingItemFilter());
+        return new RecipeFilter(FilterContext.ANY, true, new EverythingItemFilter());
     }
 
     private IRecipeFilter createRecipeFilter(SearchExpressionParser.SearchExpressionContext ctx) {
@@ -50,17 +47,9 @@ public class RecipeFilterVisitor extends AbstractSearchExpressionVisitor<IRecipe
         final ItemFilter itemFilter = itemFilterVisitor.visitSearchExpression(ctx);
         switch (ctx.type) {
             case 0:
-                return getAllOrAnyFilter(
-                        ctx.allRecipe,
-                        itemFilter,
-                        AnyIngredientsRecipeFilter::new,
-                        AllIngredientsRecipeFilter::new);
+                return new RecipeFilter(FilterContext.INPUT, !ctx.allRecipe, itemFilter);
             case 1:
-                return getAllOrAnyFilter(
-                        ctx.allRecipe,
-                        itemFilter,
-                        AnySmartResultRecipeFilter::new,
-                        AllSmartResultRecipeFilter::new);
+                return new RecipeFilter(FilterContext.OUTPUT, !ctx.allRecipe, itemFilter);
             case 2:
                 return getAllOrAnyFilter(
                         ctx.allRecipe,
@@ -69,7 +58,7 @@ public class RecipeFilterVisitor extends AbstractSearchExpressionVisitor<IRecipe
                         AllOthersRecipeFilter::new);
             // Doesn't support all by default
             case 3:
-                return getAllOrAnyFilter(ctx.allRecipe, itemFilter, AnyItemRecipeFilter::new, AnyItemRecipeFilter::new);
+                return new RecipeFilter(FilterContext.ANY, !ctx.allRecipe, itemFilter);
             default:
                 return defaultResult();
         }
