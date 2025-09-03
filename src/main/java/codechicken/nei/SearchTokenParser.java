@@ -3,10 +3,8 @@ package codechicken.nei;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import net.minecraft.client.Minecraft;
@@ -96,32 +94,28 @@ public class SearchTokenParser {
     protected final LRUCache<String, ItemFilter> filtersCache = new LRUCache<>(20);
     protected final LRUCache<String, IRecipeFilter> recipesCache = new LRUCache<>(20);
     protected final List<ISearchParserProvider> searchProviders;
-    protected final Set<Character> redefinedPrefixes = new HashSet<>();
     protected final ProvidersCache providersCache = new ProvidersCache();
     protected final Map<Character, Character> prefixRedefinitions = new HashMap<>();
+    protected String prefixes = null;
 
     public SearchTokenParser(List<ISearchParserProvider> searchProviders) {
         this.searchProviders = searchProviders;
-        updateRedefinedPrefixes();
     }
 
     public SearchTokenParser() {
         this(new ArrayList<>());
-        updateRedefinedPrefixes();
     }
 
     public void addProvider(ISearchParserProvider provider) {
         this.searchProviders.add(provider);
-        updateRedefinedPrefixes(provider);
-        this.providersCache.clear();
-        this.filtersCache.clear();
-        this.recipesCache.clear();
+        clearCache();
     }
 
     public void clearCache() {
+        this.providersCache.clear();
         this.filtersCache.clear();
         this.recipesCache.clear();
-        updateRedefinedPrefixes();
+        this.prefixes = null;
     }
 
     public List<ISearchParserProvider> getProviders() {
@@ -152,7 +146,7 @@ public class SearchTokenParser {
     }
 
     public boolean hasRedefinedPrefix(char ch) {
-        return redefinedPrefixes.contains(ch);
+        return getPrefixes().indexOf(ch) >= 0;
     }
 
     public ISearchParserProvider getProvider(char ch) {
@@ -456,31 +450,23 @@ public class SearchTokenParser {
     }
 
     private String getPrefixes() {
-        final StringBuilder builder = new StringBuilder();
-        for (Character redefinedPrefix : redefinedPrefixes) {
-            builder.append(redefinedPrefix);
+        if (this.prefixes == null) {
+            final StringBuilder builder = new StringBuilder();
+
+            for (ISearchParserProvider provider : getProviders()) {
+                if (provider.getSearchMode() == SearchTokenParser.SearchMode.PREFIX) {
+                    builder.append(getRedefinedPrefix(provider.getPrefix()));
+                }
+            }
+
+            this.prefixes = builder.toString();
         }
-        return builder.toString();
+
+        return this.prefixes;
     }
 
     public char getRedefinedPrefix(char prefix) {
         return this.prefixRedefinitions.getOrDefault(prefix, prefix);
-    }
-
-    public void updateRedefinedPrefixes() {
-        this.redefinedPrefixes.clear();
-        for (ISearchParserProvider provider : getProviders()) {
-            if (provider.getSearchMode() == SearchTokenParser.SearchMode.PREFIX) {
-                redefinedPrefixes.add(getRedefinedPrefix(provider.getPrefix()));
-            }
-        }
-        this.redefinedPrefixes.add('\0');
-    }
-
-    public void updateRedefinedPrefixes(ISearchParserProvider provider) {
-        if (provider.getSearchMode() == SearchMode.PREFIX) {
-            this.redefinedPrefixes.add(getRedefinedPrefix(provider.getPrefix()));
-        }
     }
 
 }

@@ -722,7 +722,7 @@ public class NEIClientConfig {
             };
             Map<Character, Character> charMap = new Gson().fromJson(prefixRedefinitions, typeToken.getType());
             SearchField.searchParser.prefixRedefinitions.putAll(charMap);
-            SearchField.searchParser.updateRedefinedPrefixes();
+            SearchField.searchParser.clearCache();
         } catch (JsonParseException e) {
             logger.warn("Failed to convert prefix redefinitions from JSON to CharToCharMap:", e);
         }
