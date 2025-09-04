@@ -83,16 +83,19 @@ public class PresetsList {
         }
 
         @Override
-        public boolean matches(IRecipeHandler handler, List<PositionedStack> ingredients, PositionedStack result,
-                List<PositionedStack> others) {
+        public boolean matches(IRecipeHandler handler, int recipeIndex) {
 
-            if (matchPositionedStack(ingredients, false)) {
+            if (matchPositionedStack(handler.getIngredientStacks(recipeIndex), false)) {
                 return false;
             }
+
+            final PositionedStack result = handler.getResultStack(recipeIndex);
 
             if (result != null && matchPositionedStack(result)) {
                 return true;
             }
+
+            final List<PositionedStack> others = handler.getOtherStacks(recipeIndex);
 
             if (!others.isEmpty() && matchPositionedStack(others, true)) {
                 return true;

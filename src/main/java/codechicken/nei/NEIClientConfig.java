@@ -561,7 +561,7 @@ public class NEIClientConfig {
 
             @Override
             public boolean onClick(int button) {
-                // SearchField.searchParser.clearCache();
+                SearchField.searchParser.clearCache();
                 return super.onClick(button);
             }
 
@@ -722,7 +722,7 @@ public class NEIClientConfig {
             };
             Map<Character, Character> charMap = new Gson().fromJson(prefixRedefinitions, typeToken.getType());
             SearchField.searchParser.prefixRedefinitions.putAll(charMap);
-            SearchField.searchParser.updateRedefinedPrefixes();
+            SearchField.searchParser.clearCache();
         } catch (JsonParseException e) {
             logger.warn("Failed to convert prefix redefinitions from JSON to CharToCharMap:", e);
         }
@@ -889,7 +889,7 @@ public class NEIClientConfig {
         final int hash = getKeyBinding(string);
 
         if (hash != Keyboard.CHAR_NONE && Keyboard.getEventKeyState()) {
-            return KeyManager.keyStates.containsKey(string) ? Keyboard.isKeyDown(hash)
+            return KeyManager.keyStates.containsKey(string) ? Keyboard.isKeyDown(NEIKeyboardUtils.unhash(hash))
                     : hash == NEIClientUtils.getKeyHash();
         }
 

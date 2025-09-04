@@ -1,23 +1,44 @@
 package codechicken.nei.filter;
 
-import java.util.List;
+import net.minecraft.item.ItemStack;
 
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.recipe.IRecipeHandler;
 
-public class AllOthersRecipeFilter extends AllRecipeFilter implements IRecipeFilter {
+public class AllOthersRecipeFilter implements IRecipeFilter {
+
+    private final ItemFilter filter;
 
     public AllOthersRecipeFilter(ItemFilter filter) {
-        super(filter);
+        this.filter = filter;
     }
 
     @Override
-    public boolean matches(IRecipeHandler handler, List<PositionedStack> ingredients, PositionedStack result,
-            List<PositionedStack> others) {
+    public boolean matches(IRecipeHandler handler, int recipeIndex) {
 
-        return allMatch(others);
+        for (PositionedStack pStack : handler.getOtherStacks(recipeIndex)) {
+            if (!match(pStack)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected boolean match(PositionedStack pStack) {
+        if (pStack == null) {
+            return false;
+        }
+
+        for (ItemStack stack : pStack.items) {
+            if (filter.matches(stack)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

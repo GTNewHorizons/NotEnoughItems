@@ -38,6 +38,10 @@ public class FormattedTextField extends GuiTextField {
         this.formatter = formatter;
     }
 
+    public TextFormatter getFormatter() {
+        return this.formatter;
+    }
+
     public void setPlaceholder(String placeholder) {
         this.placeholder = placeholder;
     }

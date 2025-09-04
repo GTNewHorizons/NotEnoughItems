@@ -189,6 +189,7 @@ nei.options.keys.gui.itemzoom_toggle=Toggle Item Zoom
 nei.options.keys.gui.itemzoom_hold=Hold to Display Item Zoom
 nei.options.keys.gui.itemzoom_zoom_in=Item Zoom In
 nei.options.keys.gui.itemzoom_zoom_out=Item Zoom Out
+nei.options.keys.gui.favorite=Add Favorite
 nei.options.keys.world=World
 nei.options.keys.world.chunkoverlay=Chunk Boundary Overlay
 nei.options.keys.world.moboverlay=Mob Spawn Overlay

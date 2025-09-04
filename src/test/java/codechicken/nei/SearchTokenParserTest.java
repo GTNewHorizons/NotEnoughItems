@@ -25,11 +25,11 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.FieldSource;
 import org.mockito.MockedStatic;
 
+import codechicken.nei.ItemList.AllMultiItemFilter;
+import codechicken.nei.ItemList.AnyMultiItemFilter;
+import codechicken.nei.ItemList.PatternItemFilter;
 import codechicken.nei.SearchField.SearchParserProvider;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.filter.AllMultiItemFilter;
-import codechicken.nei.filter.AnyMultiItemFilter;
-import codechicken.nei.filter.PatternItemFilter;
 import codechicken.nei.search.IdentifierFilter;
 
 @DisplayName("Search expression")

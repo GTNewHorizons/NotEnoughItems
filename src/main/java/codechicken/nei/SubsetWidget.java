@@ -32,13 +32,13 @@ import com.google.gson.JsonParser;
 import codechicken.core.gui.GuiScrollSlot;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
+import codechicken.nei.ItemList.AnyMultiItemFilter;
+import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.SearchTokenParser.ISearchParserProvider;
 import codechicken.nei.SearchTokenParser.SearchMode;
 import codechicken.nei.api.API;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
-import codechicken.nei.filter.AnyMultiItemFilter;
-import codechicken.nei.filter.NothingItemFilter;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.recipe.GuiCraftingRecipe;
@@ -200,7 +200,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider, IContain
         }
 
         public String name() {
-            int idx = this.fullname.indexOf('.');
+            int idx = this.fullname.lastIndexOf('.');
             return idx < 0 ? this.fullname : this.fullname.substring(idx + 1);
         }
 
