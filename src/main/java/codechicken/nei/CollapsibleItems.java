@@ -18,12 +18,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
+import codechicken.nei.ItemList.AnyMultiItemFilter;
+import codechicken.nei.ItemList.EverythingItemFilter;
+import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.PresetsList.Preset;
 import codechicken.nei.PresetsList.PresetMode;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.filter.AnyMultiItemFilter;
-import codechicken.nei.filter.EverythingItemFilter;
-import codechicken.nei.filter.NothingItemFilter;
 import codechicken.nei.util.ItemStackFilterParser;
 
 public class CollapsibleItems {

@@ -9,13 +9,13 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 
+import codechicken.nei.ItemList.AllMultiItemFilter;
+import codechicken.nei.ItemList.AnyMultiItemFilter;
+import codechicken.nei.ItemList.NegatedItemFilter;
+import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.SearchTokenParser;
 import codechicken.nei.api.ItemFilter;
-import codechicken.nei.filter.AllMultiItemFilter;
-import codechicken.nei.filter.AnyMultiItemFilter;
-import codechicken.nei.filter.NegatedItemFilter;
-import codechicken.nei.filter.NothingItemFilter;
 
 public class ItemFilterVisitor extends AbstractSearchExpressionVisitor<ItemFilter> {
 

@@ -20,9 +20,11 @@ public abstract class RecipeSearchField extends TextField implements ItemFilterP
 
     @Override
     protected void initInternalTextField() {
-        field = new GuiSearchField();
+        final GuiSearchField field = new GuiSearchField();
         field.setMaxStringLength(maxSearchLength);
         field.setCursorPositionZero();
+        ((SearchTextFormatter) field.getFormatter()).setContextToken("<>");
+        this.field = field;
     }
 
     public boolean isVisible() {

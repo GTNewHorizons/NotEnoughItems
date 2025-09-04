@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import net.minecraft.client.gui.inventory.GuiBrewingStand;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemPotion;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
@@ -35,6 +36,13 @@ public class BrewingRecipeHandler extends TemplateRecipeHandler {
             precursorPotion = new PositionedStack(new ItemStack(potionitem, 1, basePotionID), 51, 35);
             ingredient = new PositionedStack(ingred, 74, 6);
             result = new PositionedStack(new ItemStack(potionitem, 1, resultDamage), 97, 35);
+        }
+
+        // Arbitrary precursor/result stacks (for Lingering)
+        public BrewingRecipe(ItemStack ingred, ItemStack precursor, ItemStack resultStack) {
+            precursorPotion = new PositionedStack(precursor, 51, 35);
+            ingredient = new PositionedStack(ingred, 74, 6);
+            result = new PositionedStack(resultStack, 97, 35);
         }
     }
 
@@ -63,6 +71,9 @@ public class BrewingRecipeHandler extends TemplateRecipeHandler {
     public static final ItemStackSet ingredients = new ItemStackSet();
     public static final HashSet<BrewingRecipe> apotions = new HashSet<>();
 
+    private static ItemStack DRAGONS_BREATH = null;
+    private static Item LINGERING_POTION_ITEM = null;
+
     @Override
     public void loadTransferRects() {
         transferRects.add(new RecipeTransferRect(new Rectangle(58, 3, 14, 30), "brewing"));
@@ -90,23 +101,38 @@ public class BrewingRecipeHandler extends TemplateRecipeHandler {
 
     @Override
     public void loadCraftingRecipes(ItemStack result) {
-        if (result.getItem() != potionitem) return;
+        if (result == null) return;
+
+        // Allow lingering potion items as output
+        Item out = result.getItem();
+        boolean isPotion = out == potionitem;
+        boolean isLingering = (LINGERING_POTION_ITEM != null && out == LINGERING_POTION_ITEM);
+        if (!isPotion && !isLingering) return;
+
         int damage = result.getItemDamage();
 
         // Note: Not safe as written for parallelStream
-        apotions.stream().filter(recipe -> recipe.result.item.getItemDamage() == damage).map(CachedBrewingRecipe::new)
-                .collect(Collectors.toCollection(() -> arecipes));
+        apotions.stream()
+                .filter(recipe -> recipe.result.item.getItem() == out && recipe.result.item.getItemDamage() == damage)
+                .map(CachedBrewingRecipe::new).collect(Collectors.toCollection(() -> arecipes));
     }
 
     @Override
     public void loadUsageRecipes(ItemStack ingredient) {
-        if (ingredient.getItem() != potionitem && !ingredients.contains(ingredient)) return;
+        if (ingredient == null) return;
+
+        // allow lingering potions to pass the guard & keeps og potion behavior
+        boolean passIt = ingredient.getItem() == potionitem
+                || (LINGERING_POTION_ITEM != null && ingredient.getItem() == LINGERING_POTION_ITEM)
+                || ingredients.contains(ingredient);
+        if (!passIt) return;
 
         // Note: Not safe as written for parallelStream
         apotions.stream()
                 .filter(
                         recipe -> NEIServerUtils.areStacksSameType(recipe.ingredient.item, ingredient)
-                                || NEIServerUtils.areStacksSameType(recipe.precursorPotion.item, ingredient))
+                                || NEIServerUtils.areStacksSameType(recipe.precursorPotion.item, ingredient)
+                                || NEIServerUtils.areStacksSameType(recipe.result.item, ingredient))
                 .map(CachedBrewingRecipe::new).collect(Collectors.toCollection(() -> arecipes));
     }
 
@@ -141,7 +167,7 @@ public class BrewingRecipeHandler extends TemplateRecipeHandler {
 
                     List<?> baseMods = potionitem.getEffects(basePotion);
                     List<?> newMods = potionitem.getEffects(result); // compare ID's
-                    if (basePotion > 0 && baseMods == newMods || // same modifers and not water->empty
+                    if (basePotion > 0 && baseMods == newMods || // same modifiers and not water->empty
                             baseMods != null && (baseMods.equals(newMods) || newMods == null) || // modifiers different
                                                                                                  // and doesn't lose
                                                                                                  // modifiers
@@ -183,6 +209,42 @@ public class BrewingRecipeHandler extends TemplateRecipeHandler {
         API.addSubset("Items.Potions.Positive", positivepots);
         API.addSubset("Items.Potions.Negative", negativepots);
         API.addSubset("Items.Potions.Neutral", neutralpots);
+
+        // EFR Potion Recipe Visibility - Will safely skip if EFR isn't loaded
+        tryResolveEFRItems();
+
+        if (DRAGONS_BREATH != null && LINGERING_POTION_ITEM != null) {
+            ingredients.add(DRAGONS_BREATH.copy());
+
+            // Iterate over snapshot to avoid concurrent modification when adding to apotions
+            ArrayList<BrewingRecipe> snapshot = new ArrayList<>(apotions);
+
+            for (BrewingRecipe bgr : snapshot) {
+                if (bgr == null || bgr.result == null || bgr.result.item == null) continue;
+                ItemStack splashOut = bgr.result.item;
+                if (splashOut.getItem() != potionitem) continue;
+                int meta = splashOut.getItemDamage();
+                if (!ItemPotion.isSplash(meta)) continue;
+
+                // Clear the splash bit (0x4000) and keep meta otherwise
+                int lingeringMeta = (meta & ~0x4000);
+
+                ItemStack precursorSplash = splashOut.copy();
+                ItemStack lingeringOut = new ItemStack(LINGERING_POTION_ITEM, 1, lingeringMeta);
+
+                apotions.add(new BrewingRecipe(DRAGONS_BREATH, precursorSplash, lingeringOut));
+            }
+
+            // Lingering items
+            final List<ItemStack> allLingering = apotions.stream()
+                    .map(lpr -> lpr.result != null ? lpr.result.item : null)
+                    .filter(lps -> lps != null && lps.getItem() == LINGERING_POTION_ITEM).collect(Collectors.toList());
+
+            if (!allLingering.isEmpty()) {
+                API.setItemListEntries(LINGERING_POTION_ITEM, allLingering);
+                API.addSubset("Items.Potions.Lingering", stack -> stack.getItem() == LINGERING_POTION_ITEM);
+            }
+        }
     }
 
     private static boolean levelModifierChanged(int basePotionID, int result) {
@@ -197,6 +259,16 @@ public class BrewingRecipeHandler extends TemplateRecipeHandler {
         apotions.add(new BrewingRecipe(ingred, basePotion, result));
         if (allPotions.add(result)) // it's new
             newPotions.add(result);
+    }
+
+    private static void tryResolveEFRItems() {
+        if (DRAGONS_BREATH == null) {
+            Item breath = (Item) Item.itemRegistry.getObject("etfuturum:dragon_breath");
+            DRAGONS_BREATH = (breath != null) ? new ItemStack(breath) : null;
+        }
+        if (LINGERING_POTION_ITEM == null) {
+            LINGERING_POTION_ITEM = (Item) Item.itemRegistry.getObject("etfuturum:lingering_potion");
+        }
     }
 
     @Override
