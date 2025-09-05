@@ -73,9 +73,11 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         }
 
         World world = entity.worldObj;
+        int worldHeight = world.getHeight();
+
         int x1 = (int) entity.posX;
         int z1 = (int) entity.posZ;
-        int y1 = (int) MathHelper.clip(entity.posY, 16, world.getHeight() - 16);
+        int y1 = (int) MathHelper.clip(entity.posY, 16, worldHeight - 16);
 
         for (int i = 0; i <= 32; i++) {
             int x = x1 - 16 + i;
@@ -94,6 +96,12 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
 
                 for (int k = 0; k <= 32; k++) {
                     int y = y1 - 16 + k;
+
+                    if (y >= worldHeight) {
+                        mobSpawnCache[bufIndex + k] = -1;
+                        continue;
+                    }
+
                     if (y > maxHeight) {
                         mobSpawnCache[bufIndex + k] = -1;
                         break;
@@ -177,6 +185,10 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     private static final AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(0, 0, 0, 0, 0, 0);
 
     private static byte getSpawnMode(Chunk chunk, int x, int y, int z) {
+        if (y >= chunk.worldObj.getHeight()) {
+            return 0;
+        }
+
         if (chunk.getSavedLightValue(EnumSkyBlock.Block, x & 15, y, z & 15) >= 8
                 || !SpawnerAnimals.canCreatureTypeSpawnAtLocation(EnumCreatureType.monster, chunk.worldObj, x, y, z)) {
             return 0;
