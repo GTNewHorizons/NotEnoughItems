@@ -37,23 +37,16 @@ public class RecipeItemInputHandler implements IContainerInputHandler, IContaine
 
     @Override
     public boolean mouseClicked(GuiContainer gui, int mousex, int mousey, int button) {
-        if (!(gui instanceof GuiRecipe) || ItemPanels.itemPanel.contains(mousex, mousey)
-                || ItemPanels.bookmarkPanel.contains(mousex, mousey)
-                || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey))
-            return false;
-
-        return ShortcutInputHandler.handleMouseClick(GuiContainerManager.getStackMouseOver(gui));
+        return false;
     }
 
     @Override
     public Map<String, String> handleHotkeys(GuiContainer gui, int mousex, int mousey, Map<String, String> hotkeys) {
 
-        if ((gui instanceof GuiRecipe) || ItemPanels.itemPanel.contains(mousex, mousey)
-                || ItemPanels.bookmarkPanel.contains(mousex, mousey)
-                || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey)) {
+        if (gui instanceof GuiRecipe || ItemPanels.itemPanel.containsWithSubpanels(mousex, mousey)
+                || ItemPanels.bookmarkPanel.contains(mousex, mousey)) {
             hotkeys.putAll(
-                    ShortcutInputHandler
-                            .handleHotkeys(gui, mousex, mousey, GuiContainerManager.getStackMouseOver(gui)));
+                    ShortcutInputHandler.handleHotkeys(mousex, mousey, GuiContainerManager.getStackMouseOver(gui)));
         }
 
         return hotkeys;

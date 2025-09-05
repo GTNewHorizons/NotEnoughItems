@@ -49,7 +49,7 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         final ArrayList<ICraftingHandler> handlers = getCraftingHandlers(outputId, results);
 
         if (!handlers.isEmpty()) {
-            final GuiCraftingRecipe gui = new GuiCraftingRecipe(handlers, "recipeId".equals(outputId));
+            final GuiCraftingRecipe gui = new GuiCraftingRecipe(handlers);
 
             if (open) {
 
@@ -146,9 +146,8 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         return recipeId;
     }
 
-    private GuiCraftingRecipe(ArrayList<ICraftingHandler> handlers, boolean limitToOneRecipe) {
+    private GuiCraftingRecipe(ArrayList<ICraftingHandler> handlers) {
         super(NEIClientUtils.mc().currentScreen);
-        this.limitToOneRecipe = limitToOneRecipe;
         this.currenthandlers = handlers;
     }
 

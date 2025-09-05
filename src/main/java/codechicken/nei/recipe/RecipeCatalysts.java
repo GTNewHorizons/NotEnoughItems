@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.minecraft.item.ItemStack;
 
@@ -37,10 +38,8 @@ public class RecipeCatalysts {
     private static final Map<String, List<ItemStack>> catalystsRemoverFromAPI = new HashMap<>();
     public static final Map<String, CatalystInfoList> catalystsAdderFromIMC = new HashMap<>();
     public static final Map<String, List<ItemStack>> catalystsRemoverFromIMC = new HashMap<>();
-    private static final Map<String, CatalystInfoList> recipeCatalystMap = new HashMap<>();
-    private static Map<String, List<PositionedStack>> positionedRecipeCatalystMap = new HashMap<>();
+    private static final Map<String, List<PositionedStack>> recipeCatalystMap = new HashMap<>();
     private static final List<String> forceClassNameList = new ArrayList<>();
-    private static int heightCache;
 
     public static void addRecipeCatalyst(String handlerID, CatalystInfo catalystInfo) {
         if (handlerID == null || handlerID.isEmpty() || catalystInfo.getStack() == null) return;
@@ -49,6 +48,7 @@ public class RecipeCatalysts {
 
     public static void removeRecipeCatalyst(String handlerID, ItemStack stack) {
         if (handlerID == null || handlerID.isEmpty() || stack == null) return;
+
         if (catalystsRemoverFromAPI.containsKey(handlerID)) {
             catalystsRemoverFromAPI.get(handlerID).add(stack);
         } else {
@@ -56,8 +56,23 @@ public class RecipeCatalysts {
         }
     }
 
-    public static Map<String, List<PositionedStack>> getPositionedRecipeCatalystMap() {
-        return positionedRecipeCatalystMap;
+    public static void putRecipeCatalysts(String handlerID, List<ItemStack> items) {
+        if (handlerID == null || handlerID.isEmpty()) return;
+
+        final CatalystInfoList catalystInfoList = new CatalystInfoList(handlerID);
+        int stackIndex = 0;
+
+        for (ItemStack stack : items) {
+            catalystInfoList.add(new CatalystInfo(stack, stackIndex++));
+        }
+
+        putRecipeCatalysts(handlerID, catalystInfoList);
+    }
+
+    public static void putRecipeCatalysts(String handlerID, CatalystInfoList catalystInfoList) {
+        if (handlerID == null || handlerID.isEmpty()) return;
+        catalystsAdderFromAPI.put(handlerID, catalystInfoList);
+        recipeCatalystMap.put(handlerID, convertToPositionedStackList(catalystInfoList));
     }
 
     public static List<PositionedStack> getRecipeCatalysts(IRecipeHandler handler) {
@@ -65,10 +80,7 @@ public class RecipeCatalysts {
     }
 
     public static List<PositionedStack> getRecipeCatalysts(String handlerID) {
-        if (!NEIClientConfig.areJEIStyleTabsVisible() || !NEIClientConfig.areJEIStyleRecipeCatalystsVisible()) {
-            return Collections.emptyList();
-        }
-        return positionedRecipeCatalystMap.getOrDefault(handlerID, Collections.emptyList());
+        return recipeCatalystMap.getOrDefault(handlerID, Collections.emptyList());
     }
 
     public static boolean containsCatalyst(IRecipeHandler handler, ItemStack candidate) {
@@ -76,63 +88,21 @@ public class RecipeCatalysts {
     }
 
     public static boolean containsCatalyst(String handlerID, ItemStack candidate) {
+
         if (recipeCatalystMap.containsKey(handlerID)) {
-            return recipeCatalystMap.get(handlerID).contains(candidate);
+            return recipeCatalystMap.get(handlerID).stream().anyMatch(pStack -> pStack.contains(candidate));
         }
+
         return false;
-    }
-
-    public static void updatePosition(int availableHeight, boolean force) {
-        if (availableHeight == heightCache && !force) return;
-
-        Map<String, List<PositionedStack>> newMap = new HashMap<>();
-        for (Map.Entry<String, CatalystInfoList> entry : recipeCatalystMap.entrySet()) {
-            CatalystInfoList catalysts = entry.getValue();
-            catalysts.sort();
-            List<PositionedStack> newStacks = new ArrayList<>();
-            int rowCount = getRowCount(availableHeight, catalysts.size());
-
-            for (int index = 0; index < catalysts.size(); index++) {
-                ItemStack catalyst = catalysts.get(index).getStack();
-                int column = index / rowCount;
-                int row = index % rowCount;
-                newStacks.add(
-                        new PositionedStack(
-                                catalyst,
-                                -column * GuiRecipeCatalyst.ingredientSize,
-                                row * GuiRecipeCatalyst.ingredientSize));
-            }
-            newMap.put(entry.getKey(), newStacks);
-        }
-        positionedRecipeCatalystMap = newMap;
-        heightCache = availableHeight;
-    }
-
-    public static void updatePosition(int availableHeight) {
-        updatePosition(availableHeight, false);
-    }
-
-    public static int getHeight() {
-        return heightCache;
-    }
-
-    public static int getColumnCount(int availableHeight, int catalystsSize) {
-        int maxItemsPerColumn = availableHeight / GuiRecipeCatalyst.ingredientSize;
-        return NEIServerUtils.divideCeil(catalystsSize, maxItemsPerColumn);
-    }
-
-    public static int getRowCount(int availableHeight, int catalystsSize) {
-        int columnCount = getColumnCount(availableHeight, catalystsSize);
-        return NEIServerUtils.divideCeil(catalystsSize, columnCount);
     }
 
     public static void loadCatalystInfo() {
         final boolean fromJar = NEIClientConfig.loadCatalystsFromJar();
+        final URL handlerUrl = RecipeCatalysts.class.getResource("/assets/nei/csv/catalysts.csv");
+        final Map<String, CatalystInfoList> calculatedCatalysts = new HashMap<>();
         NEIClientConfig.logger.info("Loading catalyst info from " + (fromJar ? "JAR" : "Config"));
-        recipeCatalystMap.clear();
-        URL handlerUrl = RecipeCatalysts.class.getResource("/assets/nei/csv/catalysts.csv");
 
-        resolveAdderQueue();
+        resolveAdderQueue(calculatedCatalysts);
 
         URL url;
         if (fromJar) {
@@ -211,7 +181,7 @@ public class RecipeCatalysts {
 
                 // Prefer info added by API if we're using default jar config.
                 // If not, user config overwrites it.
-                addOrPut(recipeCatalystMap, handlerID, catalystInfo, !fromJar);
+                addOrPut(calculatedCatalysts, handlerID, catalystInfo, !fromJar);
             }
         } catch (Exception e) {
             NEIClientConfig.logger.warn("Error parsing CSV");
@@ -219,13 +189,17 @@ public class RecipeCatalysts {
         }
 
         if (fromJar) {
-            resolveRemoverQueue();
+            resolveRemoverQueue(calculatedCatalysts);
         }
 
-        updatePosition(getHeight(), true);
+        recipeCatalystMap.clear();
+        for (Map.Entry<String, CatalystInfoList> entry : calculatedCatalysts.entrySet()) {
+            recipeCatalystMap.put(entry.getKey(), convertToPositionedStackList(entry.getValue()));
+        }
+
     }
 
-    private static void resolveAdderQueue() {
+    private static void resolveAdderQueue(Map<String, CatalystInfoList> recipeCatalystMap) {
         for (Map.Entry<String, CatalystInfoList> entry : catalystsAdderFromAPI.entrySet()) {
             String handlerID = entry.getKey();
             for (CatalystInfo catalyst : entry.getValue()) {
@@ -256,7 +230,7 @@ public class RecipeCatalysts {
         }
     }
 
-    private static void resolveRemoverQueue() {
+    private static void resolveRemoverQueue(Map<String, CatalystInfoList> recipeCatalystMap) {
         for (Map.Entry<String, List<ItemStack>> entry : catalystsRemoverFromAPI.entrySet()) {
             String handlerID = entry.getKey();
             if (recipeCatalystMap.containsKey(handlerID)) {
@@ -308,16 +282,49 @@ public class RecipeCatalysts {
         }
     }
 
+    private static List<PositionedStack> convertToPositionedStackList(CatalystInfoList catalystInfoList) {
+        catalystInfoList.sort();
+        return catalystInfoList.stream().filter(catalyst -> catalyst.getStack() != null)
+                .map(catalyst -> new PositionedStack(catalyst.getStack(), 0, 0, false)).collect(Collectors.toList());
+    }
+
     @Deprecated
     public static void addRecipeCatalyst(List<ItemStack> stacks, Class<? extends IRecipeHandler> handler) {}
 
     @Deprecated
     public static List<PositionedStack> getRecipeCatalysts(Class<? extends IRecipeHandler> handler) {
-        return Collections.emptyList();
+        return new ArrayList<>();
     }
 
     @Deprecated
     public static boolean containsCatalyst(Class<? extends IRecipeHandler> handler, ItemStack candidate) {
         return false;
     }
+
+    @Deprecated
+    public static Map<String, List<PositionedStack>> getPositionedRecipeCatalystMap() {
+        return new HashMap<>();
+    }
+
+    @Deprecated
+    public static void updatePosition(int availableHeight, boolean force) {}
+
+    @Deprecated
+    public static void updatePosition(int availableHeight) {}
+
+    @Deprecated
+    public static int getHeight() {
+        return 1;
+    }
+
+    @Deprecated
+    public static int getColumnCount(int availableHeight, int catalystsSize) {
+        return 1;
+    }
+
+    @Deprecated
+    public static int getRowCount(int availableHeight, int catalystsSize) {
+        return 1;
+    }
+
 }
