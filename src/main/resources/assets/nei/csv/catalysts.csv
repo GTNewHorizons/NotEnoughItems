@@ -823,6 +823,7 @@ gt.recipe.largeboilerfakefuels,gregtech:gt.blockmachines:1023,,gregtech,TRUE,gre
 gt.recipe.vacuumfreezer,gregtech:gt.blockmachines:1002,,gregtech,TRUE,gregapi_post,,,,,
 smelting,gregtech:gt.blockmachines:1003,,gregtech,TRUE,gregapi_post,,,,,
 smelting,gregtech:gt.blockmachines:15412,,gregtech,TRUE,gregapi_post,,,,,
+smelting,gregtech:gt.blockmachines:31087,,gregtech,TRUE,gregapi_post,,,,,
 gt.recipe.dieselgeneratorfuel,gregtech:gt.blockmachines:1110,,gregtech,TRUE,gregapi_post,,,,,
 gt.recipe.dieselgeneratorfuel,gregtech:gt.blockmachines:1111,,gregtech,TRUE,gregapi_post,,,,,
 gt.recipe.dieselgeneratorfuel,gregtech:gt.blockmachines:1112,,gregtech,TRUE,gregapi_post,,,,,
