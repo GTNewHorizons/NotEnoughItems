@@ -199,7 +199,7 @@ public class SearchTokenParser {
 
                     for (String[] contextQuery : splitByDelimiters(subQuery[1], skipRecipeTokens ? "<>" : "", false)) {
 
-                        if (contextQuery[1].isEmpty()) {
+                        if (contextQuery[1].isEmpty() || contextQuery[0].startsWith(">")) {
                             continue;
                         }
 
