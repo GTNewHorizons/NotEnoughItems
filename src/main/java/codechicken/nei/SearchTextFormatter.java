@@ -42,7 +42,9 @@ public class SearchTextFormatter implements TextFormatter {
 
                     if (!contextPart[0].isEmpty()) {
                         formattedText.append(
-                                SearchExpressionUtils.HIGHLIGHTS.RECIPE + contextPart[0] + EnumChatFormatting.RESET);
+                                SearchExpressionUtils.HIGHLIGHTS.RECIPE + contextPart[0].substring(0, 1)
+                                        + EnumChatFormatting.RESET);
+                        contextPart[1] = contextPart[0].substring(1) + contextPart[1];
                     }
 
                     if (contextPart[1].isEmpty()) {

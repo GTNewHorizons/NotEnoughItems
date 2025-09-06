@@ -23,6 +23,7 @@ public abstract class RecipeSearchField extends TextField implements ItemFilterP
         final GuiSearchField field = new GuiSearchField();
         field.setMaxStringLength(maxSearchLength);
         field.setCursorPositionZero();
+        field.setSkipRecipeTokens(true);
         ((SearchTextFormatter) field.getFormatter()).setContextToken("<>");
         this.field = field;
     }
