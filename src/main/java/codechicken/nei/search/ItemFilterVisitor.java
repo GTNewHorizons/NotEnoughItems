@@ -118,7 +118,6 @@ public class ItemFilterVisitor extends AbstractSearchExpressionVisitor<ItemFilte
         return constructFilter(filters, AllMultiItemFilter::new);
     }
 
-
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx) {
         String cleanText = null;
         if (ctx.PLAIN_TEXT() != null) {
