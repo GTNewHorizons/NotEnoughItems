@@ -238,9 +238,13 @@ public class SearchTokenParser {
                 if (spaceMode == 1) {
                     text = SearchTokenParser.SPACE_PATTERN.matcher(text).replaceAll("\\\\ ");
                 }
-
-                return new IsRegisteredItemFilter(
-                        SearchExpressionUtils.visitSearchExpression(text, new ItemFilterVisitor(this)));
+                if (skipRecipeTokens) {
+                    return new IsRegisteredItemFilter(
+                            SearchExpressionUtils.visitRecipeSearchExpression(text, new ItemFilterVisitor(this)));
+                } else {
+                    return new IsRegisteredItemFilter(
+                            SearchExpressionUtils.visitSearchExpression(text, new ItemFilterVisitor(this)));
+                }
             });
         }
 
@@ -320,7 +324,7 @@ public class SearchTokenParser {
                     text = SearchTokenParser.SPACE_PATTERN.matcher(text).replaceAll("\\\\ ");
                 }
 
-                return SearchExpressionUtils.visitSearchExpression(text, new RecipeFilterVisitor(this));
+                return SearchExpressionUtils.visitRecipeSearchExpression(text, new RecipeFilterVisitor(this));
             });
         }
 

@@ -29,7 +29,7 @@ public class SearchTextFormatter implements TextFormatter {
                 text = SearchTokenParser.SPACE_PATTERN.matcher(text).replaceAll("\\\\ ");
             }
             final SearchExpressionFormatVisitor visitor = new SearchExpressionFormatVisitor(searchParser);
-            return SearchExpressionUtils.visitSearchExpression(text, visitor);
+            return SearchExpressionUtils.visitRecipeSearchExpression(text, visitor);
         } else {
             final StringBuilder formattedText = new StringBuilder();
 

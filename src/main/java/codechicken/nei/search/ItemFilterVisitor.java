@@ -37,6 +37,20 @@ public class ItemFilterVisitor extends AbstractSearchExpressionVisitor<ItemFilte
         }
     }
 
+    // Should only be called for collecting ingredients permutations
+    @Override
+    public ItemFilter visitRecipeSearchExpression(SearchExpressionParser.RecipeSearchExpressionContext ctx) {
+        if (ctx.recipeClauseExpression() != null) {
+            final List<ItemFilter> anyFilters = new ArrayList<>();
+            final List<ItemFilter> allFilters = new ArrayList<>();
+            for (SearchExpressionParser.RecipeClauseExpressionContext clauseCtx : ctx.recipeClauseExpression()) {
+                addIngredientPermutationItemFilter(clauseCtx.searchExpression(), anyFilters, allFilters);
+            }
+            return constructFilter(anyFilters, allFilters);
+        }
+        return defaultResult();
+    }
+
     @Override
     public ItemFilter visitOrExpression(SearchExpressionParser.OrExpressionContext ctx) {
         return visitChildren(ctx, AnyMultiItemFilter::new);
@@ -78,6 +92,32 @@ public class ItemFilterVisitor extends AbstractSearchExpressionVisitor<ItemFilte
     protected ItemFilter defaultResult() {
         return new NothingItemFilter();
     }
+
+    private void addIngredientPermutationItemFilter(SearchExpressionParser.SearchExpressionContext ctx,
+            List<ItemFilter> anyFilters, List<ItemFilter> allFilters) {
+        // Only for ingredients or default
+        if (ctx.type == 0 || ctx.type == 3) {
+            if (ctx.allRecipe) {
+                allFilters.add(visit(ctx));
+            } else {
+                anyFilters.add(visit(ctx));
+            }
+        }
+    }
+
+    private ItemFilter constructFilter(List<ItemFilter> anyFilters, List<ItemFilter> allFilters) {
+        if (anyFilters.isEmpty()) {
+            return constructFilter(allFilters, AllMultiItemFilter::new);
+        }
+        if (allFilters.isEmpty()) {
+            return constructFilter(anyFilters, AnyMultiItemFilter::new);
+        }
+        final List<ItemFilter> filters = new ArrayList<>();
+        filters.add(constructFilter(allFilters, AllMultiItemFilter::new));
+        filters.add(constructFilter(anyFilters, AnyMultiItemFilter::new));
+        return constructFilter(filters, AllMultiItemFilter::new);
+    }
+
 
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx) {
         String cleanText = null;
