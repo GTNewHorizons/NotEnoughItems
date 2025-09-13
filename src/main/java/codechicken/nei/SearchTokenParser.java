@@ -122,10 +122,8 @@ public class SearchTokenParser {
         Language currentLanguage = Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage();
 
         if (!currentLanguage.getLanguageCode().equals(providersCache.languageCode)) {
-            providersCache.providers = new ArrayList<>();
-            providersCache.languageCode = currentLanguage.getLanguageCode();
-
-            Map<Character, ISearchParserProvider> providers = new HashMap<>();
+            final List<ISearchParserProvider> providersList = new ArrayList<>();
+            final Map<Character, ISearchParserProvider> providers = new HashMap<>();
 
             for (int index = this.searchProviders.size() - 1; index >= 0; index--) {
                 ISearchParserProvider provider = this.searchProviders.get(index);
@@ -134,12 +132,14 @@ public class SearchTokenParser {
                     if (provider.getSearchMode() == SearchMode.PREFIX && !providers.containsKey(provider.getPrefix())) {
                         providers.put(provider.getPrefix(), provider);
                     } else if (provider.getSearchMode() == SearchMode.ALWAYS) {
-                        providersCache.providers.add(provider);
+                        providersList.add(provider);
                     }
                 }
             }
 
-            providersCache.providers.addAll(providers.values());
+            providersList.addAll(providers.values());
+            providersCache.languageCode = currentLanguage.getLanguageCode();
+            providersCache.providers = providersList;
         }
 
         return providersCache.providers;

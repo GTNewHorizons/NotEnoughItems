@@ -21,6 +21,7 @@ import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.commands.CommandBookmarkAdd;
 import codechicken.nei.commands.CommandRecipeId;
+import codechicken.nei.commands.CommandUntranslator;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerSlotClickHandler;
@@ -68,6 +69,7 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
     public static void registerClientCommands() {
         ClientCommandHandler.instance.registerCommand(new CommandBookmarkAdd());
         ClientCommandHandler.instance.registerCommand(new CommandRecipeId());
+        ClientCommandHandler.instance.registerCommand(new CommandUntranslator());
     }
 
     public static void updateUnlimitedItems(InventoryPlayer inventory) {

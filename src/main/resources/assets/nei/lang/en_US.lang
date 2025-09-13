@@ -149,6 +149,12 @@ nei.chat.recipeid.diff.finish=Finished processing recipe diff!
 nei.chat.recipeid.dump.start=Start processing recipe handlers!
 nei.chat.recipeid.dump.finish=Finished processing recipe handlers!
 
+nei.chat.untranslator.dump.start=Start processing untranslator dump!
+nei.chat.untranslator.dump.finish=Finished processing untranslator dump!
+nei.chat.untranslator.dump.error=First, wait for the items to load!
+nei.chat.untranslator.clear=File successfully deleted!
+nei.chat.untranslator.clear.error=Could not delete file!
+
 nei.options=NEI Options
 nei.options.back=Back
 nei.options.save=Save
@@ -429,6 +435,9 @@ nei.options.inventory.itemzoom.showName=Display Name
 nei.options.inventory.itemzoom.showName.true=Show
 nei.options.inventory.itemzoom.showName.false=Hide
 nei.options.inventory.itemzoom.nameColor=Display Name Color
+nei.options.inventory.itemUntranslator=Item Untranslator
+nei.options.inventory.itemUntranslator.true=Enabled
+nei.options.inventory.itemUntranslator.false=Disabled
 
 nei.options.command=Commands
 nei.options.command.creative=Gamemode
