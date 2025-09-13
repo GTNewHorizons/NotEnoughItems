@@ -1,10 +1,13 @@
 package codechicken.nei;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,9 +25,11 @@ import net.minecraft.client.gui.GuiErrorScreen;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiSelectWorld;
 import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraft.client.resources.IResource;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.launchwrapper.Launch;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -165,11 +170,33 @@ public class ClientHandler {
         }, callback);
     }
 
-    public static void loadSettingsFile(String resource, BiConsumer<File, FileWriter> createDefault,
+    public static boolean loadSettingsResource(String resource, Consumer<Stream<String>> callback) {
+        final ResourceLocation location = new ResourceLocation("nei", resource);
+
+        try {
+            final IResource res = Minecraft.getMinecraft().getResourceManager().getResource(location);
+
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(res.getInputStream(), StandardCharsets.UTF_8))) {
+                NEIClientConfig.logger.info("Loading '{}' from jar {}", resource, location);
+                callback.accept(
+                        IOUtils.readLines(reader).stream().map(String::trim)
+                                .filter(line -> !line.isEmpty() && !line.startsWith("#")));
+                return true;
+            }
+
+        } catch (Exception io) {
+            NEIClientConfig.logger.error("Failed to load '{}' file {}", resource, location);
+        }
+
+        return false;
+    }
+
+    public static boolean loadSettingsFile(String resource, BiConsumer<File, FileWriter> createDefault,
             Consumer<Stream<String>> callback) {
         File file = new File(NEIClientConfig.configDir, resource);
 
-        if (!file.exists()) {
+        if (!file.exists() && createDefault != null) {
             try (FileWriter writer = new FileWriter(file)) {
                 NEIClientConfig.logger.info("Creating default '{}' {}", resource, file);
                 createDefault.accept(file, writer);
@@ -178,13 +205,19 @@ public class ClientHandler {
             }
         }
 
-        try (FileReader reader = new FileReader(file)) {
-            NEIClientConfig.logger.info("Loading '{}' file {}", resource, file);
-            callback.accept(
-                    IOUtils.readLines(reader).stream().filter(line -> !line.startsWith("#") && !line.trim().isEmpty()));
-        } catch (IOException e) {
-            NEIClientConfig.logger.error("Failed to load '{}' file {}", resource, file, e);
+        if (file.exists()) {
+            try (FileReader reader = new FileReader(file)) {
+                NEIClientConfig.logger.info("Loading '{}' file {}", resource, file);
+                callback.accept(
+                        IOUtils.readLines(reader).stream().map(String::trim)
+                                .filter(line -> !line.isEmpty() && !line.startsWith("#")));
+                return true;
+            } catch (IOException e) {
+                NEIClientConfig.logger.error("Failed to load '{}' file {}", resource, file, e);
+            }
         }
+
+        return false;
     }
 
     public static void loadSerialHandlers() {

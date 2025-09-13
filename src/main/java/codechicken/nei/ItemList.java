@@ -30,6 +30,7 @@ import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.search.TooltipFilter;
+import codechicken.nei.util.ItemUntranslator;
 
 public class ItemList {
 
@@ -98,6 +99,12 @@ public class ItemList {
             String displayName = EnumChatFormatting.getTextWithoutFormattingCodes(item.getDisplayName());
 
             if (displayName != null && !displayName.isEmpty() && this.pattern.matcher(displayName).find()) {
+                return true;
+            }
+
+            displayName = ItemUntranslator.getInstance().getItemStackDisplayName(item);
+
+            if (!displayName.isEmpty() && this.pattern.matcher(displayName).find()) {
                 return true;
             }
 
