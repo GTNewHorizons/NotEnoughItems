@@ -145,7 +145,6 @@ public class ItemUntranslator {
         final Map<String, String> items = new HashMap<>();
 
         items.put("language", FMLCommonHandler.instance().getCurrentLanguage());
-        items.put("generated", "true");
 
         for (Fluid fluid : FluidRegistry.getRegisteredFluids().values()) {
             items.put(
@@ -370,11 +369,15 @@ public class ItemUntranslator {
         unload();
 
         this.secondNames.clear();
-        this.secondNames.put("language", "en_US");
 
         if (ClientHandler.loadSettingsFile(CONFIG_FILE, null, this::parseStream)
                 || ClientHandler.loadSettingsResource(CONFIG_FILE, this::parseStream)) {
             NEIClientConfig.logger.info("Untranslator loaded");
+        }
+
+        if (!this.secondNames.containsKey("language")
+                || FMLCommonHandler.instance().getCurrentLanguage().equals(this.secondNames.get("language"))) {
+            this.secondNames.clear();
         }
 
         SubsetWidget.updateHiddenItems();
