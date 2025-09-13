@@ -1,6 +1,7 @@
 package codechicken.nei.recipe;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.IntPredicate;
@@ -23,16 +24,16 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
         this.original = handler;
 
         if (this.original.numRecipes() == 0) {
-            this.filteredRecipes = new ArrayList<>();
+            this.filteredRecipes = Collections.emptyList();
         } else {
             final Stream<Integer> items = IntStream.range(0, this.original.numRecipes()).boxed();
             final IRecipeFilter filter = this.searchingAvailable() ? GuiRecipe.getRecipeListFilter() : null;
 
             if (filter == null) {
-                this.filteredRecipes = items.collect(Collectors.toCollection(ArrayList::new));
+                this.filteredRecipes = items.collect(Collectors.toList());
             } else {
                 this.filteredRecipes = items.filter(recipe -> mathRecipe(this.original, recipe, filter))
-                        .collect(Collectors.toCollection(ArrayList::new));
+                        .collect(Collectors.toList());
             }
         }
     }

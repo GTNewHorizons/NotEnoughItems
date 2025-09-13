@@ -16,7 +16,6 @@ import codechicken.nei.NEIDummySlotHandler;
 import codechicken.nei.NEIPotionGuiHandler;
 import codechicken.nei.recipe.CheatItemHandler;
 import codechicken.nei.recipe.FillFluidContainerHandler;
-import codechicken.nei.recipe.GuiRecipeCatalyst;
 import codechicken.nei.recipe.SearchInputDropHandler;
 
 public class GuiInfo {
@@ -31,7 +30,6 @@ public class GuiInfo {
         API.registerNEIGuiHandler(new NEICreativeGuiHandler());
         API.registerNEIGuiHandler(new NEIChestGuiHandler());
         API.registerNEIGuiHandler(new NEIDummySlotHandler());
-        API.registerNEIGuiHandler(new GuiRecipeCatalyst(null));
         API.registerNEIGuiHandler(new SearchInputDropHandler());
         API.registerNEIGuiHandler(new FillFluidContainerHandler());
         API.registerNEIGuiHandler(new CheatItemHandler());

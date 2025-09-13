@@ -170,13 +170,13 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
 
         inputs.sort(
                 Comparator.comparing((ItemStack stack) -> StackInfo.getFluid(stack) != null)
-                        .thenComparing(ItemSorter.instance));
+                        .thenComparingInt(stack -> -1 * stack.stackSize).thenComparing(ItemSorter.instance));
         outputs.sort(
                 Comparator.comparing((ItemStack stack) -> StackInfo.getFluid(stack) != null)
-                        .thenComparing(ItemSorter.instance));
+                        .thenComparingInt(stack -> -1 * stack.stackSize).thenComparing(ItemSorter.instance));
         remainder.sort(
                 Comparator.comparing((ItemStack stack) -> StackInfo.getFluid(stack) != null)
-                        .thenComparing(ItemSorter.instance));
+                        .thenComparingInt(stack -> -1 * stack.stackSize).thenComparing(ItemSorter.instance));
 
         this.inputs = new ItemsTooltipLineHandler(
                 this.lastShiftKey ? NEIClientUtils.translate("bookmark.crafting_chain.missing")

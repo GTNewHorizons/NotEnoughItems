@@ -222,8 +222,7 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
     }
 
     @Override
-    public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
-            List<String> currenttip) {
+    public List<String> handleItemTooltip(ItemStack itemstack, int mousex, int mousey, List<String> currenttip) {
 
         if (!this.grid.forceExpand && !currenttip.isEmpty()) {
             final ItemsPanelGridSlot hoverSlot = this.grid.getSlotMouseOver(mousex, mousey);
@@ -237,7 +236,7 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
             }
         }
 
-        return super.handleItemTooltip(gui, itemstack, mousex, mousey, currenttip);
+        return super.handleItemTooltip(itemstack, mousex, mousey, currenttip);
     }
 
     @Override
@@ -258,7 +257,7 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
     }
 
     @Override
-    public Map<String, String> handleHotkeys(GuiContainer gui, int mousex, int mousey, Map<String, String> hotkeys) {
+    public Map<String, String> handleHotkeys(int mousex, int mousey, Map<String, String> hotkeys) {
         final ItemsPanelGridSlot hoverSlot = this.grid.getSlotMouseOver(mousex, mousey);
 
         if (!this.grid.forceExpand && hoverSlot != null && hoverSlot.groupIndex >= 0 && hoverSlot.groupSize > 1) {
@@ -269,7 +268,12 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
                     NEIClientUtils.translate(message, hoverSlot.groupSize));
         }
 
-        return hotkeys;
+        return super.handleHotkeys(mousex, mousey, hotkeys);
+    }
+
+    public boolean containsWithSubpanels(int px, int py) {
+        return contains(px, py) || NEIClientConfig.showHistoryPanelWidget() && this.historyPanel.contains(px, py)
+                || NEIClientConfig.showCraftablesPanelWidget() && this.craftablesPanel.contains(px, py);
     }
 
 }
