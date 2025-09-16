@@ -32,9 +32,16 @@ public class ItemStackMap<T> {
             if (tag != null && tag.hasNoTags()) {
                 tag = null;
             }
-            this.hashCode = Objects.hashCode(damage, tag);
+
+            NBTTagCompound snap;
+            try {
+                snap = tag == null ? null : (NBTTagCompound) tag.copy();
+            } catch (Throwable t) {
+                snap = null;
+            }
+            this.hashCode = damage;
             this.damage = damage;
-            this.tag = tag;
+            this.tag = snap;
         }
 
         public StackMetaKey(ItemStack key) {
