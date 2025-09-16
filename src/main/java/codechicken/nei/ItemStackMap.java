@@ -39,7 +39,7 @@ public class ItemStackMap<T> {
             } catch (Throwable t) {
                 snap = null;
             }
-            this.hashCode = damage;
+            this.hashCode = Objects.hashCode(damage, snap);
             this.damage = damage;
             this.tag = snap;
         }
