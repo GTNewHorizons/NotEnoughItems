@@ -15,12 +15,18 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.common.base.Objects;
 
 /**
  * A maplike class for ItemStack keys with wildcard damage/NBT. Optimised for lookup
  */
 public class ItemStackMap<T> {
+
+    private static final Logger LogIt = LogManager.getLogger("NEI.ItemStackMap");
+    private static boolean snapWarning = false;
 
     public static class StackMetaKey {
 
@@ -38,6 +44,14 @@ public class ItemStackMap<T> {
                 snap = tag == null ? null : (NBTTagCompound) tag.copy();
             } catch (Throwable t) {
                 snap = null;
+                if (!snapWarning) {
+                    snapWarning = true;
+                    LogIt.warn(
+                            "[NEI] NBT snapshot failed in StackMetaKey (damage {}); "
+                                    + "falling back to no NBT in hash. This suggests a mod mutating NBT during search.",
+                            damage,
+                            t);
+                }
             }
             this.hashCode = Objects.hashCode(damage, snap);
             this.damage = damage;
