@@ -1,159 +1,167 @@
 package codechicken.nei.recipe;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.util.ResourceLocation;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.lwjgl.util.Rectangle;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.item.ItemStack;
 
-import codechicken.nei.api.INEIGuiAdapter;
-import codechicken.nei.drawable.GuiElementDuex;
-import codechicken.nei.drawable.GuiElementScalable;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
-public class GuiRecipeCatalyst extends INEIGuiAdapter {
+import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.NEIClientUtils;
+import codechicken.nei.NEIServerUtils;
+import codechicken.nei.PositionedStack;
+import codechicken.nei.Widget;
+import codechicken.nei.api.ShortcutInputHandler;
+import codechicken.nei.drawable.DrawableBuilder;
+import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.guihook.GuiContainerManager;
 
-    private GuiRecipe<?> guiRecipe;
-    public static final int ingredientSize = 16;
-    public static final int ingredientBorder = 1;
-    public static final int tabBorder = 5;
-    public static final int fullBorder = ingredientBorder + tabBorder;
+public class GuiRecipeCatalyst extends Widget {
 
-    private static final Rectangle catalystRect = new Rectangle();
-    private static final Rectangle targetRect = new Rectangle();
+    private static final int SLOT_SIZE = 16;
+    private static final int BORDER_PADDING = 6;
+    private static final DrawableResource BG_TEXTURE = new DrawableBuilder(
+            "nei:textures/catalyst_tab.png",
+            0,
+            0,
+            28,
+            28).setTextureSize(28, 28).build();
 
-    public GuiRecipeCatalyst(GuiRecipe<?> guiRecipe) {
-        this.guiRecipe = guiRecipe;
+    private static final DrawableResource FG_TEXTURE = new DrawableBuilder("nei:textures/slot.png", 0, 0, 18, 18)
+            .setTextureSize(18, 18).build();
+
+    private final List<PositionedStack> items = new ArrayList<>();
+    private int availableHeight = 0;
+    private boolean showWidget = false;
+
+    public void setCatalysts(List<PositionedStack> items) {
+        this.items.clear();
+        this.items.addAll(items);
     }
 
-    public void draw() {
-        if (guiRecipe == null) return;
-        int catalystsSize = RecipeCatalysts.getRecipeCatalysts(guiRecipe.getHandler()).size();
-        if (catalystsSize == 0) return;
+    public void setAvailableHeight(int height) {
+        this.availableHeight = height;
+    }
 
-        int availableHeight = RecipeCatalysts.getHeight();
-        int columnCount = RecipeCatalysts.getColumnCount(availableHeight, catalystsSize);
-        int rowCount = RecipeCatalysts.getRowCount(availableHeight, catalystsSize);
-        int width, height, xPos, yPos;
+    public int getAvailableHeight() {
+        return this.availableHeight;
+    }
 
-        width = (ingredientBorder * 2) + (tabBorder * 2) + (columnCount * ingredientSize);
-        height = (ingredientBorder * 2) + (tabBorder * 2) + (rowCount * ingredientSize);
-        xPos = guiRecipe.guiLeft - width + tabBorder + 1;
-        yPos = guiRecipe.guiTop;
-        drawBordered("nei:textures/catalyst_tab.png", xPos, yPos, width, height, 28, 28, 6, 6, 6, 6);
+    public boolean isShowWidget() {
+        return this.showWidget;
+    }
 
-        width = (ingredientBorder * 2) + (columnCount * ingredientSize);
-        height = (ingredientBorder * 2) + (rowCount * ingredientSize);
-        xPos = guiRecipe.guiLeft - width + ingredientBorder + 1;
-        yPos = guiRecipe.guiTop + fullBorder - ingredientBorder;
-        drawBordered("nei:textures/slot.png", xPos, yPos, width, height, 18, 18, 1, 1, 1, 1);
+    public int getColumnCount() {
+        final int maxItemsPerColumn = Math.max(0, this.availableHeight - 2 - BORDER_PADDING * 2) / SLOT_SIZE;
+        return maxItemsPerColumn > 0 ? NEIServerUtils.divideCeil(this.items.size(), maxItemsPerColumn) : 0;
+    }
+
+    public int getRowCount() {
+        final int columnCount = getColumnCount();
+        return columnCount > 0 ? NEIServerUtils.divideCeil(this.items.size(), columnCount) : 0;
     }
 
     @Override
-    public boolean hideItemPanelSlot(GuiContainer gui, int x, int y, int w, int h) {
-        if (!(gui instanceof GuiRecipe)) return false;
-        guiRecipe = (GuiRecipe<?>) gui;
-        int catalystsSize = RecipeCatalysts.getRecipeCatalysts(guiRecipe.getHandler()).size();
-        if (catalystsSize == 0) return false;
+    public void update() {
+        final int columns = getColumnCount();
+        final int rows = getRowCount();
 
-        int availableHeight = RecipeCatalysts.getHeight();
-        int columnCount = RecipeCatalysts.getColumnCount(availableHeight, catalystsSize);
-        int rowCount = RecipeCatalysts.getRowCount(availableHeight, catalystsSize);
-        int margin = 4;
+        this.showWidget = rows * columns > 0;
+        this.w = columns * SLOT_SIZE + 2 + BORDER_PADDING * 2;
+        this.h = rows * SLOT_SIZE + 2 + BORDER_PADDING * 2;
 
-        int width = (ingredientBorder * 2) + (tabBorder * 2) + (columnCount * ingredientSize) + margin;
-        int height = (ingredientBorder * 2) + (tabBorder * 2) + (rowCount * ingredientSize) + margin;
-        int xOffset = guiRecipe.guiLeft - width + tabBorder;
-        int yOffset = guiRecipe.guiTop;
-        catalystRect.setBounds(xOffset, yOffset, width, height);
-        targetRect.setBounds(x, y, w, h);
-        return targetRect.intersects(catalystRect);
+        if (rows == 0 || columns == 0) {
+            return;
+        }
+
+        int index = 0;
+        for (PositionedStack pStack : this.items) {
+
+            if (pStack.items.length > 1) {
+                final int stackIndex = (pStack.items.length + pStack.getPermutationIndex(pStack.item) + 1)
+                        % pStack.items.length;
+                pStack.setPermutationToRender(stackIndex);
+            }
+
+            pStack.relx = this.w - BORDER_PADDING - 1 - SLOT_SIZE - (index / rows) * SLOT_SIZE;
+            pStack.rely = BORDER_PADDING + 1 + (index % rows) * SLOT_SIZE;
+            index++;
+        }
+
     }
 
-    private void drawBordered(String location, int xPos, int yPos, int width, int height, int texWidth, int texHeight,
-            int sliceLeft, int sliceRight, int sliceTop, int sliceBottom) {
-        Minecraft.getMinecraft().renderEngine.bindTexture(new ResourceLocation(location));
+    @Override
+    public void draw(int mx, int my) {
+        if (!this.showWidget) return;
 
-        GuiElementDuex cornerTopLeft = new GuiElementDuex(0, 0, sliceLeft, sliceTop, texWidth, texHeight);
-        GuiElementDuex cornerTopRight = new GuiElementDuex(
-                texWidth - sliceRight,
-                0,
-                sliceRight,
-                sliceTop,
-                texWidth,
-                texHeight);
-        GuiElementDuex cornerBottomLeft = new GuiElementDuex(
-                0,
-                texHeight - sliceBottom,
-                sliceLeft,
-                sliceBottom,
-                texWidth,
-                texHeight);
-        GuiElementDuex cornerBottomRight = new GuiElementDuex(
-                texWidth - sliceRight,
-                texHeight - sliceBottom,
-                sliceRight,
-                sliceBottom,
-                texWidth,
-                texHeight);
+        GL11.glTranslatef(this.x, this.y, 0);
+        GL11.glColor4f(1, 1, 1, 1);
 
-        GuiElementScalable borderTop = new GuiElementScalable(
-                sliceLeft,
-                0,
-                texWidth - sliceLeft - sliceRight,
-                sliceTop,
-                texWidth,
-                texHeight);
-        GuiElementScalable borderBottom = new GuiElementScalable(
-                sliceLeft,
-                texHeight - sliceBottom,
-                texWidth - sliceLeft - sliceRight,
-                sliceBottom,
-                texWidth,
-                texHeight);
-        GuiElementScalable borderLeft = new GuiElementScalable(
-                0,
-                sliceTop,
-                sliceLeft,
-                texHeight - sliceTop - sliceBottom,
-                texWidth,
-                texHeight);
-        GuiElementScalable borderRight = new GuiElementScalable(
-                texWidth - sliceRight,
-                sliceTop,
-                sliceRight,
-                texHeight - sliceTop - sliceBottom,
-                texWidth,
-                texHeight);
-        GuiElementScalable center = new GuiElementScalable(
-                sliceLeft,
-                sliceTop,
-                texWidth - sliceLeft - sliceRight,
-                texHeight - sliceTop - sliceBottom,
-                texWidth,
-                texHeight);
+        BG_TEXTURE.draw(0, 0, this.w, this.h, BORDER_PADDING, BORDER_PADDING, BORDER_PADDING, BORDER_PADDING);
+        FG_TEXTURE.draw(
+                BORDER_PADDING,
+                BORDER_PADDING,
+                this.w - BORDER_PADDING * 2,
+                this.h - BORDER_PADDING * 2,
+                1,
+                1,
+                1,
+                1);
 
-        int midW = width - borderLeft.w - borderRight.w;
-        int midH = height - borderTop.h - borderBottom.h;
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        RenderHelper.enableGUIStandardItemLighting();
+        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
 
-        // top row
-        int x = xPos;
-        int y = yPos;
-        x += cornerTopLeft.draw(x, y);
-        x += borderTop.drawScaledX(x, y, midW);
-        cornerTopRight.draw(x, y);
+        for (PositionedStack pStack : this.items) {
+            GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
 
-        // center row
-        x = xPos;
-        y += borderTop.h;
-        x += borderLeft.drawScaledY(x, y, midH);
-        x += center.drawScaled(x, y, midW, midH);
-        borderRight.drawScaledY(x, y, midH);
+            if (pStack.contains(mx - this.x, my - this.y)) {
+                NEIClientUtils.gl2DRenderContext(
+                        () -> GuiDraw.drawRect(pStack.relx, pStack.rely, SLOT_SIZE, SLOT_SIZE, -2130706433));
+            }
+        }
 
-        // bottom row
-        x = xPos;
-        y += midH;
-        x += cornerBottomLeft.draw(x, y);
-        x += borderBottom.drawScaledX(x, y, midW);
-        cornerBottomRight.draw(x, y);
+        GL11.glPopAttrib();
+        GL11.glTranslatef(-this.x, -this.y, 0);
     }
+
+    public PositionedStack getPositionedStackMouseOver(int mx, int my) {
+
+        for (PositionedStack pStack : this.items) {
+            if (pStack.contains(mx - this.x, my - this.y)) {
+                return pStack;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public ItemStack getStackMouseOver(int mx, int my) {
+        final PositionedStack pStack = getPositionedStackMouseOver(mx, my);
+
+        if (pStack != null) {
+            return pStack.item;
+        }
+
+        return null;
+    }
+
+    @Override
+    public boolean handleClick(int mx, int my, int button) {
+        return ShortcutInputHandler.handleMouseClick(getStackMouseOver(mx, my));
+    }
+
+    @Deprecated
+    public static final int ingredientSize = 16;
+    @Deprecated
+    public static final int ingredientBorder = 1;
+    @Deprecated
+    public static final int tabBorder = 5;
+    @Deprecated
+    public static final int fullBorder = ingredientBorder + tabBorder;
+
 }
