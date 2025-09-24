@@ -62,7 +62,7 @@ public class RecipeHandlerQuery<T extends IRecipeHandler> {
 
     private ArrayList<T> getRecipeHandlersParallel() throws InterruptedException, ExecutionException {
         // Pre-find the fuels so we're not fighting over it
-        FuelRecipeHandler.findFuelsOnceParallel();
+        FuelRecipeHandler.findFuelsOnce();
         ArrayList<T> handlers = getSerialHandlersWithRecipes();
         handlers.addAll(getHandlersWithRecipes());
         handlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
