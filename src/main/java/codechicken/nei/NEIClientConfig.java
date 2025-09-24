@@ -147,6 +147,8 @@ public class NEIClientConfig {
         tag.getTag("inventory.widgetsenabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.widgetsenabled"));
 
+        tag.getTag("findFuelsParallel").getBooleanValue(true);
+
         tag.getTag("inventory.autocrafting").getBooleanValue(true);
         tag.getTag("inventory.dynamicFontSize").getBooleanValue(true);
         tag.getTag("inventory.hidden").getBooleanValue(false);
