@@ -313,11 +313,15 @@ public class ItemList {
         }
 
         private void forceTagCompoundInitialization(ItemStack stack) {
+            if (stack.getItem() == null) {
+                return;
+            }
             if (stack.getItem() instanceof IFluidContainerItem) {
                 IFluidContainerItem fluidItem = (IFluidContainerItem) stack.getItem();
                 runChecked(stack, () -> fluidItem.getFluid(stack), "getFluid");
             }
             runChecked(stack, stack::isItemDamaged, "isItemDamaged");
+            runChecked(stack, () -> stack.getItem().getDamage(stack), "getDamage");
         }
 
         // Generate itemlist, permutations, orders, collapsibleitems, and informationhandler stacks
@@ -359,11 +363,11 @@ public class ItemList {
                                 items.add(stack);
                             }
 
+                            forceTagCompoundInitialization(stack);
+
                             CollapsibleItems.putItem(stack);
                             TooltipFilter.getSearchTooltip(stack);
                             InformationHandler.populateStacks(stack);
-
-                            forceTagCompoundInitialization(stack);
                         }
                     }
 
