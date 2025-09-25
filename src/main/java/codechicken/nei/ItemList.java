@@ -20,6 +20,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
+import net.minecraftforge.fluids.IFluidContainerItem;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -31,6 +32,7 @@ import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.search.TooltipFilter;
 import codechicken.nei.util.ItemUntranslator;
+import cpw.mods.fml.common.FMLLog;
 
 public class ItemList {
 
@@ -297,6 +299,27 @@ public class ItemList {
                     .collect(Collectors.toList());
         }
 
+        private void runChecked(ItemStack stack, Runnable action, String reason) {
+            int hashOld = 0;
+            if (stack.hasTagCompound()) {
+                hashOld = stack.stackTagCompound.hashCode();
+            }
+
+            action.run();
+
+            if (stack.hasTagCompound() && hashOld != stack.stackTagCompound.hashCode()) {
+                FMLLog.warning("NEI: Forced tag update with reason (" + reason + ") for " + stack);
+            }
+        }
+
+        private void forceTagCompoundInitialization(ItemStack stack) {
+            if (stack.getItem() instanceof IFluidContainerItem) {
+                IFluidContainerItem fluidItem = (IFluidContainerItem) stack.getItem();
+                runChecked(stack, () -> fluidItem.getFluid(stack), "getFluid");
+            }
+            runChecked(stack, stack::isItemDamaged, "isItemDamaged");
+        }
+
         // Generate itemlist, permutations, orders, collapsibleitems, and informationhandler stacks
         @Override
         @SuppressWarnings("unchecked")
@@ -339,6 +362,8 @@ public class ItemList {
                             CollapsibleItems.putItem(stack);
                             TooltipFilter.getSearchTooltip(stack);
                             InformationHandler.populateStacks(stack);
+
+                            forceTagCompoundInitialization(stack);
                         }
                     }
 
