@@ -313,15 +313,41 @@ public class ItemList {
         }
 
         private void forceTagCompoundInitialization(ItemStack stack) {
-            if (stack.getItem() == null) {
+            Item item = stack.getItem();
+            if (item == null) {
                 return;
             }
-            if (stack.getItem() instanceof IFluidContainerItem) {
-                IFluidContainerItem fluidItem = (IFluidContainerItem) stack.getItem();
+            if (item instanceof IFluidContainerItem) {
+                IFluidContainerItem fluidItem = (IFluidContainerItem) item;
                 runChecked(stack, () -> fluidItem.getFluid(stack), "getFluid");
             }
-            runChecked(stack, stack::isItemDamaged, "isItemDamaged");
-            runChecked(stack, () -> stack.getItem().getDamage(stack), "getDamage");
+            runChecked(stack, () -> item.isDamaged(stack), "isDamaged");
+            runChecked(stack, () -> item.getDamage(stack), "getDamage");
+            runChecked(stack, () -> item.showDurabilityBar(stack), "showDurabilityBar");
+            runChecked(stack, () -> item.getAttributeModifiers(stack), "getAttributeModifiers");
+            runChecked(stack, () -> item.getDurabilityForDisplay(stack), "getDurabilityForDisplay");
+            runChecked(stack, () -> item.getItemStackLimit(stack), "getItemStackLimit");
+            runChecked(stack, () -> item.getToolClasses(stack), "getToolClasses");
+            runChecked(stack, () -> item.getUnlocalizedNameInefficiently(stack), "getUnlocalizedNameInefficiently");
+            runChecked(stack, () -> item.hasEffect(stack), "hasEffect");
+
+            /*
+             * unused... for now runChecked(stack, () -> GameRegistry.getFuelValue(stack), "getFuelValue");
+             * runChecked(stack, () -> item.getUnlocalizedName(stack), "getUnlocalizedName"); runChecked(stack, () ->
+             * item.doesContainerItemLeaveCraftingGrid(stack), "doesContainerItemLeaveCraftingGrid"); runChecked(stack,
+             * () -> item.getItemUseAction(stack), "getItemUseAction"); runChecked(stack, () ->
+             * item.getMaxItemUseDuration(stack), "getMaxItemUseDuration"); runChecked(stack, () ->
+             * item.getPotionEffect(stack), "getPotionEffect"); runChecked(stack, () -> item.isPotionIngredient(stack),
+             * "isPotionIngredient"); runChecked(stack, () -> item.getRarity(stack), "getRarity"); runChecked(stack, ()
+             * -> item.hasCustomEntity(stack), "hasCustomEntity"); runChecked(stack, () ->
+             * item.getSmeltingExperience(stack), "getSmeltingExperience"); runChecked(stack, () ->
+             * item.getMaxDamage(stack), "getMaxDamage"); runChecked(stack, () -> item.getDamage(stack), "getDamage");
+             * runChecked(stack, stack::isItemDamaged, "isItemDamaged"); runChecked(stack, () -> item.hasEffect(stack,
+             * 0), "hasEffect"); runChecked(stack, () -> item.getItemEnchantability(stack), "getItemEnchantability");
+             * runChecked(stack, () -> item.isBeaconPayment(stack), "isBeaconPayment"); runChecked(stack, () ->
+             * item.getDamage(stack), "getDamage"); runChecked(stack, () -> item.getDamage(stack), "getDamage");
+             * runChecked(stack, () -> item.getDamage(stack), "getDamage");
+             */
         }
 
         // Generate itemlist, permutations, orders, collapsibleitems, and informationhandler stacks
