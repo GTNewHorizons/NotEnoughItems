@@ -180,8 +180,9 @@ public class ClientHandler {
                     new InputStreamReader(res.getInputStream(), StandardCharsets.UTF_8))) {
                 NEIClientConfig.logger.info("Loading '{}' from jar {}", resource, location);
                 callback.accept(
-                        IOUtils.readLines(reader).stream().map(String::trim)
-                                .filter(line -> !line.isEmpty() && !line.startsWith("#")));
+                        IOUtils.readLines(reader).stream()
+                                .map(line -> line.contains("#") ? line.substring(0, line.indexOf('#')) : line)
+                                .map(String::trim).filter(line -> !line.isEmpty()));
                 return true;
             }
 
@@ -209,8 +210,9 @@ public class ClientHandler {
             try (FileReader reader = new FileReader(file)) {
                 NEIClientConfig.logger.info("Loading '{}' file {}", resource, file);
                 callback.accept(
-                        IOUtils.readLines(reader).stream().map(String::trim)
-                                .filter(line -> !line.isEmpty() && !line.startsWith("#")));
+                        IOUtils.readLines(reader).stream()
+                                .map(line -> line.contains("#") ? line.substring(0, line.indexOf('#')) : line)
+                                .map(String::trim).filter(line -> !line.isEmpty()));
                 return true;
             } catch (IOException e) {
                 NEIClientConfig.logger.error("Failed to load '{}' file {}", resource, file, e);
