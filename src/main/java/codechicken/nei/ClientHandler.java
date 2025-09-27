@@ -182,7 +182,7 @@ public class ClientHandler {
                 callback.accept(
                         IOUtils.readLines(reader).stream()
                                 .map(line -> line.contains("#") ? line.substring(0, line.indexOf('#')) : line)
-                                .map(String::trim).filter(String::isEmpty));
+                                .map(String::trim).filter(line -> !line.isEmpty()));
                 return true;
             }
 
@@ -212,7 +212,7 @@ public class ClientHandler {
                 callback.accept(
                         IOUtils.readLines(reader).stream()
                                 .map(line -> line.contains("#") ? line.substring(0, line.indexOf('#')) : line)
-                                .map(String::trim).filter(String::isEmpty));
+                                .map(String::trim).filter(line -> !line.isEmpty()));
                 return true;
             } catch (IOException e) {
                 NEIClientConfig.logger.error("Failed to load '{}' file {}", resource, file, e);
