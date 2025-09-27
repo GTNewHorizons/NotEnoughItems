@@ -45,6 +45,7 @@ import codechicken.nei.api.IStackPositioner;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerTooltipHandler;
+import cpw.mods.fml.common.FMLLog;
 
 /**
  * A Template Recipe Handler! How about that. Because it was sooo hard, and more seriously required lots of copied code
@@ -108,10 +109,15 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     private static FurnaceRecipeHandler.FuelPair identifyFuel(final ItemStack itemStack) {
-        if (efuels.contains(itemStack.getItem())) return null;
-        final int burnTime = TileEntityFurnace.getItemBurnTime(itemStack);
-        if (burnTime <= 0) return null;
-        return new FurnaceRecipeHandler.FuelPair(itemStack.copy(), burnTime);
+        try {
+            if (efuels.contains(itemStack.getItem())) return null;
+            final int burnTime = TileEntityFurnace.getItemBurnTime(itemStack);
+            if (burnTime <= 0) return null;
+            return new FurnaceRecipeHandler.FuelPair(itemStack.copy(), burnTime);
+        } catch (Exception e) {
+            FMLLog.getLogger().error("NEI: Error identifying fuel for item " + itemStack.getItem());
+            throw e;
+        }
     }
 
     /**
