@@ -21,15 +21,13 @@ public class HandlerInfo {
     private boolean requiresMod;
     private String excludedModId;
 
-    private String itemId;
-    private String nbtString;
-
     private int yShift = 0;
     private int height = DEFAULT_HEIGHT;
     private int width = DEFAULT_WIDTH;
     private int maxRecipesPerPage = DEFAULT_MAX_PER_PAGE;
     private boolean showFavoritesButton = true;
     private boolean showOverlayButton = true;
+    private boolean useCustomScroll = false;
 
     private ItemStack itemStack = null;
     private DrawableResource image = null;
@@ -51,13 +49,13 @@ public class HandlerInfo {
     public boolean setItem(String itemId, String nbtString) {
         if (hasImageOrItem()) return false;
 
-        itemStack = NEIServerUtils.getModdedItem(itemId, nbtString);
-        if (itemStack == null) NEIClientConfig.logger.info("Couldn't find " + modName + " - " + itemId);
-        else {
-            this.itemId = itemId;
-            this.nbtString = nbtString;
+        this.itemStack = NEIServerUtils.getModdedItem(itemId, nbtString);
+
+        if (this.itemStack == null) {
+            NEIClientConfig.logger.info("Couldn't find " + this.modName + " - " + itemId);
         }
-        return (itemStack != null);
+
+        return this.itemStack != null;
     }
 
     public boolean setImage(String resourceLocation, int imageX, int imageY, int imageWidth, int imageHeight) {
@@ -68,46 +66,43 @@ public class HandlerInfo {
     }
 
     public DrawableResource getImage() {
-        return image;
+        return this.image;
     }
 
     public ItemStack getItemStack() {
-        return itemStack;
+        return this.itemStack;
     }
 
     public String getModName() {
-        return modName;
+        return this.modName;
     }
 
     public String getModId() {
-        return modId;
+        return this.modId;
     }
 
     public int getHeight() {
-        return height;
+        return this.height;
     }
 
     public int getWidth() {
-        return width;
+        return this.width;
     }
 
     public int getMaxRecipesPerPage() {
-        return Math.max(maxRecipesPerPage, 1);
+        return Math.max(this.maxRecipesPerPage, 1);
     }
 
     public int getYShift() {
-        return yShift;
+        return this.yShift;
     }
 
     public String getHandlerName() {
-        return handlerName;
+        return this.handlerName;
     }
 
     public boolean hasImageOrItem() {
-        if (image != null) return true;
-        if (itemStack != null) return true;
-
-        return false;
+        return this.image != null || this.itemStack != null;
     }
 
     public void setYShift(int yShift) {
@@ -128,6 +123,14 @@ public class HandlerInfo {
 
     public void setShowOverlayButton(boolean showOverlayButton) {
         this.showOverlayButton = showOverlayButton;
+    }
+
+    public boolean getUseCustomScroll() {
+        return this.useCustomScroll;
+    }
+
+    public void setUseCustomScroll(boolean useCustomScroll) {
+        this.useCustomScroll = useCustomScroll;
     }
 
     public static class Builder {
@@ -159,6 +162,11 @@ public class HandlerInfo {
                 int imageHeight) {
             info.itemStack = null;
             info.setImage(location.toString(), imageX, imageY, imageWidth, imageHeight);
+            return this;
+        }
+
+        public Builder setUseCustomScroll(boolean useCustomScroll) {
+            info.setUseCustomScroll(useCustomScroll);
             return this;
         }
 
