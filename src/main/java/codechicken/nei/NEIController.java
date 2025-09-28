@@ -138,7 +138,7 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
             return true;
         }
 
-        if (button == 1 && slot instanceof SlotCrafting) // right click
+        if (button == 1 && modifier != 2 && slot instanceof SlotCrafting) // right click
         {
             for (int i1 = 0; i1 < 64; i1++) // click this slot 64 times
                 manager.handleSlotClick(slot.slotNumber, button, 0);
