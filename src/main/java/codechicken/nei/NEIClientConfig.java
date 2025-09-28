@@ -61,6 +61,7 @@ import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
 import codechicken.nei.recipe.RecipeInfo;
+import codechicken.nei.util.ItemUntranslator;
 import codechicken.nei.util.NEIKeyboardUtils;
 import codechicken.obfuscator.ObfuscationRun;
 
@@ -145,6 +146,8 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.widgetsenabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.widgetsenabled"));
+
+        tag.getTag("findFuelsParallel").getBooleanValue(true);
 
         tag.getTag("inventory.autocrafting").getBooleanValue(true);
         tag.getTag("inventory.dynamicFontSize").getBooleanValue(true);
@@ -423,6 +426,24 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.autocrafting").setComment("Autocrafting").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.autocrafting", true));
+
+        tag.getTag("inventory.itemUntranslator").setComment("Item Untranslator").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.itemUntranslator", true) {
+
+            @Override
+            public boolean onClick(int button) {
+                super.onClick(button);
+
+                if (enableItemUntranslator()) {
+                    ItemUntranslator.getInstance().load();
+                } else {
+                    ItemUntranslator.getInstance().unload();
+                }
+
+                return true;
+            }
+
+        });
 
         tag.getTag("tools.handler_load_from_config").setComment("ADVANCED: Load handlers from config")
                 .getBooleanValue(false);
@@ -1206,6 +1227,10 @@ public class NEIClientConfig {
 
     public static boolean enableCollapsibleItems() {
         return getBooleanSetting("inventory.collapsibleItems.enabled");
+    }
+
+    public static boolean enableItemUntranslator() {
+        return getBooleanSetting("inventory.itemUntranslator");
     }
 
     public static boolean getMagnetMode() {

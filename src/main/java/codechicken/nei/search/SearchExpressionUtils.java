@@ -53,6 +53,17 @@ public class SearchExpressionUtils {
 
     public static <T> T visitSearchExpression(String text, AbstractSearchExpressionVisitor<T> visitor) {
         SearchExpressionParser parser = createSearchExpressionParser(text, visitor.getSearchParser(), visitor);
+        SearchExpressionParser.RecipeSearchExpressionContext recipeCtx = parser.recipeSearchExpression();
+        // Manually check whether it's not a recipe expression, because parser would parse it either way
+        if (recipeCtx.recipeClauseExpression() != null && recipeCtx.recipeClauseExpression().size() == 1
+                && recipeCtx.recipeClauseExpression(0).searchExpression().type == 3) {
+            return visitor.visitSearchExpression(recipeCtx.recipeClauseExpression(0).searchExpression());
+        }
+        return visitor.fail();
+    }
+
+    public static <T> T visitRecipeSearchExpression(String text, AbstractSearchExpressionVisitor<T> visitor) {
+        SearchExpressionParser parser = createSearchExpressionParser(text, visitor.getSearchParser(), visitor);
         return visitor.visitRecipeSearchExpression(parser.recipeSearchExpression());
     }
 

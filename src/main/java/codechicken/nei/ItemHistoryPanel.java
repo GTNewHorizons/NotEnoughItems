@@ -7,14 +7,27 @@ import net.minecraft.item.ItemStack;
 
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.ItemsGrid.MouseContext;
+import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.StackInfo;
 
-public class ItemHistoryPanel extends AbstractSubpanel<ItemsGrid<ItemsGridSlot, MouseContext>> {
+public class ItemHistoryPanel extends AbstractSubpanel<ItemsGrid<ItemHistoryPanel.HistoryGridSlot, MouseContext>> {
+
+    public static class HistoryGridSlot extends ItemsGridSlot {
+
+        public HistoryGridSlot(int slotIndex, int itemIndex, ItemStack item) {
+            super(slotIndex, itemIndex, item);
+        }
+
+        @Override
+        public RecipeId getRecipeId() {
+            return FavoriteRecipes.getFavorite(this.item);
+        }
+    }
 
     public ItemHistoryPanel() {
         this.grid = new ItemsGrid<>() {
 
-            protected List<ItemsGridSlot> gridMask;
+            protected List<HistoryGridSlot> gridMask;
 
             @Override
             protected void onGridChanged() {
@@ -23,12 +36,12 @@ public class ItemHistoryPanel extends AbstractSubpanel<ItemsGrid<ItemsGridSlot, 
             }
 
             @Override
-            public List<ItemsGridSlot> getMask() {
+            public List<HistoryGridSlot> getMask() {
 
                 if (this.gridMask == null) {
                     this.gridMask = new ArrayList<>();
                     for (int slotIndex = 0; slotIndex < Math.min(size(), this.rows * this.columns); slotIndex++) {
-                        this.gridMask.add(new ItemsGridSlot(slotIndex, slotIndex, getItem(slotIndex)));
+                        this.gridMask.add(new HistoryGridSlot(slotIndex, slotIndex, getItem(slotIndex)));
                     }
                 }
 
@@ -37,7 +50,7 @@ public class ItemHistoryPanel extends AbstractSubpanel<ItemsGrid<ItemsGridSlot, 
 
             @Override
             protected MouseContext getMouseContext(int mousex, int mousey) {
-                final ItemsGridSlot hovered = getSlotMouseOver(mousex, mousey);
+                final HistoryGridSlot hovered = getSlotMouseOver(mousex, mousey);
 
                 if (hovered != null) {
                     return new MouseContext(

@@ -31,7 +31,7 @@ public class KeyManager {
     public static void tickKeyStates() {
         for (Entry<String, KeyState> entry : keyStates.entrySet()) {
             final int keyCode = NEIKeyboardUtils.unhash(NEIClientConfig.getKeyBinding(entry.getKey()));
-            final boolean down = keyCode < Keyboard.KEYBOARD_SIZE ? Keyboard.isKeyDown(keyCode) : null;
+            final boolean down = keyCode > 0 && keyCode < Keyboard.KEYBOARD_SIZE && Keyboard.isKeyDown(keyCode);
             final KeyState state = entry.getValue();
 
             if (down) {
