@@ -66,7 +66,7 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
         GL11.glPushMatrix();
         GL11.glScaled(1, 1, 3);
         GL11.glTranslatef(x, y, 0);
-        GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
         RenderHelper.disableStandardItemLighting();
 
         this.gui.drawGuiContainerBackgroundLayer(0.0f, -100, -100);
@@ -74,7 +74,7 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
         GL11.glPopAttrib();
 
         if (this.gui.slotcontainer != null) {
-            GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
+            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
             RenderHelper.enableGUIStandardItemLighting();
             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
             GL11.glDisable(GL11.GL_DEPTH_TEST);

@@ -100,7 +100,7 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
 
         fontRenderer.drawStringWithShadow(this.labelColor + this.label + ":", x, y, 0);
 
-        GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
         GL11.glPushMatrix();
         RenderHelper.enableGUIStandardItemLighting();
 
