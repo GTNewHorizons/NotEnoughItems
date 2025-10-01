@@ -6,12 +6,11 @@ import net.minecraft.item.ItemStack;
 import org.lwjgl.opengl.GL11;
 
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
+import codechicken.nei.api.ShortcutInputHandler;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.IContainerTooltipHandler;
-import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
-import codechicken.nei.recipe.GuiUsageRecipe;
 
 public abstract class AbstractSubpanel<T extends ItemsGrid<? extends ItemsGridSlot, ? extends ItemsGrid.MouseContext>>
         extends Widget implements IContainerTooltipHandler {
@@ -122,13 +121,7 @@ public abstract class AbstractSubpanel<T extends ItemsGrid<? extends ItemsGridSl
 
             if (NEIController.manager.window instanceof GuiRecipe || NEIClientUtils.shiftKey()
                     || !NEIClientConfig.canCheatItem(hoverSlot.getItemStack())) {
-
-                if (button == 0) {
-                    GuiCraftingRecipe.openRecipeGui("item", hoverSlot.getItemStack().copy());
-                } else if (button == 1) {
-                    GuiUsageRecipe.openRecipeGui("item", hoverSlot.getItemStack().copy());
-                }
-
+                ShortcutInputHandler.handleMouseClick(hoverSlot.getItemStack().copy());
             } else {
                 NEIClientUtils.cheatItem(getDraggedStackWithQuantity(hoverSlot.getItemStack()), button, -1);
             }

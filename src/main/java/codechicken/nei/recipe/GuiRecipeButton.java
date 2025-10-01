@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraftforge.client.event.GuiScreenEvent;
 
 import codechicken.lib.vec.Rectangle4i;
@@ -16,33 +15,30 @@ public abstract class GuiRecipeButton extends GuiNEIButton {
     public static class UpdateRecipeButtonsEvent extends GuiScreenEvent {
 
         public List<GuiRecipeButton> buttonList;
+        public NEIRecipeWidget recipeWidget;
 
-        public UpdateRecipeButtonsEvent(GuiRecipe<?> gui, List<GuiRecipeButton> buttonList) {
+        public UpdateRecipeButtonsEvent(GuiRecipe<?> gui, NEIRecipeWidget recipeWidget,
+                List<GuiRecipeButton> buttonList) {
             super(gui);
+            this.recipeWidget = recipeWidget;
             this.buttonList = new ArrayList<>(buttonList);
         }
 
         @Cancelable
         public static class Pre extends UpdateRecipeButtonsEvent {
 
-            public int xOffset;
-            public int yOffset;
-            public int height;
             public HandlerInfo handlerInfo;
 
-            public Pre(GuiRecipe<?> gui, int xOffset, int yOffset, int height, HandlerInfo handlerInfo) {
-                super(gui, new ArrayList<>());
-                this.xOffset = xOffset;
-                this.yOffset = yOffset;
-                this.height = height;
+            public Pre(GuiRecipe<?> gui, NEIRecipeWidget recipeWidget, HandlerInfo handlerInfo) {
+                super(gui, recipeWidget, new ArrayList<>());
                 this.handlerInfo = handlerInfo;
             }
         }
 
         public static class Post extends UpdateRecipeButtonsEvent {
 
-            public Post(GuiRecipe<?> gui, List<GuiRecipeButton> buttonList) {
-                super(gui, buttonList);
+            public Post(GuiRecipe<?> gui, NEIRecipeWidget recipeWidget, List<GuiRecipeButton> buttonList) {
+                super(gui, recipeWidget, buttonList);
             }
         }
     }
@@ -57,15 +53,15 @@ public abstract class GuiRecipeButton extends GuiNEIButton {
         this.handlerRef = point;
     }
 
-    abstract List<String> handleTooltip(GuiRecipe<?> gui, List<String> currenttip);
+    public abstract List<String> handleTooltip(List<String> currenttip);
 
-    abstract Map<String, String> handleHotkeys(GuiContainer gui, int mousex, int mousey, Map<String, String> hotkeys);
+    public abstract Map<String, String> handleHotkeys(int mousex, int mousey, Map<String, String> hotkeys);
 
-    abstract void lastKeyTyped(GuiRecipe<?> gui, char keyChar, int keyID);
+    public abstract void lastKeyTyped(char keyChar, int keyID);
 
-    abstract void drawItemOverlay();
+    public abstract void drawItemOverlay();
 
-    public boolean mouseScrolled(GuiRecipe<?> gui, int scroll) {
+    public boolean mouseScrolled(int scroll) {
         return false;
     }
 

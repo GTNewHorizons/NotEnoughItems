@@ -128,12 +128,6 @@ public interface IRecipeHandler {
 
     /**
      *
-     * @return The number of recipes that can fit on a page in the viewer (1 or 2)
-     */
-    int recipiesPerPage();
-
-    /**
-     *
      * @param gui        An instance of the currentscreen
      * @param currenttip The current tooltip, will contain item name and info
      * @param recipe     The recipe index being handled
@@ -177,5 +171,13 @@ public interface IRecipeHandler {
      */
     default boolean mouseScrolled(GuiRecipe<?> gui, int scroll, int recipe) {
         return false;
+    }
+
+    /**
+     * @deprecated
+     * @return The number of recipes that can fit on a page in the viewer (1 or 2)
+     */
+    default int recipiesPerPage() {
+        return 2;
     }
 }
