@@ -1,10 +1,14 @@
 package codechicken.nei.recipe;
 
 import java.awt.Dimension;
+import java.util.List;
 
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.gui.GuiDraw.ITooltipLineHandler;
@@ -99,17 +103,18 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
             GL11.glDisable(GL11.GL_DEPTH_TEST);
             List<Slot> slots = this.gui.slotcontainer.inventorySlots;
 
-        GuiDraw.drawRect(BG_PADDING, BG_PADDING, size.width - BG_PADDING * 2, 12, 0x30000000);
-        GuiDraw.drawStringC(this.recipeName, this.widget.w / 2, BG_PADDING + 2, 0xffffff);
+            GuiDraw.drawRect(BG_PADDING, BG_PADDING, size.width - BG_PADDING * 2, 12, 0x30000000);
+            GuiDraw.drawStringC(this.recipeName, this.widget.w / 2, BG_PADDING + 2, 0xffffff);
 
-        GuiHelper.useScissor(
-                this.widget.x,
-                this.widget.y,
-                this.widget.w,
-                this.widget.h,
-                () -> { this.widget.draw(0, 0); });
+            GuiHelper.useScissor(
+                    this.widget.x,
+                    this.widget.y,
+                    this.widget.w,
+                    this.widget.h,
+                    () -> { this.widget.draw(0, 0); });
 
-        GL11.glPopAttrib();
+            GL11.glPopAttrib();
+        }
+
     }
-
 }
