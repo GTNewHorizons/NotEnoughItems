@@ -786,7 +786,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
 
             root.resize(screen, parent, dropRight);
 
-            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
             GuiContainerManager.enable2DRender();
             GuiContainerManager.drawItems.zLevel += 100;
 

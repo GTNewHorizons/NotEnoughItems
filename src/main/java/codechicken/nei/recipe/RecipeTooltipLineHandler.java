@@ -83,13 +83,21 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glTranslatef(x, y, 0);
         GL11.glScaled(1, 1, 3);
+        GL11.glTranslatef(x, y, 0);
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
+        RenderHelper.disableStandardItemLighting();
 
         GuiContainerManager.enable2DRender();
         GL11.glColor4f(1, 1, 1, 1);
 
         BG_TEXTURE.draw(0, 0, size.width, size.height, BG_PADDING, BG_PADDING, BG_PADDING, BG_PADDING);
 
-        GL11.glEnable(GL11.GL_ALPHA_TEST);
+        if (this.gui.slotcontainer != null) {
+            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
+            RenderHelper.enableGUIStandardItemLighting();
+            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
+            List<Slot> slots = this.gui.slotcontainer.inventorySlots;
 
         GuiDraw.drawRect(BG_PADDING, BG_PADDING, size.width - BG_PADDING * 2, 12, 0x30000000);
         GuiDraw.drawStringC(this.recipeName, this.widget.w / 2, BG_PADDING + 2, 0xffffff);

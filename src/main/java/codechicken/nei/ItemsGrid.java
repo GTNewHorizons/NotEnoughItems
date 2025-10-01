@@ -52,7 +52,7 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
         }
 
         public void captureScreen(Runnable callback, int mode) {
-            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
 
             resetFramebuffer();
             this.framebuffer.bindFramebuffer(false);

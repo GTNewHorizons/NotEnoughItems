@@ -404,7 +404,7 @@ public class GuiContainerManager {
 
     public static void enableMatrixStackLogging() {
         if (!contextEnabled) {
-            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
             modelviewDepth = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
             contextEnabled = true;
         }
