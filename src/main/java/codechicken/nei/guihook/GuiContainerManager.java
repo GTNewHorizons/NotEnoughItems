@@ -49,6 +49,7 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIModContainer;
 import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.util.ItemUntranslator;
 import codechicken.nei.util.ReadableNumberConverter;
 import codechicken.nei.util.RenderTooltipEventHelper;
 
@@ -60,6 +61,10 @@ public class GuiContainerManager {
         public void onResourceManagerReload(IResourceManager p_110549_1_) {
             renderingErrorItems.clear();
             ItemList.loadItems.restart();
+
+            if (NEIClientConfig.enableItemUntranslator()) {
+                ItemUntranslator.getInstance().load();
+            }
         }
     }
 
@@ -399,7 +404,7 @@ public class GuiContainerManager {
 
     public static void enableMatrixStackLogging() {
         if (!contextEnabled) {
-            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
             modelviewDepth = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
             contextEnabled = true;
         }
@@ -590,8 +595,6 @@ public class GuiContainerManager {
             }
         }
 
-        if (!tooltip.isEmpty()) tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE); // add space after 'title'
-
         if (showTooltip && NEIClientConfig.getBooleanSetting("inventory.showHotkeys")) {
             List<String> hotkeystips = collectHotkeyTips(mousex, mousey);
 
@@ -603,6 +606,19 @@ public class GuiContainerManager {
                     tooltip.addAll(1, hotkeystips);
                 }
             }
+        }
+
+        if (showTooltip && stack != null && !tooltip.isEmpty()) {
+            final String secondDisplayName = ItemUntranslator.getInstance().getItemStackDisplayName(stack);
+
+            if (!secondDisplayName.isEmpty()) {
+                tooltip.add(1, EnumChatFormatting.DARK_GRAY + secondDisplayName + GuiDraw.TOOLTIP_LINESPACE);
+            } else {
+                tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE);
+            }
+
+        } else if (!tooltip.isEmpty()) {
+            tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE);
         }
 
         if (NEIModContainer.isGTNHLibLoaded() && !tooltip.isEmpty()) {

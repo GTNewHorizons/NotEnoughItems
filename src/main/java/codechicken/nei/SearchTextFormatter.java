@@ -29,7 +29,7 @@ public class SearchTextFormatter implements TextFormatter {
                 text = SearchTokenParser.SPACE_PATTERN.matcher(text).replaceAll("\\\\ ");
             }
             final SearchExpressionFormatVisitor visitor = new SearchExpressionFormatVisitor(searchParser);
-            return SearchExpressionUtils.visitSearchExpression(text, visitor);
+            return SearchExpressionUtils.visitRecipeSearchExpression(text, visitor);
         } else {
             final StringBuilder formattedText = new StringBuilder();
 
@@ -42,7 +42,9 @@ public class SearchTextFormatter implements TextFormatter {
 
                     if (!contextPart[0].isEmpty()) {
                         formattedText.append(
-                                SearchExpressionUtils.HIGHLIGHTS.RECIPE + contextPart[0] + EnumChatFormatting.RESET);
+                                SearchExpressionUtils.HIGHLIGHTS.RECIPE + contextPart[0].substring(0, 1)
+                                        + EnumChatFormatting.RESET);
+                        contextPart[1] = contextPart[0].substring(1) + contextPart[1];
                     }
 
                     if (contextPart[1].isEmpty()) {

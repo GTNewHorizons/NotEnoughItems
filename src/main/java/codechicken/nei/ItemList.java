@@ -20,6 +20,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
+import net.minecraftforge.fluids.IFluidContainerItem;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -30,6 +31,8 @@ import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.search.TooltipFilter;
+import codechicken.nei.util.ItemUntranslator;
+import cpw.mods.fml.common.FMLLog;
 
 public class ItemList {
 
@@ -98,6 +101,12 @@ public class ItemList {
             String displayName = EnumChatFormatting.getTextWithoutFormattingCodes(item.getDisplayName());
 
             if (displayName != null && !displayName.isEmpty() && this.pattern.matcher(displayName).find()) {
+                return true;
+            }
+
+            displayName = ItemUntranslator.getInstance().getItemStackDisplayName(item);
+
+            if (!displayName.isEmpty() && this.pattern.matcher(displayName).find()) {
                 return true;
             }
 
@@ -290,6 +299,57 @@ public class ItemList {
                     .collect(Collectors.toList());
         }
 
+        private void runChecked(ItemStack stack, Runnable action, String reason) {
+            int hashOld = 0;
+            if (stack.hasTagCompound()) {
+                hashOld = stack.stackTagCompound.hashCode();
+            }
+
+            action.run();
+
+            if (stack.hasTagCompound() && hashOld != stack.stackTagCompound.hashCode()) {
+                FMLLog.warning("NEI: Forced tag update with reason (" + reason + ") for " + stack);
+            }
+        }
+
+        private void forceTagCompoundInitialization(ItemStack stack) {
+            Item item = stack.getItem();
+            if (item == null) {
+                return;
+            }
+            if (item instanceof IFluidContainerItem) {
+                IFluidContainerItem fluidItem = (IFluidContainerItem) item;
+                runChecked(stack, () -> fluidItem.getFluid(stack), "getFluid");
+            }
+            runChecked(stack, () -> item.isDamaged(stack), "isDamaged");
+            runChecked(stack, () -> item.getDamage(stack), "getDamage");
+            runChecked(stack, () -> item.showDurabilityBar(stack), "showDurabilityBar");
+            runChecked(stack, () -> item.getAttributeModifiers(stack), "getAttributeModifiers");
+            runChecked(stack, () -> item.getDurabilityForDisplay(stack), "getDurabilityForDisplay");
+            runChecked(stack, () -> item.getItemStackLimit(stack), "getItemStackLimit");
+            runChecked(stack, () -> item.getToolClasses(stack), "getToolClasses");
+            runChecked(stack, () -> item.getUnlocalizedNameInefficiently(stack), "getUnlocalizedNameInefficiently");
+            runChecked(stack, () -> item.hasEffect(stack), "hasEffect");
+
+            /*
+             * unused... for now runChecked(stack, () -> GameRegistry.getFuelValue(stack), "getFuelValue");
+             * runChecked(stack, () -> item.getUnlocalizedName(stack), "getUnlocalizedName"); runChecked(stack, () ->
+             * item.doesContainerItemLeaveCraftingGrid(stack), "doesContainerItemLeaveCraftingGrid"); runChecked(stack,
+             * () -> item.getItemUseAction(stack), "getItemUseAction"); runChecked(stack, () ->
+             * item.getMaxItemUseDuration(stack), "getMaxItemUseDuration"); runChecked(stack, () ->
+             * item.getPotionEffect(stack), "getPotionEffect"); runChecked(stack, () -> item.isPotionIngredient(stack),
+             * "isPotionIngredient"); runChecked(stack, () -> item.getRarity(stack), "getRarity"); runChecked(stack, ()
+             * -> item.hasCustomEntity(stack), "hasCustomEntity"); runChecked(stack, () ->
+             * item.getSmeltingExperience(stack), "getSmeltingExperience"); runChecked(stack, () ->
+             * item.getMaxDamage(stack), "getMaxDamage"); runChecked(stack, () -> item.getDamage(stack), "getDamage");
+             * runChecked(stack, stack::isItemDamaged, "isItemDamaged"); runChecked(stack, () -> item.hasEffect(stack,
+             * 0), "hasEffect"); runChecked(stack, () -> item.getItemEnchantability(stack), "getItemEnchantability");
+             * runChecked(stack, () -> item.isBeaconPayment(stack), "isBeaconPayment"); runChecked(stack, () ->
+             * item.getDamage(stack), "getDamage"); runChecked(stack, () -> item.getDamage(stack), "getDamage");
+             * runChecked(stack, () -> item.getDamage(stack), "getDamage");
+             */
+        }
+
         // Generate itemlist, permutations, orders, collapsibleitems, and informationhandler stacks
         @Override
         @SuppressWarnings("unchecked")
@@ -328,6 +388,8 @@ public class ItemList {
                             synchronized (items) {
                                 items.add(stack);
                             }
+
+                            forceTagCompoundInitialization(stack);
 
                             CollapsibleItems.putItem(stack);
                             TooltipFilter.getSearchTooltip(stack);

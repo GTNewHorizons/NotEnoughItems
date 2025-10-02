@@ -13,6 +13,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.NEIClientConfig;
@@ -123,10 +124,10 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
         final Point mouseover = GuiDraw.getMousePosition();
         final BookmarksGridSlot panelSlot = ItemPanels.bookmarkPanel.getSlotMouseOver(mouseover.x, mouseover.y);
-        RecipeId recipeId = null;
 
-        if (panelSlot != null && !panelSlot.isIngredient()) {
-            recipeId = panelSlot.getRecipeId();
+        if (panelSlot != null) {
+            return panelSlot.isIngredient() || panelSlot.getRecipeId() == null ? FavoriteRecipes.getFavorite(stackover)
+                    : panelSlot.getRecipeId();
         }
 
         ItemsGridSlot itemSlot = ItemPanels.itemPanel.getSlotMouseOver(mouseover.x, mouseover.y);
@@ -143,7 +144,7 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
             return itemSlot.getRecipeId();
         }
 
-        return recipeId;
+        return null;
     }
 
     private GuiCraftingRecipe(ArrayList<ICraftingHandler> handlers) {

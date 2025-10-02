@@ -14,4 +14,8 @@ public abstract class AbstractSearchExpressionVisitor<T> extends SearchExpressio
         return searchParser;
     }
 
+    public T fail() {
+        return defaultResult();
+    }
+
 }

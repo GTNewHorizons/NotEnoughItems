@@ -25,7 +25,7 @@ public class DefaultStackStringifyHandler implements IStackStringifyHandler {
         nbTag.setShort("Damage", (short) stack.getItemDamage());
 
         if (stack.hasTagCompound() && !stack.getTagCompound().hasNoTags()) {
-            nbTag.setTag("tag", stack.getTagCompound());
+            nbTag.setTag("tag", stack.getTagCompound().copy());
         }
 
         return nbTag;

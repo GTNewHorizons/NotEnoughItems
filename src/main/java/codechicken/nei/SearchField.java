@@ -93,6 +93,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
     public static class GuiSearchField extends FormattedTextField implements ItemFilterProvider, IRecipeFilterProvider {
 
         protected final SearchTokenParser searchParser;
+        protected boolean skipRecipeTokens = false;
 
         public GuiSearchField() {
             this(SearchField.searchParser);
@@ -106,6 +107,10 @@ public class SearchField extends TextField implements ItemFilterProvider {
             setPlaceholder(NEIClientUtils.translate("inventory.search.placeholder"));
         }
 
+        public void setSkipRecipeTokens(boolean skipRecipeTokens) {
+            this.skipRecipeTokens = skipRecipeTokens;
+        }
+
         @Override
         public ItemFilter getFilter() {
             return getFilter(getText());
@@ -117,7 +122,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
         }
 
         public ItemFilter getFilter(String filterText) {
-            return this.searchParser.getFilter(filterText);
+            return this.searchParser.getFilter(filterText, this.skipRecipeTokens);
         }
 
         public IRecipeFilter getRecipeFilter(String filterText) {

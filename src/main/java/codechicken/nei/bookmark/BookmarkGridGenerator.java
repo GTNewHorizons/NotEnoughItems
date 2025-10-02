@@ -117,7 +117,7 @@ public class BookmarkGridGenerator {
                         this.itemToSlot.put(collapsedItemIndex, absoluteSlotIndex);
                         this.caclulatedItems.put(collapsedItemIndex, getItem(group, collapsedItemIndex));
 
-                        if (!(shadows = getShadows(group, item.recipeId)).isEmpty()) {
+                        if (item.recipeId != null && !(shadows = getShadows(group, item.recipeId)).isEmpty()) {
                             borderGrid.put(absoluteSlotIndex, "recipe:" + shadows.get(0));
                         }
                     }

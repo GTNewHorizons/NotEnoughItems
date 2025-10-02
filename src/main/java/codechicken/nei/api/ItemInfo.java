@@ -65,6 +65,7 @@ import codechicken.nei.search.IdentifierFilter;
 import codechicken.nei.search.ModNameFilter;
 import codechicken.nei.search.OreDictionaryFilter;
 import codechicken.nei.search.TooltipFilter;
+import codechicken.nei.util.ItemUntranslator;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -137,6 +138,10 @@ public class ItemInfo {
         addSearchProviders();
         RecipeItemInputHandler.load();
         PresetsList.load();
+
+        if (NEIClientConfig.enableItemUntranslator()) {
+            ItemUntranslator.getInstance().load();
+        }
     }
 
     private static void addSearchProviders() {

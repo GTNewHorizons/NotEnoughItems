@@ -80,7 +80,8 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
 
         final Dimension size = getSize();
 
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        GL11.glPushMatrix();
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
         GL11.glTranslatef(x, y, 0);
         GL11.glScaled(1, 1, 3);
 
@@ -102,6 +103,7 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
                 () -> { this.widget.draw(0, 0); });
 
         GL11.glPopAttrib();
+        GL11.glPopMatrix();
     }
 
 }

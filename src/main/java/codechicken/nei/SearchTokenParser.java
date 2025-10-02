@@ -122,10 +122,8 @@ public class SearchTokenParser {
         Language currentLanguage = Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage();
 
         if (!currentLanguage.getLanguageCode().equals(providersCache.languageCode)) {
-            providersCache.providers = new ArrayList<>();
-            providersCache.languageCode = currentLanguage.getLanguageCode();
-
-            Map<Character, ISearchParserProvider> providers = new HashMap<>();
+            final List<ISearchParserProvider> providersList = new ArrayList<>();
+            final Map<Character, ISearchParserProvider> providers = new HashMap<>();
 
             for (int index = this.searchProviders.size() - 1; index >= 0; index--) {
                 ISearchParserProvider provider = this.searchProviders.get(index);
@@ -134,12 +132,14 @@ public class SearchTokenParser {
                     if (provider.getSearchMode() == SearchMode.PREFIX && !providers.containsKey(provider.getPrefix())) {
                         providers.put(provider.getPrefix(), provider);
                     } else if (provider.getSearchMode() == SearchMode.ALWAYS) {
-                        providersCache.providers.add(provider);
+                        providersList.add(provider);
                     }
                 }
             }
 
-            providersCache.providers.addAll(providers.values());
+            providersList.addAll(providers.values());
+            providersCache.languageCode = currentLanguage.getLanguageCode();
+            providersCache.providers = providersList;
         }
 
         return providersCache.providers;
@@ -173,7 +173,11 @@ public class SearchTokenParser {
     }
 
     public synchronized ItemFilter getFilter(String filterText) {
-        filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
+        return getFilter(filterText, false);
+    }
+
+    public synchronized ItemFilter getFilter(String rawText, boolean skipRecipeTokens) {
+        final String filterText = EnumChatFormatting.getTextWithoutFormattingCodes(rawText).toLowerCase();
 
         if (filterText == null || filterText.isEmpty()) {
             return new EverythingItemFilter();
@@ -182,10 +186,10 @@ public class SearchTokenParser {
         final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
 
         if (patternMode != 3) {
-            return this.filtersCache.computeIfAbsent(filterText, text -> {
+            return this.filtersCache.computeIfAbsent(skipRecipeTokens + ":" + filterText, _t -> {
                 final List<ItemFilter> searchTokens = new ArrayList<>();
 
-                for (String[] subQuery : splitByDelimiters(text, "|", false)) {
+                for (String[] subQuery : splitByDelimiters(filterText, "|", false)) {
 
                     if (subQuery[1].isEmpty()) {
                         continue;
@@ -193,11 +197,22 @@ public class SearchTokenParser {
 
                     final List<ItemFilter> tokens = new ArrayList<>();
 
-                    for (SearchToken token : splitSearchText(subQuery[1])) {
-                        final ItemFilter result = token.getFilter(this);
+                    for (String[] contextQuery : splitByDelimiters(subQuery[1], skipRecipeTokens ? "<>" : "", false)) {
 
-                        if (result != null) {
-                            tokens.add(result);
+                        if (contextQuery[1].isEmpty() || contextQuery[0].startsWith(">")) {
+                            continue;
+                        }
+
+                        if (!contextQuery[0].isEmpty()) {
+                            contextQuery[0] = contextQuery[0].substring(1);
+                        }
+
+                        for (SearchToken token : splitSearchText(contextQuery[0] + contextQuery[1])) {
+                            final ItemFilter result = token.getFilter(this);
+
+                            if (result != null) {
+                                tokens.add(result);
+                            }
                         }
                     }
 
@@ -223,9 +238,13 @@ public class SearchTokenParser {
                 if (spaceMode == 1) {
                     text = SearchTokenParser.SPACE_PATTERN.matcher(text).replaceAll("\\\\ ");
                 }
-
-                return new IsRegisteredItemFilter(
-                        SearchExpressionUtils.visitSearchExpression(text, new ItemFilterVisitor(this)));
+                if (skipRecipeTokens) {
+                    return new IsRegisteredItemFilter(
+                            SearchExpressionUtils.visitRecipeSearchExpression(text, new ItemFilterVisitor(this)));
+                } else {
+                    return new IsRegisteredItemFilter(
+                            SearchExpressionUtils.visitSearchExpression(text, new ItemFilterVisitor(this)));
+                }
             });
         }
 
@@ -305,7 +324,7 @@ public class SearchTokenParser {
                     text = SearchTokenParser.SPACE_PATTERN.matcher(text).replaceAll("\\\\ ");
                 }
 
-                return SearchExpressionUtils.visitSearchExpression(text, new RecipeFilterVisitor(this));
+                return SearchExpressionUtils.visitRecipeSearchExpression(text, new RecipeFilterVisitor(this));
             });
         }
 
