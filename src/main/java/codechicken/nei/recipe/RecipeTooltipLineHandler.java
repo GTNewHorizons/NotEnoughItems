@@ -88,7 +88,7 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
         GL11.glTranslatef(x, y, 0);
         GL11.glScaled(1, 1, 3);
         GL11.glTranslatef(x, y, 0);
-        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
         RenderHelper.disableStandardItemLighting();
 
         GuiContainerManager.enable2DRender();
@@ -97,7 +97,7 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
         BG_TEXTURE.draw(0, 0, size.width, size.height, BG_PADDING, BG_PADDING, BG_PADDING, BG_PADDING);
 
         if (this.gui.slotcontainer != null) {
-            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
+            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
             RenderHelper.enableGUIStandardItemLighting();
             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
