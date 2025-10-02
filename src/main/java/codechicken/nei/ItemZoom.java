@@ -58,7 +58,7 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
 
             GL11.glPopMatrix();
 
-            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
+            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
             GuiContainerManager.enable2DRender();
 
             if (NEIClientConfig.getBooleanSetting("inventory.itemzoom.showName")) {

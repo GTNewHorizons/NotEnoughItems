@@ -24,7 +24,7 @@ public class DefaultOverlayRenderer implements IRecipeOverlayRenderer {
 
     @Override
     public void renderOverlay(GuiContainerManager gui, Slot slot) {
-        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(770, 1);
 
