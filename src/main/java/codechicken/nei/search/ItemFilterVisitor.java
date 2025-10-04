@@ -120,9 +120,9 @@ public class ItemFilterVisitor extends AbstractSearchExpressionVisitor<ItemFilte
 
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx) {
         String cleanText = null;
-        if (ctx.PLAIN_TEXT() != null) {
+        if (ctx.plainText() != null) {
             cleanText = Pattern.quote(
-                    PLAIN_TEXT_ESCAPED_PATTERN.matcher(ctx.PLAIN_TEXT().getSymbol().getText())
+                    PLAIN_TEXT_ESCAPED_PATTERN.matcher(ctx.plainText().getText())
                             // Unescape everything in search expression
                             .replaceAll("$1"));
         } else if (ctx.regex() != null) {

@@ -88,6 +88,11 @@ public class SearchTokenParserTest {
         protected String getIdentifier(ItemStack stack) {
             return getStringIdentifier(stack);
         }
+
+        @Override
+        public String toString() {
+            return "PREFIX(" + pattern.toString() + ")";
+        }
     };
 
     private static MockedStatic<NEIClientConfig> config;
@@ -284,12 +289,14 @@ public class SearchTokenParserTest {
         searchParser.addProvider(defaultParserProvider);
         searchParser
                 .addProvider(parserProvider('?', "custom", SearchTokenParser.SearchMode.PREFIX, customCreateFilter));
+        searchParser
+                .addProvider(parserProvider('*', "custom2", SearchTokenParser.SearchMode.PREFIX, customCreateFilter));
 
         Set<ItemStack> matchedItems = testFilterAgainstAllItems(
                 spaceMode,
                 patternMode,
                 searchParser,
-                "\"" + itemA.getDisplayName() + "\"?A");
+                "\"" + itemA.getDisplayName() + "\"?A*A");
 
         assertEquals(1, matchedItems.size());
         assertTrue(matchedItems.contains(itemA));
