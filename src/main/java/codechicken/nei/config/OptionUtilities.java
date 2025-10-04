@@ -47,7 +47,7 @@ public class OptionUtilities extends OptionStringSet {
         LayoutManager.drawIcon(x + 4, 4, new Image(132, 12, 12, 12));
         x += 24;
 
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
         RenderHelper.enableGUIStandardItemLighting();
         GL11.glEnable(GL12.GL_RESCALE_NORMAL);
         ItemStack sword = new ItemStack(Items.diamond_sword);
