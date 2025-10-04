@@ -62,8 +62,8 @@ public class SearchExpressionFormatVisitor extends AbstractSearchExpressionVisit
     private String getTokenCleanText(SearchExpressionParser.TokenContext ctx, Character prefix) {
         String cleanText = null;
         final int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
-        if (ctx.PLAIN_TEXT() != null) {
-            cleanText = ctx.PLAIN_TEXT().getSymbol().getText();
+        if (ctx.plainText() != null) {
+            cleanText = ctx.plainText().getText();
             // Unescape spaces
             if (spaceModeEnabled == 1) {
                 cleanText = ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll(" ");

@@ -20,7 +20,7 @@ import codechicken.nei.api.ItemFilter;
 public class ItemFilterVisitor extends AbstractSearchExpressionVisitor<ItemFilter> {
 
     private static final Pattern REGEX_ESCAPED_SPACE_PATTERN = Pattern.compile("([^\\\\](?:\\\\\\\\)+)?\\\\ ");
-    private static final Pattern PLAIN_TEXT_ESCAPED_PATTERN = Pattern.compile("\\\\(.)");
+    private static final Pattern ESCAPED_SYMBOL_PATTERN = Pattern.compile("\\\\(.)");
     private static final Pattern ESCAPED_QUOTE_PATTERN = Pattern.compile("\\\\\"");
     private static final Pattern ESCAPED_SPACE_PATTERN = Pattern.compile("\\\\ ");
 
@@ -69,21 +69,21 @@ public class ItemFilterVisitor extends AbstractSearchExpressionVisitor<ItemFilte
     @Override
     public ItemFilter visitPrefixedExpression(SearchExpressionParser.PrefixedExpressionContext ctx) {
         if (ctx.token() != null) {
-            final String cleanText = getTokenCleanText(ctx.token());
+            final String cleanPattern = getCleanPattern(ctx.token());
             final SearchTokenParser.ISearchParserProvider provider = searchParser.getProvider(ctx.token().prefix);
-            if (cleanText == null || provider == null) {
+            if (cleanPattern == null || provider == null) {
                 return defaultResult();
             }
-            return provider.getFilter(cleanText);
+            return provider.getFilter(cleanPattern);
         }
         return defaultResult();
     }
 
     @Override
     public ItemFilter visitToken(SearchExpressionParser.TokenContext ctx) {
-        final String cleanText = getTokenCleanText(ctx);
-        if (cleanText != null) {
-            return getAlwaysProvidersFilter(cleanText);
+        final String cleanPattern = getCleanPattern(ctx);
+        if (cleanPattern != null) {
+            return getAlwaysProvidersFilter(cleanPattern);
         }
         return defaultResult();
     }
@@ -118,36 +118,36 @@ public class ItemFilterVisitor extends AbstractSearchExpressionVisitor<ItemFilte
         return constructFilter(filters, AllMultiItemFilter::new);
     }
 
-    private String getTokenCleanText(SearchExpressionParser.TokenContext ctx) {
-        String cleanText = null;
-        if (ctx.PLAIN_TEXT() != null) {
-            cleanText = Pattern.quote(
-                    PLAIN_TEXT_ESCAPED_PATTERN.matcher(ctx.PLAIN_TEXT().getSymbol().getText())
+    private String getCleanPattern(SearchExpressionParser.TokenContext ctx) {
+        String cleanPattern = null;
+        if (ctx.plainText() != null) {
+            cleanPattern = Pattern.quote(
+                    ESCAPED_SYMBOL_PATTERN.matcher(ctx.plainText().getText())
                             // Unescape everything in search expression
                             .replaceAll("$1"));
         } else if (ctx.regex() != null) {
             if (ctx.regex().REGEX_CONTENT() != null) {
-                cleanText = ctx.regex().REGEX_CONTENT().getSymbol().getText();
+                cleanPattern = ctx.regex().REGEX_CONTENT().getSymbol().getText();
                 final int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
                 // Unescape spaces
                 if (spaceModeEnabled == 1) {
-                    cleanText = REGEX_ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll("$1 ");
+                    cleanPattern = REGEX_ESCAPED_SPACE_PATTERN.matcher(cleanPattern).replaceAll("$1 ");
                 }
             }
         } else if (ctx.quoted() != null) {
             if (ctx.quoted().QUOTED_CONTENT() != null) {
-                cleanText = ctx.quoted().QUOTED_CONTENT().getSymbol().getText();
+                cleanPattern = ctx.quoted().QUOTED_CONTENT().getSymbol().getText();
                 // Unescape quotes
-                cleanText = ESCAPED_QUOTE_PATTERN.matcher(cleanText).replaceAll("\"");
-                cleanText = Pattern.quote(cleanText);
+                cleanPattern = ESCAPED_QUOTE_PATTERN.matcher(cleanPattern).replaceAll("\"");
+                cleanPattern = Pattern.quote(cleanPattern);
                 final int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
                 // Unescape spaces
                 if (spaceModeEnabled == 1) {
-                    cleanText = ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll(" ");
+                    cleanPattern = ESCAPED_SPACE_PATTERN.matcher(cleanPattern).replaceAll(" ");
                 }
             }
         }
-        return cleanText;
+        return cleanPattern;
     }
 
     private ItemFilter visitChildren(ParserRuleContext node, Function<List<ItemFilter>, ItemFilter> filterConstructor) {
