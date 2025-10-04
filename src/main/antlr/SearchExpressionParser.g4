@@ -56,7 +56,7 @@ prefixedExpression
 token[Character prefix]
     : regex[prefix]
     | quoted[prefix]
-    | PLAIN_TEXT
+    | plainText
     ;
 
 regex[Character prefix]
@@ -67,4 +67,7 @@ quoted[Character prefix]
     : QUOTE_LEFT QUOTED_CONTENT QUOTE_RIGHT?
     ;
 
+plainText
+    : (CLEAN_SYMBOL | ESCAPED_SYMBOL)+
+    ;
 
