@@ -281,8 +281,6 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
 
     protected boolean[] invalidSlotMap;
 
-    protected Label messageLabel = new Label(getMessageOnEmpty(), true);
-
     protected ScreenCapture screenCapture = null;
 
     public ArrayList<ItemStack> getItems() {
@@ -360,9 +358,6 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
         rows = height / SLOT_SIZE;
 
         paddingLeft = (width % SLOT_SIZE) / 2;
-
-        messageLabel.x = marginLeft + width / 2;
-        messageLabel.y = marginTop + height / 2;
     }
 
     public void shiftPage(int shift) {
@@ -566,12 +561,6 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
         afterDrawItems(mousex, mousey, mouseContext);
     }
 
-    public void setVisible() {
-        if (getItems().isEmpty() && getMessageOnEmpty() != null) {
-            LayoutManager.addWidget(messageLabel);
-        }
-    }
-
     public boolean contains(int px, int py) {
         final Rectangle4i rect = new Rectangle4i(
                 marginLeft + paddingLeft,
@@ -586,7 +575,4 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
         return !isInvalidSlot(columns * getRowIndex(py) + getColumnIndex(px));
     }
 
-    public String getMessageOnEmpty() {
-        return null;
-    }
 }

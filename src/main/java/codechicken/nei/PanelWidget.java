@@ -147,7 +147,6 @@ public abstract class PanelWidget<T extends ItemsGrid<? extends ItemsGridSlot, ?
             LayoutManager.addWidget(pagePrev);
             LayoutManager.addWidget(pageNext);
             LayoutManager.addWidget(pageLabel);
-            this.grid.setVisible();
         }
     }
 
