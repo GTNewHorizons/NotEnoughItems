@@ -11,6 +11,7 @@ import java.util.Set;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.guihook.GuiContainerManager;
@@ -237,9 +238,18 @@ public class ItemsPanelGrid extends ItemsGrid<ItemsPanelGrid.ItemsPanelGridSlot,
                 Math.min((int) (color.getAlpha() + (255f / 5) * 2), 255));
     }
 
-    @Override
-    public String getMessageOnEmpty() {
-        return ItemList.loadFinished ? null : NEIClientUtils.translate("itempanel.loading");
+    public void draw(int mousex, int mousey) {
+        if (ItemList.loadFinished) {
+            super.draw(mousex, mousey);
+        } else {
+            GuiDraw.drawStringC(
+                    NEIClientUtils
+                            .cropText(GuiDraw.fontRenderer, NEIClientUtils.translate("itempanel.loading"), width - 10),
+                    marginLeft + width / 2,
+                    marginTop + height / 2,
+                    0xffffff,
+                    true);
+        }
     }
 
 }

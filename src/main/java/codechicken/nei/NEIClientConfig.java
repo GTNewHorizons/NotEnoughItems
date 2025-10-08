@@ -894,6 +894,10 @@ public class NEIClientConfig {
     }
 
     public static void unloadWorld() {
+        if (world == null) {
+            return;
+        }
+
         if (ItemPanels.bookmarkPanel != null) {
             ItemPanels.bookmarkPanel.save();
         }
@@ -904,6 +908,8 @@ public class NEIClientConfig {
 
         if (world != null) {
             world.saveNBT();
+            NEIClientConfig.worldPath = null;
+            world = null;
         }
     }
 
