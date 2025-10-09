@@ -185,22 +185,24 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                     && this.grid.existsRecipe(recipeId, BookmarkGrid.DEFAULT_GROUP_ID);
             final NBTTagCompound nbTag = StackInfo.itemStackToNBT(itemStack);
             long factor = nbTag.getInteger("Count");
+            long count = factor;
 
             if (existsRecipe) {
-
                 for (int i = 0; i < this.grid.size(); i++) {
                     if (this.grid.getBookmarkItem(i).equalsRecipe(recipeId, groupId)) {
-                        final long multiplier = this.grid.getBookmarkItem(i).getMultiplier();
-                        factor *= multiplier;
+                        count *= this.grid.getBookmarkItem(i).getMultiplier();
                         break;
                     }
                 }
+            }
 
-            } else {
+            if (factor == 0) {
                 factor = nbTag.hasKey("gtFluidName") ? Math.min(144, nbTag.getInteger("Count")) : 1;
             }
 
-            this.grid.addItem(BookmarkItem.of(groupId, itemStack, factor, recipeId, false), true);
+            this.grid.addItem(
+                    BookmarkItem.of(groupId, StackInfo.withAmount(itemStack, count), factor, recipeId, false),
+                    true);
             return true;
         }
 

@@ -209,6 +209,10 @@ public class NEIClientConfig {
                         0,
                         OptionIntegerField.UNSIGNED_INT_MAX));
 
+        tag.getTag("inventory.bookmarks.showRecipeHandlerIcon").setComment("Show Recipe Handler Icon")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.bookmarks.showRecipeHandlerIcon", true));
+
         tag.getTag("inventory.bookmarks.recipeChainDir").getIntValue(1);
         API.addOption(new OptionCycled("inventory.bookmarks.recipeChainDir", 2, true));
 

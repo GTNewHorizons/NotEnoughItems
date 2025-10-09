@@ -229,8 +229,12 @@ nei.options.inventory.bookmarks.recipeTooltipsMode.2=In Vertical View
 nei.options.inventory.bookmarks.recipeTooltipsMode.3=Always
 nei.options.inventory.bookmarks.showRecipeMarkerMode=Show Recipe Marker
 nei.options.inventory.bookmarks.showRecipeMarkerMode.0=None
-nei.options.inventory.bookmarks.showRecipeMarkerMode.1=Icon
+nei.options.inventory.bookmarks.showRecipeMarkerMode.1=Text
 nei.options.inventory.bookmarks.showRecipeMarkerMode.2=Background
+nei.options.inventory.bookmarks.showRecipeHandlerIcon=Show Handler Icon
+nei.options.inventory.bookmarks.showRecipeHandlerIcon.true=Yes
+nei.options.inventory.bookmarks.showRecipeHandlerIcon.false=No
+
 nei.options.inventory.bookmarks.recipeMarkerColor=Recipe Marker Color
 nei.options.inventory.bookmarks.ignorePotionOverlap=Ignore overlap with potion effect HUD
 nei.options.inventory.bookmarks.ignorePotionOverlap.true=Yes
