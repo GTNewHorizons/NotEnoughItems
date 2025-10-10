@@ -4,6 +4,8 @@ import java.awt.Color;
 
 import net.minecraft.item.ItemStack;
 
+import org.lwjgl.opengl.GL11;
+
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.ItemPanels;
@@ -14,6 +16,9 @@ import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIClientUtils.Alignment;
 import codechicken.nei.bookmark.BookmarkGrid.BookmarkMouseContext;
 import codechicken.nei.bookmark.RecipeChainDetails.CalculatedType;
+import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.recipe.GuiRecipeTab;
+import codechicken.nei.recipe.HandlerInfo;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.ReadableNumberConverter;
@@ -51,6 +56,7 @@ public class BookmarksGridSlot extends ItemsGridSlot {
     protected final CalculatedType calculatedType;
     protected final CalculatedType realType;
     protected final BookmarkItem bookmarkItem;
+    protected HandlerInfo handlerInfo = null;
 
     protected final boolean isOutputRecipe;
     protected final boolean isFirstOutput;
@@ -175,6 +181,13 @@ public class BookmarksGridSlot extends ItemsGridSlot {
                 && mouseContext.recipeId.equals(this.group.crafting.itemToRecipe.get(this.itemIndex));
     }
 
+    protected HandlerInfo getHandlerInfo() {
+        if (this.bookmarkItem.recipeId != null && this.handlerInfo == null) {
+            this.handlerInfo = GuiRecipeTab.getHandlerInfo(this.bookmarkItem.recipeId.getHandleName(), null);
+        }
+        return this.handlerInfo;
+    }
+
     @Override
     public void drawItem(Rectangle4i rect) {
         super.drawItem(this.emptyItemStack, rect);
@@ -255,27 +268,67 @@ public class BookmarksGridSlot extends ItemsGridSlot {
                 drawMarker(
                         rect,
                         "x" + ReadableNumberConverter.INSTANCE.toWideReadableForm(this.realMultiplier),
-                        0xFFFFFF);
+                        0xFFFFFF,
+                        Alignment.TopLeft);
             } else if (shownItemType == ShownItemType.SHIFT) {
-                drawMarker(rect, "x" + ReadableNumberConverter.INSTANCE.toWideReadableForm(getMultiplier()), 0xFFFFFF);
+                drawMarker(
+                        rect,
+                        "x" + ReadableNumberConverter.INSTANCE.toWideReadableForm(getMultiplier()),
+                        0xFFFFFF,
+                        Alignment.TopLeft);
             } else if (this.isOutputRecipe || this.realMultiplier > 1) {
                 drawMarker(
                         rect,
                         "x" + ReadableNumberConverter.INSTANCE.toWideReadableForm(this.realMultiplier),
-                        NEIClientConfig.getSetting("inventory.bookmarks.recipeMarkerColor").getHexValue());
+                        NEIClientConfig.getSetting("inventory.bookmarks.recipeMarkerColor").getHexValue(),
+                        Alignment.TopLeft);
+            }
+
+            if (NEIClientConfig.getBooleanSetting("inventory.bookmarks.showRecipeHandlerIcon")
+                    && getHandlerInfo() != null) {
+                drawHandlerIcon(rect);
             } else if (NEIClientConfig.showRecipeMarkerMode() == 1) {
                 drawMarker(
                         rect,
                         "R",
-                        NEIClientConfig.getSetting("inventory.bookmarks.recipeMarkerColor").getHexValue());
+                        NEIClientConfig.getSetting("inventory.bookmarks.recipeMarkerColor").getHexValue(),
+                        Alignment.TopRight);
             }
+
         } else if (NEIClientConfig.showRecipeMarkerMode() == 1) {
-            drawMarker(rect, "R", NEIClientConfig.getSetting("inventory.bookmarks.recipeMarkerColor").getHexValue());
+            drawMarker(
+                    rect,
+                    "R",
+                    NEIClientConfig.getSetting("inventory.bookmarks.recipeMarkerColor").getHexValue(),
+                    Alignment.TopRight);
         }
 
     }
 
-    protected void drawMarker(Rectangle4i rect, String text, int color) {
+    protected void drawHandlerIcon(Rectangle4i rect) {
+        float panelFactor = 1;
+
+        if (rect.w != DEFAULT_SLOT_SIZE) {
+            panelFactor = (rect.w - 2) / (DEFAULT_SLOT_SIZE - 2);
+        }
+
+        panelFactor *= 0.4f;
+        float x = rect.x + 2 + 16 - 16 * panelFactor;
+
+        GL11.glTranslatef(x, rect.y, 0);
+        GL11.glScaled(panelFactor, panelFactor, 1.5f);
+
+        if (this.handlerInfo.getImage() != null) {
+            this.handlerInfo.getImage().draw(0, 0);
+        } else {
+            GuiContainerManager.drawItem(0, 0, this.handlerInfo.getItemStack(), true, "");
+        }
+
+        GL11.glScaled(1f / panelFactor, 1f / panelFactor, 1f / 1.5f);
+        GL11.glTranslatef(-1 * x, -1 * rect.y, 0);
+    }
+
+    protected void drawMarker(Rectangle4i rect, String text, int color, Alignment alignment) {
         final float panelFactor = (rect.w - 2) / (DEFAULT_SLOT_SIZE - 2);
         NEIClientUtils.drawNEIOverlayText(
                 text,
@@ -283,7 +336,7 @@ public class BookmarksGridSlot extends ItemsGridSlot {
                 panelFactor,
                 color,
                 true,
-                Alignment.TopLeft);
+                alignment);
     }
 
     protected void drawStackSize(Rectangle4i rect, ShownItemType shownItemType) {
