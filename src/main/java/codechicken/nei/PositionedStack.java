@@ -114,16 +114,25 @@ public class PositionedStack {
         return filteredItems.isEmpty() ? items : filteredItems;
     }
 
-    public boolean setPermutationToRender(ItemStack ingredient) {
+    public int getPermutationIndex(ItemStack stack) {
 
         for (int index = 0; index < this.items.length; index++) {
-            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(this.items[index], ingredient)) {
-                setPermutationToRender(index);
-                return true;
+            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(items[index], stack)) {
+                return index;
             }
         }
 
-        return false;
+        return -1;
+    }
+
+    public boolean setPermutationToRender(ItemStack ingredient) {
+        final int stackIndex = getPermutationIndex(ingredient);
+
+        if (stackIndex >= 0) {
+            setPermutationToRender(stackIndex);
+        }
+
+        return stackIndex >= 0;
     }
 
     public void setPermutationToRender(int index) {
@@ -134,6 +143,10 @@ public class PositionedStack {
         } else if (this.item.getItemDamage() == OreDictionary.WILDCARD_VALUE && this.item.getItem().isRepairable()) {
             this.item.setItemDamage(0);
         }
+    }
+
+    public boolean contains(int mx, int my) {
+        return this.relx <= mx && this.rely <= my && this.relx + 16 >= mx && this.rely + 16 >= my;
     }
 
     public boolean contains(ItemStack ingredient) {

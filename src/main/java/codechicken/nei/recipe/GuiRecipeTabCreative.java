@@ -3,7 +3,7 @@ package codechicken.nei.recipe;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 
-public class GuiRecipeTabCreative extends GuiRecipeTab {
+public abstract class GuiRecipeTabCreative extends GuiRecipeTab {
 
     public static final int TAB_WIDTH = 28;
     public static final int TAB_HEIGHT = 31;
@@ -20,8 +20,8 @@ public class GuiRecipeTabCreative extends GuiRecipeTab {
             28,
             30).build();
 
-    public GuiRecipeTabCreative(GuiRecipe<?> guiRecipe, IRecipeHandler handler, int x, int y) {
-        super(guiRecipe, handler, x, y);
+    public GuiRecipeTabCreative(IRecipeHandler handler, int x, int y) {
+        super(handler, x, y);
     }
 
     @Override

@@ -1,23 +1,34 @@
 package codechicken.nei.recipe;
 
 import java.awt.Dimension;
-import java.util.List;
 
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
 
+import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.gui.GuiDraw.ITooltipLineHandler;
+import codechicken.nei.drawable.DrawableBuilder;
+import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.scroll.GuiHelper;
 
 public class RecipeTooltipLineHandler implements ITooltipLineHandler {
 
+    private static final int BG_PADDING = 5;
+    private static final DrawableResource BG_TEXTURE = new DrawableBuilder(
+            "nei:textures/gui/recipebg.png",
+            0,
+            0,
+            176,
+            166).build();
+
     protected long lastUpdate = System.currentTimeMillis();
+    protected String recipeName = "";
     protected GuiRecipe<?> gui = null;
+    protected RecipeHandlerRef handlerRef = null;
+    protected NEIRecipeWidget widget = null;
     protected RecipeId recipeId = null;
     protected boolean createdGui = false;
 
@@ -36,19 +47,22 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
     @Override
     public Dimension getSize() {
 
-        if (this.gui == null && !this.createdGui) {
-            this.gui = GuiCraftingRecipe.createRecipeGui("recipeId", false, this.recipeId.getResult(), this.recipeId);
+        if (this.widget == null && !this.createdGui) {
+            this.handlerRef = RecipeHandlerRef.of(this.recipeId);
             this.createdGui = true;
 
-            if (this.gui != null) {
-                this.gui.initGui();
-                this.gui.guiTop = 0;
-                this.gui.guiLeft = 0;
+            if (handlerRef != null) {
+                this.widget = new NEIRecipeWidget(this.handlerRef);
+                this.widget.showAsWidget(true);
+                this.widget.x = BG_PADDING;
+                this.widget.y = BG_PADDING + 12;
+
+                this.recipeName = this.widget.getRecipeHandlerRef().handler.getRecipeName().trim();
             }
         }
 
-        if (this.gui != null) {
-            return this.gui.getWidgetSize();
+        if (this.widget != null) {
+            return new Dimension(this.widget.w + BG_PADDING * 2, this.widget.h + BG_PADDING * 2 + 12);
         }
 
         return new Dimension(0, 0);
@@ -56,41 +70,40 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
 
     @Override
     public void draw(int x, int y) {
-        if (this.gui == null) return;
+        if (this.widget == null) return;
 
         if ((System.currentTimeMillis() - lastUpdate) > 50) {
             lastUpdate = System.currentTimeMillis();
-            this.gui.onUpdate();
+            this.handlerRef.handler.onUpdate();
+            this.widget.update();
         }
+
+        final Dimension size = getSize();
 
         GL11.glPushMatrix();
-        GL11.glScaled(1, 1, 3);
-        GL11.glTranslatef(x, y, 0);
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
-        RenderHelper.disableStandardItemLighting();
+        GL11.glTranslatef(x, y, 0);
+        GL11.glScaled(1, 1, 3);
 
-        this.gui.drawGuiContainerBackgroundLayer(0.0f, -100, -100);
+        GuiContainerManager.enable2DRender();
+        GL11.glColor4f(1, 1, 1, 1);
+
+        BG_TEXTURE.draw(0, 0, size.width, size.height, BG_PADDING, BG_PADDING, BG_PADDING, BG_PADDING);
+
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
+
+        GuiDraw.drawRect(BG_PADDING, BG_PADDING, size.width - BG_PADDING * 2, 12, 0x30000000);
+        GuiDraw.drawStringC(this.recipeName, this.widget.w / 2, BG_PADDING + 2, 0xffffff);
+
+        GuiHelper.useScissor(
+                this.widget.x,
+                this.widget.y,
+                this.widget.w,
+                this.widget.h,
+                () -> { this.widget.draw(0, 0); });
 
         GL11.glPopAttrib();
-
-        if (this.gui.slotcontainer != null) {
-            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
-            RenderHelper.enableGUIStandardItemLighting();
-            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-            GL11.glDisable(GL11.GL_DEPTH_TEST);
-            List<Slot> slots = this.gui.slotcontainer.inventorySlots;
-
-            for (Slot slot : slots) {
-                if (slot != null && slot.getStack() != null) {
-                    GuiContainerManager.drawItem(slot.xDisplayPosition, slot.yDisplayPosition, slot.getStack());
-                }
-            }
-
-            GL11.glPopAttrib();
-        }
-
-        this.gui.drawGuiContainerForegroundLayer(-100, -100);
-
         GL11.glPopMatrix();
     }
+
 }

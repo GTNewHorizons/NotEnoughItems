@@ -61,6 +61,10 @@ public class RecipeHandlerRef {
         return firstGui != null && firstGui.inventorySlots != null ? firstGui : null;
     }
 
+    public NEIRecipeWidget getRecipeWidget() {
+        return new NEIRecipeWidget(this);
+    }
+
     public IOverlayHandler getOverlayHandler(GuiContainer gui) {
         final GuiContainer firstGui = prepareGui(gui);
 

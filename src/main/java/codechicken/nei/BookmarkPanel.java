@@ -697,7 +697,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     }
 
     @Override
-    public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
+    public List<String> handleTooltip(int mousex, int mousey, List<String> currenttip) {
 
         if (this.grid.getPerPage() == 0 || this.grid.isEmpty()) {
             return new ArrayList<>();
@@ -724,7 +724,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                         this.recipeChainTooltipLineHandler = null;
                     }
 
-        return super.handleTooltip(gui, mousex, mousey, currenttip);
+        return super.handleTooltip(mousex, mousey, currenttip);
     }
 
     @Override
@@ -750,7 +750,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     }
 
     @Override
-    public Map<String, String> handleHotkeys(GuiContainer gui, int mousex, int mousey, Map<String, String> hotkeys) {
+    public Map<String, String> handleHotkeys(int mousex, int mousey, Map<String, String> hotkeys) {
         final int overRowIndex = this.grid.getHoveredRowIndex(true);
         final BookmarksGridSlot slot = getSlotMouseOver(mousex, mousey);
 
@@ -783,7 +783,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                     NEIClientConfig.getKeyName("gui.remove_recipe"),
                     NEIClientUtils.translate("bookmark.group.remove_recipe"));
 
-            if (BookmarkContainerInfo.getBookmarkContainerHandler(gui) != null) {
+            if (BookmarkContainerInfo.getBookmarkContainerHandler(NEIClientUtils.getGuiContainer()) != null) {
                 hotkeys.put(
                         NEIClientConfig.getKeyName("gui.bookmark_pull_items"),
                         NEIClientUtils.translate("bookmark.group.pull_items"));
@@ -880,7 +880,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             }
         }
 
-        return hotkeys;
+        return super.handleHotkeys(mousex, mousey, hotkeys);
     }
 
     private List<String> recipeChainTooltip(int groupId, List<String> currenttip) {
@@ -917,8 +917,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     }
 
     @Override
-    public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
-            List<String> currenttip) {
+    public List<String> handleItemTooltip(ItemStack itemstack, int mousex, int mousey, List<String> currenttip) {
         final BookmarksGridSlot slot = this.grid.getSlotMouseOver(mousex, mousey);
 
         if (slot != null) {

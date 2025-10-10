@@ -66,6 +66,7 @@ import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerObjectHandler;
 import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.recipe.AutoCraftingManager;
+import codechicken.nei.recipe.DebugHandlerWidget;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.RecipeCatalysts;
 
@@ -91,6 +92,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public static SubsetWidget dropDown;
     public static SearchField searchField;
     public static ItemZoom itemZoom;
+    public static DebugHandlerWidget recipeHandlerWidget;
 
     public static ButtonCycled options;
     public static ButtonCycled bookmarksButton;
@@ -292,19 +294,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     }
 
     @Override
-    public void postRenderTooltips(GuiContainer gui, int mousex, int mousey, List<String> tooltip) {
-
-        if (!isHidden() && isEnabled() && GuiContainerManager.shouldShowTooltip(gui)) {
-            final Widget focused = getWidgetUnderMouse(mousex, mousey);
-
-            if (focused != null) {
-                focused.postDrawTooltips(mousex, mousey, tooltip);
-            }
-        }
-
-    }
-
-    @Override
     public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
 
         if (!isHidden() && isEnabled() && GuiContainerManager.shouldShowTooltip(gui)) {
@@ -354,6 +343,10 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (!isHidden() && isEnabled() && GuiContainerManager.shouldShowTooltip(gui)) {
             final Widget focused = getWidgetUnderMouse(mousex, mousey);
 
+            if (focused != null) {
+                currenttip = focused.handleItemTooltip(itemstack, mousex, mousey, currenttip);
+            }
+
             if (focused instanceof IContainerTooltipHandler tip) {
                 currenttip = tip.handleItemTooltip(gui, itemstack, mousex, mousey, currenttip);
             }
@@ -368,9 +361,14 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         if (!isHidden() && isEnabled() && GuiContainerManager.shouldShowTooltip(gui)) {
             final Widget focused = getWidgetUnderMouse(mousex, mousey);
 
-            if (focused instanceof IContainerTooltipHandler tip) {
-                hotkeys = tip.handleHotkeys(gui, mousex, mousey, hotkeys);
+            if (focused != null) {
+                hotkeys = focused.handleHotkeys(mousex, mousey, hotkeys);
+
+                if (focused instanceof IContainerTooltipHandler tip) {
+                    hotkeys = tip.handleHotkeys(gui, mousex, mousey, hotkeys);
+                }
             }
+
         }
 
         return hotkeys;
@@ -407,6 +405,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         bookmarkPanel.init();
 
         itemZoom = new ItemZoom();
+
+        recipeHandlerWidget = new DebugHandlerWidget();
 
         dropDown = new SubsetWidget();
         searchField = new SearchField("search");
@@ -783,9 +783,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         addWidget(itemZoom);
 
         if (visiblity.showSubsetDropdown) {
-            // Bookmarks or Subset/dropdown
             addWidget(dropDown);
         }
+
+        addWidget(recipeHandlerWidget);
+        recipeHandlerWidget.setVisible();
     }
 
     public static LayoutStyle getLayoutStyle(int id) {
