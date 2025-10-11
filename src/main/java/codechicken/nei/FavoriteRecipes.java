@@ -117,12 +117,14 @@ public class FavoriteRecipes {
                     final RecipeId recipeId = RecipeId.of(jsonObject.getAsJsonObject("recipeId"));
                     final ItemStack stack = StackInfo.loadFromNBT(itemStackNBT);
 
-                    if (stack != null) {
-                        final String fluidKey = getFluidKey(stack);
+                    if (recipeId == null || stack == null) {
+                        continue;
+                    }
 
-                        if (fluidKey != null) {
-                            fluids.put(fluidKey, recipeId);
-                        }
+                    final String fluidKey = getFluidKey(stack);
+
+                    if (fluidKey != null) {
+                        fluids.put(fluidKey, recipeId);
                     }
 
                     items.put(itemStackNBT, recipeId);
@@ -132,8 +134,8 @@ public class FavoriteRecipes {
                     }
                 }
 
-            } catch (IllegalArgumentException | JsonSyntaxException | IllegalStateException e) {
-                NEIClientConfig.logger.error("Failed to load favorite from json string:\n{}", itemStr);
+            } catch (Exception e) {
+                NEIClientConfig.logger.error("Failed to load favorite from json string: {}", itemStr);
             }
 
         }

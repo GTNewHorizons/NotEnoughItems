@@ -406,14 +406,46 @@ public class RecipeChainMath {
             ItemStack itemStack = prefItem.itemStack;
 
             while (ingrAmount > 0 && shiftAmount < maxAmount) {
+                long multiplier = 1;
                 itemStack = itemStack.copy();
                 itemStack.stackSize = 1;
 
-                this.containerItems.add(itemStack);
                 ingrAmount = shiftContainerItems(itemStack, prefItem.getStackSize(ingrAmount))
                         * prefItem.fluidCellAmount;
 
-                shiftAmount += prefItem.fluidCellAmount;
+                if (ingrAmount > 0) {
+                    long steps = prefItem.getStackSize(ingrAmount);
+                    final ContainerItemResult result = getToolsContainerItems(itemStack, steps);
+
+                    if (result.stack == null) {
+                        multiplier = steps / (steps - result.leftSteps);
+                        steps = steps % (steps - result.leftSteps);
+                    } else {
+                        steps = result.leftSteps;
+                    }
+
+                    if (result.containerItem != null) {
+                        long stackSize = result.containerItem.stackSize * multiplier;
+
+                        while (stackSize > Integer.MAX_VALUE) {
+                            final ItemStack copy = result.containerItem.copy();
+                            copy.stackSize = Integer.MAX_VALUE;
+                            this.containerItems.add(copy);
+                            stackSize -= copy.stackSize;
+                        }
+
+                        result.containerItem.stackSize = (int) stackSize;
+                        this.containerItems.add(result.containerItem);
+                    }
+
+                    if (result.stack != null) {
+                        this.containerItems.add(result.stack);
+                    }
+
+                    ingrAmount = steps * prefItem.fluidCellAmount;
+                }
+
+                shiftAmount += multiplier * prefItem.fluidCellAmount;
             }
 
         } else {
@@ -429,8 +461,9 @@ public class RecipeChainMath {
     }
 
     private long shiftContainerItems(ItemStack aStack, long steps) {
+        final int initialSize = this.containerItems.size();
 
-        for (int i = 0; i < this.containerItems.size() && steps > 0; i++) {
+        for (int i = 0; i < initialSize && steps > 0; i++) {
             ItemStack bStack = this.containerItems.get(i);
 
             if (bStack != null && NEIClientUtils.areStacksSameTypeCraftingWithNBT(aStack, bStack)) {
@@ -463,12 +496,12 @@ public class RecipeChainMath {
                 final NBTTagCompound toolStats = tagCompound.getCompoundTag("GT.ToolStats");
                 final long maxDamage = toolStats.getLong("MaxDamage");
                 final long damage = toolStats.getLong("Damage");
-                final long leftSteps = (maxDamage - damage) / damagePerContainerCraft;
+                final long leftSteps = (long) Math.ceil((maxDamage - damage) / (double) damagePerContainerCraft);
                 final long availableSteps = Math.min(steps, Math.max(1, leftSteps));
 
                 steps -= availableSteps;
 
-                if ((damage + availableSteps * damagePerContainerCraft) == maxDamage || leftSteps <= 0) {
+                if ((damage + availableSteps * damagePerContainerCraft) >= maxDamage || leftSteps <= 0) {
                     aStack = null;
                 } else {
                     toolStats.setLong("Damage", damage + availableSteps * damagePerContainerCraft);
