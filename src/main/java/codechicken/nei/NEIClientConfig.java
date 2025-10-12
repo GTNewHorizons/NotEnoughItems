@@ -56,6 +56,7 @@ import codechicken.nei.config.OptionToggleButtonBoubs;
 import codechicken.nei.config.OptionUtilities;
 import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
+import codechicken.nei.recipe.DebugHandlerWidget;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.InformationHandler;
@@ -252,12 +253,23 @@ public class NEIClientConfig {
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.guirecipe.slotHighlightPresent", true));
 
+        tag.getTag("inventory.guirecipe.infiniteScroll").setComment("Use Infinite Scroll for Handlers")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.infiniteScroll", true));
+
+        tag.getTag("inventory.guirecipe.maxHeight").setComment("Recipe GUI Max Height").getIntValue(370);
+        API.addOption(new OptionIntegerField("inventory.guirecipe.maxHeight", 166, 4000));
+
         tag.getTag("inventory.guirecipe.shiftOverlayRecipe")
                 .setComment("Require holding shift to move items when overlaying recipe").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.guirecipe.shiftOverlayRecipe", true));
 
         tag.getTag("inventory.guirecipe.profile").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.guirecipe.profile", true));
+
+        tag.getTag("inventory.guirecipe.handlerInfo").setComment("ADVANCED: Handler Info Widget")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.handlerInfo", true));
 
         tag.getTag("inventory.subsets.enabled").setComment("Enable/disable Subsets Dropdown").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.subsets.enabled", true));
@@ -999,6 +1011,7 @@ public class NEIClientConfig {
                     pluginNEIConfigLoaded = true;
                     MinecraftForge.EVENT_BUS.post(new NEIConfigsLoadedEvent());
 
+                    DebugHandlerWidget.loadHandlerInfoPatch();
                     ItemList.loadItems.restart();
                 }
             }.start();

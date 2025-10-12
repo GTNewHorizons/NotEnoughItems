@@ -103,11 +103,6 @@ public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
     }
 
     @Override
-    public int recipiesPerPage() {
-        return 1;
-    }
-
-    @Override
     public List<String> handleTooltip(GuiRecipe<?> gui, List<String> currenttip, int recipe) {
         return currenttip;
     }

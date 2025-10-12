@@ -661,11 +661,6 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     @Override
-    public int recipiesPerPage() {
-        return 2;
-    }
-
-    @Override
     public List<String> handleTooltip(GuiRecipe<?> gui, List<String> currenttip, int recipe) {
         if (GuiContainerManager.shouldShowTooltip(gui) && currenttip.isEmpty()) {
             Point offset = gui.getRecipePosition(recipe);

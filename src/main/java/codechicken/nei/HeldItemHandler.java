@@ -27,8 +27,8 @@ public class HeldItemHandler implements IContainerInputHandler, IContainerToolti
     protected boolean contains(int mousex, int mousey) {
         return NEIClientUtils.getHeldItem() != null && !ItemPanels.bookmarkPanel.inEditingState()
                 && !AutoCraftingManager.processing()
-                && (ItemPanels.bookmarkPanel.contains(mousex, mousey) || ItemPanels.itemPanel.contains(mousex, mousey)
-                        || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey));
+                && (ItemPanels.bookmarkPanel.contains(mousex, mousey)
+                        || ItemPanels.itemPanel.containsWithSubpanels(mousex, mousey));
     }
 
     @Override

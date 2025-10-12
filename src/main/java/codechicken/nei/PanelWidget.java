@@ -11,14 +11,12 @@ import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.INEIGuiHandler;
+import codechicken.nei.api.ShortcutInputHandler;
 import codechicken.nei.guihook.GuiContainerManager;
-import codechicken.nei.guihook.IContainerTooltipHandler;
-import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
-import codechicken.nei.recipe.GuiUsageRecipe;
 
 public abstract class PanelWidget<T extends ItemsGrid<? extends ItemsGridSlot, ? extends ItemsGrid.MouseContext>>
-        extends Widget implements IContainerTooltipHandler {
+        extends Widget {
 
     protected static final int PADDING = 2;
 
@@ -284,13 +282,7 @@ public abstract class PanelWidget<T extends ItemsGrid<? extends ItemsGridSlot, ?
 
             if (NEIController.manager.window instanceof GuiRecipe || NEIClientUtils.shiftKey()
                     || !NEIClientConfig.canCheatItem(hoverSlot.getItemStack())) {
-
-                if (button == 0) {
-                    GuiCraftingRecipe.openRecipeGui("item", hoverSlot.getItemStack().copy());
-                } else if (button == 1) {
-                    GuiUsageRecipe.openRecipeGui("item", hoverSlot.getItemStack().copy());
-                }
-
+                ShortcutInputHandler.handleMouseClick(hoverSlot.getItemStack());
             } else {
                 NEIClientUtils.cheatItem(getDraggedStackWithQuantity(hoverSlot.getItemStack()), button, -1);
             }
