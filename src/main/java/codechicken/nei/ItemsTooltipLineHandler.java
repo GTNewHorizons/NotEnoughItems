@@ -92,7 +92,6 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
         this.labelColor = color;
     }
 
-
     @Override
     public void draw(int x, int y) {
         if (this.length == 0) return;
