@@ -92,6 +92,7 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
         this.labelColor = color;
     }
 
+
     @Override
     public void draw(int x, int y) {
         if (this.length == 0) return;
@@ -100,13 +101,15 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
 
         fontRenderer.drawStringWithShadow(this.labelColor + this.label + ":", x, y, 0);
 
+        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
-        GL11.glPushMatrix();
         RenderHelper.enableGUIStandardItemLighting();
 
-        GL11.glScaled(1, 1, 3);
-        GL11.glTranslatef(x, y + fontRenderer.FONT_HEIGHT + 2, 0);
-        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+        final int xTranslation = x;
+        final int yTranslation = y + fontRenderer.FONT_HEIGHT + 2;
+        final int zTranslation = 400;
+        GL11.glTranslatef(xTranslation, yTranslation, zTranslation);
 
         int indexShift = 0;
 
@@ -142,7 +145,7 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
             });
         }
 
-        GL11.glPopMatrix();
+        GL11.glTranslatef(-xTranslation, -yTranslation, -zTranslation);
         GL11.glPopAttrib();
     }
 
