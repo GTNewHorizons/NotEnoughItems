@@ -107,7 +107,7 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
 
         final int xTranslation = x;
         final int yTranslation = y + fontRenderer.FONT_HEIGHT + 2;
-        final int zTranslation = 400;
+        final int zTranslation = GuiContainerManager.TOOLTIP_Z_OFFSET;
         GL11.glTranslatef(xTranslation, yTranslation, zTranslation);
 
         int indexShift = 0;

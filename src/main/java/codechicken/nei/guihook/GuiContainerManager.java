@@ -82,6 +82,9 @@ public class GuiContainerManager {
     public static final LinkedList<IContainerSlotClickHandler> slotClickHandlers = new HideousLinkedList<>(
             new CopyOnWriteArrayList<>());
 
+    // Any item rendered with this z offset should render it on top of every other gui element
+    public static final int TOOLTIP_Z_OFFSET = 400;
+
     static {
         addSlotClickHandler(new DefaultSlotClickHandler());
     }
