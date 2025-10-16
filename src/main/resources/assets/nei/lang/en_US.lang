@@ -65,6 +65,7 @@ nei.itempanel.open_crafting=Recipe to make this item
 nei.itempanel.open_usage=Recipes that use this item
 nei.itempanel.copy_name=Copy Item Name
 nei.itempanel.copy_oredict=Copy Item OreDictionary
+nei.itempanel.copy_id=Copy Item ID
 nei.itempanel.chat_link_item=Send item link to chat
 
 nei.enchant=Enchant
