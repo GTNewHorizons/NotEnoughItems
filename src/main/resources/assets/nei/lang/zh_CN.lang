@@ -111,6 +111,7 @@ nei.options.keys.gui.getprevioussearch=上一个搜索
 nei.options.keys.gui.getnextsearch=下一个搜索
 nei.options.keys.gui.copy_name=复制物品名称
 nei.options.keys.gui.copy_oredict=复制物品矿词词典
+nei.options.keys.gui.copy_id=复制物品ID
 nei.options.keys.world=世界
 nei.options.keys.world.chunkoverlay=区块(chunks)边界显示
 nei.options.keys.world.moboverlay=刷怪区域显示

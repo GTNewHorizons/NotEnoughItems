@@ -192,6 +192,7 @@ nei.options.keys.gui.next_tooltip=Next Tooltip
 nei.options.keys.gui.copy_name=Copy Item Name
 nei.options.keys.gui.craft_items=Craft Items
 nei.options.keys.gui.copy_oredict=Copy Item OreDictionary
+nei.options.keys.gui.copy_id=Copy Item ID
 nei.options.keys.gui.chat_link_item=Send item link to chat
 nei.options.keys.gui.itemzoom_toggle=Toggle Item Zoom
 nei.options.keys.gui.itemzoom_hold=Hold to Display Item Zoom

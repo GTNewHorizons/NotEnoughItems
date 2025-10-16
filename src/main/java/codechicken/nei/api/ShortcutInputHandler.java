@@ -98,6 +98,9 @@ public abstract class ShortcutInputHandler {
         if (NEIClientConfig.isKeyHashDown("gui.copy_name")) {
             return copyItemStackName(stackover);
         }
+        if (NEIClientConfig.isKeyHashDown("gui.copy_id")) {
+            return copyItemStackID(stackover);
+        }
 
         if (NEIClientConfig.isKeyHashDown("gui.copy_oredict")) {
             return copyItemStackOreDictionary(stackover);
@@ -156,6 +159,14 @@ public abstract class ShortcutInputHandler {
 
     private static boolean copyItemStackName(ItemStack stackover) {
         GuiScreen.setClipboardString(SearchField.getEscapedSearchText(stackover));
+        return true;
+    }
+
+    private static boolean copyItemStackID(ItemStack stackover) {
+        if (stackover == null || stackover.getItem() == null) return false;
+        GuiScreen.setClipboardString(
+                stackover.getItem().delegate.name()
+                        + (stackover.getItemDamage() != 0 ? "/" + stackover.getItemDamage() : ""));
         return true;
     }
 
@@ -511,6 +522,7 @@ public abstract class ShortcutInputHandler {
 
         hotkeys.put(NEIClientConfig.getKeyName("gui.copy_name"), NEIClientUtils.translate("itempanel.copy_name"));
         hotkeys.put(NEIClientConfig.getKeyName("gui.copy_oredict"), NEIClientUtils.translate("itempanel.copy_oredict"));
+        hotkeys.put(NEIClientConfig.getKeyName("gui.copy_id"), NEIClientUtils.translate("itempanel.copy_id"));
         hotkeys.put(
                 NEIClientConfig.getKeyName("gui.chat_link_item"),
                 NEIClientUtils.translate("itempanel.chat_link_item"));
