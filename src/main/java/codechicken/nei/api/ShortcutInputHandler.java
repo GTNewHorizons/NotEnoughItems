@@ -47,17 +47,20 @@ public abstract class ShortcutInputHandler {
         public int mousex;
         public int mousey;
         public ItemStack stack;
+        public int groupId;
         public Map<String, String> hotkeys = new HashMap<>();
 
-        public boolean matches(int mousex, int mousey, ItemStack stack) {
+        public boolean matches(int mousex, int mousey, ItemStack stack, int groupId) {
             return Math.abs(this.mousex - mousex) < 16 && Math.abs(this.mousey - mousey) < 16
-                    && NEIClientUtils.areStacksSameTypeWithNBT(stack, this.stack);
+                    && (this.stack == null ? stack == null && this.groupId == groupId
+                            : stack != null && NEIClientUtils.areStacksSameTypeWithNBT(stack, this.stack));
         }
 
-        public void update(int mousex, int mousey, ItemStack stack, Map<String, String> hotkeys) {
+        public void update(int mousex, int mousey, ItemStack stack, int groupId, Map<String, String> hotkeys) {
             this.mousex = mousex;
             this.mousey = mousey;
-            this.stack = stack.copy();
+            this.stack = stack != null ? stack.copy() : null;
+            this.groupId = groupId;
             this.hotkeys = hotkeys;
         }
     }
@@ -413,8 +416,13 @@ public abstract class ShortcutInputHandler {
     }
 
     public static Map<String, String> handleHotkeys(int mousex, int mousey, ItemStack stack) {
-        final GuiContainer gui = NEIClientUtils.getGuiContainer();
         final int groupId = ItemPanels.bookmarkPanel.getHoveredGroupId(true);
+
+        if (hotkeysCache.matches(mousex, mousey, stack, groupId)) {
+            return hotkeysCache.hotkeys;
+        }
+
+        final GuiContainer gui = NEIClientUtils.getGuiContainer();
         final Map<String, String> hotkeys = new HashMap<>();
 
         if (groupId != -1) {
@@ -441,14 +449,14 @@ public abstract class ShortcutInputHandler {
                         NEIClientConfig.getKeyName("gui.craft_items", NEIClientUtils.SHIFT_HASH),
                         NEIClientUtils.translate("bookmark.group.craft_all"));
             }
-        }
 
-        if (stack == null) {
+            hotkeysCache.update(mousex, mousey, stack, groupId, hotkeys);
             return hotkeys;
         }
 
-        if (hotkeysCache.matches(mousex, mousey, stack)) {
-            return hotkeysCache.hotkeys;
+        if (stack == null) {
+            hotkeysCache.update(mousex, mousey, stack, groupId, hotkeys);
+            return hotkeys;
         }
 
         final BookmarksGridSlot slot = ItemPanels.bookmarkPanel.getSlotMouseOver(mousex, mousey);
@@ -608,7 +616,7 @@ public abstract class ShortcutInputHandler {
 
         }
 
-        hotkeysCache.update(mousex, mousey, stack, hotkeys);
+        hotkeysCache.update(mousex, mousey, stack, groupId, hotkeys);
 
         return hotkeys;
     }
