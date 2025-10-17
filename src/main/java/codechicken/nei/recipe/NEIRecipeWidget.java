@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -17,6 +19,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -29,13 +32,16 @@ import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
 
 public class NEIRecipeWidget extends Widget {
 
+    protected final WeakHashMap<PositionedStack, List<ItemStack>> permutations = new WeakHashMap<>();
+    protected boolean needUpdate = true;
+    protected int cycleticks = 0;
+    protected int lastcycle = 0;
+
     protected final RecipeHandlerRef handlerRef;
     protected final HandlerInfo handlerInfo;
 
     protected boolean showAsWidget = false;
     protected List<GuiRecipeButton> recipeButtons = null;
-    protected boolean firstDraw = true;
-    protected boolean needUpdate = true;
 
     public NEIRecipeWidget(RecipeHandlerRef handlerRef) {
         this.handlerRef = handlerRef;
@@ -49,14 +55,18 @@ public class NEIRecipeWidget extends Widget {
     }
 
     public void update() {
-        this.w = this.handlerInfo.getWidth();
+        this.w = Math.max(166, this.handlerInfo.getWidth());
 
-        if (this.showAsWidget || !this.handlerInfo.getUseCustomScroll()
-                || this.handlerInfo.getMaxRecipesPerPage() > 1) {
-            this.h = this.handlerInfo.getHeight() + this.handlerInfo.getYShift();
+        if (this.showAsWidget || !this.handlerInfo.expandVertically()) {
+            this.h = this.handlerRef.handler.getRecipeHeight() > 0 ? this.handlerRef.handler.getRecipeHeight()
+                    : this.handlerInfo.getHeight();
+            this.h += this.handlerInfo.getYShift();
         }
 
-        this.needUpdate = true;
+        if (!this.needUpdate && !NEIClientUtils.shiftKey() && (this.cycleticks++) / 20 != this.lastcycle) {
+            this.lastcycle = this.cycleticks / 20;
+            this.needUpdate = true;
+        }
     }
 
     public List<GuiRecipeButton> getRecipeButtons() {
@@ -152,7 +162,12 @@ public class NEIRecipeWidget extends Widget {
     public void draw(int mouseX, int mouseY) {
         final int yShift = this.handlerInfo.getYShift();
 
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        if (this.needUpdate) {
+            this.needUpdate = false;
+            updatePermutations();
+        }
+
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
         GL11.glTranslatef(this.x, this.y + yShift, 0);
 
         this.handlerRef.handler.drawBackground(this.handlerRef.recipeIndex);
@@ -161,14 +176,9 @@ public class NEIRecipeWidget extends Widget {
         GL11.glEnable(GL12.GL_RESCALE_NORMAL);
         GL11.glColor4f(1, 1, 1, 1);
 
-        if (this.firstDraw) {
-            this.firstDraw = false;
-            for (PositionedStack pStack : this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex)) {
-                pStack.setPermutationToRender(pStack.getFilteredPermutations().get(0));
-            }
-        }
+        GuiContainerManager.enableMatrixStackLogging();
 
-        for (PositionedStack pStack : getItems(!this.needUpdate)) {
+        for (PositionedStack pStack : this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex)) {
             GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
 
             if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
@@ -176,7 +186,25 @@ public class NEIRecipeWidget extends Widget {
             }
         }
 
-        this.needUpdate = false;
+        for (PositionedStack pStack : this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex)) {
+            GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
+
+            if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
+                NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, -2130706433));
+            }
+        }
+
+        final PositionedStack pStackResult = this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex);
+        if (pStackResult != null) {
+            GuiContainerManager.drawItem(pStackResult.relx, pStackResult.rely, pStackResult.item);
+            if (pStackResult.contains(mouseX - this.x, mouseY - this.y - yShift)) {
+                NEIClientUtils.gl2DRenderContext(
+                        () -> GuiDraw.drawRect(pStackResult.relx, pStackResult.rely, 16, 16, -2130706433));
+            }
+        }
+
+        GuiContainerManager.disableMatrixStackLogging();
+
         this.handlerRef.handler.drawForeground(this.handlerRef.recipeIndex);
 
         final GuiRecipeButton overlayButton = getRecipeButtons().stream()
@@ -300,10 +328,35 @@ public class NEIRecipeWidget extends Widget {
             return true;
         }
 
+        if (scrollPermutations(scroll, mx, my)) {
+            return true;
+        }
+
         final GuiRecipe<?> guiRecipe = getGuiRecipe();
 
         return guiRecipe != null
                 && this.handlerRef.handler.mouseScrolled(guiRecipe, scroll, this.handlerRef.recipeIndex);
+    }
+
+    protected boolean scrollPermutations(int scroll, int mx, int my) {
+        if (!NEIClientUtils.shiftKey()) return false;
+        final PositionedStack overStack = getPositionedStackMouseOver(mx, my);
+
+        if (overStack != null && overStack.items.length > 1) {
+            final List<ItemStack> items = overStack.getFilteredPermutations();
+            final int stackIndex = overStack.getPermutationIndex(overStack.item);
+            final ItemStack stack = items.get((items.size() - scroll + stackIndex) % items.size());
+
+            Stream.concat(
+                    this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex).stream(),
+                    this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex).stream())
+                    .filter(pStack -> pStack.containsWithNBT(stack))
+                    .forEach(pStack -> pStack.setPermutationToRender(stack));
+
+            return true;
+        }
+
+        return false;
     }
 
     protected <R> R forEachButtons(Function<GuiRecipeButton, R> callback, R defaultValue) {
@@ -345,10 +398,21 @@ public class NEIRecipeWidget extends Widget {
     public PositionedStack getPositionedStackMouseOver(int mx, int my) {
         final int yShift = this.handlerInfo.getYShift();
 
-        for (PositionedStack pStack : getItems(true)) {
+        for (PositionedStack pStack : this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex)) {
             if (pStack.contains(mx - this.x, my - this.y - yShift)) {
                 return pStack;
             }
+        }
+
+        for (PositionedStack pStack : this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex)) {
+            if (pStack.contains(mx - this.x, my - this.y - yShift)) {
+                return pStack;
+            }
+        }
+
+        final PositionedStack pStackResult = this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex);
+        if (pStackResult != null && pStackResult.contains(mx - this.x, my - this.y - yShift)) {
+            return pStackResult;
         }
 
         return null;
@@ -380,20 +444,31 @@ public class NEIRecipeWidget extends Widget {
         return guiContainer;
     }
 
-    protected List<PositionedStack> getItems(boolean disableCycledIngredients) {
-        final PositionedStack pStackResult = this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex);
-        final List<PositionedStack> itemStacks = new ArrayList<>();
+    protected void updatePermutations() {
 
-        TemplateRecipeHandler.disableCycledIngredients = disableCycledIngredients;
-        itemStacks.addAll(this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex));
-        itemStacks.addAll(this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex));
-        TemplateRecipeHandler.disableCycledIngredients = true;
-
-        if (pStackResult != null) {
-            itemStacks.add(pStackResult);
+        for (PositionedStack pStack : this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex)) {
+            if (pStack.items.length > 1) {
+                final List<ItemStack> permutations = this.permutations
+                        .computeIfAbsent(pStack, stack -> stack.getFilteredPermutations(FavoriteRecipes::contains));
+                pStack.setPermutationToRender(permutations.get(this.lastcycle % permutations.size()));
+            }
         }
 
-        return itemStacks;
+        for (PositionedStack pStack : this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex)) {
+            if (pStack.items.length > 1) {
+                final List<ItemStack> permutations = this.permutations
+                        .computeIfAbsent(pStack, stack -> stack.getFilteredPermutations(FavoriteRecipes::contains));
+                pStack.setPermutationToRender(permutations.get(this.lastcycle % permutations.size()));
+            }
+        }
+
+        final PositionedStack pStackResult = this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex);
+        if (pStackResult != null && pStackResult.items.length > 1) {
+            final List<ItemStack> permutations = this.permutations
+                    .computeIfAbsent(pStackResult, stack -> stack.getFilteredPermutations(FavoriteRecipes::contains));
+            pStackResult.setPermutationToRender(permutations.get(this.lastcycle % permutations.size()));
+        }
+
     }
 
 }

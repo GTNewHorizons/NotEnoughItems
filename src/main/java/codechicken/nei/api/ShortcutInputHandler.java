@@ -42,6 +42,28 @@ import codechicken.nei.util.NEIMouseUtils;
 
 public abstract class ShortcutInputHandler {
 
+    private static class HotkeysCache {
+
+        public int mousex;
+        public int mousey;
+        public ItemStack stack;
+        public Map<String, String> hotkeys = new HashMap<>();
+
+        public boolean matches(int mousex, int mousey, ItemStack stack) {
+            return Math.abs(this.mousex - mousex) < 16 && Math.abs(this.mousey - mousey) < 16
+                    && NEIClientUtils.areStacksSameTypeWithNBT(stack, this.stack);
+        }
+
+        public void update(int mousex, int mousey, ItemStack stack, Map<String, String> hotkeys) {
+            this.mousex = mousex;
+            this.mousey = mousey;
+            this.stack = stack.copy();
+            this.hotkeys = hotkeys;
+        }
+    }
+
+    private static HotkeysCache hotkeysCache = new HotkeysCache();
+
     public static boolean handleKeyEvent(ItemStack stackover) {
 
         if (!NEIClientConfig.isLoaded()) {
@@ -425,6 +447,10 @@ public abstract class ShortcutInputHandler {
             return hotkeys;
         }
 
+        if (hotkeysCache.matches(mousex, mousey, stack)) {
+            return hotkeysCache.hotkeys;
+        }
+
         final BookmarksGridSlot slot = ItemPanels.bookmarkPanel.getSlotMouseOver(mousex, mousey);
         final RecipeId recipeId = getHotkeyRecipeId(gui, mousex, mousey, stack, slot);
 
@@ -581,6 +607,8 @@ public abstract class ShortcutInputHandler {
             }
 
         }
+
+        hotkeysCache.update(mousex, mousey, stack, hotkeys);
 
         return hotkeys;
     }

@@ -27,7 +27,7 @@ public class FurnaceRecipeHandler extends TemplateRecipeHandler {
         }
 
         public List<PositionedStack> getIngredients() {
-            return getCycledIngredients(cycleticks / 48, Collections.singletonList(ingred));
+            return Collections.singletonList(ingred);
         }
 
         public PositionedStack getResult() {

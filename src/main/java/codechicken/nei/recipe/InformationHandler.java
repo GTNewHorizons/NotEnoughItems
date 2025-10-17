@@ -99,7 +99,7 @@ public class InformationHandler extends TemplateRecipeHandler {
 
         @Override
         public List<PositionedStack> getIngredients() {
-            return getCycledIngredients(cycleticks / 20, Collections.singletonList(this.stack));
+            return Collections.singletonList(this.stack);
         }
 
         public InformationPage getPage() {

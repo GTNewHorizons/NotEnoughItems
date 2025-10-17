@@ -133,6 +133,10 @@ public class HandlerInfo {
         this.useCustomScroll = useCustomScroll;
     }
 
+    public boolean expandVertically() {
+        return this.useCustomScroll && this.maxRecipesPerPage <= 1;
+    }
+
     public static class Builder {
 
         private final HandlerInfo info;

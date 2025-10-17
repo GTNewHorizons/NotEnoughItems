@@ -9,13 +9,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.init.Blocks;
@@ -31,8 +29,6 @@ import org.lwjgl.opengl.GL11;
 import com.google.common.base.Stopwatch;
 
 import codechicken.lib.gui.GuiDraw;
-import codechicken.lib.vec.Rectangle4i;
-import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -178,43 +174,16 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
             return null;
         }
 
-        /**
-         * This will perform default cycling of ingredients, mulitItem capable
-         *
-         * @param cycle       Current cycle step
-         * @param ingredients List of ItemStacks to cycle
-         * @return The provided list of ingredients, with their permutations cycled to a different permutation, if one
-         *         is available
-         */
+        @Deprecated
         public List<PositionedStack> getCycledIngredients(int cycle, List<PositionedStack> ingredients) {
-
-            if (!NEIClientUtils.shiftKey() && !disableCycledIngredients) {
-                randomRenderPermutation(ingredients, cycle);
-            }
-
             return ingredients;
         }
 
-        public void randomRenderPermutation(List<PositionedStack> stacks, long cycle) {
-            cycle = NEIClientConfig.useJEIStyledCycledIngredients() ? cycle
-                    : Math.abs(new Random(cycle + offset).nextInt());
-
-            for (PositionedStack pStack : stacks) {
-                if (pStack.items.length <= 1) continue;
-                final List<ItemStack> items = pStack.getFilteredPermutations(FavoriteRecipes::contains);
-                pStack.setPermutationToRender(items.get((int) (cycle % items.size())));
-            }
-        }
+        @Deprecated
+        public void randomRenderPermutation(List<PositionedStack> stacks, long cycle) {}
 
         @Deprecated
-        public void randomRenderPermutation(PositionedStack stack, long cycle) {
-            cycle = NEIClientConfig.useJEIStyledCycledIngredients() ? cycle
-                    : Math.abs(new Random(cycle + offset).nextInt());
-
-            if (stack.items.length <= 1) return;
-            final List<ItemStack> items = stack.getFilteredPermutations(FavoriteRecipes::contains);
-            stack.setPermutationToRender(items.get((int) (cycle % items.size())));
-        }
+        public void randomRenderPermutation(PositionedStack stack, long cycle) {}
 
         public void setIngredientPermutation(Collection<PositionedStack> ingredients, ItemStack ingredient) {
             for (PositionedStack stack : ingredients) {
@@ -405,8 +374,6 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
      * A list of transferRects that when clicked or R is pressed will open a new recipe.
      */
     public LinkedList<RecipeTransferRect> transferRects = new LinkedList<>();
-
-    public static boolean disableCycledIngredients = true;
 
     public TemplateRecipeHandler() {
         loadTransferRects();
@@ -641,7 +608,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     public void onUpdate() {
-        if (!NEIClientUtils.shiftKey()) cycleticks++;
+        cycleticks++;
     }
 
     public boolean hasOverlay(GuiContainer gui, Container container, int recipe) {
@@ -700,47 +667,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
     @Override
     public boolean mouseScrolled(GuiRecipe<?> gui, int scroll, int recipe) {
-        if (!NEIClientUtils.shiftKey()) return false;
-
-        final Point pos = GuiDraw.getMousePosition();
-        final Point offset = gui.getRecipePosition(recipe);
-        final Point relMouse = new Point(pos.x - gui.guiLeft - offset.x, pos.y - gui.guiTop - offset.y);
-        final PositionedStack overStack = getIngredientMouseOver(relMouse.x, relMouse.y, recipe);
-
-        if (overStack != null && overStack.items.length > 1) {
-            final List<ItemStack> items = overStack.getFilteredPermutations();
-            final int stackIndex = getPermutationIndex(overStack.item, items);
-            final ItemStack stack = items.get((items.size() - scroll + stackIndex) % items.size());
-
-            if (NEIClientConfig.useJEIStyledCycledIngredients()) {
-                Stream.concat(getIngredientStacks(recipe).stream(), getOtherStacks(recipe).stream())
-                        .filter(pStack -> pStack.containsWithNBT(stack))
-                        .forEach(pStack -> pStack.setPermutationToRender(stack));
-            } else {
-                overStack.setPermutationToRender(stack);
-            }
-
-            return true;
-        }
-
         return false;
-    }
-
-    private int getPermutationIndex(ItemStack stack, List<ItemStack> items) {
-
-        for (int index = 0; index < items.size(); index++) {
-            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(items.get(index), stack)) {
-                return index;
-            }
-        }
-
-        return -1;
-    }
-
-    private PositionedStack getIngredientMouseOver(int mousex, int mousey, int recipe) {
-        return Stream.concat(getIngredientStacks(recipe).stream(), getOtherStacks(recipe).stream())
-                .filter(pStack -> new Rectangle4i(pStack.relx, pStack.rely, 18, 18).contains(mousex, mousey))
-                .findFirst().orElse(null);
     }
 
     private boolean transferRect(GuiRecipe<?> gui, int recipe, boolean usage) {

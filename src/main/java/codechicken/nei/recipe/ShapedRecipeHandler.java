@@ -54,7 +54,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
 
         @Override
         public List<PositionedStack> getIngredients() {
-            return getCycledIngredients(cycleticks / 20, ingredients);
+            return ingredients;
         }
 
         public PositionedStack getResult() {

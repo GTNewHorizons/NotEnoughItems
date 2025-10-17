@@ -251,7 +251,7 @@ public class ScrollContainer extends WidgetContainer {
                     getVisibleHeight(),
                     () -> drawContent(mousex, mousey));
 
-            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
 
             if (canScrollVertical) {
                 this.verticalScrollBar.draw(this, mousex, mousey, getScrollBarOpacity());

@@ -11,7 +11,7 @@ import codechicken.nei.NEIClientUtils;
 
 public class AcceptsFollowingTooltipLineHandler extends ItemsTooltipLineHandler {
 
-    protected static final int DEFAULT_MAX_ROWS = 5;
+    protected static final int DEFAULT_MAX_ROWS = 4;
 
     public Object tooltipGUID;
 

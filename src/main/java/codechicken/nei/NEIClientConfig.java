@@ -233,10 +233,6 @@ public class NEIClientConfig {
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.guirecipe.jeiStyleRecipeCatalyst", true));
 
-        tag.getTag("inventory.guirecipe.jeiStyleCycledIngredients").setComment("JEI styled cycled ingredients")
-                .getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.guirecipe.jeiStyleCycledIngredients", true));
-
         tag.getTag("inventory.guirecipe.cycledIngredientsTooltip").setComment("Show cycled ingredients tooltip")
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.guirecipe.cycledIngredientsTooltip", true));
@@ -1127,10 +1123,6 @@ public class NEIClientConfig {
 
     public static boolean optimizeGuiOverlapComputation() {
         return getBooleanSetting("inventory.optimize_gui_overlap_computation");
-    }
-
-    public static boolean useJEIStyledCycledIngredients() {
-        return getBooleanSetting("inventory.guirecipe.jeiStyleCycledIngredients");
     }
 
     public static boolean showCycledIngredientsTooltip() {

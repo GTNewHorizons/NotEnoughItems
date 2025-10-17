@@ -44,6 +44,10 @@ public interface IRecipeHandler {
         return getRecipeName();
     }
 
+    default int getRecipeHeight() {
+        return 0;
+    }
+
     /**
      *
      * @return The number of recipes that this handler contains.

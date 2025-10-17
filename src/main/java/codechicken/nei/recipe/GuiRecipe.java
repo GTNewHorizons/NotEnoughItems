@@ -351,8 +351,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         if (!cacheKey.equals(this.recipePageCacheKey)) {
             this.recipePageCacheKey = cacheKey;
 
-            final boolean recipeGrow = this.handlerInfo.getUseCustomScroll()
-                    && this.handlerInfo.getMaxRecipesPerPage() <= 1;
+            final boolean expandVertically = this.handlerInfo.expandVertically();
             final List<Widget> widgets = new ArrayList<>();
             int shiftY = 0;
 
@@ -361,7 +360,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                         .getRecipeWidget();
                 widget.setLocation(Math.max(0, (this.container.w - widget.w) / 2), shiftY);
 
-                if (recipeGrow) {
+                if (expandVertically) {
                     widget.h = Math.min(
                             this.handlerInfo.getHeight() + this.handlerInfo.getYShift(),
                             this.container.getVisibleHeight());
