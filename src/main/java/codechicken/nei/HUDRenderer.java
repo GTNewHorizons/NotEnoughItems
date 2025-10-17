@@ -42,13 +42,11 @@ public class HUDRenderer implements IKeyStateTracker {
                 && mc.objectMouseOver != null
                 && mc.objectMouseOver.typeOfHit == MovingObjectType.BLOCK) {
             World world = mc.theWorld;
-            ItemStack[] items = ItemInfo.getIdentifierItems(world, mc.thePlayer, mc.objectMouseOver)
-                    .toArray(new ItemStack[0]);
+            final List<ItemStack> items = ItemInfo.getIdentifierItems(world, mc.thePlayer, mc.objectMouseOver);
 
-            if (items.length == 0) return;
+            if (items.isEmpty()) return;
 
-            ItemStack stack = StackInfo.getItemStackWithMinimumDamage(items);
-
+            final ItemStack stack = StackInfo.getItemStackWithMinimumDamage(items.toArray(new ItemStack[0]));
             renderOverlay(stack, ItemInfo.getText(stack, world, mc.thePlayer, mc.objectMouseOver), getPositioning());
         }
     }

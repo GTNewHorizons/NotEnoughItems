@@ -421,30 +421,38 @@ public class ItemInfo {
         Block mouseoverBlock = world.getBlock(x, y, z);
 
         ArrayList<ItemStack> items = new ArrayList<>();
-
         ArrayList<IHighlightHandler> handlers = new ArrayList<>();
+
         if (highlightIdentifiers.containsKey(null)) handlers.addAll(highlightIdentifiers.get(null));
         if (highlightIdentifiers.containsKey(mouseoverBlock)) handlers.addAll(highlightIdentifiers.get(mouseoverBlock));
+
         for (IHighlightHandler ident : handlers) {
-            ItemStack item = ident.identifyHighlight(world, player, hit);
+            final ItemStack item = ident.identifyHighlight(world, player, hit);
             if (item != null) items.add(item);
         }
 
-        if (items.size() > 0) return items;
+        if (!items.isEmpty()) return items;
 
-        ItemStack pick = mouseoverBlock.getPickBlock(hit, world, x, y, z, player);
-        if (pick != null) items.add(pick);
+        try {
+            final ItemStack pick = mouseoverBlock.getPickBlock(hit, world, x, y, z, player);
+            if (pick != null) items.add(pick);
+        } catch (Exception ignored) {}
+
+        if (!items.isEmpty()) return items;
+
+        if (mouseoverBlock instanceof IShearable shearable) {
+            if (shearable.isShearable(new ItemStack(Items.shears), world, x, y, z)) {
+                items.addAll(shearable.onSheared(new ItemStack(Items.shears), world, x, y, z, 0));
+            }
+        }
+
+        if (!items.isEmpty()) return items;
 
         try {
             items.addAll(mouseoverBlock.getDrops(world, x, y, z, world.getBlockMetadata(x, y, z), 0));
         } catch (Exception ignored) {}
-        if (mouseoverBlock instanceof IShearable) {
-            IShearable shearable = (IShearable) mouseoverBlock;
-            if (shearable.isShearable(new ItemStack(Items.shears), world, x, y, z))
-                items.addAll(shearable.onSheared(new ItemStack(Items.shears), world, x, y, z, 0));
-        }
 
-        if (items.size() == 0) items.add(0, new ItemStack(mouseoverBlock, 1, world.getBlockMetadata(x, y, z)));
+        if (items.isEmpty()) items.add(new ItemStack(mouseoverBlock, 1, world.getBlockMetadata(x, y, z)));
 
         return items;
     }
