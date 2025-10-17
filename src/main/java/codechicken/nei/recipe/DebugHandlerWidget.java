@@ -180,6 +180,12 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
         this.handlerHeight = new IntegerField("handlerHeight", HandlerInfo.DEFAULT_HEIGHT) {
 
             @Override
+            public void draw(int mx, int my) {
+                this.field.setEnabled(handler.getRecipeHeight() <= 0);
+                super.draw(mx, my);
+            }
+
+            @Override
             public void onTextChange(String oldText) {
                 if (getInteger() != handlerInfo.getHeight()) {
                     handlerInfo.setHandlerDimensions(
