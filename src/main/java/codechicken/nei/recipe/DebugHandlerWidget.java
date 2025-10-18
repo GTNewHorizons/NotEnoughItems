@@ -181,7 +181,7 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
 
             @Override
             public void draw(int mx, int my) {
-                this.field.setEnabled(handler.getRecipeHeight() <= 0);
+                this.field.setEnabled(handler.getRecipeHeight(0) <= 0);
                 super.draw(mx, my);
             }
 
