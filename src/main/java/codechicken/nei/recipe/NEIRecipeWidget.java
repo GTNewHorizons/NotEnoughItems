@@ -58,8 +58,8 @@ public class NEIRecipeWidget extends Widget {
         this.w = Math.max(166, this.handlerInfo.getWidth());
 
         if (this.showAsWidget || !this.handlerInfo.expandVertically()) {
-            this.h = this.handlerRef.handler.getRecipeHeight() > 0 ? this.handlerRef.handler.getRecipeHeight()
-                    : this.handlerInfo.getHeight();
+            final int recipeHeight = this.handlerRef.handler.getRecipeHeight(this.handlerRef.recipeIndex);
+            this.h = recipeHeight > 0 ? recipeHeight : this.handlerInfo.getHeight();
             this.h += this.handlerInfo.getYShift();
         }
 
