@@ -24,6 +24,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiErrorScreen;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiSelectWorld;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.entity.Entity;
@@ -153,6 +154,7 @@ public class ClientHandler {
         loadHiddenHandlers();
         loadEnableAutoFocus();
         loadGuiCraftablesBlacklist();
+        loadDefaultBookmarkContainers();
         ItemInfo.preInit();
         StackInfo.loadGuidFilters();
     }
@@ -251,6 +253,20 @@ public class ClientHandler {
         loadSettingsFile(
                 "guicraftablesblacklist.cfg",
                 lines -> ItemCraftablesPanel.guiBlacklist = lines.collect(Collectors.toList()));
+    }
+
+    public static void loadDefaultBookmarkContainers() {
+        loadSettingsFile("defaultbookmarkcontainers.cfg", lines -> {
+            for (String clazz : lines.collect(Collectors.toList())) {
+                try {
+                    API.registerBookmarkContainerHandler(
+                            (Class<? extends GuiContainer>) Class.forName(clazz),
+                            new DefaultBookmarkContainerHandler());
+                } catch (Exception e) {
+                    NEIClientConfig.logger.error("Failed to load class '{}' for defaultbookmarkcontainers.cfg", clazz);
+                }
+            }
+        });
     }
 
     public static void loadHiddenItems() {
