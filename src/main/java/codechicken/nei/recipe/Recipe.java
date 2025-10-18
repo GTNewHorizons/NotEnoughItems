@@ -18,6 +18,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.ItemInfo;
@@ -311,7 +312,8 @@ public class Recipe {
         }
 
         public boolean contains(ItemStack stackA) {
-            return getPermutations().stream().anyMatch(stackB -> StackInfo.equalItemAndNBT(stackA, stackB, true));
+            return getPermutations().stream()
+                    .anyMatch(stackB -> NEIClientUtils.areStacksSameTypeWithNBT(stackB, stackA));
         }
 
         public List<ItemStack> getPermutations() {
