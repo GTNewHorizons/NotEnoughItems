@@ -229,9 +229,9 @@ public class NEIClientConfig {
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.guirecipe.jeiStyleTabs", true));
 
-        tag.getTag("inventory.guirecipe.jeiStyleRecipeCatalyst").setComment("Enable/disable JEI Style Recipe Catalysts")
-                .getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.guirecipe.jeiStyleRecipeCatalyst", true));
+        tag.getTag("inventory.guirecipe.jeiStyleRecipeCatalyst")
+                .setComment("JEI Style Recipe Catalysts (0 - none, 1 - grid, 2 - scroll)").getIntValue(1);
+        API.addOption(new OptionCycled("inventory.guirecipe.jeiStyleRecipeCatalyst", 3, true));
 
         tag.getTag("inventory.guirecipe.cycledIngredientsTooltip").setComment("Show cycled ingredients tooltip")
                 .getBooleanValue(true);
@@ -1105,8 +1105,8 @@ public class NEIClientConfig {
         return getBooleanSetting("inventory.guirecipe.slotHighlightPresent");
     }
 
-    public static boolean areJEIStyleRecipeCatalystsVisible() {
-        return getBooleanSetting("inventory.guirecipe.jeiStyleRecipeCatalyst");
+    public static int getJEIStyleRecipeCatalysts() {
+        return getIntSetting("inventory.guirecipe.jeiStyleRecipeCatalyst");
     }
 
     public static boolean useCreativeTabStyle() {

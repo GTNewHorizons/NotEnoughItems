@@ -65,8 +65,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private static final int BUTTON_WIDTH = 13;
     private static final int BUTTON_HEIGHT = 12;
 
-    protected static final ScrollBar VERTICAL_SCROLLBAR = new ScrollBar().setScrollbarSize(14)
-            .setOverflowType(OverflowType.AUTO).setScrollPlace(ScrollPlace.OUTSIDE)
+    protected static final ScrollBar VERTICAL_SCROLLBAR = new ScrollBar().setScrollbarSize(14).setMarginStart(-6)
+            .setOverflowType(OverflowType.AUTO).setScrollPlace(ScrollPlace.END)
             .setTrackTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 42, 90, 13, 21).build(), 9, 9)
             .setThumbTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 21, 96, 8, 9).build(), 3, 2)
             .setThumbPadding(6);
@@ -379,7 +379,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             } else {
                 this.container.setVerticalScroll(
                         ScrollBar.defaultVerticalBar().setOverflowType(OverflowType.OVERLAY)
-                                .setScrollPlace(ScrollPlace.OUTSIDE));
+                                .setScrollPlace(ScrollPlace.END));
             }
         }
 
@@ -422,7 +422,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         GuiRecipe.toggleSearch.state = 0;
 
         this.container.setVerticalScrollOffset(0);
-        this.container.setHorizontalScrollOffset(0);
         this.page = Math.min(Math.max(0, refIndex), this.numRecipes() - 1) / getRecipesPerPage();
         changePage(0);
 
@@ -709,10 +708,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         refreshPage();
         this.container.update();
 
-        this.recipeCatalyst.setAvailableHeight(this.container.h);
-        this.recipeCatalyst.update();
+        this.recipeCatalyst.setAvailableHeight(this.ySize - 5);
         this.recipeCatalyst.y = this.guiTop;
-        this.recipeCatalyst.x = this.guiLeft - this.recipeCatalyst.w + 6;
+        this.recipeCatalyst.x = this.guiLeft - this.recipeCatalyst.w + 4;
+        this.recipeCatalyst.update();
     }
 
     @Override
@@ -832,7 +831,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         if (this.page != oldPage) {
             this.container.setVerticalScrollOffset(0);
-            this.container.setHorizontalScrollOffset(0);
         }
 
     }
@@ -864,6 +862,11 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     public void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         GL11.glTranslatef(-guiLeft, -guiTop, 0);
         this.container.draw(mouseX, mouseY);
+
+        if (NEIClientConfig.getJEIStyleRecipeCatalysts() != 0 && this.recipeCatalyst.isShowWidget()) {
+            this.recipeCatalyst.draw(mouseX, mouseY);
+        }
+
         GL11.glTranslatef(guiLeft, guiTop, 0);
     }
 
@@ -940,11 +943,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             RenderHelper.enableGUIStandardItemLighting();
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
             this.recipeTabs.draw(mouseX, mouseY);
-
-            if (NEIClientConfig.areJEIStyleRecipeCatalystsVisible()) {
-                this.recipeCatalyst.draw(mouseX, mouseY);
-            }
-
             RenderHelper.disableStandardItemLighting();
         }
     }
@@ -1027,7 +1025,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         final Rectangle4i rect = new Rectangle4i(x, y, w, h);
         // Because some of the handlers *cough avaritia* are oversized
 
-        if (this.recipeCatalyst.isShowWidget() && this.recipeCatalyst.bounds().intersects(rect)) {
+        if (this.recipeCatalyst.isShowWidget() && this.recipeCatalyst.boundsOutside().intersects(rect)) {
             return true;
         }
 

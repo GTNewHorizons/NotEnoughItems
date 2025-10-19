@@ -14,7 +14,6 @@ import codechicken.nei.NEIClientUtils;
 import codechicken.nei.Widget;
 import codechicken.nei.WidgetContainer;
 import codechicken.nei.scroll.ScrollBar.OverflowType;
-import codechicken.nei.scroll.ScrollBar.ScrollPlace;
 import codechicken.nei.scroll.ScrollBar.ScrollType;
 
 public class ScrollContainer extends WidgetContainer {
@@ -34,8 +33,10 @@ public class ScrollContainer extends WidgetContainer {
     protected int actualWidth = 0;
     protected int actualHeight = 0;
 
-    protected int marginInline = 0;
-    protected int marginBlock = 0;
+    protected int paddingInlineStart = 0;
+    protected int paddingInlineEnd = 0;
+    protected int paddingBlockStart = 0;
+    protected int paddingBlockEnd = 0;
 
     protected final Map<Widget, Point> relativePostion = new HashMap<>();
     protected ScrollBar horizontalScrollBar;
@@ -45,30 +46,36 @@ public class ScrollContainer extends WidgetContainer {
     public Rectangle4i boundsOutside() {
         int width = this.w;
         int height = this.h;
+        int x = this.x;
+        int y = this.y;
 
         if (canScrollVertical() && (this.verticalScrollBar.getOverflowType() == OverflowType.SCROLL
                 || this.verticalScrollBar.getOverflowType() == OverflowType.AUTO)) {
-            width += this.verticalScrollBar.getMargin();
-
-            if (this.verticalScrollBar.getScrollPlace() == ScrollPlace.OUTSIDE) {
-                width += this.verticalScrollBar.getScrollbarSize();
-            }
+            final Rectangle4i trackBounds = this.verticalScrollBar.trackBounds(this);
+            x = Math.min(x, trackBounds.x);
+            y = Math.min(y, trackBounds.y);
+            height = Math.max(this.y + height, trackBounds.y + trackBounds.h) - y;
+            width = Math.max(this.x + width, trackBounds.x + trackBounds.w) - x;
         }
 
         if (canScrollHorizontal() && (this.horizontalScrollBar.getOverflowType() == OverflowType.SCROLL
                 || this.horizontalScrollBar.getOverflowType() == OverflowType.AUTO)) {
-            height += this.horizontalScrollBar.getMargin();
-
-            if (this.horizontalScrollBar.getScrollPlace() == ScrollPlace.OUTSIDE) {
-                height += this.horizontalScrollBar.getScrollbarSize();
-            }
+            final Rectangle4i trackBounds = this.horizontalScrollBar.trackBounds(this);
+            x = Math.min(x, trackBounds.x);
+            y = Math.min(y, trackBounds.y);
+            height = Math.max(this.y + height, trackBounds.y + trackBounds.h) - y;
+            width = Math.max(this.x + width, trackBounds.x + trackBounds.w) - x;
         }
 
         return new Rectangle4i(x, y, width, height);
     }
 
     public Rectangle4i boundsInside() {
-        return new Rectangle4i(x, y, getVisibleWidth(), getVisibleHeight());
+        return new Rectangle4i(
+                x + this.paddingInlineStart,
+                y + this.paddingBlockStart,
+                getVisibleWidth(),
+                getVisibleHeight());
     }
 
     @Override
@@ -92,31 +99,18 @@ public class ScrollContainer extends WidgetContainer {
         return this.relativePostion.get(widget);
     }
 
-    public void setMarginInline(int marginInline) {
-        this.marginInline = marginInline;
+    public void setPaddingInline(int start, int end) {
+        this.paddingInlineStart = start;
+        this.paddingInlineEnd = end;
     }
 
-    public void setMarginBlock(int marginBlock) {
-        this.marginBlock = marginBlock;
-    }
-
-    public int getMarginInline() {
-        return this.marginInline;
-    }
-
-    public int getMarginBlock() {
-        return this.marginBlock;
+    public void setPaddingBlock(int start, int end) {
+        this.paddingBlockStart = start;
+        this.paddingBlockEnd = end;
     }
 
     public int getVisibleWidth() {
-
-        if (canScrollVertical() && this.verticalScrollBar.getScrollPlace() == ScrollPlace.INSIDE
-                && (this.verticalScrollBar.getOverflowType() == OverflowType.SCROLL
-                        || this.verticalScrollBar.getOverflowType() == OverflowType.AUTO)) {
-            return this.w - this.verticalScrollBar.getScrollbarSize();
-        }
-
-        return this.w;
+        return this.w - this.paddingInlineStart - this.paddingInlineEnd;
     }
 
     public int getActualWidth() {
@@ -125,7 +119,7 @@ public class ScrollContainer extends WidgetContainer {
 
     public boolean setHorizontalScrollOffset(int offset) {
 
-        if (!canScrollHorizontal() && this.w < getActualWidth()) {
+        if (!canScrollHorizontal() && getVisibleWidth() < getActualWidth()) {
             offset = 0;
         }
 
@@ -150,9 +144,9 @@ public class ScrollContainer extends WidgetContainer {
     }
 
     public boolean canScrollHorizontal() {
-        return this.horizontalScrollBar != null
-                && (this.horizontalScrollBar.getOverflowType() != OverflowType.NONE && this.w < getActualWidth()
-                        || this.horizontalScrollBar.getOverflowType() == OverflowType.SCROLL);
+        return this.horizontalScrollBar != null && (this.horizontalScrollBar.getOverflowType() != OverflowType.NONE
+                && getVisibleWidth() < getActualWidth()
+                || this.horizontalScrollBar.getOverflowType() == OverflowType.SCROLL);
     }
 
     public ScrollBar getHorizontalScroll() {
@@ -174,14 +168,7 @@ public class ScrollContainer extends WidgetContainer {
     }
 
     public int getVisibleHeight() {
-
-        if (canScrollHorizontal() && this.horizontalScrollBar.getScrollPlace() == ScrollPlace.INSIDE
-                && (this.horizontalScrollBar.getOverflowType() == OverflowType.SCROLL
-                        || this.horizontalScrollBar.getOverflowType() == OverflowType.AUTO)) {
-            return this.h - this.horizontalScrollBar.getScrollbarSize();
-        }
-
-        return this.h;
+        return this.h - this.paddingBlockStart - this.paddingBlockEnd;
     }
 
     public int getActualHeight() {
@@ -190,7 +177,7 @@ public class ScrollContainer extends WidgetContainer {
 
     public boolean setVerticalScrollOffset(int offset) {
 
-        if (!canScrollVertical() && this.h < getActualHeight()) {
+        if (!canScrollVertical() && getVisibleHeight() < getActualHeight()) {
             offset = 0;
         }
 
@@ -215,9 +202,9 @@ public class ScrollContainer extends WidgetContainer {
     }
 
     public boolean canScrollVertical() {
-        return this.verticalScrollBar != null
-                && (this.verticalScrollBar.getOverflowType() != OverflowType.NONE && this.h < getActualHeight()
-                        || this.verticalScrollBar.getOverflowType() == OverflowType.SCROLL);
+        return this.verticalScrollBar != null && (this.verticalScrollBar.getOverflowType() != OverflowType.NONE
+                && getVisibleHeight() < getActualHeight()
+                || this.verticalScrollBar.getOverflowType() == OverflowType.SCROLL);
     }
 
     public ScrollBar getVerticalScroll() {
@@ -245,10 +232,10 @@ public class ScrollContainer extends WidgetContainer {
 
         if (canScrollVertical || canScrollHorizontal) {
             GuiHelper.useScissor(
-                    this.x,
-                    this.y,
-                    getVisibleWidth(),
-                    getVisibleHeight(),
+                    this.x + this.paddingInlineStart,
+                    this.y + this.paddingBlockStart,
+                    this.w - this.paddingInlineStart - this.paddingInlineEnd,
+                    this.h - this.paddingBlockStart - this.paddingBlockEnd,
                     () -> drawContent(mousex, mousey));
 
             GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
@@ -295,12 +282,15 @@ public class ScrollContainer extends WidgetContainer {
 
         super.update();
 
-        for (Widget widget : this.widgets) {
-            this.actualWidth = Math.max(this.actualWidth, widget.x + widget.w + this.marginInline * 2);
-            this.actualHeight = Math.max(this.actualHeight, widget.y + widget.h + this.marginBlock * 2);
+        final int x = this.x + this.paddingInlineStart - this.xScroll;
+        final int y = this.y + this.paddingBlockStart - this.yScroll;
 
-            widget.x += this.marginInline + this.x - this.xScroll;
-            widget.y += this.marginBlock + this.y - this.yScroll;
+        for (Widget widget : this.widgets) {
+            this.actualWidth = Math.max(this.actualWidth, widget.x + widget.w);
+            this.actualHeight = Math.max(this.actualHeight, widget.y + widget.h);
+
+            widget.x += x;
+            widget.y += y;
         }
 
         if (this.fade > 0) {
