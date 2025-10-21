@@ -182,7 +182,7 @@ public class NEIRecipeWidget extends Widget {
             GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
 
             if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
-                NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, -2130706433));
+                NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, 0x80FFFFFF));
             }
         }
 
@@ -190,7 +190,7 @@ public class NEIRecipeWidget extends Widget {
             GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
 
             if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
-                NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, -2130706433));
+                NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, 0x80FFFFFF));
             }
         }
 
@@ -199,7 +199,7 @@ public class NEIRecipeWidget extends Widget {
             GuiContainerManager.drawItem(pStackResult.relx, pStackResult.rely, pStackResult.item);
             if (pStackResult.contains(mouseX - this.x, mouseY - this.y - yShift)) {
                 NEIClientUtils.gl2DRenderContext(
-                        () -> GuiDraw.drawRect(pStackResult.relx, pStackResult.rely, 16, 16, -2130706433));
+                        () -> GuiDraw.drawRect(pStackResult.relx, pStackResult.rely, 16, 16, 0x80FFFFFF));
             }
         }
 

@@ -3,6 +3,8 @@ package codechicken.nei.recipe;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lwjgl.opengl.GL11;
+
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -35,7 +37,7 @@ public class GuiRecipeCatalyst extends ScrollContainer {
             GuiContainerManager.drawItem(this.x, this.y, this.pStack.item);
 
             if (contains(mx, my)) {
-                NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(this.x, this.y, this.w, this.h, -2130706433));
+                NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(this.x, this.y, this.w, this.h, 0x80FFFFFF));
             }
         }
 
@@ -154,6 +156,7 @@ public class GuiRecipeCatalyst extends ScrollContainer {
     public void draw(int mx, int my) {
         if (!this.showWidget) return;
 
+        GL11.glColor4f(1, 1, 1, 1);
         BG_TEXTURE.draw(this.x, this.y, this.w, this.h, BORDER_PADDING, BORDER_PADDING, BORDER_PADDING, BORDER_PADDING);
         FG_TEXTURE.draw(
                 this.x + this.paddingInlineStart - 1,
