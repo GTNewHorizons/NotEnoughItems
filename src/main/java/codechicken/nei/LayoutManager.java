@@ -907,6 +907,9 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         final int ty2 = ty + 20 - h2 - te;
         final int tx2 = 200 - w2 - te;
 
+        final boolean is2DTexture = GL11.glGetBoolean(GL11.GL_TEXTURE_2D);
+
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
         changeTexture("textures/gui/widgets.png");
         drawTexturedModalRect(x, y, tx1, ty1, w1, h1); // top left
         drawTexturedModalRect(x, y2, tx1, ty2, w1, h2); // bottom left
@@ -919,6 +922,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
         drawTexturedModalRect(x2, y, tx2, ty1, w2, h1); // top right
         drawTexturedModalRect(x2, y2, tx2, ty2, w2, h2); // bottom right
+
+        if (!is2DTexture) GL11.glDisable(GL11.GL_TEXTURE_2D);
     }
 
     public static void drawItemPresenceOverlay(int slotX, int slotY, boolean isPresent, boolean slotHighlight) {
