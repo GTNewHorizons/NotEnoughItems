@@ -52,7 +52,6 @@ import codechicken.nei.scroll.ScrollBar;
 import codechicken.nei.scroll.ScrollBar.OverflowType;
 import codechicken.nei.scroll.ScrollBar.ScrollPlace;
 import codechicken.nei.scroll.ScrollContainer;
-import codechicken.nei.util.NEIMouseUtils;
 import codechicken.nei.util.SlotInaccessible;
 
 public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer implements IGuiContainerOverlay,
@@ -72,8 +71,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             .setThumbPadding(6);
 
     public static final List<IRecipeFilterProvider> recipeFilterers = new LinkedList<>();
-
-    protected AcceptsFollowingTooltipLineHandler acceptsFollowingTooltipLineHandler;
 
     // some mods reflect this properties
     public ArrayList<H> currenthandlers = new ArrayList<>();
@@ -751,30 +748,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             currenttip = recipeWidget.handleItemTooltip(itemstack, mousex, mousey, currenttip);
         }
 
-        if (NEIClientConfig.showCycledIngredientsTooltip() && itemstack != null) {
-            PositionedStack hovered = null;
-
-            if (activeWidget instanceof NEIRecipeWidget recipeWidget) {
-                hovered = recipeWidget.getPositionedStackMouseOver(mousex, mousey);
-            }
-
-            if (hovered == null || hovered.items.length <= 1) {
-                this.acceptsFollowingTooltipLineHandler = null;
-            } else if (this.acceptsFollowingTooltipLineHandler == null
-                    || this.acceptsFollowingTooltipLineHandler.tooltipGUID != hovered) {
-                        this.acceptsFollowingTooltipLineHandler = AcceptsFollowingTooltipLineHandler
-                                .of(hovered, hovered.getFilteredPermutations(), hovered.item);
-                    }
-        } else if (this.acceptsFollowingTooltipLineHandler != null) {
-            this.acceptsFollowingTooltipLineHandler = null;
-        }
-
-        if (this.acceptsFollowingTooltipLineHandler != null) {
-            this.acceptsFollowingTooltipLineHandler
-                    .setActiveStack(((PositionedStack) this.acceptsFollowingTooltipLineHandler.tooltipGUID).item);
-            currenttip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(this.acceptsFollowingTooltipLineHandler));
-        }
-
         return currenttip;
     }
 
@@ -787,14 +760,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
             hotkeys = this.container.handleHotkeys(mousex, mousey, hotkeys);
-        }
-
-        if (this.acceptsFollowingTooltipLineHandler != null) {
-            hotkeys.put(
-                    NEIClientUtils.getKeyName(
-                            NEIClientUtils.SHIFT_HASH,
-                            NEIMouseUtils.MOUSE_BTN_NONE + NEIMouseUtils.MOUSE_SCROLL),
-                    NEIClientUtils.translate("recipe.accepts.scroll"));
         }
 
         return hotkeys;
