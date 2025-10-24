@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
+import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.recipe.Recipe.RecipeId;
 
 public class GroupingItem {
@@ -124,7 +125,7 @@ public class GroupingItem {
 
         final BookmarkItem item = this.grid.getCalculatedItem(itemIndex);
 
-        if (item.recipeId != null) {
+        if (item.recipeId != null && item.type != BookmarkItemType.ITEM) {
             final List<Integer> sortedItems = this.grid.getSortedItems();
             final BookmarkGroup group = this.grid.getGroup(item.groupId);
             final boolean isCollapsedGroup = group.collapsed
@@ -139,7 +140,7 @@ public class GroupingItem {
             for (Integer rItemIndex : sortedItems) {
                 final BookmarkItem rItem = this.grid.getCalculatedItem(rItemIndex);
 
-                if (rItem.groupId == item.groupId && (isCollapsedGroup || recipeRelations.contains(rItem.recipeId))) {
+                if (rItem.groupId == item.groupId && (isCollapsedGroup || rItem.type != BookmarkItemType.ITEM && recipeRelations.contains(rItem.recipeId))) {
                     return this.grid.getAbsoluteSlotIndex(rItemIndex) / this.grid.getColumns();
                 }
             }
@@ -160,7 +161,7 @@ public class GroupingItem {
 
         final BookmarkItem item = this.grid.getCalculatedItem(itemIndex);
 
-        if (item.recipeId != null) {
+        if (item.recipeId != null && item.type != BookmarkItemType.ITEM) {
             final List<Integer> sortedItems = this.grid.getSortedItems();
             final BookmarkGroup group = this.grid.getGroup(item.groupId);
             final boolean isCollapsedGroup = group.collapsed
@@ -176,7 +177,7 @@ public class GroupingItem {
                 final int rItemIndex = sortedItems.get(index);
                 final BookmarkItem rItem = this.grid.getCalculatedItem(rItemIndex);
 
-                if (rItem.groupId == item.groupId && (isCollapsedGroup || recipeRelations.contains(rItem.recipeId))) {
+                if (rItem.groupId == item.groupId && (isCollapsedGroup || rItem.type != BookmarkItemType.ITEM && recipeRelations.contains(rItem.recipeId))) {
                     return this.grid.getAbsoluteSlotIndex(rItemIndex) / this.grid.getColumns();
                 }
             }

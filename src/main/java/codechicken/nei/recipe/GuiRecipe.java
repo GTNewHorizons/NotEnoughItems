@@ -322,6 +322,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             }
         };
 
+        this.container.x = this.guiLeft + 3;
+        this.container.y = this.guiTop + 32;
+        this.container.h = this.ySize - 32 - 5;
+
         GuiRecipe.toggleSearch.icon = new DrawableBuilder("nei:textures/nei_sprites.png", 0, 76, 10, 10).build();
         GuiRecipe.toggleSearch.w = GuiRecipe.toggleSearch.h = 12;
         GuiRecipe.toggleSearch.x = this.guiLeft + BORDER_PADDING + BUTTON_WIDTH;
@@ -698,11 +702,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     public void updateScreen() {
         super.updateScreen();
 
-        this.container.x = this.guiLeft + 3;
-        this.container.y = this.guiTop + 32;
-
         this.container.w = Math.max(this.xSize - 6, this.handlerInfo.getWidth());
-        this.container.h = this.ySize - 32 - 5;
 
         this.handler.original.onUpdate();
         refreshPage();
