@@ -140,7 +140,8 @@ public class GroupingItem {
             for (Integer rItemIndex : sortedItems) {
                 final BookmarkItem rItem = this.grid.getCalculatedItem(rItemIndex);
 
-                if (rItem.groupId == item.groupId && (isCollapsedGroup || rItem.type != BookmarkItemType.ITEM && recipeRelations.contains(rItem.recipeId))) {
+                if (rItem.groupId == item.groupId && (isCollapsedGroup
+                        || rItem.type != BookmarkItemType.ITEM && recipeRelations.contains(rItem.recipeId))) {
                     return this.grid.getAbsoluteSlotIndex(rItemIndex) / this.grid.getColumns();
                 }
             }
@@ -177,7 +178,8 @@ public class GroupingItem {
                 final int rItemIndex = sortedItems.get(index);
                 final BookmarkItem rItem = this.grid.getCalculatedItem(rItemIndex);
 
-                if (rItem.groupId == item.groupId && (isCollapsedGroup || rItem.type != BookmarkItemType.ITEM && recipeRelations.contains(rItem.recipeId))) {
+                if (rItem.groupId == item.groupId && (isCollapsedGroup
+                        || rItem.type != BookmarkItemType.ITEM && recipeRelations.contains(rItem.recipeId))) {
                     return this.grid.getAbsoluteSlotIndex(rItemIndex) / this.grid.getColumns();
                 }
             }
