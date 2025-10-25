@@ -308,7 +308,7 @@ public class ItemList {
             action.run();
 
             if (stack.hasTagCompound() && hashOld != stack.stackTagCompound.hashCode()) {
-                FMLLog.warning("NEI: Forced tag update with reason (" + reason + ") for " + stack);
+                FMLLog.warning("NEI: Forced tag update with reason (" + reason + ") for " + stack + "(" + stack.getItem() + ")");
             }
         }
 
