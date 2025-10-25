@@ -330,6 +330,7 @@ public class ItemList {
             runChecked(stack, () -> item.getToolClasses(stack), "getToolClasses");
             runChecked(stack, () -> item.getUnlocalizedNameInefficiently(stack), "getUnlocalizedNameInefficiently");
             runChecked(stack, () -> item.hasEffect(stack), "hasEffect");
+            runChecked(stack, () -> item.getDigSpeed(stack, Blocks.stone, 0), "getDigSpeed");
 
             /*
              * unused... for now runChecked(stack, () -> GameRegistry.getFuelValue(stack), "getFuelValue");
