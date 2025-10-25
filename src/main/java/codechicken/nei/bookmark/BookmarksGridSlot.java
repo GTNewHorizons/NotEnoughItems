@@ -15,6 +15,7 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIClientUtils.Alignment;
 import codechicken.nei.bookmark.BookmarkGrid.BookmarkMouseContext;
+import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.RecipeChainDetails.CalculatedType;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.GuiRecipeTab;
@@ -89,7 +90,7 @@ public class BookmarksGridSlot extends ItemsGridSlot {
             this.realType = this.group.crafting.calculatedItems.get(this.itemIndex).calculatedType
                     == CalculatedType.INGREDIENT ? CalculatedType.INGREDIENT : CalculatedType.RESULT;
         } else {
-            this.realType = this.bookmarkItem.isIngredient
+            this.realType = this.bookmarkItem.type == BookmarkItemType.INGREDIENT
                     || this.group.crafting != null && this.bookmarkItem.recipeId == null ? CalculatedType.INGREDIENT
                             : CalculatedType.RESULT;
         }
@@ -97,9 +98,10 @@ public class BookmarksGridSlot extends ItemsGridSlot {
         final BookmarkGrid grid = ItemPanels.bookmarkPanel.getGrid();
         final BookmarkItem prevItem = grid.getCalculatedItem(
                 grid.gridGenerator.slotToItem.getOrDefault(grid.gridGenerator.itemToSlot.get(this.itemIndex) - 1, -1));
-        this.isFirstOutput = this.itemIndex >= 0 && !this.bookmarkItem.isIngredient
+        this.isFirstOutput = this.itemIndex >= 0 && this.bookmarkItem.type == BookmarkItemType.RESULT
                 && ((this.slotIndex % grid.getColumns()) == 0 || group.viewMode == BookmarkViewMode.DEFAULT)
-                && (prevItem == null || prevItem.isIngredient || !this.bookmarkItem.equalsRecipe(prevItem));
+                && (prevItem == null || prevItem.type == BookmarkItemType.INGREDIENT
+                        || !this.bookmarkItem.equalsRecipe(prevItem));
         this.rowIndex = this.slotIndex / grid.getColumns();
     }
 
@@ -116,8 +118,8 @@ public class BookmarksGridSlot extends ItemsGridSlot {
         return this.bookmarkItem.recipeId;
     }
 
-    public boolean isIngredient() {
-        return this.bookmarkItem.isIngredient;
+    public BookmarkItemType getType() {
+        return this.bookmarkItem.type;
     }
 
     public BookmarkGroup getGroup() {
@@ -151,11 +153,17 @@ public class BookmarksGridSlot extends ItemsGridSlot {
             return false;
         }
 
-        if (this.group.crafting != null) {
+        if (this.slotIndex == mouseContext.slotIndex || this.group.crafting != null) {
             return true;
         }
 
-        return this.bookmarkItem.equalsRecipe(mouseContext.recipeId, mouseContext.groupId);
+        if (this.bookmarkItem.type == BookmarkItemType.ITEM && this.group.viewMode == BookmarkViewMode.TODO_LIST
+                && mouseContext.rowIndex == this.rowIndex) {
+            return true;
+        }
+
+        return this.bookmarkItem.type != BookmarkItemType.ITEM
+                && this.bookmarkItem.equalsRecipe(mouseContext.recipeId, mouseContext.groupId);
     }
 
     protected boolean showRealItem(BookmarkMouseContext mouseContext) {
@@ -173,7 +181,8 @@ public class BookmarksGridSlot extends ItemsGridSlot {
             return true;
         }
 
-        if (this.bookmarkItem.equalsRecipe(mouseContext.recipeId, mouseContext.groupId)) {
+        if (this.bookmarkItem.type != BookmarkItemType.ITEM
+                && this.bookmarkItem.equalsRecipe(mouseContext.recipeId, mouseContext.groupId)) {
             return true;
         }
 
@@ -212,7 +221,7 @@ public class BookmarksGridSlot extends ItemsGridSlot {
 
         }
 
-        if (!this.bookmarkItem.isIngredient && this.bookmarkItem.recipeId != null
+        if (this.bookmarkItem.type != BookmarkItemType.INGREDIENT && this.bookmarkItem.recipeId != null
                 && calculatedType == null
                 && showMarker
                 && (mouseContext == null || mouseContext.slotIndex != this.slotIndex)) {
@@ -259,7 +268,7 @@ public class BookmarksGridSlot extends ItemsGridSlot {
 
         drawStackSize(rect, shownItemType);
 
-        if (this.bookmarkItem.isIngredient || this.bookmarkItem.recipeId == null) {
+        if (this.bookmarkItem.type == BookmarkItemType.INGREDIENT || this.bookmarkItem.recipeId == null) {
             return;
         }
 
@@ -283,18 +292,17 @@ public class BookmarksGridSlot extends ItemsGridSlot {
                         NEIClientConfig.getSetting("inventory.bookmarks.recipeMarkerColor").getHexValue(),
                         Alignment.TopLeft);
             }
+        }
 
-            if (NEIClientConfig.getBooleanSetting("inventory.bookmarks.showRecipeHandlerIcon")
-                    && getHandlerInfo() != null) {
-                drawHandlerIcon(rect);
-            } else if (NEIClientConfig.showRecipeMarkerMode() == 1) {
-                drawMarker(
-                        rect,
-                        "R",
-                        NEIClientConfig.getSetting("inventory.bookmarks.recipeMarkerColor").getHexValue(),
-                        Alignment.TopRight);
-            }
+        if (this.isFirstOutput || NEIClientConfig.showRecipeMarkerMode() == 1) {
+            drawRecipeMarker(rect);
+        }
+    }
 
+    protected void drawRecipeMarker(Rectangle4i rect) {
+        if (NEIClientConfig.getBooleanSetting("inventory.bookmarks.showRecipeHandlerIcon")
+                && getHandlerInfo() != null) {
+            drawHandlerIcon(rect);
         } else if (NEIClientConfig.showRecipeMarkerMode() == 1) {
             drawMarker(
                     rect,
@@ -302,7 +310,6 @@ public class BookmarksGridSlot extends ItemsGridSlot {
                     NEIClientConfig.getSetting("inventory.bookmarks.recipeMarkerColor").getHexValue(),
                     Alignment.TopRight);
         }
-
     }
 
     protected void drawHandlerIcon(Rectangle4i rect) {
