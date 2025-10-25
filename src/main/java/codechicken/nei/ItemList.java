@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
@@ -308,7 +309,13 @@ public class ItemList {
             action.run();
 
             if (stack.hasTagCompound() && hashOld != stack.stackTagCompound.hashCode()) {
-                FMLLog.warning("NEI: Forced tag update with reason (" + reason + ") for " + stack + "(" + stack.getItem() + ")");
+                FMLLog.warning(
+                        "NEI: Forced tag update with reason (" + reason
+                                + ") for "
+                                + stack
+                                + "("
+                                + stack.getItem()
+                                + ")");
             }
         }
 
