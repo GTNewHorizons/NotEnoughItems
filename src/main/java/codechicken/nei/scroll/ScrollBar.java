@@ -31,18 +31,21 @@ public class ScrollBar {
     }
 
     public enum ScrollPlace {
-        INSIDE,
-        OUTSIDE
+        START,
+        END
     }
 
     private ScrollType scrollType = ScrollType.VERTICAL;
     private OverflowType overflowType = OverflowType.SCROLL;
-    private ScrollPlace scrollPlace = ScrollPlace.INSIDE;
+    private ScrollPlace scrollPlace = ScrollPlace.END;
     private float handleClickOffset = -1;
 
     private int scrollbarSize = 6;
     private int thumbPadding = 0;
-    private int margin = 0;
+
+    private int padding = 0;
+    private int marginStart = 0;
+    private int marginEnd = 0;
 
     private DrawableResource thumbTexture;
     private int thumbSliceStart;
@@ -58,14 +61,13 @@ public class ScrollBar {
 
     public static ScrollBar defaultVerticalBar() {
         return new ScrollBar().setScrollbarSize(8)
-                .setTrackTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 29, 95, 12, 11).build(), 3, 4)
-                .setThumbTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 21, 96, 8, 9).build(), 3, 2)
+                .setTrackTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 28, 95, 11, 11).build(), 3, 4)
+                .setThumbTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 21, 96, 7, 9).build(), 3, 2)
                 .setThumbPadding(1);
     }
 
     public static ScrollBar defaultHorizontalBar() {
-        return new ScrollBar().setScrollbarSize(8).setOverflowType(OverflowType.SCROLL)
-                .setScrollPlace(ScrollPlace.INSIDE)
+        return new ScrollBar().setScrollbarSize(8).setOverflowType(OverflowType.SCROLL).setScrollPlace(ScrollPlace.END)
                 .setTrackTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 0, 97, 11, 8).build(), 3, 4)
                 .setThumbTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 12, 97, 9, 7).build(), 3, 2)
                 .setThumbPadding(1);
@@ -81,13 +83,31 @@ public class ScrollBar {
         return this;
     }
 
-    public ScrollBar setMargin(int margin) {
-        this.margin = margin;
+    public ScrollBar setPadding(int padding) {
+        this.padding = padding;
         return this;
     }
 
-    public int getMargin() {
-        return this.margin;
+    public int getPadding() {
+        return this.padding;
+    }
+
+    public ScrollBar setMarginStart(int start) {
+        this.marginStart = start;
+        return this;
+    }
+
+    public int getMarginStart() {
+        return this.marginStart;
+    }
+
+    public ScrollBar setMarginEnd(int end) {
+        this.marginEnd = end;
+        return this;
+    }
+
+    public int getMarginEnd() {
+        return this.marginEnd;
     }
 
     public int getScrollbarSize() {
@@ -153,22 +173,9 @@ public class ScrollBar {
 
     private int getMaxTrackSize(ScrollContainer container) {
         if (this.scrollType == ScrollType.HORIZONTAL) {
-            int visibleSize = container.w;
-
-            if (container.canScrollVertical() && container.getVerticalScroll().getScrollPlace() == ScrollPlace.INSIDE) {
-                visibleSize -= container.getVerticalScroll().getScrollbarSize();
-            }
-
-            return visibleSize;
+            return container.w - this.marginStart - this.marginEnd;
         } else {
-            int visibleSize = container.h;
-
-            if (container.canScrollHorizontal()
-                    && container.getHorizontalScroll().getScrollPlace() == ScrollPlace.INSIDE) {
-                visibleSize -= container.getHorizontalScroll().getScrollbarSize();
-            }
-
-            return visibleSize;
+            return container.h - this.marginStart - this.marginEnd;
         }
     }
 
@@ -205,23 +212,41 @@ public class ScrollBar {
     }
 
     public Rectangle4i trackBounds(ScrollContainer container) {
+
         if (this.scrollType == ScrollType.HORIZONTAL) {
-            return new Rectangle4i(
-                    container.x,
-                    container.y + container.h
-                            + this.margin
-                            - (this.scrollPlace == ScrollPlace.INSIDE ? scrollbarSize : 0),
-                    getMaxTrackSize(container),
-                    scrollbarSize);
+
+            if (this.scrollPlace == ScrollPlace.START) {
+                return new Rectangle4i(
+                        container.x + this.marginStart,
+                        container.y - this.padding - this.scrollbarSize,
+                        getMaxTrackSize(container),
+                        this.scrollbarSize);
+            } else {
+                return new Rectangle4i(
+                        container.x + this.marginStart,
+                        container.y + container.h + this.padding,
+                        getMaxTrackSize(container),
+                        this.scrollbarSize);
+            }
+
         } else {
-            return new Rectangle4i(
-                    container.x + container.w
-                            + this.margin
-                            - (this.scrollPlace == ScrollPlace.INSIDE ? scrollbarSize : 0),
-                    container.y,
-                    scrollbarSize,
-                    getMaxTrackSize(container));
+
+            if (this.scrollPlace == ScrollPlace.START) {
+                return new Rectangle4i(
+                        container.x - this.padding - this.scrollbarSize,
+                        container.y + this.marginStart,
+                        this.scrollbarSize,
+                        getMaxTrackSize(container));
+            } else {
+                return new Rectangle4i(
+                        container.x + container.w + this.padding,
+                        container.y + this.marginStart,
+                        this.scrollbarSize,
+                        getMaxTrackSize(container));
+            }
+
         }
+
     }
 
     public Rectangle4i thumbBounds(ScrollContainer container) {
@@ -388,9 +413,36 @@ public class ScrollBar {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         if (this.scrollType == ScrollType.HORIZONTAL) {
-            texture.draw(bounds.x, bounds.y, bounds.w, texture.getHeight(), sliceStart, sliceEnd, 0, 0);
+
+            if (this.scrollPlace == ScrollPlace.START) {
+                texture.draw(
+                        bounds.x,
+                        bounds.y + (bounds.h - texture.getHeight()) / 2,
+                        bounds.w,
+                        texture.getHeight(),
+                        sliceStart,
+                        sliceEnd,
+                        0,
+                        0);
+            } else {
+                texture.draw(bounds.x, bounds.y, bounds.w, texture.getHeight(), sliceStart, sliceEnd, 0, 0);
+            }
+
         } else {
-            texture.draw(bounds.x, bounds.y, texture.getWidth(), bounds.h, 0, 0, sliceStart, sliceEnd);
+
+            if (this.scrollPlace == ScrollPlace.START) {
+                texture.draw(
+                        bounds.x + (bounds.w - texture.getWidth()) / 2,
+                        bounds.y,
+                        texture.getWidth(),
+                        bounds.h,
+                        0,
+                        0,
+                        sliceStart,
+                        sliceEnd);
+            } else {
+                texture.draw(bounds.x, bounds.y, texture.getWidth(), bounds.h, 0, 0, sliceStart, sliceEnd);
+            }
         }
 
     }

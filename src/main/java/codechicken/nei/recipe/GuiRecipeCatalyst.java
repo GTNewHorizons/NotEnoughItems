@@ -3,13 +3,10 @@ package codechicken.nei.recipe;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.item.ItemStack;
-
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
@@ -18,8 +15,37 @@ import codechicken.nei.api.ShortcutInputHandler;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.scroll.ScrollBar;
+import codechicken.nei.scroll.ScrollContainer;
 
-public class GuiRecipeCatalyst extends Widget {
+public class GuiRecipeCatalyst extends ScrollContainer {
+
+    protected static class ItemStackWidget extends Widget {
+
+        private final PositionedStack pStack;
+
+        public ItemStackWidget(PositionedStack pStack) {
+            this.pStack = pStack;
+            this.x = pStack.relx;
+            this.y = pStack.rely;
+            this.w = SLOT_SIZE;
+            this.h = SLOT_SIZE;
+        }
+
+        @Override
+        public void draw(int mx, int my) {
+            GuiContainerManager.drawItem(this.x, this.y, this.pStack.item);
+
+            if (contains(mx, my)) {
+                NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(this.x, this.y, this.w, this.h, 0x80FFFFFF));
+            }
+        }
+
+        @Override
+        public boolean handleClick(int mx, int my, int button) {
+            return ShortcutInputHandler.handleMouseClick(this.pStack.item);
+        }
+    }
 
     private static final int SLOT_SIZE = 16;
     private static final int BORDER_PADDING = 6;
@@ -33,17 +59,29 @@ public class GuiRecipeCatalyst extends Widget {
     private static final DrawableResource FG_TEXTURE = new DrawableBuilder("nei:textures/slot.png", 0, 0, 18, 18)
             .setTextureSize(18, 18).build();
 
+    private static final ScrollBar VERTICAL_SCROLLBAR = ScrollBar.defaultVerticalBar()
+            .setOverflowType(ScrollBar.OverflowType.AUTO).setMarginStart(BORDER_PADDING).setMarginEnd(BORDER_PADDING)
+            .setPadding(-13).setScrollPlace(ScrollBar.ScrollPlace.START);
+
     private final List<PositionedStack> items = new ArrayList<>();
-    private int availableHeight = 0;
     private boolean showWidget = false;
+    private int availableHeight = 0;
+
+    public GuiRecipeCatalyst() {
+        setPaddingBlock(BORDER_PADDING + 1, BORDER_PADDING + 1);
+    }
 
     public void setCatalysts(List<PositionedStack> items) {
         this.items.clear();
         this.items.addAll(items);
+        createWidgets();
     }
 
     public void setAvailableHeight(int height) {
-        this.availableHeight = height;
+        if (this.availableHeight != height) {
+            this.availableHeight = height;
+            createWidgets();
+        }
     }
 
     public int getAvailableHeight() {
@@ -55,8 +93,11 @@ public class GuiRecipeCatalyst extends Widget {
     }
 
     public int getColumnCount() {
-        final int maxItemsPerColumn = Math.max(0, this.availableHeight - 2 - BORDER_PADDING * 2) / SLOT_SIZE;
-        return maxItemsPerColumn > 0 ? NEIServerUtils.divideCeil(this.items.size(), maxItemsPerColumn) : 0;
+        if (NEIClientConfig.getJEIStyleRecipeCatalysts() == 1) {
+            final int maxItemsPerColumn = Math.max(0, this.availableHeight - 2 - BORDER_PADDING * 2) / SLOT_SIZE;
+            return maxItemsPerColumn > 0 ? NEIServerUtils.divideCeil(this.items.size(), maxItemsPerColumn) : 0;
+        }
+        return 1;
     }
 
     public int getRowCount() {
@@ -64,20 +105,35 @@ public class GuiRecipeCatalyst extends Widget {
         return columnCount > 0 ? NEIServerUtils.divideCeil(this.items.size(), columnCount) : 0;
     }
 
-    @Override
-    public void update() {
+    protected void createWidgets() {
         final int columns = getColumnCount();
         final int rows = getRowCount();
 
+        setVerticalScroll(null);
+        setPaddingInline(BORDER_PADDING + 1, BORDER_PADDING - 3);
+
+        this.h = rows * SLOT_SIZE + this.paddingBlockStart + this.paddingBlockEnd;
+        this.w = columns * SLOT_SIZE + this.paddingInlineStart + this.paddingInlineEnd;
+
+        if (NEIClientConfig.getJEIStyleRecipeCatalysts() == 2
+                && rows * SLOT_SIZE + this.paddingBlockStart + this.paddingBlockEnd > this.availableHeight) {
+            this.h = Math.min(this.h, this.availableHeight);
+            this.w += VERTICAL_SCROLLBAR.getScrollbarSize();
+
+            setVerticalScroll(VERTICAL_SCROLLBAR);
+            setPaddingInline(BORDER_PADDING + 1 + VERTICAL_SCROLLBAR.getScrollbarSize(), this.paddingInlineEnd);
+        }
+
         this.showWidget = rows * columns > 0;
-        this.w = columns * SLOT_SIZE + 2 + BORDER_PADDING * 2;
-        this.h = rows * SLOT_SIZE + 2 + BORDER_PADDING * 2;
 
         if (rows == 0 || columns == 0) {
             return;
         }
 
+        final int visibleWidth = getVisibleWidth();
+        final List<Widget> widgets = new ArrayList<>();
         int index = 0;
+
         for (PositionedStack pStack : this.items) {
 
             if (pStack.items.length > 1) {
@@ -86,73 +142,43 @@ public class GuiRecipeCatalyst extends Widget {
                 pStack.setPermutationToRender(stackIndex);
             }
 
-            pStack.relx = this.w - BORDER_PADDING - 1 - SLOT_SIZE - (index / rows) * SLOT_SIZE;
-            pStack.rely = BORDER_PADDING + 1 + (index % rows) * SLOT_SIZE;
+            pStack.relx = visibleWidth - SLOT_SIZE - (index / rows) * SLOT_SIZE;
+            pStack.rely = (index % rows) * SLOT_SIZE;
             index++;
+
+            widgets.add(new ItemStackWidget(pStack));
         }
 
+        setWidgets(widgets);
     }
 
     @Override
     public void draw(int mx, int my) {
         if (!this.showWidget) return;
 
-        GL11.glTranslatef(this.x, this.y, 0);
         GL11.glColor4f(1, 1, 1, 1);
-
-        BG_TEXTURE.draw(0, 0, this.w, this.h, BORDER_PADDING, BORDER_PADDING, BORDER_PADDING, BORDER_PADDING);
+        BG_TEXTURE.draw(this.x, this.y, this.w, this.h, BORDER_PADDING, BORDER_PADDING, BORDER_PADDING, BORDER_PADDING);
         FG_TEXTURE.draw(
-                BORDER_PADDING,
-                BORDER_PADDING,
-                this.w - BORDER_PADDING * 2,
-                this.h - BORDER_PADDING * 2,
+                this.x + this.paddingInlineStart - 1,
+                this.y + this.paddingBlockStart - 1,
+                this.w - this.paddingInlineStart - this.paddingInlineEnd + 2,
+                this.h - this.paddingBlockStart - this.paddingBlockEnd + 2,
                 1,
                 1,
                 1,
                 1);
 
-        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
-        RenderHelper.enableGUIStandardItemLighting();
-        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-
-        for (PositionedStack pStack : this.items) {
-            GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
-
-            if (pStack.contains(mx - this.x, my - this.y)) {
-                NEIClientUtils.gl2DRenderContext(
-                        () -> GuiDraw.drawRect(pStack.relx, pStack.rely, SLOT_SIZE, SLOT_SIZE, -2130706433));
-            }
-        }
-
-        GL11.glPopAttrib();
-        GL11.glTranslatef(-this.x, -this.y, 0);
+        super.draw(mx, my);
     }
 
     public PositionedStack getPositionedStackMouseOver(int mx, int my) {
+        final Widget widget = getWidgetUnderMouse(mx, my);
 
-        for (PositionedStack pStack : this.items) {
-            if (pStack.contains(mx - this.x, my - this.y)) {
-                return pStack;
-            }
+        if (widget instanceof ItemStackWidget stackWidget) {
+            return stackWidget.pStack;
         }
 
         return null;
-    }
-
-    @Override
-    public ItemStack getStackMouseOver(int mx, int my) {
-        final PositionedStack pStack = getPositionedStackMouseOver(mx, my);
-
-        if (pStack != null) {
-            return pStack.item;
-        }
-
-        return null;
-    }
-
-    @Override
-    public boolean handleClick(int mx, int my, int button) {
-        return ShortcutInputHandler.handleMouseClick(getStackMouseOver(mx, my));
     }
 
     @Deprecated

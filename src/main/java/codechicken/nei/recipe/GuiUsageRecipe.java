@@ -91,7 +91,7 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
     private static IUsageHandler getUsageOrCatalystHandler(IUsageHandler handler, String inputId,
             Object... ingredients) {
         boolean skipCatalyst = NEIClientUtils.controlKey();
-        if (NEIClientConfig.areJEIStyleRecipeCatalystsVisible() && !skipCatalyst) {
+        if (NEIClientConfig.getJEIStyleRecipeCatalysts() != 0 && !skipCatalyst) {
             return handler.getUsageAndCatalystHandler(inputId, ingredients);
         } else {
             return handler.getUsageHandler(inputId, ingredients);
