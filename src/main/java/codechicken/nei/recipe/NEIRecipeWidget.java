@@ -23,7 +23,6 @@ import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
-import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.Widget;
 import codechicken.nei.api.IGuiContainerOverlay;
@@ -345,7 +344,7 @@ public class NEIRecipeWidget extends Widget {
 
         if (overStack != null && overStack.items.length > 1) {
             final List<ItemStack> items = overStack.getFilteredPermutations();
-            final int stackIndex = indexOf(items, overStack.item);
+            final int stackIndex = overStack.getPermutationIndex(overStack.item);
             final ItemStack stack = items.get((items.size() - scroll + stackIndex) % items.size());
 
             Stream.concat(
@@ -358,15 +357,6 @@ public class NEIRecipeWidget extends Widget {
         }
 
         return false;
-    }
-
-    protected int indexOf(List<ItemStack> list, ItemStack stack) {
-        for (int i = 0; i < list.size(); i++) {
-            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(list.get(i), stack)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     protected <R> R forEachButtons(Function<GuiRecipeButton, R> callback, R defaultValue) {
