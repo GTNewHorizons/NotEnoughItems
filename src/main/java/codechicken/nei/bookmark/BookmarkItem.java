@@ -17,6 +17,21 @@ import codechicken.nei.recipe.StackInfo;
 
 public class BookmarkItem {
 
+    public enum BookmarkItemType {
+
+        INGREDIENT,
+        RESULT,
+        ITEM;
+
+        public static BookmarkItemType fromInt(int type) {
+            return type == 0 ? ITEM : type == 1 ? RESULT : INGREDIENT;
+        }
+
+        public int toInt() {
+            return this == ITEM ? 0 : this == RESULT ? 1 : 2;
+        }
+    }
+
     private static Map<ItemStack, String> fuzzyPermutations = new HashMap<>();
 
     public int groupId;
@@ -28,10 +43,10 @@ public class BookmarkItem {
 
     public long factor;
     public RecipeId recipeId;
-    public boolean isIngredient = false;
+    public BookmarkItemType type = BookmarkItemType.ITEM;
 
     protected BookmarkItem(int groupId, long amount, int fluidCellAmount, ItemStack itemStack,
-            Map<String, ItemStack> permutations, long factor, RecipeId recipeId, boolean isIngredient) {
+            Map<String, ItemStack> permutations, long factor, RecipeId recipeId, BookmarkItemType type) {
         this.groupId = groupId;
 
         this.amount = amount;
@@ -41,10 +56,10 @@ public class BookmarkItem {
 
         this.factor = factor;
         this.recipeId = recipeId;
-        this.isIngredient = isIngredient;
+        this.type = type == null ? BookmarkItemType.ITEM : type;
     }
 
-    public static BookmarkItem of(int groupId, ItemStack stack, long factor, RecipeId recipeId, boolean isIngredient,
+    public static BookmarkItem of(int groupId, ItemStack stack, long factor, RecipeId recipeId, BookmarkItemType type,
             Map<String, ItemStack> permutations) {
         final FluidStack fluidStack = StackInfo.getFluid(stack);
         int fluidCellAmount = 1;
@@ -65,18 +80,29 @@ public class BookmarkItem {
                 permutations,
                 factor * fluidCellAmount,
                 recipeId,
-                isIngredient);
+                type);
     }
 
-    public static BookmarkItem of(int groupId, ItemStack stack, long factor, RecipeId recipeId, boolean isIngredient) {
-        return of(groupId, stack, factor, recipeId, isIngredient, generatePermutations(stack, recipeId, isIngredient));
+    public static BookmarkItem of(int groupId, ItemStack stack, long factor, RecipeId recipeId, BookmarkItemType type) {
+        return of(
+                groupId,
+                stack,
+                factor,
+                recipeId,
+                type,
+                generatePermutations(stack, recipeId, type == BookmarkItemType.INGREDIENT));
     }
 
     public static BookmarkItem of(int groupId, ItemStack stack) {
         final NBTTagCompound nbTag = StackInfo.itemStackToNBT(stack);
         final long factor = nbTag.hasKey("gtFluidName") ? Math.min(144, nbTag.getInteger("Count")) : 1;
-        return BookmarkItem
-                .of(groupId, stack, factor, null, false, Collections.singletonMap(getItemGUID(stack), stack));
+        return BookmarkItem.of(
+                groupId,
+                stack,
+                factor,
+                null,
+                BookmarkItemType.ITEM,
+                Collections.singletonMap(getItemGUID(stack), stack));
     }
 
     public BookmarkItem copyWithAmount(long amount) {
@@ -88,7 +114,7 @@ public class BookmarkItem {
                 this.permutations,
                 this.factor,
                 this.recipeId,
-                this.isIngredient);
+                this.type);
     }
 
     public BookmarkItem copy() {
@@ -186,14 +212,14 @@ public class BookmarkItem {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.groupId, this.fluidCellAmount, this.isIngredient, this.recipeId);
+        return Objects.hash(this.groupId, this.fluidCellAmount, this.type.toInt(), this.recipeId);
     }
 
     @Override
     public boolean equals(Object object) {
 
         if (object instanceof BookmarkItem item) {
-            return this.groupId == item.groupId && this.isIngredient == item.isIngredient
+            return this.groupId == item.groupId && this.type == item.type
                     && this.fluidCellAmount == item.fluidCellAmount
                     && StackInfo.equalItemAndNBT(this.itemStack, item.itemStack, true)
                     && (this.recipeId == item.recipeId || this.recipeId != null && this.recipeId.equals(item.recipeId));
