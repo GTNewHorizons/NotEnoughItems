@@ -62,6 +62,11 @@ public class FormattedTextField extends GuiTextField {
     }
 
     @Override
+    public void setText(String rawText) {
+        super.setText(EnumChatFormatting.getTextWithoutFormattingCodes(rawText));
+    }
+
+    @Override
     public void setSelectionPos(int p_146199_1_) {
         String text = this.getText();
         int j = text.length();
