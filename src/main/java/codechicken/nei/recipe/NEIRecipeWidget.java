@@ -34,9 +34,9 @@ import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
 public class NEIRecipeWidget extends Widget {
 
     protected final WeakHashMap<PositionedStack, List<ItemStack>> permutations = new WeakHashMap<>();
-    protected boolean needUpdate = true;
+    protected boolean update = true;
     protected int cycleticks = 0;
-    protected int lastcycle = 0;
+    protected int lastcycle = -1;
 
     protected final RecipeHandlerRef handlerRef;
     protected final HandlerInfo handlerInfo;
@@ -64,10 +64,7 @@ public class NEIRecipeWidget extends Widget {
             this.h += this.handlerInfo.getYShift();
         }
 
-        if (!this.needUpdate && !NEIClientUtils.shiftKey() && (this.cycleticks++) / 20 != this.lastcycle) {
-            this.lastcycle = this.cycleticks / 20;
-            this.needUpdate = true;
-        }
+        this.update = true;
     }
 
     public List<GuiRecipeButton> getRecipeButtons() {
@@ -163,9 +160,17 @@ public class NEIRecipeWidget extends Widget {
     public void draw(int mouseX, int mouseY) {
         final int yShift = this.handlerInfo.getYShift();
 
-        if (this.needUpdate) {
-            this.needUpdate = false;
-            updatePermutations();
+        if (this.update) {
+            this.update = false;
+
+            if (!NEIClientUtils.shiftKey() && (this.cycleticks++) / 20 != this.lastcycle || this.lastcycle == -1) {
+                this.lastcycle = this.cycleticks / 20;
+                updatePermutations();
+            }
+
+            for (GuiRecipeButton button : getRecipeButtons()) {
+                button.update();
+            }
         }
 
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
