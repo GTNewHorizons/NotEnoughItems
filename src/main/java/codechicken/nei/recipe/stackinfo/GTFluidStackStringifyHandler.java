@@ -19,9 +19,8 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
     protected static Class<?> itemFluidDisplay = null;
     protected static Method getFluidDisplayStack = null;
     protected static Method getFluidFromDisplayStack = null;
-    public static boolean replaceAE2FCFluidDrop = false;
-    private static Class<?> gtMetaGeneratedTool = null;
-    private static Field playSound = null;
+    protected static Class<?> gtMetaGeneratedTool = null;
+    protected static Field playSound = null;
 
     static {
         try {
@@ -48,7 +47,7 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
 
     public NBTTagCompound convertItemStackToNBT(ItemStack stack, boolean saveStackSize) {
 
-        if (replaceAE2FCFluidDrop || stack.getItem() != GameRegistry.findItem("ae2fc", "fluid_drop")) {
+        if (stack.getItem() != GameRegistry.findItem("ae2fc", "fluid_drop")) {
             final FluidStack fluidStack = getFluid(stack);
 
             if (fluidStack != null) {
@@ -69,14 +68,11 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
             final Fluid fluid = FluidRegistry.getFluid(fluidName);
             final int amount = nbtTag.getInteger("Count");
 
-            try {
-                final Object obj = getFluidDisplayStack.invoke(null, new FluidStack(fluid, amount), true);
-
-                if (obj != null) {
-                    return (ItemStack) obj;
-                }
-
-            } catch (Exception e) {}
+            if (fluid != null) {
+                try {
+                    return (ItemStack) getFluidDisplayStack.invoke(null, new FluidStack(fluid, amount), true);
+                } catch (Exception e) {}
+            }
         }
 
         return null;
@@ -110,6 +106,21 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
                 }
             }
         } catch (Exception e) {}
+
+        return null;
+    }
+
+    public ItemStack normalizeRecipeQueryStack(ItemStack stack) {
+
+        if (stack.getItem() == GameRegistry.findItem("ae2fc", "fluid_drop")) {
+            final FluidStack fluidStack = getFluid(stack);
+
+            if (fluidStack != null) {
+                try {
+                    return (ItemStack) getFluidDisplayStack.invoke(null, fluidStack, true);
+                } catch (Exception e) {}
+            }
+        }
 
         return null;
     }
