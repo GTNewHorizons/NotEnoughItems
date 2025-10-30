@@ -16,6 +16,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import codechicken.nei.ItemStackAmount;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.BookmarkItem;
+import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.Recipe.RecipeIngredient;
@@ -52,20 +53,12 @@ public class RecipeChainMath {
     private final List<ItemStack> containerItemsBlacklist = new ArrayList<>();
 
     private RecipeChainMath(List<BookmarkItem> recipeItems, Set<RecipeId> collapsedRecipes) {
-        final Map<RecipeId, Integer> recipeState = new HashMap<>();
         final Map<RecipeId, Long> multipliers = new HashMap<>();
 
         for (BookmarkItem item : recipeItems) {
-            if (item.recipeId != null) {
-                recipeState
-                        .put(item.recipeId, recipeState.getOrDefault(item.recipeId, 0) | (item.isIngredient ? 1 : 2));
-            }
-        }
-
-        for (BookmarkItem item : recipeItems) {
-            if (recipeState.getOrDefault(item.recipeId, 0) != 3) {
+            if (item.recipeId == null || item.type == BookmarkItemType.ITEM) {
                 this.initialItems.add(item.copy());
-            } else if (item.isIngredient) {
+            } else if (item.type == BookmarkItemType.INGREDIENT) {
                 this.recipeIngredients.add(item.copyWithAmount(0));
             } else {
                 this.recipeResults.add(item.copyWithAmount(0));
@@ -209,7 +202,7 @@ public class RecipeChainMath {
                                 item.getItemStack(amount),
                                 item.getStackSize(amount),
                                 ROOT_RECIPE_ID,
-                                true,
+                                BookmarkItemType.INGREDIENT,
                                 BookmarkItem.generatePermutations(item.itemStack, null)));
             }
         }
@@ -217,7 +210,7 @@ public class RecipeChainMath {
         this.outputRecipes.clear();
         this.outputRecipes.put(ROOT_RECIPE_ID, 1L);
         this.recipeResults.removeIf(item -> ROOT_RECIPE_ID.equals(item.recipeId));
-        this.recipeResults.add(BookmarkItem.of(-1, ROOT_ITEM, 1, ROOT_RECIPE_ID, false));
+        this.recipeResults.add(BookmarkItem.of(-1, ROOT_ITEM, 1, ROOT_RECIPE_ID, BookmarkItemType.RESULT));
         this.recipeIngredients.addAll(rootIngredients);
 
         return ROOT_RECIPE_ID;
@@ -236,7 +229,7 @@ public class RecipeChainMath {
         final RecipeId recipeId = recipe.getRecipeId();
         final ItemStack result = recipe.getResult();
 
-        chainItems.add(BookmarkItem.of(-1, result, StackInfo.getAmount(result), recipeId, false));
+        chainItems.add(BookmarkItem.of(-1, result, StackInfo.getAmount(result), recipeId, BookmarkItemType.RESULT));
 
         for (RecipeIngredient ingr : recipe.getIngredients()) {
             chainItems.add(
@@ -245,7 +238,7 @@ public class RecipeChainMath {
                             ingr.getItemStack(),
                             ingr.getAmount(),
                             recipeId,
-                            true,
+                            BookmarkItemType.INGREDIENT,
                             BookmarkItem.generatePermutations(ingr.getItemStack(), recipe)));
         }
 

@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.ItemSorter;
+import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.RecipeChainDetails.BookmarkChainItem;
 import codechicken.nei.bookmark.RecipeChainDetails.CalculatedType;
 import codechicken.nei.recipe.Recipe.RecipeId;
@@ -165,7 +166,7 @@ public class BookmarkGridGenerator {
                 break;
             }
 
-            if (!bookmarkItem.isIngredient
+            if (bookmarkItem.type != BookmarkItemType.INGREDIENT
                     && (group.crafting == null || group.crafting.calculatedItems.containsKey(itemIndex))) {
                 results.add(itemIndex);
             }
@@ -193,7 +194,7 @@ public class BookmarkGridGenerator {
                     bookmarkItem.itemStack,
                     1,
                     bookmarkItem.recipeId,
-                    isIngredient,
+                    isIngredient ? BookmarkItemType.INGREDIENT : BookmarkItemType.RESULT,
                     Collections.emptyMap());
 
             if ((absoluteSlotIndex = nextSlotIndex(
@@ -238,17 +239,21 @@ public class BookmarkGridGenerator {
                 return index;
             } else if (isFirstColumn && (meta.recipeId == null || previousMeta == null
                     || previousMeta.groupId != meta.groupId
+                    || meta.type == BookmarkItemType.ITEM
                     || !meta.recipeId.equals(previousMeta.recipeId)
                     || index + 1 < maxIndex && this.grid.isInvalidSlot((index + 1) % maxIndex))) {
                         // In first column must be an item without recipe, a recipe result, or an ingredient
                         // if the second column is occupied
                         return index;
                     } else
-                if (!isFirstColumn && meta.recipeId != null && meta.recipeId.equals(previousMeta.recipeId)) {
-                    return index;
-                } else {
-                    index++;
-                }
+                if (!isFirstColumn && meta.type != BookmarkItemType.ITEM
+                        && previousMeta.type != BookmarkItemType.ITEM
+                        && meta.recipeId != null
+                        && meta.recipeId.equals(previousMeta.recipeId)) {
+                            return index;
+                        } else {
+                            index++;
+                        }
 
         }
 
