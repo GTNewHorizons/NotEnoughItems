@@ -664,12 +664,12 @@ public class GuiContainerManager {
                 }
             }
 
+            hotkeys.remove(null);
+            hotkeys.remove("");
+
             if (!hotkeys.isEmpty()) {
                 List<String> hotkeystips = new ArrayList<>();
-
                 Map<String, List<String>> messages = new HashMap<>();
-                hotkeys.remove(null);
-                hotkeys.remove("");
 
                 for (Map.Entry<String, String> entry : hotkeys.entrySet()) {
                     messages.computeIfAbsent(entry.getValue(), m -> new ArrayList<>()).add(entry.getKey());
@@ -704,13 +704,19 @@ public class GuiContainerManager {
             }
 
         } else if (NEIClientConfig.getBooleanSetting("inventory.hotkeysHelpText")) {
+            Map<String, String> hotkeys = new HashMap<>();
             boolean existsHotkeys = false;
 
             synchronized (instanceTooltipHandlers) {
                 for (IContainerTooltipHandler handler : instanceTooltipHandlers) {
-                    if (!handler.handleHotkeys(window, mousex, mousey, new HashMap<>()).isEmpty()) {
-                        existsHotkeys = true;
-                        break;
+                    if (!(hotkeys = handler.handleHotkeys(window, mousex, mousey, hotkeys)).isEmpty()) {
+                        hotkeys.remove("");
+                        hotkeys.remove(null);
+
+                        if (!hotkeys.isEmpty()) {
+                            existsHotkeys = true;
+                            break;
+                        }
                     }
                 }
             }
