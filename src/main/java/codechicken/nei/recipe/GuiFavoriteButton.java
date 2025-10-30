@@ -72,7 +72,7 @@ public class GuiFavoriteButton extends GuiRecipeButton {
     }
 
     public boolean isFavorite() {
-        return favorite;
+        return this.favorite;
     }
 
     public void toggleFavorite() {
@@ -84,6 +84,11 @@ public class GuiFavoriteButton extends GuiRecipeButton {
 
         FavoriteRecipes
                 .setFavorite(this.favoriteResult.getItemStack(), this.favorite ? this.recipe.getRecipeId() : null);
+    }
+
+    @Override
+    public void update() {
+        this.favorite = this.favorite && FavoriteRecipes.getFavorite(this.recipe.getRecipeId()) != null;
     }
 
     @Override
