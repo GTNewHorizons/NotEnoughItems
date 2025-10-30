@@ -34,10 +34,9 @@ import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
 public class NEIRecipeWidget extends Widget {
 
     protected final WeakHashMap<PositionedStack, List<ItemStack>> permutations = new WeakHashMap<>();
-    protected boolean btnUpdate = true;
-    protected boolean ingrUpdate = true;
+    protected boolean update = true;
     protected int cycleticks = 0;
-    protected int lastcycle = 0;
+    protected int lastcycle = -1;
 
     protected final RecipeHandlerRef handlerRef;
     protected final HandlerInfo handlerInfo;
@@ -65,12 +64,7 @@ public class NEIRecipeWidget extends Widget {
             this.h += this.handlerInfo.getYShift();
         }
 
-        if (!this.ingrUpdate && !NEIClientUtils.shiftKey() && (this.cycleticks++) / 20 != this.lastcycle) {
-            this.lastcycle = this.cycleticks / 20;
-            this.ingrUpdate = true;
-        }
-
-        this.btnUpdate = true;
+        this.update = true;
     }
 
     public List<GuiRecipeButton> getRecipeButtons() {
@@ -166,13 +160,14 @@ public class NEIRecipeWidget extends Widget {
     public void draw(int mouseX, int mouseY) {
         final int yShift = this.handlerInfo.getYShift();
 
-        if (this.ingrUpdate) {
-            this.ingrUpdate = false;
-            updatePermutations();
-        }
+        if (this.update) {
+            this.update = false;
 
-        if (this.btnUpdate) {
-            this.btnUpdate = false;
+            if (!NEIClientUtils.shiftKey() && (this.cycleticks++) / 20 != this.lastcycle || this.lastcycle == -1) {
+                this.lastcycle = this.cycleticks / 20;
+                updatePermutations();
+            }
+
             for (GuiRecipeButton button : getRecipeButtons()) {
                 button.update();
             }
