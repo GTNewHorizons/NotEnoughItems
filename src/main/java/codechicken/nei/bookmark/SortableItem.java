@@ -9,6 +9,7 @@ import java.util.Map;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.ItemsGrid;
+import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.RecipeChainDetails.BookmarkChainItem;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.Recipe.RecipeId;
@@ -30,10 +31,10 @@ public class SortableItem {
 
         this.grid = grid;
         this.bookmarkItem = bookmarkItem.copy();
-        this.moveRecipe = bookmarkItem.recipeId != null && !bookmarkItem.isIngredient
+        this.moveRecipe = bookmarkItem.recipeId != null && bookmarkItem.type == BookmarkItemType.RESULT
                 && (group.viewMode == BookmarkViewMode.TODO_LIST || group.crafting != null);
         this.crossGroup = !group.collapsed && group.viewMode == BookmarkViewMode.TODO_LIST
-                && !this.bookmarkItem.isIngredient;
+                && bookmarkItem.type != BookmarkItemType.INGREDIENT;
         this.isCollapsedRecipe = group.crafting != null && group.crafting.itemToRecipe.values().stream()
                 .anyMatch(recipeId -> this.bookmarkItem.equalsRecipe(recipeId, this.bookmarkItem.groupId));
 

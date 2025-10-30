@@ -30,6 +30,7 @@ import codechicken.nei.ItemsGrid.MouseContext;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.StackInfo;
@@ -367,19 +368,26 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
             }
 
             for (BookmarkItem item : this.bookmarkItems) {
-                if (item.groupId == groupId && item.recipeId != null) {
+                if (item.recipeId == null && item.type != BookmarkItemType.ITEM) {
+                    item.type = BookmarkItemType.ITEM;
+                } else if (item.groupId == groupId && item.recipeId != null && item.type != BookmarkItemType.ITEM) {
                     recipeState.put(
                             item.recipeId,
-                            recipeState.getOrDefault(item.recipeId, 0) | (item.isIngredient ? 1 : 2));
+                            recipeState.getOrDefault(item.recipeId, 0)
+                                    | (item.type == BookmarkItemType.INGREDIENT ? 1 : 2));
                 }
             }
 
             for (BookmarkItem item : this.bookmarkItems) {
-                if (item.groupId == groupId && item.isIngredient
-                        && (item.recipeId == null || recipeState.getOrDefault(item.recipeId, 1) == 1)) {
+                if (item.groupId == groupId && item.type != BookmarkItemType.ITEM
+                        && recipeState.getOrDefault(item.recipeId, 0) != 3) {
+
+                    if (item.type == BookmarkItemType.INGREDIENT) {
+                        item.recipeId = null;
+                    }
+
                     recipeState.remove(item.recipeId);
-                    item.isIngredient = false;
-                    item.recipeId = null;
+                    item.type = BookmarkItemType.ITEM;
                 }
             }
 
@@ -405,7 +413,8 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
 
                 for (int index = itemIndex; index < size; index++) {
                     if (item.equalsRecipe(this.bookmarkItems.get(index))) {
-                        sortingRank.put(index, this.bookmarkItems.get(index).isIngredient ? 1 : -1);
+                        sortingRank
+                                .put(index, this.bookmarkItems.get(index).type == BookmarkItemType.INGREDIENT ? 1 : -1);
                         items.add(index);
                     }
                 }
@@ -632,6 +641,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
 
         if (group.crafting == null) {
             for (BookmarkItem item : chainItems) {
+                item.type = BookmarkItemType.ITEM;
                 item.recipeId = null;
             }
         }
@@ -820,7 +830,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
 
         for (int itemIndex = 0; itemIndex < this.bookmarkItems.size(); itemIndex++) {
             final BookmarkItem item = this.bookmarkItems.get(itemIndex);
-            if (item.groupId == groupId && item.isIngredient == ingredient
+            if (item.groupId == groupId && ingredient == (item.type == BookmarkItemType.INGREDIENT)
                     && (recipeId == item.recipeId || recipeId != null && recipeId.equals(item.recipeId))
                     && StackInfo.equalItemAndNBT(stackA, item.itemStack, true)) {
                 return itemIndex;
@@ -876,7 +886,12 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         for (ItemStack stack : ItemStackAmount.of(results).values()) {
             long factor = StackInfo.getAmount(stack);
             this.addItem(
-                    BookmarkItem.of(groupId, StackInfo.withAmount(stack, factor * multiplier), factor, recipeId, false),
+                    BookmarkItem.of(
+                            groupId,
+                            StackInfo.withAmount(stack, factor * multiplier),
+                            factor,
+                            recipeId,
+                            BookmarkItemType.RESULT),
                     true);
         }
 
@@ -888,7 +903,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
                             StackInfo.withAmount(stack, factor * multiplier),
                             factor,
                             recipeId,
-                            true,
+                            BookmarkItemType.INGREDIENT,
                             BookmarkItem.generatePermutations(stack, recipe)),
                     true);
         }
@@ -901,12 +916,12 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
             return;
         }
 
-        if (!removeFullRecipe && item.recipeId != null && !item.isIngredient) {
+        if (!removeFullRecipe && item.recipeId != null && item.type == BookmarkItemType.RESULT) {
             removeFullRecipe = this.bookmarkItems.stream()
-                    .noneMatch(m -> !m.isIngredient && !m.equals(item) && item.equalsRecipe(m));
+                    .noneMatch(m -> m.type == BookmarkItemType.RESULT && !m.equals(item) && item.equalsRecipe(m));
         }
 
-        if (item.recipeId != null && removeFullRecipe) {
+        if (item.recipeId != null && item.type != BookmarkItemType.ITEM && removeFullRecipe) {
             removeRecipe(item.recipeId, item.groupId);
         } else if (itemIndex >= 0) {
             this.bookmarkItems.remove(itemIndex);
@@ -925,7 +940,8 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
     }
 
     public boolean existsRecipe(RecipeId recipeId, int groupId) {
-        return this.bookmarkItems.stream().anyMatch(item -> item.equalsRecipe(recipeId, groupId));
+        return this.bookmarkItems.stream()
+                .anyMatch(item -> item.type != BookmarkItemType.ITEM && item.equalsRecipe(recipeId, groupId));
     }
 
     public RecipeId getRecipeId(int itemIndex) {
@@ -1028,8 +1044,14 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         }
 
         if (bookmarkItem != null && (group.crafting != null && group.viewMode == BookmarkViewMode.DEFAULT
-                || group.viewMode == BookmarkViewMode.TODO_LIST && !sortableItem.bookmarkItem.isIngredient)) {
-            while (sortIndex > 0 && bookmarkItem.equalsRecipe(getCalculatedItem(sortedIndexes.get(sortIndex - 1)))) {
+                || group.viewMode == BookmarkViewMode.TODO_LIST
+                        && sortableItem.bookmarkItem.type == BookmarkItemType.RESULT)) {
+            BookmarkItem prevBookmarkItem = sortIndex > 1 ? getCalculatedItem(sortedIndexes.get(sortIndex - 1)) : null;
+
+            while (sortIndex > 0 && prevBookmarkItem != null
+                    && prevBookmarkItem.type != BookmarkItemType.ITEM
+                    && bookmarkItem.equalsRecipe(prevBookmarkItem)) {
+                prevBookmarkItem = sortIndex > 1 ? getCalculatedItem(sortedIndexes.get(sortIndex - 1)) : null;
                 sortIndex--;
             }
 
@@ -1058,7 +1080,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         if (nextSortIndex < sortedIndexes.size()) {
             final int nextItemIndex = sortedIndexes.get(nextSortIndex);
 
-            if (group.viewMode == BookmarkViewMode.TODO_LIST && !target.isIngredient
+            if (group.viewMode == BookmarkViewMode.TODO_LIST && target.type == BookmarkItemType.RESULT
                     && target.equalsRecipe(getCalculatedItem(nextItemIndex))) {
                 return -1;
             }
@@ -1149,7 +1171,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
 
         if (group.collapsed) {
             shiftGroupAmount(targetItem.groupId, shift);
-        } else if (targetItem.recipeId != null) {
+        } else if (targetItem.recipeId != null && targetItem.type != BookmarkItemType.ITEM) {
             final RecipeId recipeId = this.gridGenerator.itemToRecipe
                     .getOrDefault(targetItemIndex, targetItem.recipeId);
             final boolean recipeInMiddle = group.crafting != null && group.crafting.recipeInMiddle.contains(recipeId);
