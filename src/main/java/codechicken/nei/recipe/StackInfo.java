@@ -76,6 +76,16 @@ public class StackInfo {
         return stack;
     }
 
+    public static ItemStack normalizeRecipeQueryStack(ItemStack stack) {
+        ItemStack result = null;
+
+        for (int i = stackStringifyHandlers.size() - 1; i >= 0 && result == null; i--) {
+            result = stackStringifyHandlers.get(i).normalizeRecipeQueryStack(stack);
+        }
+
+        return result == null ? stack : result;
+    }
+
     public static void pauseItemDamageSound(boolean pause) {
         if (isPausedItemDamageSound != (isPausedItemDamageSound = pause)) {
             for (IStackStringifyHandler handler : stackStringifyHandlers) {
