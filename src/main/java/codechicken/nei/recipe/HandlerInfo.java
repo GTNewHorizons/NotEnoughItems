@@ -12,6 +12,8 @@ public class HandlerInfo {
 
     public static int DEFAULT_HEIGHT = 65;
     public static int DEFAULT_WIDTH = 166;
+
+    @Deprecated
     public static int DEFAULT_MAX_PER_PAGE = 1;
 
     private String handlerName;
@@ -24,7 +26,10 @@ public class HandlerInfo {
     private int yShift = 0;
     private int height = DEFAULT_HEIGHT;
     private int width = DEFAULT_WIDTH;
+
+    @Deprecated
     private int maxRecipesPerPage = DEFAULT_MAX_PER_PAGE;
+    private boolean multipleWidgetsAllowed = false;
     private boolean showFavoritesButton = true;
     private boolean showOverlayButton = true;
     private boolean useCustomScroll = false;
@@ -40,10 +45,15 @@ public class HandlerInfo {
         this.excludedModId = excludedModId;
     }
 
+    @Deprecated
     public void setHandlerDimensions(int height, int width, int maxRecipesPerPage) {
+        setHandlerDimensions(width, height, maxRecipesPerPage > 1);
+    }
+
+    public void setHandlerDimensions(int width, int height, boolean multipleWidgetsAllowed) {
         this.height = height;
         this.width = width;
-        this.maxRecipesPerPage = maxRecipesPerPage;
+        this.multipleWidgetsAllowed = multipleWidgetsAllowed;
     }
 
     public boolean setItem(String itemId, String nbtString) {
@@ -89,8 +99,13 @@ public class HandlerInfo {
         return this.width;
     }
 
+    @Deprecated
     public int getMaxRecipesPerPage() {
-        return Math.max(this.maxRecipesPerPage, 1);
+        return this.multipleWidgetsAllowed ? Integer.MAX_VALUE : 1;
+    }
+
+    public boolean isMultipleWidgetsAllowed() {
+        return this.multipleWidgetsAllowed;
     }
 
     public int getYShift() {
@@ -133,10 +148,6 @@ public class HandlerInfo {
         this.useCustomScroll = useCustomScroll;
     }
 
-    public boolean expandVertically() {
-        return this.useCustomScroll && this.maxRecipesPerPage <= 1;
-    }
-
     public static class Builder {
 
         private final HandlerInfo info;
@@ -151,51 +162,57 @@ public class HandlerInfo {
         }
 
         public Builder setDisplayStack(ItemStack stack) {
-            info.image = null;
-            info.itemStack = stack;
+            this.info.image = null;
+            this.info.itemStack = stack;
             return this;
         }
 
         public Builder setDisplayImage(DrawableResource drawable) {
-            info.itemStack = null;
-            info.image = drawable;
+            this.info.itemStack = null;
+            this.info.image = drawable;
             return this;
         }
 
         public Builder setDisplayImage(ResourceLocation location, int imageX, int imageY, int imageWidth,
                 int imageHeight) {
-            info.itemStack = null;
-            info.setImage(location.toString(), imageX, imageY, imageWidth, imageHeight);
+            this.info.itemStack = null;
+            this.info.setImage(location.toString(), imageX, imageY, imageWidth, imageHeight);
             return this;
         }
 
         public Builder setUseCustomScroll(boolean useCustomScroll) {
-            info.setUseCustomScroll(useCustomScroll);
+            this.info.setUseCustomScroll(useCustomScroll);
             return this;
         }
 
         public Builder setShiftY(int shiftY) {
-            info.setYShift(shiftY);
+            this.info.setYShift(shiftY);
             return this;
         }
 
         public Builder setWidth(int width) {
-            info.setHandlerDimensions(info.height, width, info.maxRecipesPerPage);
+            this.info.width = width;
             return this;
         }
 
         public Builder setHeight(int height) {
-            info.setHandlerDimensions(height, info.width, info.maxRecipesPerPage);
+            this.info.height = height;
             return this;
         }
 
+        @Deprecated
         public Builder setMaxRecipesPerPage(int maxRecipesPerPage) {
-            info.setHandlerDimensions(info.height, info.width, maxRecipesPerPage);
+            this.info.multipleWidgetsAllowed = maxRecipesPerPage > 1;
+            return this;
+        }
+
+        public Builder setMultipleWidgetsAllowed(boolean multipleWidgetsAllowed) {
+            this.info.multipleWidgetsAllowed = multipleWidgetsAllowed;
             return this;
         }
 
         public HandlerInfo build() {
-            return info;
+            return this.info;
         }
     }
 }

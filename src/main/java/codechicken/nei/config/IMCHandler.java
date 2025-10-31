@@ -86,13 +86,14 @@ public class IMCHandler {
         info.setYShift(yShift);
 
         try {
-            final int imageHeight = tag.hasKey("handlerHeight") ? tag.getInteger("handlerHeight")
+            final int handlerHeight = tag.hasKey("handlerHeight") ? tag.getInteger("handlerHeight")
                     : HandlerInfo.DEFAULT_HEIGHT;
-            final int imageWidth = tag.hasKey("handlerWidth") ? tag.getInteger("handlerWidth")
+            final int handlerWidth = tag.hasKey("handlerWidth") ? tag.getInteger("handlerWidth")
                     : HandlerInfo.DEFAULT_WIDTH;
-            final int maxRecipesPerPage = tag.hasKey("maxRecipesPerPage") ? tag.getInteger("maxRecipesPerPage")
-                    : HandlerInfo.DEFAULT_MAX_PER_PAGE;
-            info.setHandlerDimensions(imageHeight, imageWidth, maxRecipesPerPage);
+            final boolean multipleWidgetsAllowed = tag.hasKey("multipleWidgetsAllowed")
+                    ? tag.getBoolean("multipleWidgetsAllowed")
+                    : tag.hasKey("maxRecipesPerPage") && tag.getInteger("maxRecipesPerPage") > 1;
+            info.setHandlerDimensions(handlerWidth, handlerHeight, multipleWidgetsAllowed);
         } catch (NumberFormatException ignored) {
             NEIClientConfig.logger.info("Error setting handler dimensions for {}", handler);
         }
