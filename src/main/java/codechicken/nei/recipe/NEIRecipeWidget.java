@@ -59,10 +59,10 @@ public class NEIRecipeWidget extends Widget {
     }
 
     public void update() {
-        this.w = Math.max(166, this.handlerInfo.getWidth());
 
-        if (this.showAsWidget || !this.handlerInfo.expandVertically()) {
+        if (this.showAsWidget || !this.handlerInfo.getUseCustomScroll()) {
             final int recipeHeight = this.handlerRef.handler.getRecipeHeight(this.handlerRef.recipeIndex);
+            this.w = Math.max(166, this.handlerInfo.getWidth());
             this.h = recipeHeight > 0 ? recipeHeight : this.handlerInfo.getHeight();
             this.h += this.handlerInfo.getYShift();
         }

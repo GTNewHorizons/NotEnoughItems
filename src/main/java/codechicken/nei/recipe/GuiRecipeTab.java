@@ -255,12 +255,10 @@ public abstract class GuiRecipeTab extends Widget {
                 if (yShift != null && !yShift.equals("")) info.setYShift(Integer.parseInt(yShift));
 
                 try {
-                    final int imageHeight = intOrDefault(record.get("handlerHeight"), HandlerInfo.DEFAULT_HEIGHT);
-                    final int imageWidth = intOrDefault(record.get("handlerWidth"), HandlerInfo.DEFAULT_WIDTH);
-                    final int maxRecipesPerPage = intOrDefault(
-                            record.get("maxRecipesPerPage"),
-                            HandlerInfo.DEFAULT_MAX_PER_PAGE);
-                    info.setHandlerDimensions(imageHeight, imageWidth, maxRecipesPerPage);
+                    final int handlerHeight = intOrDefault(record.get("handlerHeight"), HandlerInfo.DEFAULT_HEIGHT);
+                    final int handlerWidth = intOrDefault(record.get("handlerWidth"), HandlerInfo.DEFAULT_WIDTH);
+                    final boolean multipleWidgetsAllowed = intOrDefault(record.get("maxRecipesPerPage"), 1) > 1;
+                    info.setHandlerDimensions(handlerWidth, handlerHeight, multipleWidgetsAllowed);
                 } catch (NumberFormatException ignored) {
                     NEIClientConfig.logger.info("Error setting handler dimensions for " + handler);
                 }
@@ -298,10 +296,7 @@ public abstract class GuiRecipeTab extends Widget {
 
     private static HandlerInfo getDefaultHandlerInfo() {
         final HandlerInfo info = new HandlerInfo("Unknown", "Unknown", "Unknown", false, "");
-        info.setHandlerDimensions(
-                HandlerInfo.DEFAULT_HEIGHT,
-                HandlerInfo.DEFAULT_WIDTH,
-                HandlerInfo.DEFAULT_MAX_PER_PAGE);
+        info.setHandlerDimensions(HandlerInfo.DEFAULT_WIDTH, HandlerInfo.DEFAULT_HEIGHT, false);
         return info;
     }
 
