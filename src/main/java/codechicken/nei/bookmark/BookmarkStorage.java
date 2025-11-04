@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +15,7 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import org.apache.commons.io.IOUtils;
 
+import com.google.common.io.Files;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -136,6 +136,7 @@ public class BookmarkStorage {
         NBTTagCompound navigation = new NBTTagCompound();
         namespaces.add(new BookmarkGrid());
         BookmarkGrid grid = namespaces.get(0);
+        boolean wasError = false;
 
         if (NEIClientConfig.world.nbt.hasKey("bookmark")) {
             navigation = NEIClientConfig.world.nbt.getCompoundTag("bookmark");
@@ -150,17 +151,19 @@ public class BookmarkStorage {
                 }
 
                 if (itemStr.startsWith("; ")) {
-                    JsonObject settings = parser.parse(itemStr.substring(2)).getAsJsonObject();
 
                     if (grid.size() > 0) {
                         // do not create empty namespaces
                         grid = new BookmarkGrid();
+
+                        if (navigation.hasKey("namespacePage." + namespaces.size())) {
+                            grid.setPage(navigation.getInteger("namespacePage." + namespaces.size()));
+                        }
+
                         namespaces.add(grid);
                     }
 
-                    if (navigation.hasKey("namespacePage." + (namespaces.size() - 1))) {
-                        grid.setPage(navigation.getInteger("namespacePage." + (namespaces.size() - 1)));;
-                    }
+                    final JsonObject settings = parser.parse(itemStr.substring(2)).getAsJsonObject();
 
                     if (settings.get("viewmode") != null) {
                         grid.groups.get(BookmarkGrid.DEFAULT_GROUP_ID).viewMode = BookmarkViewMode
@@ -195,17 +198,28 @@ public class BookmarkStorage {
                 }
 
                 if (!addItemToGrid(grid, parser.parse(itemStr).getAsJsonObject())) {
+                    wasError = true;
                     NEIClientConfig.logger.warn(
                             "Failed to load bookmarked ItemStack from json string, the item no longer exists:\n{}",
                             itemStr);
                 }
 
-            } catch (IllegalArgumentException | JsonSyntaxException | IllegalStateException e) {
+            } catch (Exception e) {
+                wasError = true;
                 NEIClientConfig.logger.error("Failed to load bookmarked ItemStack from json string:\n{}", itemStr);
             }
         }
 
-        prepareOldRecipeFormat(namespaces);
+        if (wasError) {
+            try {
+                Files.copy(
+                        bookmarkFile,
+                        new File(bookmarkFile.getAbsolutePath() + ".backup-" + System.currentTimeMillis()));
+                NEIClientConfig.logger.info("Backed up invalid bookmark file to {}", bookmarkFile);
+            } catch (IOException e) {
+                NEIClientConfig.logger.error("Failed to backup invalid bookmark file to {}", bookmarkFile, e);
+            }
+        }
 
         for (BookmarkGrid gr : namespaces) {
             gr.onItemsChanged();
@@ -253,45 +267,6 @@ public class BookmarkStorage {
         }
 
         return itemStack != null;
-    }
-
-    private void prepareOldRecipeFormat(List<BookmarkGrid> namespaces) {
-
-        for (BookmarkGrid grid : namespaces) {
-            if (grid.bookmarkItems.stream()
-                    .noneMatch(item -> item.recipeId != null && item.recipeId.getResult() == null)) {
-                continue;
-            }
-
-            final Map<String, RecipeId> recipes = new HashMap<>();
-
-            for (BookmarkItem item : grid.bookmarkItems) {
-                if (item.recipeId != null && !item.isIngredient && item.recipeId.getResult() == null) {
-                    final JsonObject recipeJson = item.recipeId.toJsonObject();
-                    final String recipeGUID = item.groupId + ":" + NBTJson.toJson(recipeJson);
-
-                    if (!recipes.containsKey(recipeGUID)) {
-                        recipeJson.add("result", NBTJson.toJsonObject(StackInfo.itemStackToNBT(item.itemStack)));
-                        recipes.put(recipeGUID, item.recipeId = RecipeId.of(recipeJson));
-                    }
-                }
-            }
-
-            for (BookmarkItem item : grid.bookmarkItems) {
-                if (item.recipeId != null && item.recipeId.getResult() == null) {
-                    final JsonObject recipeJson = item.recipeId.toJsonObject();
-                    final String recipeGUID = item.groupId + ":" + NBTJson.toJson(recipeJson);
-
-                    if (recipes.containsKey(recipeGUID)) {
-                        item.recipeId = recipes.get(recipeGUID).copy();
-                        item.permutations = BookmarkItem
-                                .generatePermutations(item.itemStack, item.recipeId, item.isIngredient);
-                    } else {
-                        item.recipeId = null;
-                    }
-                }
-            }
-        }
     }
 
     public void save() {
