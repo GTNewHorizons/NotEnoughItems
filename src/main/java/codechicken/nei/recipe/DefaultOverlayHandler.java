@@ -145,6 +145,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
 
     /**
      * Gets the slots in the crafting matrix for the given GUI and recipe handler.
+     * 
      * @param gui
      * @param handler
      * @return
