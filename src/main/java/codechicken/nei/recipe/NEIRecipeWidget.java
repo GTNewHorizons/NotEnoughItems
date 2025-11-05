@@ -2,6 +2,7 @@ package codechicken.nei.recipe;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +31,11 @@ import codechicken.nei.api.IGuiContainerOverlay;
 import codechicken.nei.api.ShortcutInputHandler;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
+import codechicken.nei.util.NEIMouseUtils;
 
 public class NEIRecipeWidget extends Widget {
 
+    protected AcceptsFollowingTooltipLineHandler acceptsFollowingTooltipLineHandler;
     protected final WeakHashMap<PositionedStack, List<ItemStack>> permutations = new WeakHashMap<>();
     protected boolean update = true;
     protected int cycleticks = 0;
@@ -56,10 +59,10 @@ public class NEIRecipeWidget extends Widget {
     }
 
     public void update() {
-        this.w = Math.max(166, this.handlerInfo.getWidth());
 
-        if (this.showAsWidget || !this.handlerInfo.expandVertically()) {
+        if (this.showAsWidget || !this.handlerInfo.getUseCustomScroll()) {
             final int recipeHeight = this.handlerRef.handler.getRecipeHeight(this.handlerRef.recipeIndex);
+            this.w = Math.max(166, this.handlerInfo.getWidth());
             this.h = recipeHeight > 0 ? recipeHeight : this.handlerInfo.getHeight();
             this.h += this.handlerInfo.getYShift();
         }
@@ -70,8 +73,7 @@ public class NEIRecipeWidget extends Widget {
     public List<GuiRecipeButton> getRecipeButtons() {
 
         if (this.recipeButtons == null) {
-            if (this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex) != null
-                    || !this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex).isEmpty()) {
+            if (!getOutputs().isEmpty()) {
                 this.recipeButtons = initButtons();
             } else {
                 this.recipeButtons = Collections.emptyList();
@@ -184,7 +186,7 @@ public class NEIRecipeWidget extends Widget {
 
         GuiContainerManager.enableMatrixStackLogging();
 
-        for (PositionedStack pStack : this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex)) {
+        for (PositionedStack pStack : getInputs()) {
             GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
 
             if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
@@ -192,7 +194,7 @@ public class NEIRecipeWidget extends Widget {
             }
         }
 
-        for (PositionedStack pStack : this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex)) {
+        for (PositionedStack pStack : getCatalysts()) {
             GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
 
             if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
@@ -200,12 +202,11 @@ public class NEIRecipeWidget extends Widget {
             }
         }
 
-        final PositionedStack pStackResult = this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex);
-        if (pStackResult != null) {
-            GuiContainerManager.drawItem(pStackResult.relx, pStackResult.rely, pStackResult.item);
-            if (pStackResult.contains(mouseX - this.x, mouseY - this.y - yShift)) {
-                NEIClientUtils.gl2DRenderContext(
-                        () -> GuiDraw.drawRect(pStackResult.relx, pStackResult.rely, 16, 16, 0x80FFFFFF));
+        for (PositionedStack pStack : getOutputs()) {
+            GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
+
+            if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
+                NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, 0x80FFFFFF));
             }
         }
 
@@ -317,14 +318,60 @@ public class NEIRecipeWidget extends Widget {
             return tooltip;
         }
 
-        return this.handlerRef.handler.handleItemTooltip(guiRecipe, itemstack, tooltip, this.handlerRef.recipeIndex);
+        tooltip = this.handlerRef.handler.handleItemTooltip(guiRecipe, itemstack, tooltip, this.handlerRef.recipeIndex);
+
+        if (NEIClientConfig.showCycledIngredientsTooltip() && itemstack != null) {
+            final int yShift = this.handlerInfo.getYShift();
+            PositionedStack hovered = null;
+
+            for (PositionedStack pStack : getInputs()) {
+                if (pStack.contains(mousex - this.x, mousey - this.y - yShift)) {
+                    hovered = pStack;
+                    break;
+                }
+            }
+
+            if (hovered == null) {
+                for (PositionedStack pStack : getCatalysts()) {
+                    if (pStack.contains(mousex - this.x, mousey - this.y - yShift)) {
+                        hovered = pStack;
+                    }
+                }
+            }
+
+            if (hovered == null || hovered.items.length <= 1) {
+                this.acceptsFollowingTooltipLineHandler = null;
+            } else if (this.acceptsFollowingTooltipLineHandler == null
+                    || this.acceptsFollowingTooltipLineHandler.tooltipGUID != hovered) {
+                        this.acceptsFollowingTooltipLineHandler = AcceptsFollowingTooltipLineHandler
+                                .of(hovered, hovered.getFilteredPermutations(), hovered.item);
+                    }
+        } else if (this.acceptsFollowingTooltipLineHandler != null) {
+            this.acceptsFollowingTooltipLineHandler = null;
+        }
+
+        if (this.acceptsFollowingTooltipLineHandler != null) {
+            tooltip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(this.acceptsFollowingTooltipLineHandler));
+        }
+
+        return tooltip;
     }
 
     @Override
     public Map<String, String> handleHotkeys(int mouseX, int mouseY, Map<String, String> hotkeys) {
-        return forEachButtons(
+        final Map<String, String> buttonHotkeys = forEachButtons(
                 button -> button.contains(mouseX, mouseY) ? button.handleHotkeys(mouseX, mouseY, hotkeys) : null,
                 hotkeys);
+
+        if (this.acceptsFollowingTooltipLineHandler != null) {
+            buttonHotkeys.put(
+                    NEIClientUtils.getKeyName(
+                            NEIClientUtils.SHIFT_HASH,
+                            NEIMouseUtils.MOUSE_BTN_NONE + NEIMouseUtils.MOUSE_SCROLL),
+                    NEIClientUtils.translate("recipe.accepts.scroll"));
+        }
+
+        return buttonHotkeys;
     }
 
     @Override
@@ -353,11 +400,13 @@ public class NEIRecipeWidget extends Widget {
             final int stackIndex = indexOf(items, overStack.item);
             final ItemStack stack = items.get((items.size() - scroll + stackIndex) % items.size());
 
-            Stream.concat(
-                    this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex).stream(),
-                    this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex).stream())
-                    .filter(pStack -> pStack.containsWithNBT(stack))
+            Stream.concat(getInputs().stream(), getCatalysts().stream()).filter(pStack -> pStack.containsWithNBT(stack))
                     .forEach(pStack -> pStack.setPermutationToRender(stack));
+
+            if (this.acceptsFollowingTooltipLineHandler != null) {
+                this.acceptsFollowingTooltipLineHandler
+                        .setActiveStack(((PositionedStack) this.acceptsFollowingTooltipLineHandler.tooltipGUID).item);
+            }
 
             return true;
         }
@@ -396,12 +445,7 @@ public class NEIRecipeWidget extends Widget {
     public boolean isFocusedRecipe(int mx, int my) {
         final int yShift = this.handlerInfo.getYShift();
 
-        final PositionedStack pStackResult = this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex);
-        if (pStackResult != null && pStackResult.contains(mx - this.x, my - this.y - yShift)) {
-            return true;
-        }
-
-        for (PositionedStack pStackOver : this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex)) {
+        for (PositionedStack pStackOver : getOutputs()) {
             if (pStackOver.contains(mx - this.x, my - this.y - yShift)) {
                 return true;
             }
@@ -413,21 +457,22 @@ public class NEIRecipeWidget extends Widget {
     public PositionedStack getPositionedStackMouseOver(int mx, int my) {
         final int yShift = this.handlerInfo.getYShift();
 
-        for (PositionedStack pStack : this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex)) {
+        for (PositionedStack pStack : getInputs()) {
             if (pStack.contains(mx - this.x, my - this.y - yShift)) {
                 return pStack;
             }
         }
 
-        for (PositionedStack pStack : this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex)) {
+        for (PositionedStack pStack : getCatalysts()) {
             if (pStack.contains(mx - this.x, my - this.y - yShift)) {
                 return pStack;
             }
         }
 
-        final PositionedStack pStackResult = this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex);
-        if (pStackResult != null && pStackResult.contains(mx - this.x, my - this.y - yShift)) {
-            return pStackResult;
+        for (PositionedStack pStack : getOutputs()) {
+            if (pStack.contains(mx - this.x, my - this.y - yShift)) {
+                return pStack;
+            }
         }
 
         return null;
@@ -461,7 +506,7 @@ public class NEIRecipeWidget extends Widget {
 
     protected void updatePermutations() {
 
-        for (PositionedStack pStack : this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex)) {
+        for (PositionedStack pStack : getInputs()) {
             if (pStack.items.length > 1) {
                 final List<ItemStack> permutations = this.permutations
                         .computeIfAbsent(pStack, stack -> stack.getFilteredPermutations(FavoriteRecipes::contains));
@@ -469,7 +514,7 @@ public class NEIRecipeWidget extends Widget {
             }
         }
 
-        for (PositionedStack pStack : this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex)) {
+        for (PositionedStack pStack : getCatalysts()) {
             if (pStack.items.length > 1) {
                 final List<ItemStack> permutations = this.permutations
                         .computeIfAbsent(pStack, stack -> stack.getFilteredPermutations(FavoriteRecipes::contains));
@@ -477,13 +522,28 @@ public class NEIRecipeWidget extends Widget {
             }
         }
 
+        if (this.acceptsFollowingTooltipLineHandler != null) {
+            this.acceptsFollowingTooltipLineHandler
+                    .setActiveStack(((PositionedStack) this.acceptsFollowingTooltipLineHandler.tooltipGUID).item);
+        }
+
+    }
+
+    protected List<PositionedStack> getInputs() {
+        return this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex);
+    }
+
+    protected List<PositionedStack> getOutputs() {
         final PositionedStack pStackResult = this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex);
-        if (pStackResult != null && pStackResult.items.length > 1) {
-            final List<ItemStack> permutations = this.permutations
-                    .computeIfAbsent(pStackResult, stack -> stack.getFilteredPermutations(FavoriteRecipes::contains));
-            pStackResult.setPermutationToRender(permutations.get(this.lastcycle % permutations.size()));
-        }
+        return pStackResult != null ? Arrays.asList(pStackResult)
+                : this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex);
+    }
 
+    protected List<PositionedStack> getCatalysts() {
+        if (this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex) == null) {
+            return Collections.emptyList();
+        }
+        return this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex);
     }
 
 }

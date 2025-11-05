@@ -125,7 +125,7 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
     private IntegerField yShift;
     private IntegerField handlerHeight;
     private IntegerField handlerWidth;
-    private IntegerField maxRecipesPerPage;
+    private Button multipleWidgetsAllowed;
     private Button useCustomScroll;
 
     private Point dragPoint = null;
@@ -166,15 +166,27 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
             }
         };
 
-        this.maxRecipesPerPage = new IntegerField("maxRecipesPerPage", HandlerInfo.DEFAULT_MAX_PER_PAGE) {
+        this.multipleWidgetsAllowed = new Button() {
+
+            {
+                this.h = LINE_HEIGHT;
+                this.z = 2;
+            }
+
+            public String getRenderLabel() {
+                return handlerInfo.isMultipleWidgetsAllowed() ? "On" : "Off";
+            }
 
             @Override
-            public void onTextChange(String oldText) {
-                if (getInteger() != handlerInfo.getMaxRecipesPerPage()) {
-                    handlerInfo.setHandlerDimensions(handlerInfo.getHeight(), handlerInfo.getWidth(), getInteger());
-                    updatePatch(4, getInteger(), this.defaultValue);
-                }
+            public boolean onButtonPress(boolean rightclick) {
+                handlerInfo.setHandlerDimensions(
+                        handlerInfo.getWidth(),
+                        handlerInfo.getHeight(),
+                        !handlerInfo.isMultipleWidgetsAllowed());
+                updatePatch(4, handlerInfo.isMultipleWidgetsAllowed() ? 1 : 0, 1);
+                return true;
             }
+
         };
 
         this.handlerHeight = new IntegerField("handlerHeight", HandlerInfo.DEFAULT_HEIGHT) {
@@ -189,9 +201,9 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
             public void onTextChange(String oldText) {
                 if (getInteger() != handlerInfo.getHeight()) {
                     handlerInfo.setHandlerDimensions(
-                            getInteger(),
                             handlerInfo.getWidth(),
-                            handlerInfo.getMaxRecipesPerPage());
+                            getInteger(),
+                            handlerInfo.isMultipleWidgetsAllowed());
                     updatePatch(2, getInteger(), this.defaultValue);
                 }
             }
@@ -203,9 +215,9 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
             public void onTextChange(String oldText) {
                 if (getInteger() != handlerInfo.getWidth()) {
                     handlerInfo.setHandlerDimensions(
-                            handlerInfo.getHeight(),
                             getInteger(),
-                            handlerInfo.getMaxRecipesPerPage());
+                            handlerInfo.getHeight(),
+                            handlerInfo.isMultipleWidgetsAllowed());
                     updatePatch(3, getInteger(), this.defaultValue);
                 }
             }
@@ -327,7 +339,7 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
             drawControl("yShift", this.yShift, topShift, spaceWidth);
             topShift += LINE_HEIGHT;
 
-            drawControl("Per Page", this.maxRecipesPerPage, topShift, spaceWidth);
+            drawControl("Multi Widgets", this.multipleWidgetsAllowed, topShift, spaceWidth);
             topShift += LINE_HEIGHT;
 
             drawControl("Height", this.handlerHeight, topShift, spaceWidth);
@@ -364,7 +376,7 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
             LayoutManager.addWidget(this.yShift);
             LayoutManager.addWidget(this.handlerHeight);
             LayoutManager.addWidget(this.handlerWidth);
-            LayoutManager.addWidget(this.maxRecipesPerPage);
+            LayoutManager.addWidget(this.multipleWidgetsAllowed);
             LayoutManager.addWidget(this.useCustomScroll);
         }
     }
@@ -383,7 +395,6 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
                 this.yShift.setText(String.valueOf(this.handlerInfo.getYShift()));
                 this.handlerHeight.setText(String.valueOf(this.handlerInfo.getHeight()));
                 this.handlerWidth.setText(String.valueOf(this.handlerInfo.getWidth()));
-                this.maxRecipesPerPage.setText(String.valueOf(this.handlerInfo.getMaxRecipesPerPage()));
             }
 
         } else {
@@ -467,8 +478,7 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
         } else if (this.handler != null) {
             return this.order.focused() || this.yShift.focused()
                     || this.handlerHeight.focused()
-                    || this.handlerWidth.focused()
-                    || this.maxRecipesPerPage.focused();
+                    || this.handlerWidth.focused();
         }
 
         return false;
@@ -527,6 +537,10 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
                     widget.w,
                     widget.h,
                     COLORS[widget.handlerRef.recipeIndex % COLORS.length]);
+
+            // center cross
+            GuiDraw.drawRect(widget.x + widget.w / 2 - 1, widget.y, 1, widget.h, 0x88ffffff);
+            GuiDraw.drawRect(widget.x, widget.y + widget.h / 2 - 1, widget.w, 1, 0x88ffffff);
 
             // blue-line-top (grid-top)
             GuiDraw.drawRect(widget.x + 14, widget.y + 5, widget.w - 38, 1, 0xff0000aa);
@@ -592,12 +606,14 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
                     final int yShift = intOrDefault(parts[1], info.getYShift());
                     final int height = intOrDefault(parts[2], info.getHeight());
                     final int width = intOrDefault(parts[3], info.getWidth());
-                    final int maxRecipesPerPage = intOrDefault(parts[4], info.getMaxRecipesPerPage());
+                    final boolean isMultipleWidgetsAllowed = intOrDefault(
+                            parts[4],
+                            info.isMultipleWidgetsAllowed() ? 1 : 0) == 1;
                     final int order = intOrDefault(parts[5], NEIClientConfig.handlerOrdering.getOrDefault(handler, 0));
                     final boolean useCustomScroll = intOrDefault(parts[6], info.getUseCustomScroll() ? 1 : 0) == 1;
 
                     info.setYShift(yShift);
-                    info.setHandlerDimensions(height, width, maxRecipesPerPage);
+                    info.setHandlerDimensions(width, height, isMultipleWidgetsAllowed);
                     info.setUseCustomScroll(useCustomScroll);
                     NEIClientConfig.handlerOrdering.put(handler, order);
                 }

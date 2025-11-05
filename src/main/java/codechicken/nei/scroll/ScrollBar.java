@@ -40,12 +40,17 @@ public class ScrollBar {
     private ScrollPlace scrollPlace = ScrollPlace.END;
     private float handleClickOffset = -1;
 
-    private int scrollbarSize = 6;
-    private int thumbPadding = 0;
+    private int trackWidth = 6;
 
-    private int padding = 0;
-    private int marginStart = 0;
-    private int marginEnd = 0;
+    private int thumbPaddingLeft = 0;
+    private int thumbPaddingRight = 0;
+    private int thumbPaddingTop = 0;
+    private int thumbPaddingBottom = 0;
+
+    private int trackPaddingLeft = 0;
+    private int trackPaddingRight = 0;
+    private int trackPaddingTop = 0;
+    private int trackPaddingBottom = 0;
 
     private DrawableResource thumbTexture;
     private int thumbSliceStart;
@@ -60,58 +65,65 @@ public class ScrollBar {
     }
 
     public static ScrollBar defaultVerticalBar() {
-        return new ScrollBar().setScrollbarSize(8)
-                .setTrackTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 28, 95, 11, 11).build(), 3, 4)
-                .setThumbTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 21, 96, 7, 9).build(), 3, 2)
-                .setThumbPadding(1);
+        return new ScrollBar().setTrackWidth(8)
+                .setTrackTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 29, 95, 8, 11).build(), 3, 4)
+                .setThumbTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 22, 96, 6, 9).build(), 3, 2)
+                .setThumbPadding(1, 1, 1, 1);
     }
 
     public static ScrollBar defaultHorizontalBar() {
-        return new ScrollBar().setScrollbarSize(8).setOverflowType(OverflowType.SCROLL).setScrollPlace(ScrollPlace.END)
+        return new ScrollBar().setTrackWidth(8).setOverflowType(OverflowType.SCROLL)
                 .setTrackTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 0, 97, 11, 8).build(), 3, 4)
-                .setThumbTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 12, 97, 9, 7).build(), 3, 2)
-                .setThumbPadding(1);
+                .setThumbTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 12, 98, 9, 6).build(), 3, 2)
+                .setThumbPadding(1, 1, 1, 1);
     }
 
-    public ScrollBar setScrollbarSize(int scrollbarSize) {
-        this.scrollbarSize = scrollbarSize;
+    /**
+     * Sets the size of the scrollbar without texture in the non-scrolling axis (width for vertical, height for
+     * horizontal).
+     * 
+     * @param trackWidth
+     * @return
+     */
+    public ScrollBar setTrackWidth(int trackWidth) {
+        this.trackWidth = trackWidth;
         return this;
     }
 
-    public ScrollBar setThumbPadding(int thumbPadding) {
-        this.thumbPadding = thumbPadding;
+    public ScrollBar setTrackPadding(int left, int top, int right, int bottom) {
+        this.trackPaddingLeft = left;
+        this.trackPaddingRight = right;
+        this.trackPaddingTop = top;
+        this.trackPaddingBottom = bottom;
         return this;
     }
 
-    public ScrollBar setPadding(int padding) {
-        this.padding = padding;
+    public ScrollBar setThumbPadding(int left, int top, int right, int bottom) {
+        this.thumbPaddingLeft = left;
+        this.thumbPaddingRight = right;
+        this.thumbPaddingTop = top;
+        this.thumbPaddingBottom = bottom;
         return this;
     }
 
-    public int getPadding() {
-        return this.padding;
+    public int getTrackWidth() {
+
+        if (this.trackTexture != null) {
+            return this.scrollType == ScrollType.HORIZONTAL ? this.trackTexture.getHeight()
+                    : this.trackTexture.getWidth();
+        }
+
+        return this.trackWidth;
     }
 
-    public ScrollBar setMarginStart(int start) {
-        this.marginStart = start;
-        return this;
-    }
+    protected int getThumbWidth() {
 
-    public int getMarginStart() {
-        return this.marginStart;
-    }
+        if (this.thumbTexture != null) {
+            return this.scrollType == ScrollType.HORIZONTAL ? this.thumbTexture.getHeight()
+                    : this.thumbTexture.getWidth();
+        }
 
-    public ScrollBar setMarginEnd(int end) {
-        this.marginEnd = end;
-        return this;
-    }
-
-    public int getMarginEnd() {
-        return this.marginEnd;
-    }
-
-    public int getScrollbarSize() {
-        return this.scrollbarSize;
+        return getTrackWidth();
     }
 
     public ScrollBar setThumbTexture(DrawableResource texture, int sliceStart, int sliceEnd) {
@@ -168,14 +180,18 @@ public class ScrollBar {
     }
 
     private int getMaxThumbSize(ScrollContainer container) {
-        return getMaxTrackSize(container) - this.thumbPadding * 2;
+        if (this.scrollType == ScrollType.HORIZONTAL) {
+            return getMaxTrackSize(container) - this.thumbPaddingLeft - this.thumbPaddingRight;
+        } else {
+            return getMaxTrackSize(container) - this.thumbPaddingTop - this.thumbPaddingBottom;
+        }
     }
 
     private int getMaxTrackSize(ScrollContainer container) {
         if (this.scrollType == ScrollType.HORIZONTAL) {
-            return container.w - this.marginStart - this.marginEnd;
+            return container.w - this.trackPaddingLeft - this.trackPaddingRight;
         } else {
-            return container.h - this.marginStart - this.marginEnd;
+            return container.h - this.trackPaddingTop - this.trackPaddingBottom;
         }
     }
 
@@ -212,38 +228,19 @@ public class ScrollBar {
     }
 
     public Rectangle4i trackBounds(ScrollContainer container) {
+        int trackWidth = getTrackWidth();
 
         if (this.scrollType == ScrollType.HORIZONTAL) {
+            final int y = this.scrollPlace == ScrollPlace.START ? container.y - trackWidth - this.trackPaddingBottom
+                    : container.y + container.h + this.trackPaddingTop;
 
-            if (this.scrollPlace == ScrollPlace.START) {
-                return new Rectangle4i(
-                        container.x + this.marginStart,
-                        container.y - this.padding - this.scrollbarSize,
-                        getMaxTrackSize(container),
-                        this.scrollbarSize);
-            } else {
-                return new Rectangle4i(
-                        container.x + this.marginStart,
-                        container.y + container.h + this.padding,
-                        getMaxTrackSize(container),
-                        this.scrollbarSize);
-            }
+            return new Rectangle4i(container.x + this.trackPaddingLeft, y, getMaxTrackSize(container), trackWidth);
 
         } else {
+            final int x = this.scrollPlace == ScrollPlace.START ? container.x - trackWidth - this.trackPaddingRight
+                    : container.x + container.w + this.trackPaddingLeft;
 
-            if (this.scrollPlace == ScrollPlace.START) {
-                return new Rectangle4i(
-                        container.x - this.padding - this.scrollbarSize,
-                        container.y + this.marginStart,
-                        this.scrollbarSize,
-                        getMaxTrackSize(container));
-            } else {
-                return new Rectangle4i(
-                        container.x + container.w + this.padding,
-                        container.y + this.marginStart,
-                        this.scrollbarSize,
-                        getMaxTrackSize(container));
-            }
+            return new Rectangle4i(x, container.y + this.trackPaddingTop, trackWidth, getMaxTrackSize(container));
 
         }
 
@@ -255,9 +252,25 @@ public class ScrollBar {
         final Rectangle4i bounds = trackBounds(container);
 
         if (this.scrollType == ScrollType.HORIZONTAL) {
-            return new Rectangle4i(bounds.x + this.thumbPadding + offset, bounds.y, mainAxisSize, bounds.h);
+            final int y = this.scrollPlace == ScrollPlace.START
+                    ? bounds.y + bounds.h - getThumbWidth() - this.thumbPaddingBottom
+                    : bounds.y + this.thumbPaddingTop;
+
+            return new Rectangle4i(
+                    bounds.x + this.thumbPaddingLeft + offset,
+                    y,
+                    mainAxisSize,
+                    bounds.h - this.thumbPaddingTop - this.thumbPaddingBottom);
         } else {
-            return new Rectangle4i(bounds.x, bounds.y + this.thumbPadding + offset, bounds.w, mainAxisSize);
+            final int x = this.scrollPlace == ScrollPlace.START
+                    ? bounds.x + bounds.w - getThumbWidth() - this.thumbPaddingRight
+                    : bounds.x + this.thumbPaddingLeft;
+
+            return new Rectangle4i(
+                    x,
+                    bounds.y + this.thumbPaddingTop + offset,
+                    bounds.w - this.thumbPaddingLeft - this.thumbPaddingRight,
+                    mainAxisSize);
         }
     }
 
@@ -278,7 +291,7 @@ public class ScrollBar {
             final Rectangle4i thumbBounds = thumbBounds(container);
 
             if (this.scrollType == ScrollType.HORIZONTAL) {
-                final int relativeX = mx - bounds.x - this.thumbPadding;
+                final int relativeX = mx - bounds.x - this.thumbPaddingLeft;
 
                 if (mx < thumbBounds.x || mx > thumbBounds.x + thumbBounds.w) {
                     this.handleClickOffset = mainAxisSize / 2;
@@ -290,7 +303,7 @@ public class ScrollBar {
                         * (container.getActualWidth() - container.getVisibleWidth())) / thumbSize;
                 container.setHorizontalScrollOffset((int) newOffset);
             } else {
-                final int relativeY = my - bounds.y - this.thumbPadding;
+                final int relativeY = my - bounds.y - this.thumbPaddingTop;
 
                 if (my < thumbBounds.y || my > thumbBounds.y + thumbBounds.h) {
                     this.handleClickOffset = mainAxisSize / 2f;
@@ -318,12 +331,12 @@ public class ScrollBar {
             final float thumbSize = getMaxThumbSize(container) - mainAxisSize;
 
             if (this.scrollType == ScrollType.HORIZONTAL) {
-                final int relativeX = mx - bounds.x - this.thumbPadding;
+                final int relativeX = mx - bounds.x - this.thumbPaddingLeft;
                 final float newOffset = ((relativeX - this.handleClickOffset)
                         * (container.getActualWidth() - container.getVisibleWidth())) / thumbSize;
                 container.setHorizontalScrollOffset((int) newOffset);
             } else {
-                int relativeY = my - bounds.y - this.thumbPadding;
+                int relativeY = my - bounds.y - this.thumbPaddingTop;
                 final float newOffset = ((relativeY - this.handleClickOffset)
                         * (container.getActualHeight() - container.getVisibleHeight())) / thumbSize;
 
@@ -379,7 +392,7 @@ public class ScrollBar {
     }
 
     private void drawTrackRect(ScrollContainer container, Rectangle4i bounds, float opacity) {
-        final float trackSize = scrollbarSize / 3f;
+        final float trackSize = this.trackWidth / 3f;
         final Color trackColor = new Color(
                 BACKGROUND_COLOR.getRed(),
                 BACKGROUND_COLOR.getGreen(),
@@ -413,36 +426,9 @@ public class ScrollBar {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         if (this.scrollType == ScrollType.HORIZONTAL) {
-
-            if (this.scrollPlace == ScrollPlace.START) {
-                texture.draw(
-                        bounds.x,
-                        bounds.y + (bounds.h - texture.getHeight()) / 2,
-                        bounds.w,
-                        texture.getHeight(),
-                        sliceStart,
-                        sliceEnd,
-                        0,
-                        0);
-            } else {
-                texture.draw(bounds.x, bounds.y, bounds.w, texture.getHeight(), sliceStart, sliceEnd, 0, 0);
-            }
-
+            texture.draw(bounds.x, bounds.y, bounds.w, texture.getHeight(), sliceStart, sliceEnd, 0, 0);
         } else {
-
-            if (this.scrollPlace == ScrollPlace.START) {
-                texture.draw(
-                        bounds.x + (bounds.w - texture.getWidth()) / 2,
-                        bounds.y,
-                        texture.getWidth(),
-                        bounds.h,
-                        0,
-                        0,
-                        sliceStart,
-                        sliceEnd);
-            } else {
-                texture.draw(bounds.x, bounds.y, texture.getWidth(), bounds.h, 0, 0, sliceStart, sliceEnd);
-            }
+            texture.draw(bounds.x, bounds.y, texture.getWidth(), bounds.h, 0, 0, sliceStart, sliceEnd);
         }
 
     }
