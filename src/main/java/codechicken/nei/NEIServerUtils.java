@@ -51,15 +51,18 @@ import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class NEIServerUtils {
 
-    private static Class<?> gtMetaBaseItem;
+    private static class GTMetaBaseItemHolder {
 
-    static {
-        try {
-            final ClassLoader loader = NEIServerUtils.class.getClassLoader();
-            NEIServerUtils.gtMetaBaseItem = ReflectionHelper
-                    .getClass(loader, "gregtech.api.items.MetaBaseItem", "gregtech.api.items.GT_MetaBase_Item");
-        } catch (Exception ignored) {
-            /* Do nothing */
+        private static final Class<?> gtMetaBaseItem = loadMetaBaseItem();
+
+        private static Class<?> loadMetaBaseItem() {
+            try {
+                final ClassLoader loader = NEIServerUtils.class.getClassLoader();
+                return ReflectionHelper
+                        .getClass(loader, "gregtech.api.items.MetaBaseItem", "gregtech.api.items.GT_MetaBase_Item");
+            } catch (Exception ignored) {
+                return null;
+            }
         }
     }
 
@@ -231,7 +234,8 @@ public class NEIServerUtils {
      * @return
      */
     public static boolean isItemTool(ItemStack stack) {
-        return NEIServerUtils.gtMetaBaseItem != null && NEIServerUtils.gtMetaBaseItem.isInstance(stack.getItem());
+        return GTMetaBaseItemHolder.gtMetaBaseItem != null
+                && GTMetaBaseItemHolder.gtMetaBaseItem.isInstance(stack.getItem());
     }
 
     /**
