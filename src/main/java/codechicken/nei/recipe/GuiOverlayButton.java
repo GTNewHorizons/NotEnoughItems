@@ -313,8 +313,11 @@ public class GuiOverlayButton extends GuiRecipeButton {
         final Recipe recipe = getRecipe();
 
         if (!ItemPanels.bookmarkPanel.removeRecipe(recipe.getRecipeId(), BookmarkGrid.DEFAULT_GROUP_ID)) {
-            ItemPanels.bookmarkPanel
-                    .addRecipe(recipe, NEIClientUtils.controlKey() ? 1 : 0, BookmarkGrid.DEFAULT_GROUP_ID);
+            ItemPanels.bookmarkPanel.addRecipe(
+                    recipe,
+                    NEIClientUtils.controlKey()
+                            || NEIClientConfig.getBooleanSetting("inventory.bookmarks.bookmarkRecipeWithCount") ? 1 : 0,
+                    BookmarkGrid.DEFAULT_GROUP_ID);
         }
     }
 
