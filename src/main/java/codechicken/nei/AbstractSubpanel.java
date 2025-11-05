@@ -5,7 +5,9 @@ import net.minecraft.item.ItemStack;
 
 import org.lwjgl.opengl.GL11;
 
+import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
+import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.ShortcutInputHandler;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
@@ -19,6 +21,7 @@ public abstract class AbstractSubpanel<T extends ItemsGrid<? extends ItemsGridSl
 
     protected int mouseDownItemIndex = -1;
     protected int splittingLineColor = 0xffffffff;
+    protected int linePaddingStart = 0;
     protected T grid;
 
     public boolean isEmpty() {
@@ -51,19 +54,30 @@ public abstract class AbstractSubpanel<T extends ItemsGrid<? extends ItemsGridSl
         return this.grid.getSlotMouseOver(mousex, mousey);
     }
 
+    protected void updateLinePadding() {
+        GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
+        this.linePaddingStart = 0;
+
+        while (GuiInfo
+                .hideItemPanelSlot(guiContainer, new Rectangle4i(this.x + this.linePaddingStart, this.y - 1, 10, 2))) {
+            this.linePaddingStart += 10;
+        }
+
+    }
+
     protected void drawSplittingLine() {
         float alpha = (this.splittingLineColor >> 24 & 255) / 255.0F;
         float red = (this.splittingLineColor >> 16 & 255) / 255.0F;
         float green = (this.splittingLineColor >> 8 & 255) / 255.0F;
         float blue = (this.splittingLineColor & 255) / 255.0F;
 
-        int width = this.grid.columns * ItemsGrid.SLOT_SIZE;
+        int width = this.grid.columns * ItemsGrid.SLOT_SIZE - this.linePaddingStart;
         int repeat = width / 6;
-        int shiftX = this.x + (this.w - width) / 2;
+        int shiftX = this.x + this.linePaddingStart + (this.w - width) / 2;
 
         GL11.glColor4f(red, green, blue, alpha);
         for (int i = 0; i < repeat; i++) {
-            DASH.draw(shiftX + i * 6, y);
+            DASH.draw(shiftX + i * 6, this.y);
         }
         GL11.glColor4f(1, 1, 1, 1);
     }
