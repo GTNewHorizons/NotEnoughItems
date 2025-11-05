@@ -15,7 +15,7 @@ public interface IBookmarkContainerHandler {
 
         for (int i = 0; i < slots.size() - 4 * 9; i++) {
             if (slots.get(i).getHasStack()) {
-                stacks.add(slots.get(i).getStack());
+                stacks.add(slots.get(i).getStack().copy());
             }
         }
 
