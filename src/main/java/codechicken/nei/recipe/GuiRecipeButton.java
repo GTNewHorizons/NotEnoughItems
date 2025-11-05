@@ -61,6 +61,10 @@ public abstract class GuiRecipeButton extends GuiNEIButton {
 
     public abstract void drawItemOverlay();
 
+    public void update() {
+
+    }
+
     public boolean mouseScrolled(int scroll) {
         return false;
     }

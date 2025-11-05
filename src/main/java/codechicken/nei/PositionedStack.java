@@ -146,7 +146,7 @@ public class PositionedStack {
     }
 
     public boolean contains(int mx, int my) {
-        return this.relx <= mx && this.rely <= my && this.relx + 16 >= mx && this.rely + 16 >= my;
+        return mx >= this.relx - 1 && mx < this.relx + 17 && my >= this.rely - 1 && my < this.rely + 17;
     }
 
     public boolean contains(ItemStack ingredient) {
