@@ -60,10 +60,10 @@ public class GuiRecipeCatalyst extends ScrollContainer {
             .setTextureSize(18, 18).build();
 
     private static final ScrollBar VERTICAL_SCROLLBAR = ScrollBar.defaultVerticalBar()
-            .setOverflowType(ScrollBar.OverflowType.AUTO).setMarginStart(BORDER_PADDING).setMarginEnd(BORDER_PADDING)
-            .setPadding(-13).setScrollPlace(ScrollBar.ScrollPlace.START);
+            .setOverflowType(ScrollBar.OverflowType.AUTO).setTrackPadding(0, BORDER_PADDING, -13, BORDER_PADDING)
+            .setScrollPlace(ScrollBar.ScrollPlace.START);
 
-    private final List<PositionedStack> items = new ArrayList<>();
+    private PositionedStack[] items = new PositionedStack[0];
     private boolean showWidget = false;
     private int availableHeight = 0;
 
@@ -72,8 +72,7 @@ public class GuiRecipeCatalyst extends ScrollContainer {
     }
 
     public void setCatalysts(List<PositionedStack> items) {
-        this.items.clear();
-        this.items.addAll(items);
+        this.items = items.toArray(new PositionedStack[0]);
         createWidgets();
     }
 
@@ -95,14 +94,14 @@ public class GuiRecipeCatalyst extends ScrollContainer {
     public int getColumnCount() {
         if (NEIClientConfig.getJEIStyleRecipeCatalysts() == 1) {
             final int maxItemsPerColumn = Math.max(0, this.availableHeight - 2 - BORDER_PADDING * 2) / SLOT_SIZE;
-            return maxItemsPerColumn > 0 ? NEIServerUtils.divideCeil(this.items.size(), maxItemsPerColumn) : 0;
+            return maxItemsPerColumn > 0 ? NEIServerUtils.divideCeil(this.items.length, maxItemsPerColumn) : 0;
         }
         return 1;
     }
 
     public int getRowCount() {
         final int columnCount = getColumnCount();
-        return columnCount > 0 ? NEIServerUtils.divideCeil(this.items.size(), columnCount) : 0;
+        return columnCount > 0 ? NEIServerUtils.divideCeil(this.items.length, columnCount) : 0;
     }
 
     protected void createWidgets() {
@@ -118,10 +117,10 @@ public class GuiRecipeCatalyst extends ScrollContainer {
         if (NEIClientConfig.getJEIStyleRecipeCatalysts() == 2
                 && rows * SLOT_SIZE + this.paddingBlockStart + this.paddingBlockEnd > this.availableHeight) {
             this.h = Math.min(this.h, this.availableHeight);
-            this.w += VERTICAL_SCROLLBAR.getScrollbarSize();
+            this.w += VERTICAL_SCROLLBAR.getTrackWidth();
 
             setVerticalScroll(VERTICAL_SCROLLBAR);
-            setPaddingInline(BORDER_PADDING + 1 + VERTICAL_SCROLLBAR.getScrollbarSize(), this.paddingInlineEnd);
+            setPaddingInline(BORDER_PADDING + 1 + VERTICAL_SCROLLBAR.getTrackWidth(), this.paddingInlineEnd);
         }
 
         this.showWidget = rows * columns > 0;

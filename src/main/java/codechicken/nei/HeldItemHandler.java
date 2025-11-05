@@ -36,7 +36,8 @@ public class HeldItemHandler implements IContainerInputHandler, IContainerToolti
 
         if (contains(mousex, mousey)) {
 
-            if (NEIClientConfig.canPerformAction("delete") && NEIClientConfig.canPerformAction("item")) {
+            if (NEIClientConfig.canPerformAction("delete") && NEIClientConfig.canPerformAction("item")
+                    || NEIClientUtils.mc().playerController.isInCreativeMode()) {
                 if (button == 1) {
                     NEIClientUtils.decreaseSlotStack(-999);
                 } else {
@@ -101,7 +102,8 @@ public class HeldItemHandler implements IContainerInputHandler, IContainerToolti
         if (contains(mousex, mousey)) {
             currenttip.clear();
 
-            if (NEIClientConfig.canPerformAction("delete") && NEIClientConfig.canPerformAction("item")) {
+            if (NEIClientConfig.canPerformAction("delete") && NEIClientConfig.canPerformAction("item")
+                    || NEIClientUtils.mc().playerController.isInCreativeMode()) {
                 currenttip.add(EnumChatFormatting.RED + translate("itempanel.deleteItem"));
             }
         }
