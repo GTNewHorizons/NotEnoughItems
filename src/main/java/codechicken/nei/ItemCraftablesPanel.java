@@ -108,19 +108,22 @@ public class ItemCraftablesPanel
                 if (this.gridMask == null) {
                     int maxSlotIndex = this.rows * this.columns;
                     final AtomicInteger slotIndex = new AtomicInteger(0);
+                    final AtomicInteger itemIndex = new AtomicInteger(0);
                     final List<CraftablesGridSlot> gridMask = new ArrayList<>();
                     this.realItems.clear();
 
                     if (!ItemCraftablesPanel.this.availableRecipes.isEmpty()) {
                         ItemCraftablesPanel.this.availableRecipes.entrySet().stream()
                                 .sorted(Map.Entry.comparingByKey(ItemSorter.instance)).forEach(entry -> {
-                                    this.realItems.add(entry.getKey());
-                                    gridMask.add(
-                                            new CraftablesGridSlot(
-                                                    slotIndex.get(),
-                                                    slotIndex.get(),
-                                                    entry.getKey(),
-                                                    entry.getValue()));
+                                    if (!isInvalidSlot(slotIndex.get())) {
+                                        this.realItems.add(entry.getKey());
+                                        gridMask.add(
+                                                new CraftablesGridSlot(
+                                                        slotIndex.get(),
+                                                        itemIndex.getAndIncrement(),
+                                                        entry.getKey(),
+                                                        entry.getValue()));
+                                    }
                                     slotIndex.incrementAndGet();
                                 });
 
@@ -128,6 +131,8 @@ public class ItemCraftablesPanel
                     } else {
                         this.gridMask = Collections.emptyList();
                     }
+
+                    ItemCraftablesPanel.this.updateLinePadding();
                 }
 
                 return this.gridMask;

@@ -40,9 +40,15 @@ public class ItemHistoryPanel extends AbstractSubpanel<ItemsGrid<ItemHistoryPane
 
                 if (this.gridMask == null) {
                     this.gridMask = new ArrayList<>();
-                    for (int slotIndex = 0; slotIndex < Math.min(size(), this.rows * this.columns); slotIndex++) {
-                        this.gridMask.add(new HistoryGridSlot(slotIndex, slotIndex, getItem(slotIndex)));
+                    int itemIndex = 0;
+                    for (int slotIndex = 0; slotIndex < this.rows * this.columns && itemIndex < size(); slotIndex++) {
+                        if (!isInvalidSlot(slotIndex)) {
+                            this.gridMask.add(new HistoryGridSlot(slotIndex, itemIndex, getItem(itemIndex)));
+                            itemIndex++;
+                        }
                     }
+
+                    ItemHistoryPanel.this.updateLinePadding();
                 }
 
                 return this.gridMask;
