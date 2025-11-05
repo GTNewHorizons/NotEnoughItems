@@ -12,7 +12,6 @@ import codechicken.nei.ItemPanels;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.recipe.Recipe.RecipeId;
-import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 
 public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
@@ -22,9 +21,9 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
     public static boolean openRecipeGui(String inputId, Object... ingredients) {
 
-        if ("item".equals(inputId)) {
-            for (int i = 0; i < ingredients.length; i++) {
-                ingredients[i] = normalizeItemStack((ItemStack) ingredients[i]);
+        for (int i = 0; i < ingredients.length; i++) {
+            if (ingredients[i] instanceof ItemStack stack) {
+                ingredients[i] = StackInfo.normalizeRecipeQueryStack(stack.copy());
             }
         }
 
@@ -64,13 +63,6 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
                 "ingredients: " + Arrays.toString(ingredients));
 
         return recipeQuery.runWithProfiling(NEIClientUtils.translate("recipe.concurrent.usage"));
-    }
-
-    private static ItemStack normalizeItemStack(ItemStack stack) {
-        GTFluidStackStringifyHandler.replaceAE2FCFluidDrop = true;
-        stack = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack));
-        GTFluidStackStringifyHandler.replaceAE2FCFluidDrop = false;
-        return stack;
     }
 
     public static void registerUsageHandler(IUsageHandler handler) {
