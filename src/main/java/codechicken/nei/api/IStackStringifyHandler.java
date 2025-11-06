@@ -18,6 +18,10 @@ public interface IStackStringifyHandler {
         return null;
     }
 
+    default ItemStack normalizeRecipeQueryStack(ItemStack stack) {
+        return null;
+    }
+
     default void pauseItemDamageSound(boolean pause) {}
 
 }
