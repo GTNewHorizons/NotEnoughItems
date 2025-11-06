@@ -992,7 +992,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     @Override
     public boolean onMouseWheel(int shift, int mousex, int mousey) {
 
-        if (!inEditingState() && new Rectangle4i(
+        if ((!inEditingState() || this.sortableGroup != null) && new Rectangle4i(
                 namespacePrev.x,
                 namespacePrev.y,
                 namespaceNext.x + namespaceNext.w - namespacePrev.x,

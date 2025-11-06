@@ -761,6 +761,25 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         int absoluteSlotIndex = absoluteRowIndex * this.columns;
         int overGroupId = getRowGroupId(overRowIndex);
 
+        // move group to same grid
+        if (this != sortableGroup.grid) {
+            final BookmarkGroup sourceGroup = sortableGroup.grid.getGroup(sortableGroup.groupId);
+            final List<BookmarkItem> itemsToMove = sortableGroup.getBookmarkItems();
+
+            sortableGroup.grid.removeGroup(sortableGroup.groupId);
+
+            final int groupId = this.addGroup(sourceGroup);
+            for (BookmarkItem item : itemsToMove) {
+                item.groupId = groupId;
+                this.bookmarkItems.add(item);
+            }
+
+            sortableGroup.grid = this;
+            sortableGroup.groupId = groupId;
+            this.onItemsChanged();
+            this.getMask();// force generate grid
+        }
+
         if (sortableGroup.groupId == overGroupId) {
             return;
         }
