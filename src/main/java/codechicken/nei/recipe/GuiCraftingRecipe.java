@@ -21,7 +21,6 @@ import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.recipe.Recipe.RecipeId;
-import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 
 public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
@@ -37,10 +36,13 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         final Minecraft mc = NEIClientUtils.mc();
         final RecipeId recipeId;
 
-        if ("item".equals(outputId)) {
-            for (int i = 0; i < results.length; i++) {
-                results[i] = normalizeItemStack((ItemStack) results[i]);
+        for (int i = 0; i < results.length; i++) {
+            if (results[i] instanceof ItemStack stack) {
+                results[i] = StackInfo.normalizeRecipeQueryStack(stack.copy());
             }
+        }
+
+        if ("item".equals(outputId)) {
             recipeId = getRecipeId(mc.currentScreen, (ItemStack) results[0]);
         } else if ("recipeId".equals(outputId)) {
             recipeId = (RecipeId) results[1];
@@ -104,13 +106,6 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
     private static String getHandlerName(ICraftingHandler handler) {
         return GuiRecipeTab.getHandlerInfo(handler).getHandlerName();
-    }
-
-    private static ItemStack normalizeItemStack(ItemStack stack) {
-        GTFluidStackStringifyHandler.replaceAE2FCFluidDrop = true;
-        stack = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack));
-        GTFluidStackStringifyHandler.replaceAE2FCFluidDrop = false;
-        return stack;
     }
 
     public static RecipeId getRecipeId(GuiScreen gui, ItemStack stackover) {
