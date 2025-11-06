@@ -183,6 +183,10 @@ public class FavoriteRecipes {
         return null;
     }
 
+    public static int size() {
+        return items.size() + fluids.size();
+    }
+
     public static boolean contains(ItemStack stack) {
         return getFavorite(stack) != null;
     }

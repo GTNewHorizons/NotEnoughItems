@@ -292,6 +292,10 @@ public class NEIClientConfig {
         tag.getTag("inventory.craftables.useRows").setComment("Rows used in craftables areas").getIntValue(2);
         API.addOption(new OptionIntegerField("inventory.craftables.useRows", 1, 5));
 
+        tag.getTag("inventory.craftables.favoritesOnly").setComment("Show Only Favorites Recipes")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.craftables.favoritesOnly", true));
+
         tag.getTag("inventory.collapsibleItems.enabled").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.collapsibleItems.enabled", true) {
 
