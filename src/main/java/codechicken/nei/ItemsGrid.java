@@ -15,7 +15,6 @@ import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.item.ItemStack;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL30;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.GuiInfo;
