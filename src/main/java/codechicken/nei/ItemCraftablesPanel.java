@@ -2,10 +2,11 @@ package codechicken.nei;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -90,6 +91,7 @@ public class ItemCraftablesPanel
     private GuiContainer lastGuiContainer = null;
     private ItemStackAmount lastPlayerInventory = null;
     private long lastPlayerInventorySync = 0;
+    private int lastFavoritesCount = 0;
 
     public ItemCraftablesPanel() {
         this.grid = new ItemsGrid<>() {
@@ -106,28 +108,37 @@ public class ItemCraftablesPanel
             public List<CraftablesGridSlot> getMask() {
 
                 if (this.gridMask == null) {
-                    int maxSlotIndex = this.rows * this.columns;
-                    final AtomicInteger slotIndex = new AtomicInteger(0);
-                    final AtomicInteger itemIndex = new AtomicInteger(0);
+                    final int maxSlotIndex = this.rows * this.columns;
                     final List<CraftablesGridSlot> gridMask = new ArrayList<>();
                     this.realItems.clear();
 
                     if (!ItemCraftablesPanel.this.availableRecipes.isEmpty()) {
-                        ItemCraftablesPanel.this.availableRecipes.entrySet().stream()
-                                .sorted(Map.Entry.comparingByKey(ItemSorter.instance)).forEach(entry -> {
-                                    if (!isInvalidSlot(slotIndex.get())) {
-                                        this.realItems.add(entry.getKey());
-                                        gridMask.add(
-                                                new CraftablesGridSlot(
-                                                        slotIndex.get(),
-                                                        itemIndex.getAndIncrement(),
-                                                        entry.getKey(),
-                                                        entry.getValue()));
-                                    }
-                                    slotIndex.incrementAndGet();
-                                });
+                        final List<Map.Entry<ItemStack, RecipeId>> entries = ItemCraftablesPanel.this.availableRecipes
+                                .entrySet().stream()
+                                .sorted(
+                                        Map.Entry.comparingByKey(
+                                                Comparator.comparing(FavoriteRecipes::contains).reversed()
+                                                        .thenComparing(ItemSorter.instance)))
+                                .limit(maxSlotIndex).collect(Collectors.toList());
+                        int slotIndex = 0;
+                        int itemIndex = 0;
 
-                        this.gridMask = gridMask.subList(0, Math.min(gridMask.size(), maxSlotIndex));
+                        for (Map.Entry<ItemStack, RecipeId> entry : entries) {
+                            if (!isInvalidSlot(slotIndex)) {
+                                this.realItems.add(entry.getKey());
+                                gridMask.add(
+                                        new CraftablesGridSlot(
+                                                slotIndex,
+                                                itemIndex++,
+                                                entry.getKey(),
+                                                entry.getValue()));
+                            }
+                            if (slotIndex++ >= maxSlotIndex) {
+                                break;
+                            }
+                        }
+
+                        this.gridMask = gridMask;
                     } else {
                         this.gridMask = Collections.emptyList();
                     }
@@ -197,11 +208,16 @@ public class ItemCraftablesPanel
                     this.lastPlayerInventorySync = System.currentTimeMillis();
 
                     if (firstGui != null && !ItemCraftablesPanel.guiBlacklist.contains(firstGui.getClass().getName())) {
+                        final boolean showOnlyFavorites = NEIClientConfig
+                                .getBooleanSetting("inventory.craftables.favoritesOnly");
                         final ItemStackAmount inv = AutoCraftingManager.getInventoryItems(firstGui);
 
-                        if (this.lastGuiContainer != (this.lastGuiContainer = firstGui)
+                        if (this.lastGuiContainer != firstGui
+                                || showOnlyFavorites && this.lastFavoritesCount != FavoriteRecipes.size()
                                 || !inv.equals(this.lastPlayerInventory)) {
                             this.lastPlayerInventory = inv;
+                            this.lastGuiContainer = firstGui;
+                            this.lastFavoritesCount = FavoriteRecipes.size();
                             this.availableRecipes = generateCraftables(firstGui);
                             this.grid.onGridChanged();
                         }
@@ -256,12 +272,14 @@ public class ItemCraftablesPanel
     private Map<ItemStack, RecipeId> filterHandlerRecipes(IRecipeHandler handler, GuiContainer firstGui,
             List<ItemStack> invStacks) {
         final Map<ItemStack, RecipeId> availableRecipes = new HashMap<>();
+        final boolean showOnlyFavorites = NEIClientConfig.getBooleanSetting("inventory.craftables.favoritesOnly");
 
         IntStream.range(0, handler.numRecipes()).parallel().forEach(recipeIndex -> {
             if (existsIngredients(firstGui, handler.getIngredientStacks(recipeIndex), invStacks)) {
                 final Recipe recipe = Recipe.of(handler, recipeIndex);
 
-                if (!recipe.getResults().isEmpty()) {
+                if (!recipe.getResults().isEmpty()
+                        && (!showOnlyFavorites || FavoriteRecipes.getFavorite(recipe.getRecipeId()) != null)) {
                     synchronized (availableRecipes) {
                         availableRecipes.put(recipe.getResult(), recipe.getRecipeId());
                     }
