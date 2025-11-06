@@ -15,7 +15,6 @@ import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.item.ItemStack;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL30;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.GuiInfo;
@@ -85,21 +84,6 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
             } else {
                 this.framebuffer.framebufferClear();
             }
-
-            // copy depth buffer from MC (fix Angelica)
-            OpenGlHelper.func_153171_g(GL30.GL_READ_FRAMEBUFFER, minecraft.getFramebuffer().framebufferObject);
-            OpenGlHelper.func_153171_g(GL30.GL_DRAW_FRAMEBUFFER, this.framebuffer.framebufferObject);
-            GL30.glBlitFramebuffer(
-                    0,
-                    0,
-                    minecraft.displayWidth,
-                    minecraft.displayHeight,
-                    0,
-                    0,
-                    minecraft.displayWidth,
-                    minecraft.displayHeight,
-                    GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT,
-                    GL11.GL_NEAREST);
         }
 
         public void renderCapturedScreen() {
