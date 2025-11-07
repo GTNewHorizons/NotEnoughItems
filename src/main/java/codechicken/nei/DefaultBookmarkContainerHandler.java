@@ -1,7 +1,7 @@
 package codechicken.nei;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
@@ -12,36 +12,19 @@ public class DefaultBookmarkContainerHandler implements IBookmarkContainerHandle
 
     @Override
     public void pullBookmarkItemsFromContainer(GuiContainer guiContainer, ArrayList<ItemStack> bookmarkItems) {
-        FastTransferManager manager = new FastTransferManager();
-        LinkedList<ItemStack> containerStacks = manager.saveContainer(guiContainer.inventorySlots);
+        final FastTransferManager manager = new FastTransferManager();
+        final List<ItemStack> containerStacks = getStorageStacks(guiContainer);
 
         for (ItemStack bookmarkItem : bookmarkItems) {
-
-            int bookmarkSizeBackup = bookmarkItem.stackSize;
-
-            for (int i = 0; i < containerStacks.size() - 4 * 9; i++) { // Last 36 slots are player inventory
-                ItemStack containerItem = containerStacks.get(i);
-
-                if (containerItem == null) {
-                    continue;
-                }
+            for (int i = 0; i < containerStacks.size() && bookmarkItem.stackSize > 0; i++) {
+                final ItemStack containerItem = containerStacks.get(i);
 
                 if (bookmarkItem.isItemEqual(containerItem)) {
-                    if (bookmarkItem.stackSize <= 0) {
-                        break;
-                    }
-
-                    int transferAmount = Math.min(bookmarkItem.stackSize, containerItem.stackSize);
-
+                    final int transferAmount = Math.min(bookmarkItem.stackSize, containerItem.stackSize);
                     manager.transferItems(guiContainer, i, transferAmount);
                     bookmarkItem.stackSize -= transferAmount;
-
-                    if (bookmarkItem.stackSize == 0) {
-                        break;
-                    }
                 }
             }
-            bookmarkItem.stackSize = bookmarkSizeBackup;
         }
     }
 }
