@@ -25,6 +25,7 @@ import com.google.gson.JsonSyntaxException;
 
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.NEIClientConfig;
+import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.NBTJson;
@@ -253,7 +254,15 @@ public class BookmarkStorage {
             int groupId = jsonObject.has("groupId") ? jsonObject.get("groupId").getAsInt()
                     : BookmarkGrid.DEFAULT_GROUP_ID;
             int factor = jsonObject.has("factor") ? Math.abs(jsonObject.get("factor").getAsInt()) : (isFluid ? 144 : 1);
-            boolean isIngredient = jsonObject.has("ingredient") && jsonObject.get("ingredient").getAsBoolean();
+            BookmarkItemType type = jsonObject.has("type") ? BookmarkItemType.fromInt(jsonObject.get("type").getAsInt())
+                    : null;
+
+            if (type == null) {
+                // old format
+                type = jsonObject.has("ingredient") && jsonObject.get("ingredient").getAsBoolean()
+                        ? BookmarkItemType.INGREDIENT
+                        : BookmarkItemType.RESULT;
+            }
 
             if (jsonObject.get("recipeId") instanceof JsonObject recipeJson) {
                 recipeId = RecipeId.of(recipeJson);
@@ -263,7 +272,7 @@ public class BookmarkStorage {
                 groupId = BookmarkGrid.DEFAULT_GROUP_ID;
             }
 
-            grid.addItem(BookmarkItem.of(groupId, itemStack, factor, recipeId, isIngredient), false);
+            grid.addItem(BookmarkItem.of(groupId, itemStack, factor, recipeId, type), false);
         }
 
         return itemStack != null;
@@ -313,7 +322,7 @@ public class BookmarkStorage {
 
                     row.add("item", NBTJson.toJsonObject(StackInfo.itemStackToNBT(item.getItemStack())));
                     row.add("factor", new JsonPrimitive(item.getFactor()));
-                    row.add("ingredient", new JsonPrimitive(item.isIngredient));
+                    row.add("type", new JsonPrimitive(item.type.toInt()));
 
                     if (item.groupId != BookmarkGrid.DEFAULT_GROUP_ID) {
                         row.add("groupId", new JsonPrimitive(item.groupId));

@@ -225,6 +225,10 @@ public class NEIClientConfig {
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.bookmarks.bookmarkItemsWithRecipe", true));
 
+        tag.getTag("inventory.bookmarks.bookmarkRecipeWithCount").setComment("Bookmark recipe with count")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.bookmarks.bookmarkRecipeWithCount", true));
+
         tag.getTag("inventory.guirecipe.jeiStyleTabs").setComment("Enable/disable JEI Style Tabs")
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.guirecipe.jeiStyleTabs", true));
