@@ -134,13 +134,6 @@ public class GuiRecipeCatalyst extends ScrollContainer {
         int index = 0;
 
         for (PositionedStack pStack : this.items) {
-
-            if (pStack.items.length > 1) {
-                final int stackIndex = (pStack.items.length + pStack.getPermutationIndex(pStack.item) + 1)
-                        % pStack.items.length;
-                pStack.setPermutationToRender(stackIndex);
-            }
-
             pStack.relx = visibleWidth - SLOT_SIZE - (index / rows) * SLOT_SIZE;
             pStack.rely = (index % rows) * SLOT_SIZE;
             index++;
