@@ -289,6 +289,7 @@ nei.options.inventory.guirecipe.cycledIngredientsTooltip=Cycled Ingredients Tool
 nei.options.inventory.guirecipe.cycledIngredientsTooltip.true=Show
 nei.options.inventory.guirecipe.cycledIngredientsTooltip.false=Hide
 nei.options.inventory.guirecipe.handlerInfo=Handler Info Widget
+nei.options.inventory.guirecipe.handlerInfo.tip=Use shift+d while in the Recipes GUI
 nei.options.inventory.guirecipe.handlerInfo.true=Enabled
 nei.options.inventory.guirecipe.handlerInfo.false=Disabled
 nei.options.inventory.guirecipe.maxHeight=Max Height
