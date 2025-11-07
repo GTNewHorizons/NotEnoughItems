@@ -29,6 +29,7 @@ import codechicken.nei.api.IBookmarkContainerHandler;
 import codechicken.nei.bookmark.BookmarkGrid;
 import codechicken.nei.bookmark.BookmarkGroup;
 import codechicken.nei.bookmark.BookmarkItem;
+import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.BookmarkStorage;
 import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.bookmark.GroupingItem;
@@ -184,8 +185,8 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             final boolean existsRecipe = recipeId != null
                     && this.grid.existsRecipe(recipeId, BookmarkGrid.DEFAULT_GROUP_ID);
             final NBTTagCompound nbTag = StackInfo.itemStackToNBT(itemStack);
-            long factor = nbTag.getInteger("Count");
-            long count = factor;
+            long count = nbTag.getInteger("Count");
+            long factor = existsRecipe ? Math.max(count, 1) : 1;
 
             if (existsRecipe) {
                 for (int i = 0; i < this.grid.size(); i++) {
@@ -196,12 +197,13 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                 }
             }
 
-            if (factor == 0) {
-                factor = nbTag.hasKey("gtFluidName") ? Math.min(144, nbTag.getInteger("Count")) : 1;
-            }
-
             this.grid.addItem(
-                    BookmarkItem.of(groupId, StackInfo.withAmount(itemStack, count), factor, recipeId, false),
+                    BookmarkItem.of(
+                            groupId,
+                            StackInfo.withAmount(itemStack, count),
+                            factor,
+                            recipeId,
+                            existsRecipe ? BookmarkItemType.RESULT : BookmarkItemType.ITEM),
                     true);
             return true;
         }
@@ -244,7 +246,8 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
                 if (stack != null && uniqueRecipe.add(recipeId)) {
                     this.grid.addItem(
-                            BookmarkItem.of(groupId, stack, StackInfo.getAmount(stack), recipeId, false),
+                            BookmarkItem
+                                    .of(groupId, stack, StackInfo.getAmount(stack), recipeId, BookmarkItemType.ITEM),
                             true);
                     uniqueStack.add(stack);
                 }
@@ -304,7 +307,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         }
 
         final int groupId = slot.getGroupId();
-        final RecipeId recipeId = slot.getRecipeId();
+        final RecipeId recipeId = slot.getType() == BookmarkItemType.ITEM ? null : slot.getRecipeId();
         final BookmarkGroup group = slot.getGroup();
 
         if (group.crafting != null && group.collapsed) {
@@ -368,7 +371,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
     public RecipeId getRecipeId(int itemIndex) {
         BookmarkItem meta = this.grid.getCalculatedItem(itemIndex);
-        return meta.isIngredient ? null : meta.recipeId;
+        return meta.type == BookmarkItemType.INGREDIENT ? null : meta.recipeId;
     }
 
     public boolean existsRecipe(RecipeId recipeId, int groupId) {
@@ -922,7 +925,8 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
         if (slot != null) {
 
-            if (slot.isIngredient() && slot.getRecipeId() != null && slot.getBookmarkItem().permutations.size() > 1) {
+            if (slot.getType() == BookmarkItemType.INGREDIENT && slot.getRecipeId() != null
+                    && slot.getBookmarkItem().permutations.size() > 1) {
                 RecipeId recipeId = slot.getRecipeId();
 
                 if (recipeId == null) {
@@ -1020,7 +1024,8 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                 if (NEIClientUtils.altKey()) {
                     multiplier = NEIClientConfig.showItemQuantityWidget() ? NEIClientConfig.getItemQuantity() : 0;
                     if (multiplier == 0) {
-                        multiplier = slot.getItemStack().getMaxStackSize();
+                        multiplier = StackInfo.itemStackToNBT(slot.getItemStack()).hasKey("gtFluidName") ? 144
+                                : slot.getItemStack().getMaxStackSize();
                     }
                 }
 
@@ -1261,7 +1266,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     @Deprecated
     public BookmarkRecipeId getBookmarkRecipeId(int itemIndex) {
         BookmarkItem item = this.grid.getCalculatedItem(itemIndex);
-        return item == null || item.isIngredient || item.recipeId == null ? null
+        return item == null || item.type == BookmarkItemType.INGREDIENT || item.recipeId == null ? null
                 : new BookmarkRecipeId(item.recipeId.getHandleName(), item.recipeId.getIngredients());
     }
 
