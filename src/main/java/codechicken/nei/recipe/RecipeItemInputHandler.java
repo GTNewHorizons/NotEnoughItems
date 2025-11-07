@@ -14,6 +14,7 @@ import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.api.ShortcutInputHandler;
+import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
@@ -81,7 +82,7 @@ public class RecipeItemInputHandler implements IContainerInputHandler, IContaine
             final BookmarksGridSlot slot = ItemPanels.bookmarkPanel.getSlotMouseOver(mousex, mousey);
 
             if (slot != null && slot.getRecipeId() != null
-                    && !slot.isIngredient()
+                    && slot.getType() != BookmarkItemType.INGREDIENT
                     && NEIClientConfig.getRecipeTooltipsMode() != 0) {
                 final int tooltipMode = NEIClientConfig.getRecipeTooltipsMode();
                 final BookmarkViewMode viewMode = slot.getGroup().viewMode;

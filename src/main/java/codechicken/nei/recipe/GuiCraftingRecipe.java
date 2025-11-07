@@ -18,6 +18,7 @@ import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.recipe.Recipe.RecipeId;
 
@@ -121,7 +122,8 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         final BookmarksGridSlot panelSlot = ItemPanels.bookmarkPanel.getSlotMouseOver(mouseover.x, mouseover.y);
 
         if (panelSlot != null) {
-            return panelSlot.isIngredient() || panelSlot.getRecipeId() == null ? FavoriteRecipes.getFavorite(stackover)
+            return panelSlot.getType() == BookmarkItemType.INGREDIENT || panelSlot.getRecipeId() == null
+                    ? FavoriteRecipes.getFavorite(stackover)
                     : panelSlot.getRecipeId();
         }
 

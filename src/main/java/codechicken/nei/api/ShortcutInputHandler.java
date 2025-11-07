@@ -27,6 +27,7 @@ import codechicken.nei.SearchField;
 import codechicken.nei.bookmark.BookmarkGrid;
 import codechicken.nei.bookmark.BookmarkGroup;
 import codechicken.nei.bookmark.BookmarkItem;
+import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.recipe.AutoCraftingManager;
 import codechicken.nei.recipe.GuiCraftingRecipe;
@@ -233,7 +234,7 @@ public abstract class ShortcutInputHandler {
                 if (recipe != null) {
                     math = RecipeChainMath.of(recipe, 1);
                 }
-            } else if (slot.getRecipeId() != null && !slot.isIngredient()) {
+            } else if (slot.getRecipeId() != null && slot.getType() == BookmarkItemType.RESULT) {
 
                 if (slot.getGroup().crafting == null) {
                     final Recipe recipe = Recipe.of(slot.getRecipeId());
@@ -312,11 +313,14 @@ public abstract class ShortcutInputHandler {
     private static boolean saveRecipeInBookmark(ItemStack stackover, boolean saveIngredients, boolean saveStackSize) {
         final Point mousePos = GuiDraw.getMousePosition();
 
+        // If no slot was removed from the bookmark panel on click:
         if (!ItemPanels.bookmarkPanel.removeSlot(mousePos.x, mousePos.y, saveIngredients)) {
             final Recipe recipe = getFocusedRecipe(stackover, mousePos.x, mousePos.y, saveIngredients);
 
+            // --- Case 1: saving a recipe (with ingredients) ---
             if (recipe != null && saveIngredients) {
 
+                // If the recipe is not already bookmarked, add it
                 if (!ItemPanels.bookmarkPanel.removeRecipe(recipe.getRecipeId(), BookmarkGrid.DEFAULT_GROUP_ID)) {
                     final Recipe singleRecipe = Recipe.of(
                             Arrays.asList(recipe.getResult(stackover)),
@@ -324,18 +328,30 @@ public abstract class ShortcutInputHandler {
                             recipe.getIngredients());
                     singleRecipe.setCustomRecipeId(recipe.getRecipeId());
 
-                    ItemPanels.bookmarkPanel
-                            .addRecipe(singleRecipe, saveStackSize ? 1 : 0, BookmarkGrid.DEFAULT_GROUP_ID);
+                    ItemPanels.bookmarkPanel.addRecipe(
+                            singleRecipe,
+                            // Determine if stack size should be saved
+                            saveStackSize
+                                    || NEIClientConfig.getBooleanSetting("inventory.bookmarks.bookmarkRecipeWithCount")
+                                            ? 1
+                                            : 0,
+                            BookmarkGrid.DEFAULT_GROUP_ID);
                 }
 
+                // --- Case 2: saving an item only ---
             } else {
                 final RecipeId recipeId = recipe != null ? recipe.getRecipeId() : null;
+
+                // Determine if the item is associated with a recipe and should be saved with it
                 final boolean existsRecipe = recipeId != null
                         && ItemPanels.bookmarkPanel.existsRecipe(recipeId, BookmarkGrid.DEFAULT_GROUP_ID)
                         || NEIClientConfig.getBooleanSetting("inventory.bookmarks.bookmarkItemsWithRecipe");
 
+                // If the item was not removed from the bookmarks, add it
                 if (!ItemPanels.bookmarkPanel
                         .removeItem(stackover, existsRecipe ? recipeId : null, BookmarkGrid.DEFAULT_GROUP_ID)) {
+
+                    // Determine whether to preserve the item count
                     saveStackSize = saveStackSize || saveIngredients
                             || ItemPanels.bookmarkPanel.existsRecipe(recipeId, BookmarkGrid.DEFAULT_GROUP_ID);
 
@@ -469,7 +485,7 @@ public abstract class ShortcutInputHandler {
                 hotkeys.put(
                         NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
                         NEIClientUtils.translate("bookmark.group.remove_recipe"));
-            } else if (slot.getRecipeId() == null) {
+            } else if (slot.getRecipeId() == null || slot.getType() == BookmarkItemType.ITEM) {
                 hotkeys.put(
                         NEIClientConfig.getKeyName("gui.bookmark"),
                         NEIClientUtils.translate("bookmark.remove_item"));
@@ -484,7 +500,7 @@ public abstract class ShortcutInputHandler {
                                         NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
                                         NEIClientUtils.translate("bookmark.remove_recipe"));
 
-                                if (slot.isIngredient()) {
+                                if (slot.getType() == BookmarkItemType.INGREDIENT) {
                                     hotkeys.put(
                                             NEIClientConfig.getKeyName("gui.bookmark"),
                                             NEIClientUtils.translate("bookmark.remove_item"));
@@ -497,7 +513,8 @@ public abstract class ShortcutInputHandler {
 
                                     if (ItemPanels.bookmarkPanel.getGrid().createChainItems(groupId).values().stream()
                                             .noneMatch(
-                                                    m -> !m.isIngredient && !m.equals(item) && item.equalsRecipe(m))) {
+                                                    m -> m.type == BookmarkItemType.RESULT && !m.equals(item)
+                                                            && item.equalsRecipe(m))) {
                                         hotkeys.put(
                                                 NEIClientConfig.getKeyName("gui.bookmark"),
                                                 NEIClientUtils.translate("bookmark.remove_recipe"));
@@ -647,7 +664,7 @@ public abstract class ShortcutInputHandler {
             BookmarksGridSlot slot) {
 
         if (slot != null) {
-            return slot.isIngredient() ? null : slot.getRecipeId();
+            return slot.getType() == BookmarkItemType.INGREDIENT ? null : slot.getRecipeId();
         }
 
         ItemsGridSlot itemSlot = ItemPanels.itemPanel.getSlotMouseOver(mousex, mousey);
