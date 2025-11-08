@@ -851,24 +851,27 @@ public class NEIClientConfig {
     }
 
     public static void loadWorld(String worldPath) {
+        final File specificDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
+        final boolean newWorld = !specificDir.exists();
         unloadWorld();
         setInternalEnabled(true);
 
-        if (!worldPath.equals(NEIClientConfig.worldPath)) {
+        if (!worldPath.equals(NEIClientConfig.worldPath) || newWorld) {
             NEIClientConfig.worldPath = worldPath;
-
-            logger.debug("Loading " + (Minecraft.getMinecraft().isSingleplayer() ? "Local" : "Remote") + " World");
-
-            final File specificDir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
-            final boolean newWorld = !specificDir.exists();
 
             if (newWorld) {
                 specificDir.mkdirs();
             }
 
             world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
+
+            if (newWorld && Minecraft.getMinecraft().isSingleplayer()) {
+                world.config.getTag("inventory.cheatmode")
+                        .setIntValue(NEIClientUtils.mc().playerController.isInCreativeMode() ? 2 : 0);
+            }
+
             bootNEI();
-            onWorldLoad(newWorld);
+            onWorldLoad();
         }
     }
 
@@ -876,7 +879,7 @@ public class NEIClientConfig {
         return NEIClientConfig.worldPath;
     }
 
-    private static void onWorldLoad(boolean newWorld) {
+    private static void onWorldLoad() {
         world.config.setComment(
                 "World based configuration of NEI.\nMost of these options can be changed ingame.\nDeleting any element will restore it to it's default value");
 
@@ -884,12 +887,6 @@ public class NEIClientConfig {
         creativeInv = new ItemStack[54];
         LayoutManager.searchField.setText(getSearchExpression());
         LayoutManager.quantity.setText(Integer.toString(getItemQuantity()));
-
-        if (newWorld && Minecraft.getMinecraft().isSingleplayer()) {
-            world.config.getTag("inventory.cheatmode")
-                    .setIntValue(NEIClientUtils.mc().playerController.isInCreativeMode() ? 2 : 0);
-        }
-
         NEIInfo.load(ClientUtils.getWorld());
     }
 
@@ -914,12 +911,7 @@ public class NEIClientConfig {
         SubsetWidget.saveHidden();
         FavoriteRecipes.save();
         CollapsibleItems.saveStates();
-
-        if (world != null) {
-            world.saveNBT();
-            NEIClientConfig.worldPath = null;
-            world = null;
-        }
+        world.saveNBT();
     }
 
     private static final Map<String, String> keySettings = new HashMap<>();
