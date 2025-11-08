@@ -350,22 +350,20 @@ public class RecipeChainDetails {
     private Set<RecipeId> getRecipeParents(RecipeChainMath math, RecipeId recipeId, Set<RecipeId> parents,
             Set<RecipeId> visited) {
         final Set<RecipeId> recipeIds = math.preferredItems.entrySet().stream()
-                .filter(
-                        entry -> entry.getValue() != null && recipeId.equals(entry.getValue().recipeId)
-                                && !visited.contains(entry.getKey().recipeId))
+                .filter(entry -> entry.getValue() != null && recipeId.equals(entry.getValue().recipeId))
                 .map(entry -> entry.getKey().recipeId).collect(Collectors.toSet());
-
-        visited.addAll(recipeIds);
 
         if (recipeIds.isEmpty()) {
             parents.add(recipeId);
         } else {
 
             for (RecipeId ingrRecipeId : recipeIds) {
-                if (math.outputRecipes.containsKey(ingrRecipeId)) {
-                    parents.add(ingrRecipeId);
-                } else {
-                    getRecipeParents(math, ingrRecipeId, parents, visited);
+                if (visited.add(ingrRecipeId)) {
+                    if (math.outputRecipes.containsKey(ingrRecipeId)) {
+                        parents.add(ingrRecipeId);
+                    } else {
+                        getRecipeParents(math, ingrRecipeId, parents, visited);
+                    }
                 }
             }
 
