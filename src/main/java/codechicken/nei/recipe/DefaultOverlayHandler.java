@@ -6,10 +6,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.inventory.SlotCrafting;
@@ -50,17 +50,17 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         public Slot[] slots;
     }
 
-    public DefaultOverlayHandler(int x, int y) {
-        offsetx = x;
-        offsety = y;
-    }
+    public int offsetx;
+    public int offsety;
 
     public DefaultOverlayHandler() {
         this(5, 11);
     }
 
-    public int offsetx;
-    public int offsety;
+    public DefaultOverlayHandler(int x, int y) {
+        this.offsetx = x;
+        this.offsety = y;
+    }
 
     @Override
     public void overlayRecipe(GuiContainer gui, IRecipeHandler handler, int recipeIndex, boolean maxTransfer) {
@@ -72,7 +72,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         final List<PositionedStack> ingredients = handler.getIngredientStacks(recipeIndex);
         final List<DistributedIngred> ingredStacks = getPermutationIngredients(ingredients);
 
-        if (!clearIngredients(gui)) return 0;
+        if (!clearIngredients(gui, handler)) return 0;
 
         findInventoryQuantities(gui, ingredStacks);
 
@@ -99,12 +99,17 @@ public class DefaultOverlayHandler implements IOverlayHandler {
     }
 
     @Override
-    public boolean craft(GuiContainer firstGui, IRecipeHandler recipe, int recipeIndex, int multiplier) {
-        final EntityClientPlayerMP thePlayer = NEIClientUtils.mc().thePlayer;
-        boolean craft = false;
+    public boolean craft(GuiContainer firstGui, IRecipeHandler handler, int recipeIndex, int multiplier) {
+        final Slot craftingSlot = firstGui.inventorySlots.inventorySlots.stream()
+                .filter(slot -> slot instanceof SlotCrafting).findFirst().orElse(null);
 
+        if (craftingSlot == null) {
+            return false;
+        }
+
+        boolean craft = false;
         while (multiplier > 0) {
-            final int transfer = transferRecipe(firstGui, recipe, recipeIndex, multiplier);
+            final int transfer = transferRecipe(firstGui, handler, recipeIndex, multiplier);
 
             if (transfer <= 0) {
                 break;
@@ -112,43 +117,88 @@ public class DefaultOverlayHandler implements IOverlayHandler {
 
             multiplier -= transfer;
 
-            for (Slot slot : firstGui.inventorySlots.inventorySlots) {
-                if (slot.getHasStack() && slot instanceof SlotCrafting && slot.canTakeStack(thePlayer)) {
-                    FastTransferManager.clickSlot(firstGui, slot.slotNumber, 0, 1);
-                    craft = true;
-                    break;
-                }
+            if (craftingSlot.getHasStack() && craftingSlot.canTakeStack(firstGui.mc.thePlayer)) {
+                FastTransferManager.clickSlot(firstGui, craftingSlot.slotNumber, 0, 1);
+                craft = true;
             }
 
         }
 
-        clearIngredients(firstGui);
+        clearIngredients(firstGui, handler);
 
         return craft;
     }
 
-    private boolean clearIngredients(GuiContainer gui) {
-        final EntityClientPlayerMP thePlayer = NEIClientUtils.mc().thePlayer;
+    protected boolean clearIngredients(GuiContainer gui, IRecipeHandler handler) {
 
-        for (Slot slot : gui.inventorySlots.inventorySlots) {
-            if (slot.getHasStack() && !canMoveFrom(slot, gui)
-                    && !(slot instanceof SlotCrafting)
-                    && slot.canTakeStack(thePlayer)) {
+        for (Slot slot : getCraftMatrixSlots(gui, handler)) {
+            if (slot.canTakeStack(gui.mc.thePlayer)) {
                 FastTransferManager.clickSlot(gui, slot.slotNumber, 0, 1);
                 if (slot.getHasStack()) return false;
             }
         }
 
-        return dropOffMouseStack(thePlayer, gui);
+        FastTransferManager.dropHeldItem(gui);
+
+        return gui.mc.thePlayer.inventory.getItemStack() == null;
+    }
+
+    /**
+     * Gets the slots in the crafting matrix for the given GUI and recipe handler.
+     * 
+     * @param gui
+     * @param handler
+     * @return
+     */
+    protected Set<Slot> getCraftMatrixSlots(GuiContainer gui, IRecipeHandler handler) {
+        final PositionedStack firstIngr = handler.getIngredientStacks(0).get(0);
+        final Map<Integer, Slot> grid = new HashMap<>();
+        final Set<Slot> ingredSlots = new HashSet<>();
+
+        for (Slot slot : gui.inventorySlots.inventorySlots) {
+            final int key = (slot.xDisplayPosition - this.offsetx) * 10_000 + (slot.yDisplayPosition - this.offsety);
+            grid.put(key, slot);
+        }
+
+        int left = firstIngr.relx;
+        int top = firstIngr.rely;
+        int right = left;
+        int bottom = top;
+
+        while (grid.containsKey((left - 18) * 10_000 + firstIngr.rely)) {
+            left -= 18;
+        }
+
+        while (grid.containsKey((right + 18) * 10_000 + firstIngr.rely)) {
+            right += 18;
+        }
+
+        while (grid.containsKey(firstIngr.relx * 10_000 + (top - 18))) {
+            top -= 18;
+        }
+
+        while (grid.containsKey(firstIngr.relx * 10_000 + (bottom + 18))) {
+            bottom += 18;
+        }
+
+        for (int x = left; x <= right; x += 18) {
+            for (int y = top; y <= bottom; y += 18) {
+                final Slot slot = grid.get(x * 10_000 + y);
+                if (slot != null && !(slot.inventory instanceof InventoryPlayer)) {
+                    ingredSlots.add(slot);
+                }
+            }
+        }
+
+        return ingredSlots;
     }
 
     private void moveIngredients(GuiContainer gui, List<IngredientDistribution> assignedIngredients, int multiplier) {
-        final EntityClientPlayerMP thePlayer = NEIClientUtils.mc().thePlayer;
 
         for (Slot slot : gui.inventorySlots.inventorySlots) {
             if (slot instanceof SlotCrafting || !slot.getHasStack()
                     || !canMoveFrom(slot, gui)
-                    || !slot.canTakeStack(thePlayer))
+                    || !slot.canTakeStack(gui.mc.thePlayer))
                 continue;
             ItemStack stack = slot.getStack();
             int slotTransferCap = stack.getMaxStackSize();
@@ -186,39 +236,12 @@ public class DefaultOverlayHandler implements IOverlayHandler {
 
                 }
 
-                if (thePlayer.inventory.getItemStack() != null) {
+                if (gui.mc.thePlayer.inventory.getItemStack() != null) {
                     FastTransferManager.clickSlot(gui, slot.slotNumber);
                 }
             }
 
         }
-    }
-
-    protected boolean dropOffMouseStack(EntityPlayer entityPlayer, GuiContainer gui) {
-
-        if (entityPlayer.inventory.getItemStack() == null) {
-            return true;
-        }
-
-        for (int i = 0; i < gui.inventorySlots.inventorySlots.size(); i++) {
-            Slot slot = gui.inventorySlots.inventorySlots.get(i);
-
-            if (slot.inventory == entityPlayer.inventory) {
-                ItemStack mouseItem = entityPlayer.inventory.getItemStack();
-                ItemStack slotStack = slot.getStack();
-
-                if (slotStack == null || NEIClientUtils.areStacksSameType(mouseItem, slotStack)) {
-                    FastTransferManager.clickSlot(gui, i, 0, 0);
-                }
-
-                if (entityPlayer.inventory.getItemStack() == null) {
-                    return true;
-                }
-
-            }
-        }
-
-        return entityPlayer.inventory.getItemStack() == null;
     }
 
     private int calculateRecipeQuantity(List<IngredientDistribution> assignedIngredients) {
