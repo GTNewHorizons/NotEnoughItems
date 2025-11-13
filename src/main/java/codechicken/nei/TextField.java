@@ -89,7 +89,7 @@ public abstract class TextField extends Widget {
             onTextChange(oldText);
         }
 
-        return handled;
+        return handled || keyID == Keyboard.KEY_SPACE;
     }
 
     public abstract void onTextChange(String oldText);
