@@ -1187,7 +1187,15 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         }
 
         if (!items.isEmpty()) {
-            containerHandler.pullBookmarkItemsFromContainer(guiContainer, items);
+            final int helmStackIndex = FastTransferManager.dropHeldItem(guiContainer);
+
+            if (guiContainer.mc.thePlayer.inventory.getItemStack() == null) {
+                containerHandler.pullBookmarkItemsFromContainer(guiContainer, items);
+
+                if (helmStackIndex != -1) {
+                    FastTransferManager.clickSlot(guiContainer, helmStackIndex, 0, 0);
+                }
+            }
         }
 
         return true;

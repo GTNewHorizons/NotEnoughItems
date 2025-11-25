@@ -70,8 +70,8 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
     }
 
     public void setActiveStack(ItemStack activeStack) {
-        final ItemStack realStack = items.stream()
-                .filter(stack -> NEIClientUtils.areStacksSameTypeWithNBT(stack, activeStack)).findFirst().orElse(null);
+        final ItemStack realStack = items.stream().filter(stack -> NEIClientUtils.areStacksSameType(stack, activeStack))
+                .findFirst().orElse(null);
         this.activeStackIndex = items.indexOf(realStack);
     }
 

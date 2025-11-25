@@ -236,6 +236,12 @@ public class Recipe {
                     return false;
                 }
 
+                if (isShapedRecipe() && this.result != null
+                        && anRecipeId.result != null
+                        && !StackInfo.equalItemAndNBT(this.result, anRecipeId.result, true)) {
+                    return false;
+                }
+
                 for (int idx = 0; idx < this.ingredients.size(); idx++) {
                     if (!StackInfo.equalItemAndNBT(this.ingredients.get(idx), anRecipeId.ingredients.get(idx), true)) {
                         return false;

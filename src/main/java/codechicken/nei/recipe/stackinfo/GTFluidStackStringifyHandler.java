@@ -112,7 +112,8 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
 
     public ItemStack normalizeRecipeQueryStack(ItemStack stack) {
 
-        if (stack.getItem() == GameRegistry.findItem("ae2fc", "fluid_drop")) {
+        if (stack.getItem() == GameRegistry.findItem("ae2fc", "fluid_drop")
+                || stack.getItem() == GameRegistry.findItem("ae2fc", "fluid_packet")) {
             final FluidStack fluidStack = getFluid(stack);
 
             if (fluidStack != null) {
