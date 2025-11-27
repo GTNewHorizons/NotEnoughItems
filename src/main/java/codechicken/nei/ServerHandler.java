@@ -21,10 +21,8 @@ import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 
 public class ServerHandler {
 
-    private static ServerHandler instance;
-
     public static void load() {
-        instance = new ServerHandler();
+        ServerHandler instance = new ServerHandler();
 
         PacketCustom.assignHandler(NEICPH.channel, new NEISPH());
         FMLCommonHandler.instance().bus().register(instance);
