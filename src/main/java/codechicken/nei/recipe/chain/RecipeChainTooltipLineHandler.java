@@ -36,6 +36,7 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
     protected ItemsTooltipLineHandler inputs;
     protected ItemsTooltipLineHandler outputs;
     protected ItemsTooltipLineHandler remainder;
+    protected ItemsTooltipLineHandler craftingNeeded;
     protected boolean lastShiftKey = false;
     protected boolean lastControlKey = false;
 
@@ -54,6 +55,7 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
         final List<ItemStack> inputs = new ArrayList<>();
         final List<ItemStack> outputs = new ArrayList<>();
         final List<ItemStack> remainder = new ArrayList<>();
+        final List<ItemStack> craftingNeeded = new ArrayList<>();
         final ItemStackAmount inventory = new ItemStackAmount();
         final GuiContainer currentGui = NEIClientUtils.getGuiContainer();
 
@@ -167,6 +169,12 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
             }
 
         }
+        if (this.lastShiftKey) {
+            for (Map.Entry<BookmarkItem, Long> item : this.math.requiredAmount.entrySet()) {
+                if (item.getKey().type == BookmarkItem.BookmarkItemType.RESULT && item.getValue() != 0)
+                    craftingNeeded.add(item.getKey().getItemStack(item.getValue()));
+            }
+        }
 
         inputs.sort(
                 Comparator.comparing((ItemStack stack) -> StackInfo.getFluid(stack) != null)
@@ -203,9 +211,16 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
                 true,
                 Integer.MAX_VALUE);
 
+        this.craftingNeeded = new ItemsTooltipLineHandler(
+                NEIClientUtils.translate("bookmark.crafting_chain.needed"),
+                craftingNeeded,
+                true,
+                Integer.MAX_VALUE);
+
         if (this.lastShiftKey) {
             this.inputs.setLabelColor(EnumChatFormatting.RED);
             this.available.setLabelColor(EnumChatFormatting.GREEN);
+            this.craftingNeeded.setLabelColor(EnumChatFormatting.BLUE);
         }
 
         this.size.height = this.size.width = 0;
@@ -217,16 +232,18 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
             if (!this.math.outputRecipes.isEmpty()) {
                 this.size.height = 2 + GuiDraw.fontRenderer.FONT_HEIGHT;
             }
-
             this.size.width = Math.max(
                     this.inputs.getSize().width,
                     Math.max(
                             this.outputs.getSize().width,
-                            Math.max(this.remainder.getSize().width, this.available.getSize().width)));
+                            Math.max(
+                                    this.remainder.getSize().width,
+                                    Math.max(this.available.getSize().width, this.craftingNeeded.getSize().width))));
 
             this.size.height += this.inputs.getSize().height + this.outputs.getSize().height
                     + this.remainder.getSize().height
-                    + this.available.getSize().height;
+                    + this.available.getSize().height
+                    + this.craftingNeeded.getSize().height;
         }
 
     }
@@ -258,7 +275,6 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
         }
 
         if (NEIClientConfig.recipeChainDir() == 0) {
-
             if (!this.inputs.isEmpty()) {
                 this.inputs.draw(x, y);
                 y += this.inputs.getSize().height;
@@ -267,6 +283,11 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
             if (!this.available.isEmpty()) {
                 this.available.draw(x, y);
                 y += this.available.getSize().height;
+            }
+
+            if (!this.craftingNeeded.isEmpty()) {
+                this.craftingNeeded.draw(x, y);
+                y += this.craftingNeeded.getSize().height;
             }
 
             if (!this.outputs.isEmpty()) {
@@ -284,6 +305,11 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
             if (!this.inputs.isEmpty()) {
                 this.inputs.draw(x, y);
                 y += this.inputs.getSize().height;
+            }
+
+            if (!this.craftingNeeded.isEmpty()) {
+                this.craftingNeeded.draw(x, y);
+                y += this.craftingNeeded.getSize().height;
             }
 
             if (!this.available.isEmpty()) {

@@ -47,6 +47,7 @@ nei.bookmark.crafting_chain.input=Ingredients
 nei.bookmark.crafting_chain.missing=Missing Items
 nei.bookmark.crafting_chain.output=Results
 nei.bookmark.crafting_chain.remainder=Remainders
+nei.bookmark.crafting_chain.needed=Required Crafts
 nei.bookmark.crafting_chain.available=Available Items
 nei.inventory.search.placeholder=Search...
 nei.itempanel.quantity.default=One stack
