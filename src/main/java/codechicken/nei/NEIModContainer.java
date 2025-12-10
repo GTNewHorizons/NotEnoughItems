@@ -37,8 +37,6 @@ import cpw.mods.fml.common.versioning.VersionRange;
 
 public class NEIModContainer extends DummyModContainer {
 
-    public static LinkedList<IConfigureNEI> plugins = new LinkedList<>();
-
     private static boolean gregTech5Loaded;
     private static boolean gtnhLibLoaded;
 
@@ -46,7 +44,6 @@ public class NEIModContainer extends DummyModContainer {
 
     public NEIModContainer() {
         super(getModMetadata());
-        loadMetadata();
     }
 
     private static ModMetadata getModMetadata() {
@@ -84,30 +81,6 @@ public class NEIModContainer extends DummyModContainer {
     }
 
     private String description;
-
-    private void loadMetadata() {
-        description = super.getMetadata().description.replace("Supporters:", EnumChatFormatting.AQUA + "Supporters:");
-    }
-
-    @Override
-    public ModMetadata getMetadata() {
-        StringBuilder s_plugins = new StringBuilder();
-        if (plugins.size() == 0) {
-            s_plugins.append(EnumChatFormatting.RED).append("No installed plugins.");
-        } else {
-            s_plugins.append(EnumChatFormatting.GREEN).append("Installed plugins: ");
-            for (int i = 0; i < plugins.size(); i++) {
-                if (i > 0) s_plugins.append(", ");
-                IConfigureNEI plugin = plugins.get(i);
-                s_plugins.append(plugin.getName()).append(" ").append(plugin.getVersion());
-            }
-            s_plugins.append(".");
-        }
-
-        ModMetadata meta = super.getMetadata();
-        meta.description = description.replace("<plugins>", s_plugins.toString());
-        return meta;
-    }
 
     @Override
     public boolean registerBus(EventBus bus, LoadController controller) {
