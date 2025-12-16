@@ -27,10 +27,12 @@ import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.versioning.ArtifactVersion;
 import cpw.mods.fml.common.versioning.VersionParser;
 import cpw.mods.fml.common.versioning.VersionRange;
 
+@SuppressWarnings("UnstableApiUsage")
 public class NEIModContainer extends DummyModContainer {
 
     private static boolean gregTech5Loaded;
@@ -94,8 +96,9 @@ public class NEIModContainer extends DummyModContainer {
 
     @Subscribe
     public void init(FMLInitializationEvent event) {
-        if (CommonUtils.isClient()) ClientHandler.load();
-
+        if (CommonUtils.isClient()) {
+            ClientHandler.load();
+        }
         ServerHandler.load();
     }
 
@@ -114,6 +117,11 @@ public class NEIModContainer extends DummyModContainer {
             ClientHandler.loadHandlerOrdering();
             asmDataTable = null;
         }
+    }
+
+    @Subscribe
+    public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
+        NEIServerConfig.resetFirstLoad();
     }
 
     @Subscribe
