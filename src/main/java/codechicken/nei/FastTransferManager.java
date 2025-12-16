@@ -9,7 +9,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -279,6 +281,27 @@ public class FastTransferManager {
 
     public static void clickSlot(GuiContainer window, int slotIndex, int button, int modifier) {
         GuiContainerManager.getManager(window).handleSlotClick(slotIndex, button, modifier);
+    }
+
+    public static int dropHeldItem(GuiContainer window) {
+        final EntityPlayerSP player = window.mc.thePlayer;
+        final ItemStack held = player.inventory.getItemStack();
+
+        if (held == null) return -1;
+
+        for (int i = 0; held != null && i < window.inventorySlots.inventorySlots.size(); i++) {
+            final Slot slot = window.inventorySlots.inventorySlots.get(i);
+
+            if (slot.inventory instanceof InventoryPlayer && !slot.getHasStack() && slot.isItemValid(held)) {
+                clickSlot(window, i, 0, 0);
+
+                if (player.inventory.getItemStack() == null) {
+                    return i;
+                }
+            }
+        }
+
+        return -1;
     }
 
     private boolean fillZoneWithHeldItem(GuiContainer window, int zoneIndex) {
