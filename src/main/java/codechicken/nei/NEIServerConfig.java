@@ -18,7 +18,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.permission.PermissionLevel;
@@ -37,21 +36,23 @@ import codechicken.lib.packet.PacketCustom;
 
 public class NEIServerConfig {
 
-    private static MinecraftServer server;
-
+    private static boolean firstLoad;
     public static Logger logger = LogManager.getLogger("NotEnoughItems");
     public static File saveDir;
     public static ConfigFile serverConfig;
     public static Map<Integer, NBTTagCompound> dimTags = new HashMap<>();
     public static HashMap<String, PlayerSave> playerSaves = new HashMap<>();
     public static ItemStackMap<Set<String>> bannedItems = new ItemStackMap<>();
-
     private static boolean doesPermAPIExist = false;
 
+    public static void resetFirstLoad() {
+        firstLoad = true;
+    }
+
     public static void load(World world) {
-        if (MinecraftServer.getServer() != server) {
+        if (firstLoad) {
+            firstLoad = false;
             logger.debug("Loading NEI Server");
-            server = MinecraftServer.getServer();
             saveDir = new File(DimensionManager.getCurrentSaveRootDirectory(), "NEI");
 
             dimTags.clear();
