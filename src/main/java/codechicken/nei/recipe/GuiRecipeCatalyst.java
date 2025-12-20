@@ -55,7 +55,8 @@ public class GuiRecipeCatalyst extends ScrollContainer {
             0,
             0,
             28 + TRANSPARENCY_BORDER * 2,
-            28 + TRANSPARENCY_BORDER * 2).setTextureSize(28 + TRANSPARENCY_BORDER * 2, 28 + TRANSPARENCY_BORDER * 2).build();
+            28 + TRANSPARENCY_BORDER * 2).setTextureSize(28 + TRANSPARENCY_BORDER * 2, 28 + TRANSPARENCY_BORDER * 2)
+                    .build();
 
     private static final DrawableResource FG_TEXTURE = new DrawableBuilder("nei:textures/slot.png", 0, 0, 18, 18)
             .setTextureSize(18, 18).build();
