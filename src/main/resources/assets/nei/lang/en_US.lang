@@ -603,6 +603,7 @@ nei.subsets.Items.Tools.Shovels=Shovels
 nei.subsets.Items.Weapons=Weapons
 nei.subsets.Items.Weapons.Ranged=Ranged
 nei.subsets.Items.Weapons.Swords=Swords
+nei.subsets.Untranslated=Untranslated
 nei.subsets.Mod=Mod
 
 nei.presets.new=New Preset
