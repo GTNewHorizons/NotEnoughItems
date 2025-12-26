@@ -58,8 +58,13 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         IGuiClientSide, IGuiHandleMouseWheel, IContainerTooltipHandler, INEIGuiHandler {
 
     private static final int BORDER_PADDING = 5;
-    private final DrawableResource BG_TEXTURE = new DrawableBuilder("nei:textures/gui/recipebg.png", 0, 0, 176, 166)
-            .build();
+    private static final int TRANSPARENCY_BORDER = 4;
+    private final DrawableResource BG_TEXTURE = new DrawableBuilder(
+            "nei:textures/gui/recipebg.png",
+            0,
+            0,
+            176 + TRANSPARENCY_BORDER * 2,
+            166 + TRANSPARENCY_BORDER * 2).build();
 
     private static final int BUTTON_WIDTH = 13;
     private static final int BUTTON_HEIGHT = 12;
@@ -789,14 +794,14 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     @Override
     public void drawGuiContainerBackgroundLayer(float f, int mouseX, int mouseY) {
         BG_TEXTURE.draw(
-                this.guiLeft,
-                this.guiTop,
-                this.xSize,
-                this.ySize,
-                BORDER_PADDING,
-                BORDER_PADDING,
-                BORDER_PADDING,
-                BORDER_PADDING);
+                this.guiLeft - TRANSPARENCY_BORDER,
+                this.guiTop - TRANSPARENCY_BORDER,
+                this.xSize + TRANSPARENCY_BORDER * 2,
+                this.ySize + TRANSPARENCY_BORDER * 2,
+                BORDER_PADDING + TRANSPARENCY_BORDER,
+                BORDER_PADDING + TRANSPARENCY_BORDER,
+                BORDER_PADDING + TRANSPARENCY_BORDER,
+                BORDER_PADDING + TRANSPARENCY_BORDER);
 
         drawJEITabs(mouseX, mouseY);
     }
