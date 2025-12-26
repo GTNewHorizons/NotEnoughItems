@@ -7,7 +7,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+import codechicken.nei.guihook.HideousLinkedList;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
@@ -37,7 +39,7 @@ import cpw.mods.fml.common.versioning.VersionRange;
 @SuppressWarnings("UnstableApiUsage")
 public class NEIModContainer extends DummyModContainer {
 
-    public static LinkedList<IConfigureNEI> plugins = new LinkedList<>();
+    public static final LinkedList<IConfigureNEI> plugins = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
 
     private static boolean gregTech5Loaded;
     private static boolean gtnhLibLoaded;
