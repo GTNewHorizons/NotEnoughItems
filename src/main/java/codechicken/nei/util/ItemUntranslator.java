@@ -131,10 +131,6 @@ public class ItemUntranslator {
     private final Map<String, String> secondNames = new HashMap<>();
     private final Map<String, String> processedNames = new HashMap<>();
 
-    static {
-        API.addSubset("Untranslated", item -> instance.getItemStackDisplayName(item).isEmpty());
-    }
-
     private ItemUntranslator() {}
 
     public static ItemUntranslator getInstance() {
@@ -363,12 +359,14 @@ public class ItemUntranslator {
         this.secondNames.clear();
         LanguageRegistryPatch.secondLanguageListCache = null;
         this.processedNames.clear();
+
+        SubsetWidget.removeTag("Untranslated");
     }
 
     public void load() {
-        unload();
-
         this.secondNames.clear();
+        LanguageRegistryPatch.secondLanguageListCache = null;
+        this.processedNames.clear();
 
         if (ClientHandler.loadSettingsFile(CONFIG_FILE, null, this::parseStream)
                 || ClientHandler.loadSettingsResource(CONFIG_FILE, this::parseStream)) {
@@ -380,7 +378,7 @@ public class ItemUntranslator {
             this.secondNames.clear();
         }
 
-        SubsetWidget.updateHiddenItems();
+        API.addSubset("Untranslated", item -> instance.getItemStackDisplayName(item).isEmpty());
     }
 
     private void parseStream(Stream<String> lines) {

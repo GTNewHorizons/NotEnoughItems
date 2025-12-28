@@ -986,6 +986,7 @@ public class NEIClientConfig {
                         try {
                             IConfigureNEI config = (IConfigureNEI) clazz.getConstructor().newInstance();
                             config.loadConfig();
+                            NEIModContainer.plugins.add(config);
                             logger.debug("Loaded {}", clazz.getName());
                         } catch (Throwable e) {
                             logger.error("Failed to Load {}", clazz.getName(), e);

@@ -19,12 +19,12 @@ import java.util.stream.Stream;
  * 
  * @param <E>
  */
-final class HideousLinkedList<E> extends LinkedList<E> {
+public final class HideousLinkedList<E> extends LinkedList<E> {
 
     private static final long serialVersionUID = -8504433551965776915L;
     private final List<E> backing;
 
-    HideousLinkedList(List<E> backing) {
+    public HideousLinkedList(List<E> backing) {
         this.backing = backing;
     }
 

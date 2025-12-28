@@ -4,16 +4,20 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import codechicken.core.CommonUtils;
 import codechicken.core.launch.CodeChickenCorePlugin;
+import codechicken.nei.api.IConfigureNEI;
 import codechicken.nei.asm.NEICorePlugin;
 import codechicken.nei.config.IMCHandler;
+import codechicken.nei.guihook.HideousLinkedList;
 import codechicken.nei.recipe.GuiRecipeTab;
 import cpw.mods.fml.client.FMLFileResourcePack;
 import cpw.mods.fml.client.FMLFolderResourcePack;
@@ -34,6 +38,8 @@ import cpw.mods.fml.common.versioning.VersionRange;
 
 @SuppressWarnings("UnstableApiUsage")
 public class NEIModContainer extends DummyModContainer {
+
+    public static final LinkedList<IConfigureNEI> plugins = new HideousLinkedList<>(new CopyOnWriteArrayList<>());
 
     private static boolean gregTech5Loaded;
     private static boolean gtnhLibLoaded;
