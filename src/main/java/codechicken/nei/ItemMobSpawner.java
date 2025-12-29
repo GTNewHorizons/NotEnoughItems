@@ -83,36 +83,39 @@ public class ItemMobSpawner extends ItemBlock {
                         + IDtoNameMap.get(meta));
     }
 
-public static EntityLiving getEntity(int ID) {
-    EntityLiving e = entityHashMap.get(ID);
-    if (e == null) {
-        loadSpawners();
-        Class<?> clazz = EntityList.IDtoClassMapping.get(ID);
-        World world = NEIClientUtils.mc().theWorld;
-        if (clazz != null) {
-            int modifiers = clazz.getModifiers();
-            if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers)) {
-                NEIClientConfig.logger.warn("Skipping abstract entity class: " + clazz.getName());
-                e = getEntity(idPig);
-                if (e != null) {
-                    entityHashMap.put(ID, e);
+    public static EntityLiving getEntity(int ID) {
+        EntityLiving e = entityHashMap.get(ID);
+        if (e == null) {
+            loadSpawners();
+            Class<?> clazz = EntityList.IDtoClassMapping.get(ID);
+            World world = NEIClientUtils.mc().theWorld;
+            
+            if (clazz != null) {
+                int modifiers = clazz.getModifiers();
+                if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers)) {
+                    NEIClientConfig.logger.warn("Skipping abstract entity class: " + clazz.getName());
+                    e = getEntity(idPig);
+                    if (e != null) {
+                        entityHashMap.put(ID, e);
+                    }
+                    return e;
                 }
-                return e;
             }
+            
+            try {
+                e = (EntityLiving) clazz.getConstructor(new Class[] { World.class }).newInstance(world);
+            } catch (Throwable t) {
+                if (clazz == null) {
+                    NEIClientConfig.logger.error("Null class for entity (" + ID + ", " + IDtoNameMap.get(ID));
+                } else {
+                    NEIClientConfig.logger.error("Error creating instance of entity: " + clazz.getName(), t);
+                }
+                e = getEntity(idPig);
+            }
+            entityHashMap.put(ID, e);
         }
-        
-        try {
-            e = (EntityLiving) clazz.getConstructor(new Class[] { World.class }).newInstance(world);
-        } catch (Throwable t) {
-            if (clazz == null)
-                NEIClientConfig.logger.error("Null class for entity (" + ID + ", " + IDtoNameMap.get(ID));
-            else NEIClientConfig.logger.error("Error creating instance of entity: " + clazz.getName(), t);
-            e = getEntity(idPig);
-        }
-        entityHashMap.put(ID, e);
+        return e;
     }
-    return e;
-}
 
     public static void clearEntityReferences() {
         entityHashMap.clear();
