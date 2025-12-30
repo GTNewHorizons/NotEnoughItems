@@ -27,149 +27,134 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class ItemMobSpawner extends ItemBlock {
 
-    private static final Map<Integer, EntityLiving> ENTITY_CACHE = new HashMap<>();
-    private static final Map<Integer, String> ID_TO_NAME_MAP = new HashMap<>();
-    private static final int DEFAULT_ID_PIG = 90; // 猪的默认ID
-    public static final int PIG_ID = DEFAULT_ID_PIG;
-    private static boolean loaded = false;
+    private static final Map<Integer, EntityLiving> entityHashMap = new HashMap<>();
+    private static final Map<Integer, String> IDtoNameMap = new HashMap<>();
+    public static int idPig;
+    private static boolean loaded;
 
     public ItemMobSpawner() {
         super(Blocks.mob_spawner);
-        this.hasSubtypes = true;
+        hasSubtypes = true;
         MinecraftForgeClient.registerItemRenderer(this, new SpawnerRenderer());
     }
 
+    /**
+     * These are ASM translated from BlockMobSpawner
+     */
     public static int placedX;
     public static int placedY;
     public static int placedZ;
 
     @Override
-    public IIcon getIconFromDamage(int damage) {
+    public IIcon getIconFromDamage(int par1) {
         return Blocks.mob_spawner.getBlockTextureFromSide(0);
     }
 
-    @Override
-    public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, 
-                             int x, int y, int z, int side, 
-                             float hitX, float hitY, float hitZ) {
-        boolean result = super.onItemUse(stack, player, world, x, y, z, side, hitX, hitY, hitZ);
-        
-        if (result && world.isRemote) {
-            TileEntityMobSpawner spawner = (TileEntityMobSpawner) world.getTileEntity(placedX, placedY, placedZ);
-            if (spawner != null) {
-                ensureValidDamage(stack);
-                String mobType = ID_TO_NAME_MAP.get(stack.getItemDamage());
-                if (mobType != null && spawner.func_145881_a() != null) {
-                    // 发送数据包
-                    if (NEICPH.instance != null) {
-                        NEICPH.instance.sendMobSpawnerID(placedX, placedY, placedZ, mobType);
-                    }
-                    spawner.func_145881_a().setEntityName(mobType);
+    public boolean onItemUse(ItemStack itemstack, EntityPlayer entityplayer, World world, int x, int y, int z, int par7,
+            float par8, float par9, float par10) {
+        if (super.onItemUse(itemstack, entityplayer, world, x, y, z, par7, par8, par9, par10) && world.isRemote) {
+            TileEntityMobSpawner tileentitymobspawner = (TileEntityMobSpawner) world
+                    .getTileEntity(placedX, placedY, placedZ);
+            if (tileentitymobspawner != null) {
+                setDefaultTag(itemstack);
+                String mobtype = IDtoNameMap.get(itemstack.getItemDamage());
+                if (mobtype != null) {
+                    NEICPH.sendMobSpawnerID(placedX, placedY, placedZ, mobtype);
+                    tileentitymobspawner.func_145881_a().setEntityName(mobtype);
                 }
             }
+            return true;
         }
-        return result;
+        return false;
     }
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
-        ensureValidDamage(stack);
-        int meta = stack.getItemDamage();
+    public void addInformation(ItemStack itemstack, EntityPlayer par2EntityPlayer, List<String> list, boolean par4) {
+        setDefaultTag(itemstack);
+        int meta = itemstack.getItemDamage();
         if (meta == 0) {
-            meta = PIG_ID;
+            meta = idPig;
         }
-        
-        String mobName = ID_TO_NAME_MAP.get(meta);
-        if (mobName != null) {
-            Entity e = getEntity(meta);
-            EnumChatFormatting color = (e instanceof IMob) 
-                ? EnumChatFormatting.DARK_RED 
-                : EnumChatFormatting.DARK_AQUA;
-            tooltip.add(color + mobName);
+        Entity e = getEntity(meta);
+        if (e != null) {
+            list.add(
+                    (e instanceof IMob ? EnumChatFormatting.DARK_RED : EnumChatFormatting.DARK_AQUA)
+                            + IDtoNameMap.get(meta));
         }
     }
 
-    public static EntityLiving getEntity(int id) {
-        EntityLiving entity = ENTITY_CACHE.get(id);
-        if (entity == null) {
+    public static EntityLiving getEntity(int ID) {
+        EntityLiving e = entityHashMap.get(ID);
+        if (e == null) {
             loadSpawners();
+            Class<?> clazz = (Class<?>) EntityList.IDtoClassMapping.get(ID);
+            World world = NEIClientUtils.mc() != null ? NEIClientUtils.mc().theWorld : null;
             
-            Class<?> entityClass = EntityList.getClassFromID(id);
-            if (entityClass == null) {
-                NEIClientConfig.logger.warn("Invalid entity ID: " + id);
-                return getEntity(PIG_ID);
-            }
-            
-            int modifiers = entityClass.getModifiers();
-            if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers)) {
-                NEIClientConfig.logger.warn("Skipping abstract entity class: " + entityClass.getName());
-                entity = getEntity(PIG_ID);
-                ENTITY_CACHE.put(id, entity);
-                return entity;
+            if (clazz != null) {
+                int modifiers = clazz.getModifiers();
+                if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers)) {
+                    NEIClientConfig.logger.warn("Skipping abstract entity class: " + clazz.getName());
+                    e = getEntity(idPig);
+                    if (e != null) {
+                        entityHashMap.put(ID, e);
+                    }
+                    return e;
+                }
             }
             
             try {
-                World world = NEIClientUtils.getClientWorld();
-                if (world != null) {
-                    entity = (EntityLiving) entityClass.getConstructor(World.class).newInstance(world);
+                if (clazz != null && world != null) {
+                    e = (EntityLiving) clazz.getConstructor(new Class[] { World.class }).newInstance(world);
                 } else {
-                    NEIClientConfig.logger.error("World is null, cannot create entity instance");
-                    return getEntity(PIG_ID);
+                    e = getEntity(idPig);
                 }
-            } catch (Exception e) {
-                NEIClientConfig.logger.error("Error creating instance of entity: " + entityClass.getName(), e);
-                return getEntity(PIG_ID);
+            } catch (Throwable t) {
+                if (clazz == null) {
+                    NEIClientConfig.logger.error("Null class for entity (" + ID + ", " + IDtoNameMap.get(ID));
+                } else {
+                    NEIClientConfig.logger.error("Error creating instance of entity: " + clazz.getName(), t);
+                }
+                e = getEntity(idPig);
             }
-            
-            ENTITY_CACHE.put(id, entity);
+            if (e != null) {
+                entityHashMap.put(ID, e);
+            }
         }
-        return entity;
+        return e;
     }
 
     public static void clearEntityReferences() {
-        ENTITY_CACHE.clear();
+        entityHashMap.clear();
     }
 
-    private void ensureValidDamage(ItemStack stack) {
-        int damage = stack.getItemDamage();
-        if (!ID_TO_NAME_MAP.containsKey(damage) || damage == 0) {
-            stack.setItemDamage(PIG_ID);
-        }
+    private void setDefaultTag(ItemStack itemstack) {
+        if (!IDtoNameMap.containsKey(itemstack.getItemDamage())) itemstack.setItemDamage(idPig);
     }
 
-    public static synchronized void loadSpawners() {
+    public static void loadSpawners() {
         if (loaded) return;
-        
-        for (Object entry : EntityList.IDtoClassMapping.entrySet()) {
-            Map.Entry<Integer, Class<?>> mapEntry = (Map.Entry<Integer, Class<?>>) entry;
-            Integer id = mapEntry.getKey();
-            Class<?> clazz = mapEntry.getValue();
-            
-            if (EntityLiving.class.isAssignableFrom(clazz) && !Modifier.isAbstract(clazz.getModifiers())) {
-                String name = EntityList.getStringFromID(id);
-                if (name != null && !"EnderDragon".equals(name)) {
-                    if ("Pig".equals(name)) {
-                    }
-                    ID_TO_NAME_MAP.put(id, name);
+        loaded = true;
+        for (Object entry : EntityList.classToStringMapping.entrySet()) {
+            Map.Entry<Class<? extends Entity>, String> mapEntry = (Map.Entry<Class<? extends Entity>, String>) entry;
+            final Class<? extends Entity> clazz = mapEntry.getKey();
+            if (EntityLiving.class.isAssignableFrom(clazz)) {
+                Integer id = (Integer) EntityList.classToIDMapping.get(clazz);
+                if (id == null) continue;
+                String name = mapEntry.getValue();
+                if (name == null) continue;
+                if (name.equals("EnderDragon")) continue;
+                if (name.equals("Pig")) idPig = id;
+                if (clazz != EntityPig.class || name.equals("Pig")) {
+                    IDtoNameMap.put(id, name);
                 }
             }
         }
-        
-        loaded = true;
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
     public void getSubItems(Item item, CreativeTabs tab, List<ItemStack> list) {
-        if (!NEIClientConfig.hasSMPCounterPart()) {
-            list.add(new ItemStack(item));
-        } else {
-            for (int id : ID_TO_NAME_MAP.keySet()) {
-                if (id > 0) {
-                    list.add(new ItemStack(item, 1, id));
-                }
-            }
-        }
+        if (!NEIClientConfig.hasSMPCounterPart()) list.add(new ItemStack(item));
+        else for (int i : IDtoNameMap.keySet()) list.add(new ItemStack(item, 1, i));
     }
 }
