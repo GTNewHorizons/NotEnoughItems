@@ -90,7 +90,7 @@ public class ItemMobSpawner extends ItemBlock {
             loadSpawners();
             Class<?> clazz = (Class<?>) EntityList.IDtoClassMapping.get(ID);
             World world = NEIClientUtils.mc() != null ? NEIClientUtils.mc().theWorld : null;
-            
+
             if (clazz != null) {
                 int modifiers = clazz.getModifiers();
                 if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers)) {
@@ -102,7 +102,7 @@ public class ItemMobSpawner extends ItemBlock {
                     return e;
                 }
             }
-            
+
             try {
                 if (clazz != null && world != null) {
                     e = (EntityLiving) clazz.getConstructor(new Class[] { World.class }).newInstance(world);
