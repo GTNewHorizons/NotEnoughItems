@@ -746,7 +746,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
             return NEIClientUtils.translate("inventory.item_subsets");
         } else {
             final String translated = NEIClientUtils.translate("gui.button.label.subset");
-            if (!translated.startsWith("nei.")) {
+            if (!translated.startsWith("nei.")) { // Optional localization string for resource packs
                 return translated;
             }
 
