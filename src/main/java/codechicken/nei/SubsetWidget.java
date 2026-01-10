@@ -745,6 +745,11 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
         if (NEIClientConfig.subsetWidgetOnTop()) {
             return NEIClientUtils.translate("inventory.item_subsets");
         } else {
+            final String translated = NEIClientUtils.translate("gui.button.label.subset");
+            if (!translated.startsWith("nei.")) { // Optional localization string for resource packs
+                return translated;
+            }
+
             return EnumChatFormatting.DARK_PURPLE + String.valueOf(SearchField.searchParser.getRedefinedPrefix(PREFIX))
                     + EnumChatFormatting.RESET;
         }
