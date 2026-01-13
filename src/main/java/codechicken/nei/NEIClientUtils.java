@@ -413,18 +413,11 @@ public class NEIClientUtils extends NEIServerUtils {
         if (textWidth > containerWidth) {
             int dots = fontRenderer.getStringWidth("...");
 
-            if (containerWidth > dots) {
-                textWidth += dots;
-
-                while (textWidth > containerWidth) {
-                    textWidth -= fontRenderer.getCharWidth(text.charAt(text.length() - 1));
-                    text = text.substring(0, text.length() - 1);
-                }
-
-                return text + "...";
+            if (containerWidth <= dots) {
+                return "...";
             }
 
-            return "...";
+            return fontRenderer.trimStringToWidth(text, containerWidth - dots) + "...";
         }
 
         return text;
