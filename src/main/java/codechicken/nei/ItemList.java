@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import codechicken.nei.search.ChemicalFormulaFilter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
@@ -32,6 +31,7 @@ import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.InformationHandler;
+import codechicken.nei.search.ChemicalFormulaFilter;
 import codechicken.nei.search.TooltipFilter;
 import codechicken.nei.util.ItemUntranslator;
 import cpw.mods.fml.common.FMLLog;

@@ -668,6 +668,33 @@ public class NEIClientConfig {
 
         });
 
+        tag.getTag("inventory.search.chemicalFormulaSearchMode")
+                .setComment("Search mode for chemical formulas (prefix: =)").getIntValue(0);
+        API.addOption(new OptionCycled("inventory.search.chemicalFormulaSearchMode", 3, true) {
+
+            @Override
+            public boolean onClick(int button) {
+                if (!super.onClick(button)) {
+                    return false;
+                }
+                SearchField.searchParser.clearCache();
+                return true;
+            }
+
+            @Override
+            public String getButtonText() {
+                return translateN(
+                        name + "." + value(),
+                        EnumChatFormatting.GREEN + String.valueOf(SearchField.searchParser.getRedefinedPrefix('=')));
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return !tag.getTag("inventory.search.format").getBooleanValue();
+            }
+
+        });
+
         tag.getTag("inventory.search.identifierSearchMode").setComment("Search mode for identifier (prefix: &)")
                 .getIntValue(0);
         API.addOption(new OptionCycled("inventory.search.identifierSearchMode", 3, true) {
