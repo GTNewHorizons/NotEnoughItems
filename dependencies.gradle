@@ -7,6 +7,7 @@ dependencies {
     shadowImplementation('org.apache.commons:commons-csv:1.10.0')
 
     compileOnly('maven.modrinth:forge-essentials:7.5.1')
+    compileOnly("com.github.GTNewHorizons:GT5-Unofficial:5.09.52.197:dev") { transitive = false }
 
     antlr('org.antlr:antlr4:4.13.2')
     shadowImplementation('org.antlr:antlr4-runtime:4.13.2')

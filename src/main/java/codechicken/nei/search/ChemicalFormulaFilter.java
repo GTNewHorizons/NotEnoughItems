@@ -1,13 +1,13 @@
 package codechicken.nei.search;
 
-import java.util.List;
 import java.util.regex.Pattern;
 
 import net.minecraft.item.ItemStack;
 
 import codechicken.nei.ItemStackMap;
-import codechicken.nei.NEIClientUtils;
 import codechicken.nei.api.ItemFilter;
+import gregtech.api.util.GTOreDictUnificator;
+import gregtech.api.objects.ItemData;
 
 public class ChemicalFormulaFilter implements ItemFilter {
 
@@ -51,14 +51,10 @@ public class ChemicalFormulaFilter implements ItemFilter {
 
     private static String getChemicalFormula(ItemStack itemstack) {
 
-        try {
-            List<String> namelist = itemstack.getTooltip(NEIClientUtils.mc().thePlayer, false);
-            for (String name : namelist) {
-                if (!name.contains(" ") && !name.contains(":") && namelist.indexOf(name) != 0) {
-                    return name;
-                }
-            }
-        } catch (Throwable ignored) {}
+        ItemData data = GTOreDictUnificator.getAssociation(itemstack);
+        if(data != null) {
+            return data.mMaterial.mMaterial.mChemicalFormula;
+        }
 
         return "";
     }
