@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.nei.ItemStackMap;
 import codechicken.nei.NEIClientUtils;
@@ -53,14 +52,12 @@ public class ChemicalFormulaFilter implements ItemFilter {
     private static String getChemicalFormula(ItemStack itemstack) {
 
         try {
-            // TODO: Implement heuristics for getting the formula
             List<String> namelist = itemstack.getTooltip(NEIClientUtils.mc().thePlayer, false);
-
-            if (namelist.size() > 1) {
-                return EnumChatFormatting
-                        .getTextWithoutFormattingCodes(String.join("\n", namelist.subList(1, namelist.size())));
+            for (String name : namelist) {
+                if (!name.contains(" ") && !name.contains(":") && namelist.indexOf(name) != 0) {
+                    return name;
+                }
             }
-
         } catch (Throwable ignored) {}
 
         return "";
