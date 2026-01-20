@@ -61,6 +61,7 @@ import codechicken.nei.config.RegistryDumper;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.BrewingRecipeHandler;
 import codechicken.nei.recipe.RecipeItemInputHandler;
+import codechicken.nei.search.ChemicalFormulaFilter;
 import codechicken.nei.search.IdentifierFilter;
 import codechicken.nei.search.ModNameFilter;
 import codechicken.nei.search.OreDictionaryFilter;
@@ -159,6 +160,8 @@ public class ItemInfo {
         API.addSearchProvider(
                 new SearchParserProvider('$', "oreDict", EnumChatFormatting.AQUA, OreDictionaryFilter::new));
         API.addSearchProvider(new SearchParserProvider('#', "tooltip", EnumChatFormatting.YELLOW, TooltipFilter::new));
+        API.addSearchProvider(
+                new SearchParserProvider('=', "chemicalFormula", EnumChatFormatting.GREEN, ChemicalFormulaFilter::new));
         API.addSearchProvider(
                 new SearchParserProvider('&', "identifier", EnumChatFormatting.GOLD, IdentifierFilter::new));
     }

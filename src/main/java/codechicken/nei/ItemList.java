@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import codechicken.nei.search.ChemicalFormulaFilter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
@@ -372,6 +373,7 @@ public class ItemList {
             ItemSorter.instance.ordering.clear();
             CollapsibleItems.clearCache();
             TooltipFilter.clearCache();
+            ChemicalFormulaFilter.clearCache();
             InformationHandler.clearCache();
 
             List<ItemStack> items = new ArrayList<>();
@@ -401,6 +403,7 @@ public class ItemList {
 
                             CollapsibleItems.putItem(stack);
                             TooltipFilter.getSearchTooltip(stack);
+                            ChemicalFormulaFilter.getSearchFormula(stack);
                             InformationHandler.populateStacks(stack);
                         }
                     }
