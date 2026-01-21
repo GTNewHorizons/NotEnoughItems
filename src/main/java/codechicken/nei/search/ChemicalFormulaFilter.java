@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 import net.minecraft.item.ItemStack;
 
 import codechicken.nei.ItemStackMap;
+import codechicken.nei.NEIModContainer;
 import codechicken.nei.api.ItemFilter;
 import gregtech.api.objects.ItemData;
 import gregtech.api.util.GTOreDictUnificator;
@@ -29,6 +30,7 @@ public class ChemicalFormulaFilter implements ItemFilter {
     }
 
     public static void putItem(ItemStack stack) {
+        if (!NEIModContainer.isGT5Loaded()) return;
         String chemicalFormula = getChemicalFormula(stack.copy());
         synchronized (itemSearchNames) {
             itemSearchNames.put(stack, chemicalFormula);
@@ -36,6 +38,8 @@ public class ChemicalFormulaFilter implements ItemFilter {
     }
 
     public static String getSearchFormula(ItemStack stack) {
+        if (!NEIModContainer.isGT5Loaded()) return "";
+
         String chemicalFormula = itemSearchNames.get(stack);
 
         if (chemicalFormula == null) {
