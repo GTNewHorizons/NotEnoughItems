@@ -11,7 +11,6 @@ import static codechicken.nei.NEIClientConfig.world;
 import java.awt.Color;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;

@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
-import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
@@ -44,6 +43,8 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+
+import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemList;
@@ -202,13 +203,8 @@ public class GuiContainerManager {
     }
 
     @Nullable
-    public static String countDetails(
-            int stackSize,
-            int maxStackSize,
-            String fullPattern,
-            String shortPattern,
-            IntFunction<String> valueFormatter
-    ) {
+    public static String countDetails(int stackSize, int maxStackSize, String fullPattern, String shortPattern,
+            IntFunction<String> valueFormatter) {
         if (maxStackSize > 1 && stackSize > maxStackSize) {
             final int remainder = stackSize % maxStackSize;
             final int units = stackSize / maxStackSize;
@@ -219,20 +215,17 @@ public class GuiContainerManager {
                         valueFormatter.apply(stackSize),
                         formatNumber(units),
                         valueFormatter.apply(maxStackSize),
-                        valueFormatter.apply(remainder)
-                );
+                        valueFormatter.apply(remainder));
             } else {
                 return String.format(
                         shortPattern,
                         valueFormatter.apply(stackSize),
                         formatNumber(units),
-                        valueFormatter.apply(maxStackSize)
-                );
+                        valueFormatter.apply(maxStackSize));
             }
         }
         return null;
     }
-
 
     @Nullable
     public static String itemCountDetails(ItemStack stack) {
@@ -245,8 +238,7 @@ public class GuiContainerManager {
                     stack.getMaxStackSize(),
                     translate("inventory.tooltip.count.item", "%s = %s * %s + %s"),
                     translate("inventory.tooltip.count.item", "%s = %s * %s"),
-                    NumberFormatUtil::formatNumber
-            );
+                    NumberFormatUtil::formatNumber);
         }
     }
 
@@ -263,8 +255,7 @@ public class GuiContainerManager {
                 144,
                 translate("inventory.tooltip.count.fluid", "%s = %s * %s + %s"),
                 translate("inventory.tooltip.count.fluid", "%s = %s * %s"),
-                NumberFormatUtil::formatFluid
-        );
+                NumberFormatUtil::formatFluid);
     }
 
     /**
