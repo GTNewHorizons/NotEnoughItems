@@ -126,18 +126,6 @@ public class NEIClientUtils extends NEIServerUtils {
         });
     }
 
-    public static String formatNumbers(BigInteger aNumber) {
-        return getDecimalFormat().format(aNumber);
-    }
-
-    public static String formatNumbers(long aNumber) {
-        return getDecimalFormat().format(aNumber);
-    }
-
-    public static String formatNumbers(double aNumber) {
-        return getDecimalFormat().format(aNumber);
-    }
-
     public static void deleteHeldItem() {
         deleteSlotStack(-999);
     }

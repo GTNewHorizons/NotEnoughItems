@@ -5,6 +5,7 @@ import static codechicken.lib.gui.GuiDraw.fontRenderer;
 import static codechicken.lib.gui.GuiDraw.getMousePosition;
 import static codechicken.lib.gui.GuiDraw.renderEngine;
 import static codechicken.nei.NEIClientUtils.translate;
+import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
 import java.awt.Point;
 import java.util.ArrayList;
@@ -16,11 +17,13 @@ import java.util.Map;
 import java.util.StringJoiner;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
+import java.util.function.IntFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
@@ -164,7 +167,7 @@ public class GuiContainerManager {
      * @return A list of Strings representing the text to be displayed on each line of the tool tip.
      */
     public static List<String> itemDisplayNameMultiline(ItemStack stack, GuiContainer gui, boolean includeHandlers) {
-        List<String> namelist = null;
+        List<String> namelist;
         try {
             namelist = stack.getTooltip(
                     Minecraft.getMinecraft().thePlayer,
@@ -199,28 +202,37 @@ public class GuiContainerManager {
     }
 
     @Nullable
-    public static String countDetails(int stackSize, int maxStackSize, String fullPattern, String shortPattern) {
+    public static String countDetails(
+            int stackSize,
+            int maxStackSize,
+            String fullPattern,
+            String shortPattern,
+            IntFunction<String> valueFormatter
+    ) {
         if (maxStackSize > 1 && stackSize > maxStackSize) {
             final int remainder = stackSize % maxStackSize;
+            final int units = stackSize / maxStackSize;
 
             if (remainder > 0) {
                 return String.format(
                         fullPattern,
-                        NEIClientUtils.formatNumbers(stackSize),
-                        NEIClientUtils.formatNumbers(stackSize / maxStackSize),
-                        NEIClientUtils.formatNumbers(maxStackSize),
-                        NEIClientUtils.formatNumbers(remainder));
+                        valueFormatter.apply(stackSize),
+                        formatNumber(units),
+                        valueFormatter.apply(maxStackSize),
+                        valueFormatter.apply(remainder)
+                );
             } else {
                 return String.format(
                         shortPattern,
-                        NEIClientUtils.formatNumbers(stackSize),
-                        NEIClientUtils.formatNumbers(stackSize / maxStackSize),
-                        NEIClientUtils.formatNumbers(maxStackSize));
+                        valueFormatter.apply(stackSize),
+                        formatNumber(units),
+                        valueFormatter.apply(maxStackSize)
+                );
             }
         }
-
         return null;
     }
+
 
     @Nullable
     public static String itemCountDetails(ItemStack stack) {
@@ -232,7 +244,9 @@ public class GuiContainerManager {
                     stack.stackSize,
                     stack.getMaxStackSize(),
                     translate("inventory.tooltip.count.item", "%s = %s * %s + %s"),
-                    translate("inventory.tooltip.count.item", "%s = %s * %s"));
+                    translate("inventory.tooltip.count.item", "%s = %s * %s"),
+                    NumberFormatUtil::formatNumber
+            );
         }
     }
 
@@ -247,8 +261,10 @@ public class GuiContainerManager {
         return countDetails(
                 amount,
                 144,
-                translate("inventory.tooltip.count.fluid", "%s L = %s * %s L + %s L"),
-                translate("inventory.tooltip.count.fluid", "%s L = %s * %s L"));
+                translate("inventory.tooltip.count.fluid", "%s = %s * %s + %s"),
+                translate("inventory.tooltip.count.fluid", "%s = %s * %s"),
+                NumberFormatUtil::formatFluid
+        );
     }
 
     /**
