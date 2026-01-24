@@ -1,5 +1,6 @@
 package codechicken.nei;
 
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,26 +77,49 @@ public class ItemMobSpawner extends ItemBlock {
             meta = idPig;
         }
         Entity e = getEntity(meta);
-        list.add(
-                (e instanceof IMob ? EnumChatFormatting.DARK_RED : EnumChatFormatting.DARK_AQUA)
-                        + IDtoNameMap.get(meta));
+        if (e != null) {
+            list.add(
+                    (e instanceof IMob ? EnumChatFormatting.DARK_RED : EnumChatFormatting.DARK_AQUA)
+                            + IDtoNameMap.get(meta));
+        }
     }
 
     public static EntityLiving getEntity(int ID) {
         EntityLiving e = entityHashMap.get(ID);
         if (e == null) {
             loadSpawners();
-            Class<?> clazz = EntityList.IDtoClassMapping.get(ID);
-            World world = NEIClientUtils.mc().theWorld;
+            Class<?> clazz = (Class<?>) EntityList.IDtoClassMapping.get(ID);
+            World world = NEIClientUtils.mc() != null ? NEIClientUtils.mc().theWorld : null;
+
+            if (clazz != null) {
+                int modifiers = clazz.getModifiers();
+                if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers)) {
+                    NEIClientConfig.logger.warn("Skipping abstract entity class: " + clazz.getName());
+                    e = getEntity(idPig);
+                    if (e != null) {
+                        entityHashMap.put(ID, e);
+                    }
+                    return e;
+                }
+            }
+
             try {
-                e = (EntityLiving) clazz.getConstructor(new Class[] { World.class }).newInstance(world);
+                if (clazz != null && world != null) {
+                    e = (EntityLiving) clazz.getConstructor(new Class[] { World.class }).newInstance(world);
+                } else {
+                    e = getEntity(idPig);
+                }
             } catch (Throwable t) {
-                if (clazz == null)
+                if (clazz == null) {
                     NEIClientConfig.logger.error("Null class for entity (" + ID + ", " + IDtoNameMap.get(ID));
-                else NEIClientConfig.logger.error("Error creating instance of entity: " + clazz.getName(), t);
+                } else {
+                    NEIClientConfig.logger.error("Error creating instance of entity: " + clazz.getName(), t);
+                }
                 e = getEntity(idPig);
             }
-            entityHashMap.put(ID, e);
+            if (e != null) {
+                entityHashMap.put(ID, e);
+            }
         }
         return e;
     }
@@ -111,12 +135,13 @@ public class ItemMobSpawner extends ItemBlock {
     public static void loadSpawners() {
         if (loaded) return;
         loaded = true;
-        for (Map.Entry<Class<? extends Entity>, String> entry : EntityList.classToStringMapping.entrySet()) {
-            final Class<? extends Entity> clazz = entry.getKey();
+        for (Object entry : EntityList.classToStringMapping.entrySet()) {
+            Map.Entry<Class<? extends Entity>, String> mapEntry = (Map.Entry<Class<? extends Entity>, String>) entry;
+            final Class<? extends Entity> clazz = mapEntry.getKey();
             if (EntityLiving.class.isAssignableFrom(clazz)) {
                 Integer id = (Integer) EntityList.classToIDMapping.get(clazz);
                 if (id == null) continue;
-                String name = entry.getValue();
+                String name = mapEntry.getValue();
                 if (name == null) continue;
                 if (name.equals("EnderDragon")) continue;
                 if (name.equals("Pig")) idPig = id;
