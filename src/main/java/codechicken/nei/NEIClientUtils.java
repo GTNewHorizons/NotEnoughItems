@@ -11,7 +11,6 @@ import static codechicken.nei.NEIClientConfig.world;
 import java.awt.Color;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -124,18 +123,6 @@ public class NEIClientUtils extends NEIServerUtils {
 
             return numberFormat;
         });
-    }
-
-    public static String formatNumbers(BigInteger aNumber) {
-        return getDecimalFormat().format(aNumber);
-    }
-
-    public static String formatNumbers(long aNumber) {
-        return getDecimalFormat().format(aNumber);
-    }
-
-    public static String formatNumbers(double aNumber) {
-        return getDecimalFormat().format(aNumber);
     }
 
     public static void deleteHeldItem() {
