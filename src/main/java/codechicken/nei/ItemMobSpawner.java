@@ -66,7 +66,7 @@ public class ItemMobSpawner extends ItemBlock {
                 String mobType = getMobTypeFromItemStack(itemstack);
                 if (mobType != null) {
                     NEICPH.sendMobSpawnerID(x, y, z, mobType);
-                    spawner.getSpawnerLogic().setEntityName(mobType);
+                    spawner.func_145881_a().setEntityName(mobType);
                 }
             }
             return true;
