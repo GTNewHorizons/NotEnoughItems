@@ -17,12 +17,13 @@ import codechicken.nei.scroll.GuiHelper;
 public class RecipeTooltipLineHandler implements ITooltipLineHandler {
 
     private static final int BG_PADDING = 5;
-    private static final DrawableResource BG_TEXTURE = new DrawableBuilder(
+    private static final int TRANSPARENCY_BORDER = 4;
+    private final DrawableResource BG_TEXTURE = new DrawableBuilder(
             "nei:textures/gui/recipebg.png",
             0,
             0,
-            176,
-            166).build();
+            176 + TRANSPARENCY_BORDER * 2,
+            166 + TRANSPARENCY_BORDER * 2).build();
 
     protected long lastUpdate = System.currentTimeMillis();
     protected String recipeName = "";
@@ -88,7 +89,15 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
         GuiContainerManager.enable2DRender();
         GL11.glColor4f(1, 1, 1, 1);
 
-        BG_TEXTURE.draw(0, 0, size.width, size.height, BG_PADDING, BG_PADDING, BG_PADDING, BG_PADDING);
+        BG_TEXTURE.draw(
+                -TRANSPARENCY_BORDER,
+                -TRANSPARENCY_BORDER,
+                size.width + TRANSPARENCY_BORDER * 2,
+                size.height + TRANSPARENCY_BORDER * 2,
+                BG_PADDING + TRANSPARENCY_BORDER,
+                BG_PADDING + TRANSPARENCY_BORDER,
+                BG_PADDING + TRANSPARENCY_BORDER,
+                BG_PADDING + TRANSPARENCY_BORDER);
 
         GL11.glEnable(GL11.GL_ALPHA_TEST);
 

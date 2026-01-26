@@ -234,12 +234,12 @@ public abstract class ShortcutInputHandler {
                 if (recipe != null) {
                     math = RecipeChainMath.of(recipe, 1);
                 }
-            } else if (slot.getRecipeId() != null && slot.getType() == BookmarkItemType.RESULT) {
+            } else if (slot.getRecipeId() != null && slot.getType() != BookmarkItemType.INGREDIENT) {
 
                 if (slot.getGroup().crafting == null) {
                     final Recipe recipe = Recipe.of(slot.getRecipeId());
                     if (recipe != null) {
-                        math = RecipeChainMath.of(recipe, slot != null ? slot.getMultiplier() : 1);
+                        math = RecipeChainMath.of(recipe, Math.max(1, slot != null ? slot.getMultiplier() : 1));
                     }
                 } else {
                     math = ItemPanels.bookmarkPanel.getGrid()

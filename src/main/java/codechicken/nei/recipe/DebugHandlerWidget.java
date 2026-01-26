@@ -132,8 +132,13 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
     public boolean showWidget = false;
 
     private static final int BORDER_PADDING = 6;
-    private final DrawableResource BG_TEXTURE = new DrawableBuilder("nei:textures/gui/recipebg.png", 0, 0, 176, 166)
-            .build();
+    private static final int TRANSPARENCY_BORDER = 4;
+    private final DrawableResource BG_TEXTURE = new DrawableBuilder(
+            "nei:textures/gui/recipebg.png",
+            0,
+            0,
+            176 + TRANSPARENCY_BORDER * 2,
+            166 + TRANSPARENCY_BORDER * 2).build();
 
     public DebugHandlerWidget() {
         GuiContainerManager.addInputHandler(this);
@@ -312,14 +317,14 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
             GL11.glScaled(1, 1, 2f);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
             BG_TEXTURE.draw(
-                    this.x,
-                    this.y,
-                    this.w,
-                    this.h,
-                    BORDER_PADDING,
-                    BORDER_PADDING,
-                    BORDER_PADDING,
-                    BORDER_PADDING);
+                    this.x - TRANSPARENCY_BORDER,
+                    this.y - TRANSPARENCY_BORDER,
+                    this.w + TRANSPARENCY_BORDER * 2,
+                    this.h + TRANSPARENCY_BORDER * 2,
+                    BORDER_PADDING + TRANSPARENCY_BORDER,
+                    BORDER_PADDING + TRANSPARENCY_BORDER,
+                    BORDER_PADDING + TRANSPARENCY_BORDER,
+                    BORDER_PADDING + TRANSPARENCY_BORDER);
             GuiDraw.drawRect(
                     this.x + INLINE_PADDING,
                     this.y + BORDER_PADDING,
