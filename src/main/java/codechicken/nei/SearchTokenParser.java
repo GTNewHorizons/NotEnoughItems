@@ -468,7 +468,7 @@ public class SearchTokenParser {
         return tokens;
     }
 
-    private String getPrefixes() {
+    public String getPrefixes() {
         if (this.prefixes == null) {
             final StringBuilder builder = new StringBuilder();
 
