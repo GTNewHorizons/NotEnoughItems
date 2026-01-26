@@ -10,6 +10,9 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 
+import org.lwjgl.opengl.GL11;
+
+import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ClientHandler;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -79,6 +82,13 @@ public class InformationHandler extends TemplateRecipeHandler {
     @Override
     public String getGuiTexture() {
         return "nei:textures/gui/recipebg.png";
+    }
+
+    @Override
+    public void drawBackground(int recipe) {
+        GL11.glColor4f(1, 1, 1, 1);
+        GuiDraw.changeTexture(getGuiTexture());
+        GuiDraw.drawTexturedModalRect(0, 0, 7, 13, 166, 65);
     }
 
     @Override

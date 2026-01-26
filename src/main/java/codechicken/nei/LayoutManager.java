@@ -104,7 +104,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public static Button delete;
     public static ButtonCycled gamemode;
     public static Button rain;
-    public static Button magnet;
+    public static ButtonCycled magnet;
     public static Button[] timeButtons = new Button[4];
     public static Button heal;
 
@@ -600,7 +600,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 return getStateTip("rain", state);
             }
         };
-        magnet = new Button() {
+        magnet = new ButtonCycled(2) {
 
             @Override
             public boolean onButtonPress(boolean rightclick) {

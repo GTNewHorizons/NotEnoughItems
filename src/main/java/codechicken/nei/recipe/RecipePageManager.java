@@ -143,7 +143,7 @@ public class RecipePageManager {
 
         for (Widget widget : currentWidgets) {
             if (widget instanceof NEIRecipeWidget recipeWidget) {
-                recipeWidget.setLocation(0, shiftY);
+                recipeWidget.setLocation(2, shiftY);
             }
             shiftY += widget.h;
         }
