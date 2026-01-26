@@ -331,7 +331,7 @@ public class SearchField extends TextField implements ItemFilterProvider {
                     text = text.replaceAll("\"", "\\\\$0");
                 } else {
                     String prefixes = searchParser.getPrefixes();
-                    text = text.replaceAll("[-<>^{}|/\\\\\"" + prefixes + "]", "\\\\$0");
+                    text = text.replaceAll("[-<>^{}|/\\\\\"" + Pattern.quote(prefixes) + "]", "\\\\$0");
                 }
                 break;
             default:
