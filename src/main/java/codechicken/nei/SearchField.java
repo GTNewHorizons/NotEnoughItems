@@ -315,6 +315,9 @@ public class SearchField extends TextField implements ItemFilterProvider {
     public static String getEscapedSearchText(String text) {
         text = EnumChatFormatting.getTextWithoutFormattingCodes(text);
 
+        boolean addQuotes = text.contains(" ")
+                && NEIClientConfig.getBooleanSetting("inventory.search.quoteDropItemName");
+
         switch (NEIClientConfig.getIntSetting("inventory.search.patternMode")) {
             case 1:
                 text = text.replaceAll("[\\?|\\*]", "\\\\$0");
@@ -323,14 +326,19 @@ public class SearchField extends TextField implements ItemFilterProvider {
                 text = text.replaceAll("[{}()\\[\\].+*?^$\\\\|]", "\\\\$0");
                 break;
             case 3:
-                text = text.replaceAll("\"", "\\\\$0");
-                text = "\"" + text + "\"";
-                return text;
+                // In extended+ quotes require only quotes to be escaped
+                if (addQuotes) {
+                    text = text.replaceAll("\"", "\\\\$0");
+                } else {
+                    String prefixes = searchParser.getPrefixes();
+                    text = text.replaceAll("[-<>^{}|/\\\\\"" + prefixes + "]", "\\\\$0");
+                }
+                break;
             default:
                 break;
         }
 
-        if (text.contains(" ") && NEIClientConfig.getBooleanSetting("inventory.search.quoteDropItemName")) {
+        if (addQuotes) {
             text = "\"" + text + "\"";
         }
 
