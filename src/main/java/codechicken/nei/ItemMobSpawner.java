@@ -2,7 +2,6 @@ package codechicken.nei;
 
 import java.lang.reflect.Modifier;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -30,15 +29,14 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class ItemMobSpawner extends ItemBlock {
 
-    private static final Map<Integer, EntityLiving> entityHashMap = Collections
-        .synchronizedMap(new WeakHashMap<>());
+    private static final Map<Integer, EntityLiving> entityHashMap = Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<Integer, String> IDtoNameMap = new ConcurrentHashMap<>();
 
     public static int idPig = 90;
     private static boolean loaded = false;
 
     private static final ThreadLocal<PlacementContext> placementContext = ThreadLocal
-        .withInitial(PlacementContext::new);
+            .withInitial(PlacementContext::new);
 
     private static class PlacementContext {
         int x, y, z;
@@ -55,10 +53,9 @@ public class ItemMobSpawner extends ItemBlock {
         return Blocks.mob_spawner.getBlockTextureFromSide(0);
     }
 
-    public boolean onItemUse(ItemStack itemstack, EntityPlayer entityplayer, World world, int x, int y, int z,
-        int side, float hitX, float hitY, float hitZ) {
-        boolean placed = super
-            .onItemUse(itemstack, entityplayer, world, x, y, z, side, hitX, hitY, hitZ);
+    public boolean onItemUse(ItemStack itemstack, EntityPlayer entityplayer, World world, int x, int y, int z, int side,
+            float hitX, float hitY, float hitZ) {
+        boolean placed = super.onItemUse(itemstack, entityplayer, world, x, y, z, side, hitX, hitY, hitZ);
 
         if (placed && world.isRemote) {
             TileEntityMobSpawner spawner = (TileEntityMobSpawner) world.getTileEntity(x, y, z);
@@ -67,7 +64,7 @@ public class ItemMobSpawner extends ItemBlock {
                 if (mobType != null) {
                     NEICPH.sendMobSpawnerID(x, y, z, mobType);
                     spawner.func_145881_a()
-                        .setEntityName(mobType);
+                            .setEntityName(mobType);
                 }
             }
             return true;
@@ -91,14 +88,14 @@ public class ItemMobSpawner extends ItemBlock {
     @SideOnly(Side.CLIENT)
     @Override
     public void addInformation(ItemStack itemstack, EntityPlayer player, List<String> tooltip,
-        boolean advanced) {
+            boolean advanced) {
         int meta = getValidMetaData(itemstack);
         EntityLiving entity = getEntity(meta);
         String mobName = IDtoNameMap.get(meta);
 
         if (entity != null && mobName != null) {
             EnumChatFormatting color = (entity instanceof IMob) ? EnumChatFormatting.DARK_RED
-                : EnumChatFormatting.DARK_AQUA;
+                    : EnumChatFormatting.DARK_AQUA;
             tooltip.add(color + mobName);
         }
     }
@@ -134,7 +131,7 @@ public class ItemMobSpawner extends ItemBlock {
         int modifiers = entityClass.getModifiers();
         if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers)) {
             NEIClientConfig.logger.warn(
-                "Skipping abstract entity class: " + entityClass.getName());
+                    "Skipping abstract entity class: " + entityClass.getName());
             return true;
         }
 
@@ -148,7 +145,7 @@ public class ItemMobSpawner extends ItemBlock {
 
         try {
             return (EntityLiving) entityClass.getConstructor(World.class)
-                .newInstance(world);
+                    .newInstance(world);
         } catch (Throwable t) {
             logEntityCreationError(entityClass, id, t);
             return getFallbackEntity(id);
@@ -158,11 +155,11 @@ public class ItemMobSpawner extends ItemBlock {
     private static void logEntityCreationError(Class<?> entityClass, int id, Throwable t) {
         if (entityClass == null) {
             NEIClientConfig.logger.error(
-                "Null class for entity (ID: {}, Name: {})",
-                id, IDtoNameMap.getOrDefault(id, "unknown"));
+                    "Null class for entity (ID: {}, Name: {})",
+                    id, IDtoNameMap.getOrDefault(id, "unknown"));
         } else {
             NEIClientConfig.logger.error(
-                "Error creating instance of entity: " + entityClass.getName(), t);
+                    "Error creating instance of entity: " + entityClass.getName(), t);
         }
     }
 
@@ -185,15 +182,15 @@ public class ItemMobSpawner extends ItemBlock {
                     entityHashMap.put(idPig, pig);
                 } catch (Exception e) {
                     NEIClientConfig.logger.error(
-                        "Failed to create fallback pig entity", e);
+                            "Failed to create fallback pig entity", e);
                 }
             }
         }
 
         if (pig == null && originalId != idPig) {
             NEIClientConfig.logger.warn(
-                "Using null fallback for entity ID: {}, original fallback ID: {}",
-                originalId, idPig);
+                    "Using null fallback for entity ID: {}, original fallback ID: {}",
+                    originalId, idPig);
         }
 
         return pig;
