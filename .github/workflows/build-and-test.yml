@@ -41,20 +41,25 @@ jobs:
             git add .
             git commit -m "Apply spotless formatting [skip ci]"
             
-            # 更新 tag 指向新的提交
-            # 获取当前 tag
+            # 获取当前 tag 名称
             TAG_NAME=${GITHUB_REF#refs/tags/}
+            echo "Current tag: $TAG_NAME"
+            
+            # 检查并处理可能的引用冲突
+            # 删除本地同名的分支引用（如果存在）
+            git show-ref --verify --quiet refs/heads/"${TAG_NAME}" && git branch -D "${TAG_NAME}" || true
             
             # 删除旧的标签（本地和远程）
-            git tag -d "${TAG_NAME}" || true
-            git push --delete origin "${TAG_NAME}" || true
+            git tag -d "${TAG_NAME}" 2>/dev/null || true
+            git push --delete origin "refs/tags/${TAG_NAME}" 2>/dev/null || true
             
             # 创建新的标签指向当前提交
-            git tag "${TAG_NAME}"
+            git tag -f "${TAG_NAME}"
             
-            # 推送更改和标签
-            git push origin HEAD:${GITHUB_REF_NAME} --force
-            git push origin "${TAG_NAME}" --force
+            # 只推送标签，不推送分支引用
+            git push origin "refs/tags/${TAG_NAME}" --force
+            
+            echo "Spotless formatting applied and tag updated successfully"
           else
             echo "No files needed formatting"
           fi
