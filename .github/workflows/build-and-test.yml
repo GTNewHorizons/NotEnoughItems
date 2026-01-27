@@ -1,13 +1,23 @@
-
-name: Build and test
-
-on:
-  pull_request:
-    branches: [ master, main ]
-  push:
-    branches: [ master, main ]
+name: Fix Spotless Formatting
+on: 
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
-  build-and-test:
-    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/build-and-test.yml@master
-    secrets: inherit
+  spotless-fix:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'temurin'
+        java-version: '8'
+    - name: Run spotlessApply
+      run: ./gradlew spotlessApply
+    - name: Commit changes
+      run: |
+        git config --global user.name 'GitHub Action'
+        git config --global user.email 'action@github.com'
+        git add -A
+        git commit -m 'Apply spotless formatting' || exit 0
+        git push
