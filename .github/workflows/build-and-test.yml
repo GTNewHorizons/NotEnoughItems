@@ -1,23 +1,61 @@
-name: Fix Spotless Formatting
-on: 
-  workflow_dispatch:  # 允许手动触发
+name: Release tagged build
+
+on:
+  workflow_dispatch:
+  push:
+    tags: [ '*' ]
+
+permissions:
+  contents: write
 
 jobs:
-  spotless-fix:
+  spotless-format:
     runs-on: ubuntu-latest
+    outputs:
+      formatted: ${{ steps.spotless.outputs.formatted }}
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK
-      uses: actions/setup-java@v2
-      with:
-        distribution: 'temurin'
-        java-version: '8'
-    - name: Run spotlessApply
-      run: ./gradlew spotlessApply
-    - name: Commit changes
-      run: |
-        git config --global user.name 'GitHub Action'
-        git config --global user.email 'action@github.com'
-        git add -A
-        git commit -m 'Apply spotless formatting' || exit 0
-        git push
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Run spotlessApply
+        id: spotless
+        run: |
+          chmod +x gradlew || true
+          ./gradlew spotlessApply || true
+          
+          # 检查是否有文件被格式化
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Files were formatted by spotless"
+            echo "formatted=true" >> $GITHUB_OUTPUT
+            
+            # 配置 git
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            
+            # 提交格式化更改
+            git add .
+            git commit -m "Apply spotless formatting [skip ci]"
+            
+            # 更新 tag 指向新的提交
+            # 获取当前 tag
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            git tag -f "${TAG_NAME}"
+            git push origin "${TAG_NAME}" --force
+          else
+            echo "No files needed formatting"
+            echo "formatted=false" >> $GITHUB_OUTPUT
+          fi
+
+  release-tags:
+    needs: spotless-format
+    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/release-tags.yml@master
+    secrets: inherit
