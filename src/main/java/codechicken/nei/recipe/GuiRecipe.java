@@ -428,6 +428,27 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         this.recipeTabs.update(this);
     }
 
+    protected boolean setRecipePageForHandler(String handlerName, String handlerOverlayId) {
+        if (handlerName == null && handlerOverlayId == null) {
+            return false;
+        }
+
+        for (int i = 0; i < this.currenthandlers.size(); i++) {
+            final IRecipeHandler handler = this.currenthandlers.get(i);
+            final String candidateId = handler.getOverlayIdentifier();
+            if (handlerOverlayId != null && handlerOverlayId.equals(candidateId)) {
+                setRecipePage(i);
+                return true;
+            }
+            if (handlerName != null && handlerName.equals(handler.getHandlerId())) {
+                setRecipePage(i);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public int openTargetRecipe(RecipeId recipeId) {
         int refIndex = -1;
         int recipetype = 0;

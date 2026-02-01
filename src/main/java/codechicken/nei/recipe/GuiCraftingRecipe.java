@@ -21,6 +21,7 @@ import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.recipe.TemplateRecipeHandler.RecipeTransferRect;
 
 public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
@@ -30,6 +31,19 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
     public static boolean openRecipeGui(String outputId, Object... results) {
         return createRecipeGui(outputId, true, results) != null;
+    }
+
+    public static boolean openAllRecipesGui() {
+        return createRecipeGui("all", true) != null;
+    }
+
+    public static boolean openAllRecipesGuiForHandler(String handlerName, String handlerOverlayId) {
+        final GuiRecipe<?> gui = createRecipeGui("all", true);
+        if (gui instanceof GuiCraftingRecipe craftingGui) {
+            craftingGui.setRecipePageForHandler(handlerName, handlerOverlayId);
+            return true;
+        }
+        return false;
     }
 
     public static GuiRecipe<?> createRecipeGui(String outputId, boolean open, Object... results) {
@@ -42,7 +56,9 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
             }
         }
 
-        if ("item".equals(outputId)) {
+        if ("all".equals(outputId)) {
+            recipeId = null;
+        } else if ("item".equals(outputId)) {
             recipeId = getRecipeId(mc.currentScreen, (ItemStack) results[0]);
         } else if ("recipeId".equals(outputId)) {
             recipeId = (RecipeId) results[1];
@@ -77,7 +93,9 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         ArrayList<ICraftingHandler> serialCraftingHandlers = GuiCraftingRecipe.serialCraftingHandlers;
         UnaryOperator<ICraftingHandler> recipeHandlerFunction;
 
-        if ("recipeId".equals(outputId)) {
+        if ("all".equals(outputId)) {
+            recipeHandlerFunction = GuiCraftingRecipe::buildAllRecipesHandler;
+        } else if ("recipeId".equals(outputId)) {
             ItemStack stack = (ItemStack) results[0];
             RecipeId recipeId = (RecipeId) results[1];
             craftinghandlers = filterByHandlerName(craftinghandlers, recipeId.getHandleName());
@@ -96,6 +114,24 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
                 "results: " + Arrays.toString(results));
 
         return recipeQuery.runWithProfiling(NEIClientUtils.translate("recipe.concurrent.crafting"));
+    }
+
+    private static ICraftingHandler buildAllRecipesHandler(ICraftingHandler handler) {
+        if (handler instanceof TemplateRecipeHandler templateHandler) {
+            TemplateRecipeHandler allHandler = templateHandler.newInstance();
+            if (allHandler.transferRects.isEmpty()) {
+                allHandler.loadCraftingRecipes("all");
+                return allHandler;
+            }
+            for (RecipeTransferRect rect : allHandler.transferRects) {
+                if (allHandler.specifyTransferRect() == null
+                        || allHandler.specifyTransferRect().equals(rect.outputId)) {
+                    allHandler.loadCraftingRecipes(rect.outputId, rect.results);
+                }
+            }
+            return allHandler;
+        }
+        return handler.getRecipeHandler("all");
     }
 
     private static ArrayList<ICraftingHandler> filterByHandlerName(ArrayList<ICraftingHandler> craftinghandlers,

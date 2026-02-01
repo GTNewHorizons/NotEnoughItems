@@ -21,6 +21,7 @@ public class GuiRecipeTabs {
     private int categoriesPerPage = 1;
     private int numHandlers = 1;
     private int recipetype;
+    private GuiRecipe<?> currentGui;
 
     private final Button prevTab = new Button("<") {
 
@@ -58,6 +59,7 @@ public class GuiRecipeTabs {
         final int tabWidth = getTabWidth();
         final int tabHeight = getTabHeight();
 
+        this.currentGui = guiRecipe;
         this.recipetype = guiRecipe.recipetype;
         this.currenthandlers = guiRecipe.currenthandlers;
         this.numHandlers = this.currenthandlers.size();
@@ -179,11 +181,26 @@ public class GuiRecipeTabs {
 
         for (GuiRecipeTab tab : this.tabs) {
             if (tab.contains(x, y)) {
+                if (mouseButton == 0 && NEIClientUtils.altKey()) {
+                    openAllRecipesForHandler(tab);
+                    return true;
+                }
                 return tab.onButtonPress(mouseButton == 1);
             }
         }
 
         return false;
+    }
+
+    private void openAllRecipesForHandler(GuiRecipeTab tab) {
+        if (currentGui == null) {
+            return;
+        }
+        if (currentGui instanceof GuiCraftingRecipe) {
+            GuiCraftingRecipe.openAllRecipesGuiForHandler(tab.getHandlerName(), tab.getHandlerOverlayId());
+        } else if (currentGui instanceof GuiUsageRecipe) {
+            GuiUsageRecipe.openAllRecipesGuiForHandler(tab.getHandlerName(), tab.getHandlerOverlayId());
+        }
     }
 
     protected boolean mouseScrolled(int scroll) {
