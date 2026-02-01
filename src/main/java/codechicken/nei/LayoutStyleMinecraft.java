@@ -31,7 +31,8 @@ public class LayoutStyleMinecraft extends LayoutStyle {
         LayoutManager.gamemode.icons[0] = new Image(132, 12, 12, 12);
         LayoutManager.gamemode.icons[1] = new Image(156, 12, 12, 12);
         LayoutManager.gamemode.icons[2] = new Image(168, 12, 12, 12);
-        LayoutManager.magnet.icon = new Image(180, 24, 12, 12);
+        LayoutManager.magnet.icons[0] = new Image(180, 24, 12, 12);
+        LayoutManager.magnet.icons[1] = new Image(180, 36, 12, 12);
         LayoutManager.timeButtons[0].icon = new Image(132, 24, 12, 12);
         LayoutManager.timeButtons[1].icon = new Image(120, 24, 12, 12);
         LayoutManager.timeButtons[2].icon = new Image(144, 24, 12, 12);
@@ -86,6 +87,7 @@ public class LayoutStyleMinecraft extends LayoutStyle {
         LayoutManager.options.index = NEIClientConfig.getCheatMode();
 
         LayoutManager.magnet.state = 0x4 | (NEIClientConfig.getMagnetMode() ? 1 : 0);
+        LayoutManager.magnet.index = (LayoutManager.magnet.state & 0x1) != 0 ? 1 : 0;
 
         if (NEIClientConfig.canPerformAction("delete")) {
             layoutButton(LayoutManager.delete);
