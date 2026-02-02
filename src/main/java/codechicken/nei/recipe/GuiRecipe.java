@@ -903,7 +903,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         if (!translated.startsWith("nei.")) { // Optional localization string for resource packs
             return translated;
         }
-        return hovered ? EnumChatFormatting.AQUA.toString() : EnumChatFormatting.WHITE.toString();
+        return hovered ? EnumChatFormatting.YELLOW.toString() : EnumChatFormatting.WHITE.toString();
     }
 
     @Override
