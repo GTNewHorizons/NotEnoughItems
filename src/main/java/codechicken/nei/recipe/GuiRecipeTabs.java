@@ -21,7 +21,6 @@ public class GuiRecipeTabs {
     private int categoriesPerPage = 1;
     private int numHandlers = 1;
     private int recipetype;
-    private GuiRecipe<?> currentGui;
 
     private final Button prevTab = new Button("<") {
 
@@ -59,7 +58,6 @@ public class GuiRecipeTabs {
         final int tabWidth = getTabWidth();
         final int tabHeight = getTabHeight();
 
-        this.currentGui = guiRecipe;
         this.recipetype = guiRecipe.recipetype;
         this.currenthandlers = guiRecipe.currenthandlers;
         this.numHandlers = this.currenthandlers.size();
@@ -186,17 +184,6 @@ public class GuiRecipeTabs {
         }
 
         return false;
-    }
-
-    private void openAllRecipesForHandler() {
-        if (currentGui == null) {
-            return;
-        }
-        if (currentGui instanceof GuiCraftingRecipe) {
-            GuiCraftingRecipe.openAllRecipesGui();
-        } else if (currentGui instanceof GuiUsageRecipe) {
-            GuiUsageRecipe.openAllRecipesGui();
-        }
     }
 
     protected boolean mouseScrolled(int scroll) {

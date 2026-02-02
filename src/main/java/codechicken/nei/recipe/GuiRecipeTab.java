@@ -154,14 +154,6 @@ public abstract class GuiRecipeTab extends Widget {
 
     public abstract boolean onButtonPress(boolean rightclick);
 
-    public String getHandlerName() {
-        return handlerName;
-    }
-
-    public String getHandlerOverlayId() {
-        return handlerID;
-    }
-
     public void setSelected(boolean selected) {
         this.selected = selected;
     }
