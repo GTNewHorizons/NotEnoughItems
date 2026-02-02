@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -836,13 +837,13 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 0x30000000);
 
         final String handlerTitle = this.handler.original.getRecipeName().trim();
-        final int titleColor = isHandlerTitleHovered(mouseX, mouseY) ? 0xC0C0C0 : 0xffffff;
+        final String titleColorCode = getHandlerTitleColorCode(isHandlerTitleHovered(mouseX, mouseY));
         drawCenteredString(
                 this.fontRendererObj,
-                handlerTitle,
+                titleColorCode + handlerTitle + EnumChatFormatting.RESET,
                 this.guiLeft + this.xSize / 2,
                 this.prevtype.yPosition + textMiddle,
-                titleColor);
+                0xffffff);
 
         if (this.handler.searchingAvailable()) {
             GuiRecipe.toggleSearch.draw(mouseX, mouseY);
@@ -894,6 +895,15 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         final int titleX = this.guiLeft + (this.xSize - titleWidth) / 2;
         final int titleY = this.prevtype.yPosition + textMiddle;
         return new Rectangle(titleX, titleY, titleWidth, this.fontRendererObj.FONT_HEIGHT).contains(mousex, mousey);
+    }
+
+    private String getHandlerTitleColorCode(boolean hovered) {
+        final String key = hovered ? "recipe.title.color.hover" : "recipe.title.color.normal";
+        final String translated = NEIClientUtils.translate(key);
+        if (!translated.startsWith("nei.")) { // Optional localization string for resource packs
+            return translated;
+        }
+        return hovered ? EnumChatFormatting.AQUA.toString() : EnumChatFormatting.WHITE.toString();
     }
 
     @Override
