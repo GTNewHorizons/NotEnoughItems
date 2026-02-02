@@ -37,15 +37,6 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         return createRecipeGui("all", true) != null;
     }
 
-    public static boolean openAllRecipesGuiForHandler(String handlerName, String handlerOverlayId) {
-        final GuiRecipe<?> gui = createRecipeGui("all", true);
-        if (gui instanceof GuiCraftingRecipe craftingGui) {
-            craftingGui.setRecipePageForHandler(handlerName, handlerOverlayId);
-            return true;
-        }
-        return false;
-    }
-
     public static GuiRecipe<?> createRecipeGui(String outputId, boolean open, Object... results) {
         final Minecraft mc = NEIClientUtils.mc();
         final RecipeId recipeId;

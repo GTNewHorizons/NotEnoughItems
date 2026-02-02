@@ -428,27 +428,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         this.recipeTabs.update(this);
     }
 
-    protected boolean setRecipePageForHandler(String handlerName, String handlerOverlayId) {
-        if (handlerName == null && handlerOverlayId == null) {
-            return false;
-        }
-
-        for (int i = 0; i < this.currenthandlers.size(); i++) {
-            final IRecipeHandler handler = this.currenthandlers.get(i);
-            final String candidateId = handler.getOverlayIdentifier();
-            if (handlerOverlayId != null && handlerOverlayId.equals(candidateId)) {
-                setRecipePage(i);
-                return true;
-            }
-            if (handlerName != null && handlerName.equals(handler.getHandlerId())) {
-                setRecipePage(i);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public int openTargetRecipe(RecipeId recipeId) {
         int refIndex = -1;
         int recipetype = 0;
@@ -624,6 +603,15 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             return;
         }
 
+        if (button == 0 && isHandlerTitleHovered(mousex, mousey)) {
+            if (this instanceof GuiCraftingRecipe) {
+                GuiCraftingRecipe.openAllRecipesGui();
+            } else if (this instanceof GuiUsageRecipe) {
+                GuiUsageRecipe.openAllRecipesGui();
+            }
+            return;
+        }
+
         super.mouseClicked(mousex, mousey, button);
     }
 
@@ -728,6 +716,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
 
         this.recipeTabs.handleTooltip(mousex, mousey, currenttip);
+
+        if (currenttip.isEmpty() && isHandlerTitleHovered(mousex, mousey)) {
+            currenttip.add(NEIClientUtils.translate("recipe.tab.view_all"));
+        }
 
         if (currenttip.isEmpty() && GuiRecipe.searchField.isVisible()
                 && new Rectangle(GuiRecipe.searchField.x + GuiRecipe.searchField.w, 15, 44, 16)
@@ -843,12 +835,14 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 this.prevpage.yPosition + BUTTON_HEIGHT,
                 0x30000000);
 
+        final String handlerTitle = this.handler.original.getRecipeName().trim();
+        final int titleColor = isHandlerTitleHovered(mouseX, mouseY) ? 0xC0C0C0 : 0xffffff;
         drawCenteredString(
                 this.fontRendererObj,
-                this.handler.original.getRecipeName().trim(),
+                handlerTitle,
                 this.guiLeft + this.xSize / 2,
                 this.prevtype.yPosition + textMiddle,
-                0xffffff);
+                titleColor);
 
         if (this.handler.searchingAvailable()) {
             GuiRecipe.toggleSearch.draw(mouseX, mouseY);
@@ -891,6 +885,15 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             this.recipeTabs.draw(mouseX, mouseY);
             RenderHelper.disableStandardItemLighting();
         }
+    }
+
+    private boolean isHandlerTitleHovered(int mousex, int mousey) {
+        final String handlerTitle = this.handler.original.getRecipeName().trim();
+        final int titleWidth = this.fontRendererObj.getStringWidth(handlerTitle);
+        final int textMiddle = (BUTTON_WIDTH - this.fontRendererObj.FONT_HEIGHT) / 2;
+        final int titleX = this.guiLeft + (this.xSize - titleWidth) / 2;
+        final int titleY = this.prevtype.yPosition + textMiddle;
+        return new Rectangle(titleX, titleY, titleWidth, this.fontRendererObj.FONT_HEIGHT).contains(mousex, mousey);
     }
 
     @Override

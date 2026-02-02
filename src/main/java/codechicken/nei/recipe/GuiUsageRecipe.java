@@ -48,7 +48,7 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
         return false;
     }
 
-    public static boolean openAllRecipesGuiForHandler(String handlerName, String handlerOverlayId) {
+    public static boolean openAllRecipesGui() {
         final ArrayList<IUsageHandler> handlers = getUsageHandlers("all");
         if (!handlers.isEmpty()) {
             final Minecraft mc = NEIClientUtils.mc();
@@ -57,7 +57,6 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
             mc.displayGuiScreen(gui);
             gui.openTargetRecipe(recipeId);
-            gui.setRecipePageForHandler(handlerName, handlerOverlayId);
             return true;
         }
 

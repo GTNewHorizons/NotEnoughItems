@@ -181,10 +181,6 @@ public class GuiRecipeTabs {
 
         for (GuiRecipeTab tab : this.tabs) {
             if (tab.contains(x, y)) {
-                if (mouseButton == 0 && NEIClientUtils.altKey()) {
-                    openAllRecipesForHandler(tab);
-                    return true;
-                }
                 return tab.onButtonPress(mouseButton == 1);
             }
         }
@@ -192,14 +188,14 @@ public class GuiRecipeTabs {
         return false;
     }
 
-    private void openAllRecipesForHandler(GuiRecipeTab tab) {
+    private void openAllRecipesForHandler() {
         if (currentGui == null) {
             return;
         }
         if (currentGui instanceof GuiCraftingRecipe) {
-            GuiCraftingRecipe.openAllRecipesGuiForHandler(tab.getHandlerName(), tab.getHandlerOverlayId());
+            GuiCraftingRecipe.openAllRecipesGui();
         } else if (currentGui instanceof GuiUsageRecipe) {
-            GuiUsageRecipe.openAllRecipesGuiForHandler(tab.getHandlerName(), tab.getHandlerOverlayId());
+            GuiUsageRecipe.openAllRecipesGui();
         }
     }
 
