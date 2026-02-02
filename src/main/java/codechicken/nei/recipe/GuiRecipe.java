@@ -718,7 +718,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         this.recipeTabs.handleTooltip(mousex, mousey, currenttip);
 
         if (currenttip.isEmpty() && isHandlerTitleHovered(mousex, mousey)) {
-            currenttip.add(NEIClientUtils.translate("recipe.tab.view_all"));
+            currenttip.add(NEIClientUtils.translate("recipe.tab.view_all.tooltip"));
         }
 
         if (currenttip.isEmpty() && GuiRecipe.searchField.isVisible()
