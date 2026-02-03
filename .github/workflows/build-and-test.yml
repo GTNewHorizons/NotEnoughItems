@@ -1,13 +1,70 @@
-
-name: Build and test
+name: Release tagged build
 
 on:
-  pull_request:
-    branches: [ master, main ]
+  workflow_dispatch:
   push:
-    branches: [ master, main ]
+    tags: [ '*' ]
+
+permissions:
+  contents: write
 
 jobs:
-  build-and-test:
-    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/build-and-test.yml@master
+  spotless-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Run spotlessApply
+        run: |
+          chmod +x gradlew || true
+          ./gradlew spotlessApply || true
+          
+          # 检查是否有文件被格式化
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Files were formatted by spotless"
+            
+            # 配置 git
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            
+            # 提交格式化更改
+            git add .
+            git commit -m "Apply spotless formatting [skip ci]"
+            
+            # 获取当前 tag 名称
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            echo "Current tag: $TAG_NAME"
+            
+            # 检查并处理可能的引用冲突
+            # 删除本地同名的分支引用（如果存在）
+            git show-ref --verify --quiet refs/heads/"${TAG_NAME}" && git branch -D "${TAG_NAME}" || true
+            
+            # 删除旧的标签（本地和远程）
+            git tag -d "${TAG_NAME}" 2>/dev/null || true
+            git push --delete origin "refs/tags/${TAG_NAME}" 2>/dev/null || true
+            
+            # 创建新的标签指向当前提交
+            git tag -f "${TAG_NAME}"
+            
+            # 只推送标签，不推送分支引用
+            git push origin "refs/tags/${TAG_NAME}" --force
+            
+            echo "Spotless formatting applied and tag updated successfully"
+          else
+            echo "No files needed formatting"
+          fi
+
+  release-tags:
+    needs: spotless-format
+    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/release-tags.yml@master
     secrets: inherit

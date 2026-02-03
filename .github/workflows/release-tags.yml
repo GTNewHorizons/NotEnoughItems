@@ -2,6 +2,7 @@
 name: Release tagged build
 
 on:
+  workflow_dispatch:
   push:
     tags: [ '*' ]
 
