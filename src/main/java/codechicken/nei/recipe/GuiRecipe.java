@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -603,6 +604,15 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             return;
         }
 
+        if (button == 0 && isHandlerTitleHovered(mousex, mousey)) {
+            if (this instanceof GuiCraftingRecipe) {
+                GuiCraftingRecipe.openRecipeGui("all");
+            } else if (this instanceof GuiUsageRecipe) {
+                GuiUsageRecipe.openRecipeGui("all");
+            }
+            return;
+        }
+
         super.mouseClicked(mousex, mousey, button);
     }
 
@@ -707,6 +717,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
 
         this.recipeTabs.handleTooltip(mousex, mousey, currenttip);
+
+        if (currenttip.isEmpty() && isHandlerTitleHovered(mousex, mousey)) {
+            currenttip.add(NEIClientUtils.translate("recipe.tab.view_all.tooltip"));
+        }
 
         if (currenttip.isEmpty() && GuiRecipe.searchField.isVisible()
                 && new Rectangle(GuiRecipe.searchField.x + GuiRecipe.searchField.w, 15, 44, 16)
@@ -822,9 +836,11 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 this.prevpage.yPosition + BUTTON_HEIGHT,
                 0x30000000);
 
+        final String handlerTitle = this.handler.original.getRecipeName().trim();
+        final String titleColorCode = getHandlerTitleColorCode(isHandlerTitleHovered(mouseX, mouseY));
         drawCenteredString(
                 this.fontRendererObj,
-                this.handler.original.getRecipeName().trim(),
+                titleColorCode + handlerTitle + EnumChatFormatting.RESET,
                 this.guiLeft + this.xSize / 2,
                 this.prevtype.yPosition + textMiddle,
                 0xffffff);
@@ -870,6 +886,24 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             this.recipeTabs.draw(mouseX, mouseY);
             RenderHelper.disableStandardItemLighting();
         }
+    }
+
+    private boolean isHandlerTitleHovered(int mousex, int mousey) {
+        final String handlerTitle = this.handler.original.getRecipeName().trim();
+        final int titleWidth = this.fontRendererObj.getStringWidth(handlerTitle);
+        final int textMiddle = (BUTTON_WIDTH - this.fontRendererObj.FONT_HEIGHT) / 2;
+        final int titleX = this.guiLeft + (this.xSize - titleWidth) / 2;
+        final int titleY = this.prevtype.yPosition + textMiddle;
+        return new Rectangle(titleX, titleY, titleWidth, this.fontRendererObj.FONT_HEIGHT).contains(mousex, mousey);
+    }
+
+    private String getHandlerTitleColorCode(boolean hovered) {
+        final String key = hovered ? "recipe.title.color.hover" : "recipe.title.color.normal";
+        final String translated = NEIClientUtils.translate(key);
+        if (!translated.startsWith("nei.")) { // Optional localization string for resource packs
+            return translated;
+        }
+        return hovered ? EnumChatFormatting.YELLOW.toString() : EnumChatFormatting.WHITE.toString();
     }
 
     @Override

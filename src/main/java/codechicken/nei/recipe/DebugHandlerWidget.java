@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.util.EnumChatFormatting;
 
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.input.Keyboard;
@@ -133,6 +134,23 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
 
     private static final int BORDER_PADDING = 6;
     private static final int TRANSPARENCY_BORDER = 4;
+    private static final String TOOLTIP_PREFIX = "debug.RecipeHandler.";
+    private static final Map<String, String> TOOLTIP_KEYS = new HashMap<>();
+
+    static {
+        TOOLTIP_KEYS.put("Name", TOOLTIP_PREFIX + "Name");
+        TOOLTIP_KEYS.put("ID", TOOLTIP_PREFIX + "Id");
+        TOOLTIP_KEYS.put("Key", TOOLTIP_PREFIX + "Key");
+        TOOLTIP_KEYS.put("H.Hack", TOOLTIP_PREFIX + "HHack");
+        TOOLTIP_KEYS.put("Mod Name", TOOLTIP_PREFIX + "ModName");
+        TOOLTIP_KEYS.put("Mod ID", TOOLTIP_PREFIX + "ModId");
+        TOOLTIP_KEYS.put("Order", TOOLTIP_PREFIX + "Order");
+        TOOLTIP_KEYS.put("yShift", TOOLTIP_PREFIX + "yShift");
+        TOOLTIP_KEYS.put("Multi Widgets", TOOLTIP_PREFIX + "MultiWidgets");
+        TOOLTIP_KEYS.put("Height", TOOLTIP_PREFIX + "Height");
+        TOOLTIP_KEYS.put("Width", TOOLTIP_PREFIX + "Width");
+        TOOLTIP_KEYS.put("Use Custom Scroll", TOOLTIP_PREFIX + "UseCustomScroll");
+    }
     private final DrawableResource BG_TEXTURE = new DrawableBuilder(
             "nei:textures/gui/recipebg.png",
             0,
@@ -277,8 +295,9 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
     }
 
     private void drawKeyLabel(String keyLabel, int topShift) {
+        final String displayLabel = translateDisplayLabel(keyLabel);
         GuiDraw.drawString(
-                NEIClientUtils.cropText(GuiDraw.fontRenderer, keyLabel, LABEL_WIDTH),
+                NEIClientUtils.cropText(GuiDraw.fontRenderer, displayLabel, LABEL_WIDTH),
                 this.x + INLINE_PADDING,
                 topShift,
                 0x66555555,
@@ -306,6 +325,24 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
         field.w = this.w - INLINE_PADDING * 2 - LABEL_WIDTH - spaceWidth;
     }
 
+    private static String translateTooltipLabel(String label) {
+        String key = TOOLTIP_KEYS.get(label);
+        String text = label;
+        if (key == null) {
+            return EnumChatFormatting.WHITE + EnumChatFormatting.getTextWithoutFormattingCodes(text);
+        }
+        text = NEIClientUtils.translate(key);
+        return EnumChatFormatting.WHITE + EnumChatFormatting.getTextWithoutFormattingCodes(text);
+    }
+
+    private static String translateDisplayLabel(String label) {
+        String key = TOOLTIP_KEYS.get(label);
+        if (key == null) {
+            return label;
+        }
+        return NEIClientUtils.translate(key);
+    }
+
     @Override
     public void draw(int mx, int my) {
 
@@ -331,7 +368,11 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
                     this.w - INLINE_PADDING * 2,
                     12,
                     0x30000000);
-            GuiDraw.drawStringC("Debug Recipe Handler", this.x + this.w / 2, this.y + BORDER_PADDING + 2, 0xffffff);
+            GuiDraw.drawStringC(
+                    NEIClientUtils.translate("debug.RecipeHandler.title"),
+                    this.x + this.w / 2,
+                    this.y + BORDER_PADDING + 2,
+                    0xffffff);
 
             for (Map.Entry<String, String> entry : getDetailsInfo().entrySet()) {
                 drawDetail(entry.getKey(), entry.getValue(), topShift, spaceWidth);
@@ -424,12 +465,22 @@ public class DebugHandlerWidget extends Widget implements IContainerInputHandler
                     if (my >= topShift && my < topShift + LINE_HEIGHT) {
 
                         if (mx < leftShift + LABEL_WIDTH + spaceWidth) {
-                            tooltip.add(String.valueOf(entry.getKey()));
+                            tooltip.add(translateTooltipLabel(entry.getKey()));
                         } else {
                             tooltip.add(String.valueOf(entry.getValue()));
                         }
 
-                        break;
+                        return tooltip;
+                    }
+                    topShift += LINE_HEIGHT;
+                }
+
+                String[] controlLabels = new String[] { "Order", "yShift", "Multi Widgets", "Height", "Width",
+                        "Use Custom Scroll" };
+                for (String label : controlLabels) {
+                    if (my >= topShift && my < topShift + LINE_HEIGHT) {
+                        tooltip.add(translateTooltipLabel(label));
+                        return tooltip;
                     }
                     topShift += LINE_HEIGHT;
                 }

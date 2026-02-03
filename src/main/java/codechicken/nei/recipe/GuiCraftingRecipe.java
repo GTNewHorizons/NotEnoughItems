@@ -21,6 +21,7 @@ import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.recipe.TemplateRecipeHandler.RecipeTransferRect;
 
 public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
@@ -77,7 +78,9 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         ArrayList<ICraftingHandler> serialCraftingHandlers = GuiCraftingRecipe.serialCraftingHandlers;
         UnaryOperator<ICraftingHandler> recipeHandlerFunction;
 
-        if ("recipeId".equals(outputId)) {
+        if ("all".equals(outputId)) {
+            recipeHandlerFunction = GuiCraftingRecipe::buildAllRecipesHandler;
+        } else if ("recipeId".equals(outputId)) {
             ItemStack stack = (ItemStack) results[0];
             RecipeId recipeId = (RecipeId) results[1];
             craftinghandlers = filterByHandlerName(craftinghandlers, recipeId.getHandleName());
@@ -96,6 +99,24 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
                 "results: " + Arrays.toString(results));
 
         return recipeQuery.runWithProfiling(NEIClientUtils.translate("recipe.concurrent.crafting"));
+    }
+
+    private static ICraftingHandler buildAllRecipesHandler(ICraftingHandler handler) {
+        if (handler instanceof TemplateRecipeHandler templateHandler) {
+            TemplateRecipeHandler allHandler = templateHandler.newInstance();
+            if (allHandler.transferRects.isEmpty()) {
+                allHandler.loadCraftingRecipes("all");
+                return allHandler;
+            }
+            for (RecipeTransferRect rect : allHandler.transferRects) {
+                if (allHandler.specifyTransferRect() == null
+                        || allHandler.specifyTransferRect().equals(rect.outputId)) {
+                    allHandler.loadCraftingRecipes(rect.outputId, rect.results);
+                    return allHandler;
+                }
+            }
+        }
+        return handler.getRecipeHandler("all");
     }
 
     private static ArrayList<ICraftingHandler> filterByHandlerName(ArrayList<ICraftingHandler> craftinghandlers,

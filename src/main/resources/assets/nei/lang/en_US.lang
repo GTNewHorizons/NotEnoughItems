@@ -519,8 +519,23 @@ nei.options.tools.dump.handlers.dumped=handlers were dumped to %s
 nei.options.tools.dump.handlers.mode.0=CSV
 nei.options.tools.dump.handlers.mode.1=Json
 
+nei.debug.RecipeHandler.title=Debug Recipe Handler
+nei.debug.RecipeHandler.Name=Name
+nei.debug.RecipeHandler.Id=ID
+nei.debug.RecipeHandler.Key=Key
+nei.debug.RecipeHandler.HHack=H.Hack
+nei.debug.RecipeHandler.ModName=Mod Name
+nei.debug.RecipeHandler.ModId=Mod ID
+nei.debug.RecipeHandler.Order=Order
+nei.debug.RecipeHandler.yShift=yShift
+nei.debug.RecipeHandler.MultiWidgets=Multi Widgets
+nei.debug.RecipeHandler.Height=Height
+nei.debug.RecipeHandler.Width=Width
+nei.debug.RecipeHandler.UseCustomScroll=Use Custom Scroll
+
 nei.recipe.page=Page %s/%s
 nei.recipe.tooltip=Recipes
+nei.recipe.tab.view_all.tooltip=View all categories
 nei.recipe.shaped=Shaped Crafting
 nei.recipe.shapeless=Shapeless Crafting
 nei.recipe.furnace=Smelting
