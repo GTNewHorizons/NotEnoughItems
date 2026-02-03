@@ -606,9 +606,9 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         if (button == 0 && isHandlerTitleHovered(mousex, mousey)) {
             if (this instanceof GuiCraftingRecipe) {
-                GuiCraftingRecipe.openAllRecipesGui();
+                GuiCraftingRecipe.createRecipeGui("all", true);
             } else if (this instanceof GuiUsageRecipe) {
-                GuiUsageRecipe.openAllRecipesGui();
+                GuiUsageRecipe.createRecipeGui("all", true);
             }
             return;
         }

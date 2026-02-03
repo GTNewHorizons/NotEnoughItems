@@ -33,10 +33,6 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         return createRecipeGui(outputId, true, results) != null;
     }
 
-    public static boolean openAllRecipesGui() {
-        return createRecipeGui("all", true) != null;
-    }
-
     public static GuiRecipe<?> createRecipeGui(String outputId, boolean open, Object... results) {
         final Minecraft mc = NEIClientUtils.mc();
         final RecipeId recipeId;
@@ -49,8 +45,6 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
         if ("all".equals(outputId)) {
             recipeId = null;
-        } else if ("item".equals(outputId)) {
-            recipeId = getRecipeId(mc.currentScreen, (ItemStack) results[0]);
         } else if ("recipeId".equals(outputId)) {
             recipeId = (RecipeId) results[1];
         } else {
@@ -118,9 +112,9 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
                 if (allHandler.specifyTransferRect() == null
                         || allHandler.specifyTransferRect().equals(rect.outputId)) {
                     allHandler.loadCraftingRecipes(rect.outputId, rect.results);
+                    return allHandler;
                 }
             }
-            return allHandler;
         }
         return handler.getRecipeHandler("all");
     }
