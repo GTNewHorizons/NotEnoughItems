@@ -22,18 +22,6 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
     public static boolean openRecipeGui(String inputId, Object... ingredients) {
 
-        final GuiUsageRecipe gui = createRecipeGui(inputId, true, ingredients);
-        if (gui != null) {
-            if (NEIClientConfig.showHistoryPanelWidget() && "item".equals(inputId)
-                    && ingredients[0] instanceof ItemStack stack) {
-                ItemPanels.itemPanel.historyPanel.addItem(stack);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public static GuiUsageRecipe createRecipeGui(String inputId, boolean open, Object... ingredients) {
         for (int i = 0; i < ingredients.length; i++) {
             if (ingredients[i] instanceof ItemStack stack) {
                 ingredients[i] = StackInfo.normalizeRecipeQueryStack(stack.copy());
@@ -47,14 +35,15 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
             final RecipeId recipeId = getCurrentRecipeId(mc.currentScreen);
             final GuiUsageRecipe gui = new GuiUsageRecipe(handlers);
 
-            if (open) {
-                mc.displayGuiScreen(gui);
+            if (NEIClientConfig.showHistoryPanelWidget() && "item".equals(inputId)
+                    && ingredients[0] instanceof ItemStack stack) {
+                ItemPanels.itemPanel.historyPanel.addItem(stack);
             }
+            mc.displayGuiScreen(gui);
             gui.openTargetRecipe(recipeId);
-            return gui;
+            return true;
         }
-
-        return null;
+        return false;
     }
 
     private GuiUsageRecipe(ArrayList<IUsageHandler> handlers) {
