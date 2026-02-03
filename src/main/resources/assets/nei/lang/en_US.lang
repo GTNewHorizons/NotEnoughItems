@@ -535,6 +535,7 @@ nei.debug.RecipeHandler.UseCustomScroll=Use Custom Scroll
 
 nei.recipe.page=Page %s/%s
 nei.recipe.tooltip=Recipes
+nei.recipe.tab.view_all.tooltip=View all categories
 nei.recipe.shaped=Shaped Crafting
 nei.recipe.shapeless=Shapeless Crafting
 nei.recipe.furnace=Smelting

@@ -12,6 +12,7 @@ import codechicken.nei.ItemPanels;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.recipe.TemplateRecipeHandler.RecipeTransferRect;
 
 public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
@@ -38,12 +39,10 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
                     && ingredients[0] instanceof ItemStack stack) {
                 ItemPanels.itemPanel.historyPanel.addItem(stack);
             }
-
             mc.displayGuiScreen(gui);
             gui.openTargetRecipe(recipeId);
             return true;
         }
-
         return false;
     }
 
@@ -55,14 +54,36 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
     public static ArrayList<IUsageHandler> getUsageHandlers(String inputId, Object... ingredients) {
 
         final RecipeHandlerQuery<IUsageHandler> recipeQuery = new RecipeHandlerQuery<>(
-                h -> getUsageOrCatalystHandler(h, inputId, ingredients),
+                "all".equals(inputId) ? GuiUsageRecipe::buildAllRecipesHandler
+                        : h -> getUsageOrCatalystHandler(h, inputId, ingredients),
                 GuiUsageRecipe.usagehandlers,
                 GuiUsageRecipe.serialUsageHandlers,
                 "Error while looking up usage recipe",
                 "inputId: " + inputId,
                 "ingredients: " + Arrays.toString(ingredients));
 
-        return recipeQuery.runWithProfiling(NEIClientUtils.translate("recipe.concurrent.usage"));
+        ArrayList<IUsageHandler> handlers = recipeQuery
+                .runWithProfiling(NEIClientUtils.translate("recipe.concurrent.usage"));
+        return handlers;
+    }
+
+    private static IUsageHandler buildAllRecipesHandler(IUsageHandler handler) {
+        if (handler instanceof TemplateRecipeHandler templateHandler) {
+            TemplateRecipeHandler allHandler = templateHandler.newInstance();
+            if (allHandler.transferRects.isEmpty()) {
+                allHandler.loadCraftingRecipes("all");
+                return allHandler;
+            }
+            for (RecipeTransferRect rect : allHandler.transferRects) {
+                if (allHandler.specifyTransferRect() == null
+                        || allHandler.specifyTransferRect().equals(rect.outputId)) {
+                    allHandler.loadCraftingRecipes(rect.outputId, rect.results);
+                    return allHandler;
+                }
+            }
+
+        }
+        return handler.getUsageHandler("all");
     }
 
     public static void registerUsageHandler(IUsageHandler handler) {
