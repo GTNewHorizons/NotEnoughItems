@@ -43,8 +43,8 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
             }
         }
 
-        if ("all".equals(outputId)) {
-            recipeId = null;
+        if ("item".equals(outputId)) {
+            recipeId = getRecipeId(mc.currentScreen, (ItemStack) results[0]);
         } else if ("recipeId".equals(outputId)) {
             recipeId = (RecipeId) results[1];
         } else {
