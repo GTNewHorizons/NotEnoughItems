@@ -70,7 +70,7 @@ public class ItemsPanelGrid extends ItemsGrid<ItemsPanelGrid.ItemsPanelGridSlot,
     }
 
     public ArrayList<ItemStack> newItems;
-    public ArrayList<ItemStack> rawItems;
+    public ArrayList<ItemStack> rawItems = new ArrayList<>();
     protected List<ItemsPanelGridSlot> gridMask;
 
     protected final Map<Integer, Integer> itemToGroup = new HashMap<>();
