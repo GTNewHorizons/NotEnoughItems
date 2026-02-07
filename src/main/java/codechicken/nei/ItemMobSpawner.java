@@ -4,7 +4,6 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.creativetab.CreativeTabs;
@@ -29,19 +28,12 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class ItemMobSpawner extends ItemBlock {
 
-    private static final Map<Integer, EntityLiving> entityHashMap = Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<Integer, EntityLiving> entityHashMap = new ConcurrentHashMap<>();
     private static final Map<Integer, String> IDtoNameMap = new ConcurrentHashMap<>();
+    private static final Map<Class<? extends Entity>, String> ENTITY_CLASS_TO_NAME_CACHE = new ConcurrentHashMap<>();
 
     public static int idPig = 90;
     private static boolean loaded = false;
-
-    private static final ThreadLocal<PlacementContext> placementContext = ThreadLocal
-            .withInitial(PlacementContext::new);
-
-    private static class PlacementContext {
-
-        int x, y, z;
-    }
 
     public ItemMobSpawner() {
         super(Blocks.mob_spawner);
@@ -54,13 +46,14 @@ public class ItemMobSpawner extends ItemBlock {
         return Blocks.mob_spawner.getBlockTextureFromSide(0);
     }
 
+    @Override
     public boolean onItemUse(ItemStack itemstack, EntityPlayer entityplayer, World world, int x, int y, int z, int side,
             float hitX, float hitY, float hitZ) {
         boolean placed = super.onItemUse(itemstack, entityplayer, world, x, y, z, side, hitX, hitY, hitZ);
 
-        if (placed && world.isRemote) {
-            TileEntityMobSpawner spawner = (TileEntityMobSpawner) world.getTileEntity(x, y, z);
-            if (spawner != null) {
+        if (placed && !world.isRemote) {
+            if (world.getTileEntity(x, y, z) instanceof TileEntityMobSpawner) {
+                TileEntityMobSpawner spawner = (TileEntityMobSpawner) world.getTileEntity(x, y, z);
                 String mobType = getMobTypeFromItemStack(itemstack);
                 if (mobType != null) {
                     NEICPH.sendMobSpawnerID(x, y, z, mobType);
@@ -107,7 +100,7 @@ public class ItemMobSpawner extends ItemBlock {
 
         loadSpawners();
 
-        Class<?> entityClass = (Class<?>) EntityList.IDtoClassMapping.get(id);
+        Class<?> entityClass = EntityList.IDtoClassMapping.get(id);
         World world = NEIClientUtils.mc() != null ? NEIClientUtils.mc().theWorld : null;
 
         if (isInvalidEntityClass(entityClass)) {
@@ -124,25 +117,33 @@ public class ItemMobSpawner extends ItemBlock {
 
     private static boolean isInvalidEntityClass(Class<?> entityClass) {
         if (entityClass == null) {
-            return false;
+            return true;
         }
 
         int modifiers = entityClass.getModifiers();
         if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers)) {
-            NEIClientConfig.logger.warn("Skipping abstract entity class: " + entityClass.getName());
+            NEIClientConfig.logger.warn("Skipping abstract/interface entity class: {}", entityClass.getName());
+            return true;
+        }
+
+        if (!EntityLiving.class.isAssignableFrom(entityClass)) {
+            NEIClientConfig.logger.warn("Skipping non-EntityLiving class: {}", entityClass.getName());
             return true;
         }
 
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     private static EntityLiving createEntityInstance(Class<?> entityClass, World world, int id) {
         if (entityClass == null || world == null) {
+            NEIClientConfig.logger.debug("World or entity class is null, using fallback for ID: {}", id);
             return getFallbackEntity(id);
         }
 
         try {
-            return (EntityLiving) entityClass.getConstructor(World.class).newInstance(world);
+            Class<? extends EntityLiving> livingClass = (Class<? extends EntityLiving>) entityClass;
+            return livingClass.getConstructor(World.class).newInstance(world);
         } catch (Throwable t) {
             logEntityCreationError(entityClass, id, t);
             return getFallbackEntity(id);
@@ -150,11 +151,17 @@ public class ItemMobSpawner extends ItemBlock {
     }
 
     private static void logEntityCreationError(Class<?> entityClass, int id, Throwable t) {
+        String entityName = IDtoNameMap.getOrDefault(id, "unknown");
         if (entityClass == null) {
             NEIClientConfig.logger
-                    .error("Null class for entity (ID: {}, Name: {})", id, IDtoNameMap.getOrDefault(id, "unknown"));
+                    .error("Failed to create entity instance: Class is null for ID {}, Name {}", id, entityName, t);
         } else {
-            NEIClientConfig.logger.error("Error creating instance of entity: " + entityClass.getName(), t);
+            NEIClientConfig.logger.error(
+                    "Failed to create instance of entity: Class {}, ID {}, Name {}",
+                    entityClass.getName(),
+                    id,
+                    entityName,
+                    t);
         }
     }
 
@@ -175,15 +182,14 @@ public class ItemMobSpawner extends ItemBlock {
                 try {
                     pig = new EntityPig(world);
                     entityHashMap.put(idPig, pig);
+                    NEIClientConfig.logger.debug("Created fallback pig entity for ID: {}", originalId);
                 } catch (Exception e) {
-                    NEIClientConfig.logger.error("Failed to create fallback pig entity", e);
+                    NEIClientConfig.logger
+                            .error("Failed to create fallback pig entity for original ID: {}", originalId, e);
                 }
+            } else {
+                NEIClientConfig.logger.warn("World is null, cannot create fallback entity for ID: {}", originalId);
             }
-        }
-
-        if (pig == null && originalId != idPig) {
-            NEIClientConfig.logger
-                    .warn("Using null fallback for entity ID: {}, original fallback ID: {}", originalId, idPig);
         }
 
         return pig;
@@ -191,8 +197,10 @@ public class ItemMobSpawner extends ItemBlock {
 
     public static void clearEntityReferences() {
         entityHashMap.clear();
+        NEIClientConfig.logger.debug("Cleared all entity references from cache");
     }
 
+    @SuppressWarnings("unchecked")
     public static void loadSpawners() {
         if (loaded) {
             return;
@@ -204,31 +212,36 @@ public class ItemMobSpawner extends ItemBlock {
             }
 
             try {
-                for (Object entry : EntityList.classToStringMapping.entrySet()) {
-                    Map.Entry<Class<? extends Entity>, String> mapEntry = (Map.Entry<Class<? extends Entity>, String>) entry;
+                for (Map.Entry<Class<? extends Entity>, String> entry : ((Map<Class<? extends Entity>, String>) EntityList.classToStringMapping)
+                        .entrySet()) {
 
-                    Class<? extends Entity> clazz = mapEntry.getKey();
-                    String name = mapEntry.getValue();
+                    Class<? extends Entity> clazz = entry.getKey();
+                    String name = entry.getValue();
 
                     if (shouldRegisterEntity(clazz, name)) {
                         Integer id = (Integer) EntityList.classToIDMapping.get(clazz);
                         if (id != null) {
                             IDtoNameMap.put(id, name);
+                            ENTITY_CLASS_TO_NAME_CACHE.put(clazz, name);
+
                             if ("Pig".equals(name)) {
                                 idPig = id;
+                                NEIClientConfig.logger.debug("Set pig entity ID to: {}", id);
                             }
                         }
                     }
                 }
                 loaded = true;
+                NEIClientConfig.logger.info("Loaded {} spawner entity mappings", IDtoNameMap.size());
+
             } catch (Exception e) {
-                NEIClientConfig.logger.error("Error loading spawners", e);
+                NEIClientConfig.logger.error("Error loading spawners from entity list", e);
             }
         }
     }
 
     private static boolean shouldRegisterEntity(Class<? extends Entity> clazz, String name) {
-        if (clazz == null || name == null) {
+        if (clazz == null || name == null || name.trim().isEmpty()) {
             return false;
         }
 
@@ -236,7 +249,7 @@ public class ItemMobSpawner extends ItemBlock {
             return false;
         }
 
-        if ("EnderDragon".equals(name)) {
+        if ("EnderDragon".equals(name) || "Giant".equals(name)) {
             return false;
         }
 
@@ -248,8 +261,10 @@ public class ItemMobSpawner extends ItemBlock {
         if (!NEIClientConfig.hasSMPCounterPart()) {
             list.add(new ItemStack(item));
         } else {
+            loadSpawners();
             for (int id : IDtoNameMap.keySet()) {
-                list.add(new ItemStack(item, 1, id));
+                ItemStack stack = new ItemStack(item, 1, id);
+                list.add(stack);
             }
         }
     }
@@ -262,5 +277,21 @@ public class ItemMobSpawner extends ItemBlock {
     public static boolean isValidEntityMeta(int meta) {
         loadSpawners();
         return IDtoNameMap.containsKey(meta) || meta == 0;
+    }
+
+    public static Map<Integer, String> getRegisteredSpawnerEntities() {
+        loadSpawners();
+        return Collections.unmodifiableMap(IDtoNameMap);
+    }
+
+    public static boolean isEntityValidForSpawner(Class<? extends Entity> entityClass) {
+        if (entityClass == null) return false;
+
+        String name = ENTITY_CLASS_TO_NAME_CACHE.get(entityClass);
+        if (name == null) {
+            name = (String) EntityList.classToStringMapping.get(entityClass);
+        }
+
+        return name != null && shouldRegisterEntity(entityClass, name);
     }
 }
