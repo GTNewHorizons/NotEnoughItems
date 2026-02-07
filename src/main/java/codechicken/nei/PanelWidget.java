@@ -84,6 +84,10 @@ public abstract class PanelWidget<T extends ItemsGrid<? extends ItemsGridSlot, ?
 
     public abstract Rectangle4i calculateBounds();
 
+    protected static int snapDownToMultiple(int value, int multiple) {
+        return (value / multiple) * multiple;
+    }
+
     public void resize(GuiContainer gui) {
         final Rectangle4i bounds = calculateBounds();
 
