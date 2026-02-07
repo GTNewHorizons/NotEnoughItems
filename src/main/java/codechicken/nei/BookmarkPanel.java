@@ -509,31 +509,30 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         }
     }
 
+    @Override
     public Rectangle4i calculateBounds() {
         final GuiContainer gui = NEIClientUtils.getGuiContainer();
-        final int width = (gui.width - gui.xSize) / 2 - PADDING * 2;
-        final Rectangle4i bounds = new Rectangle4i(
-                PADDING,
-                PADDING,
-                (gui.width - 176) / 2 - PADDING * 2,
-                gui.height - PADDING * 2);
+        final int maxWidth = (gui.width - 176) / 2 - PADDING * 2;
+        final int maxHeight = gui.height - PADDING * 2;
+        final int freeSpace = (gui.width - gui.xSize) / 2 - PADDING * 2;
 
-        int paddingLeft = (int) Math
-                .ceil(bounds.w * NEIClientConfig.getSetting("world.panels.bookmarks.left").getIntValue() / 100000.0);
-        int paddingTop = (int) Math
-                .ceil(bounds.h * NEIClientConfig.getSetting("world.panels.bookmarks.top").getIntValue() / 100000.0);
-        int paddingRight = (int) Math
-                .ceil(bounds.w * NEIClientConfig.getSetting("world.panels.bookmarks.right").getIntValue() / 100000.0);
-        int paddingBottom = (int) Math
-                .ceil(bounds.h * NEIClientConfig.getSetting("world.panels.bookmarks.bottom").getIntValue() / 100000.0);
+        final int paddingLeft = (int) Math
+                .ceil(maxWidth * NEIClientConfig.getSetting("world.panels.bookmarks.left").getIntValue() / 100000.0);
+        final int paddingTop = (int) Math
+                .ceil(maxHeight * NEIClientConfig.getSetting("world.panels.bookmarks.top").getIntValue() / 100000.0);
+        final int paddingRight = (int) Math
+                .ceil(maxWidth * NEIClientConfig.getSetting("world.panels.bookmarks.right").getIntValue() / 100000.0);
+        final int paddingBottom = (int) Math
+                .ceil(maxHeight * NEIClientConfig.getSetting("world.panels.bookmarks.bottom").getIntValue() / 100000.0);
 
-        bounds.h = Math.max(ItemsGrid.SLOT_SIZE, bounds.h - paddingTop - paddingBottom);
-        bounds.y = bounds.y + Math.min(paddingTop, bounds.h - ItemsGrid.SLOT_SIZE);
+        final int width = Math.max(
+                ItemsGrid.SLOT_SIZE,
+                snapDownToMultiple(
+                        Math.min(freeSpace - paddingLeft, maxWidth - paddingLeft - paddingRight),
+                        ItemsGrid.SLOT_SIZE));
+        final int height = Math.max(ItemsGrid.SLOT_SIZE, maxHeight - paddingTop - paddingBottom);
 
-        bounds.w = Math.max(ItemsGrid.SLOT_SIZE, Math.min(bounds.w - paddingLeft - paddingRight, width - paddingLeft));
-        bounds.x = bounds.x + Math.min(paddingLeft, bounds.w - ItemsGrid.SLOT_SIZE);
-
-        return bounds;
+        return new Rectangle4i(paddingLeft + PADDING, paddingTop + PADDING, width, height);
     }
 
     protected ItemStack getDraggedStackWithQuantity(ItemStack itemStack) {
