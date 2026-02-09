@@ -2,7 +2,6 @@ compileJava {
     options.encoding = "UTF-8"
 }
 
-
 generateGrammarSource {
     maxHeapSize = "128m"
     arguments += ['-package', 'codechicken.nei.search', '-visitor', '-no-listener']
@@ -11,6 +10,10 @@ generateGrammarSource {
 
 compileJava.dependsOn generateGrammarSource
 sourcesJar.dependsOn generateGrammarSource
+
+sourcesJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
 
 sourceSets {
     main {
