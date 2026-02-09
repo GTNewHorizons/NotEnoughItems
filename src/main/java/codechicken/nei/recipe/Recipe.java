@@ -156,7 +156,7 @@ public class Recipe {
             // hack: remove metadata for "Data Stick"
             if (stack.hasTagCompound() && stack.getItemDamage() == 32708
                     && "gregtech:gt.metaitem.01".equals(Item.itemRegistry.getNameForObject(stack.getItem()))) {
-                return new ItemStack(stack.getItem(), 1, stack.getItemDamage());
+                return new ItemStack(stack.getItem(), stack.getItemDamage());
             }
 
             // hack: remove metadata for "Circuit Imprint"
