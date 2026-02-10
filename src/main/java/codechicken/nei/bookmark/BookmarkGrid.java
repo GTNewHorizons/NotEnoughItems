@@ -89,7 +89,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
     public static final Color PLACEHOLDER_COLOR = new Color(0x66222222, true);
 
     public static final int DEFAULT_GROUP_ID = 0;
-    protected static final int GROUP_PANEL_WIDTH = 7;
+    public static final int GROUP_PANEL_WIDTH = 7;
     protected static final float SCALE_SPEED = 0.1f;
 
     protected List<BookmarkItem> bookmarkItems = new ArrayList<>();

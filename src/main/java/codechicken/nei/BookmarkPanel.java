@@ -528,8 +528,10 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         final int width = Math.max(
                 ItemsGrid.SLOT_SIZE,
                 snapDownToMultiple(
-                        Math.min(freeSpace - paddingLeft, maxWidth - paddingLeft - paddingRight),
-                        ItemsGrid.SLOT_SIZE));
+                        Math.min(freeSpace - paddingLeft, maxWidth - paddingLeft - paddingRight)
+                                - BookmarkGrid.GROUP_PANEL_WIDTH,
+                        ItemsGrid.SLOT_SIZE))
+                + BookmarkGrid.GROUP_PANEL_WIDTH;
         final int height = Math.max(ItemsGrid.SLOT_SIZE, maxHeight - paddingTop - paddingBottom);
 
         return new Rectangle4i(paddingLeft + PADDING, paddingTop + PADDING, width, height);
