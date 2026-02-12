@@ -51,6 +51,24 @@ public class Recipe {
             return new RecipeId(extractItem(result), handlerName, extractIngredients(ingredients));
         }
 
+        public static RecipeId of(IRecipeHandler handler, int recipeIndex) {
+            final List<PositionedStack> ingredients = handler.getIngredientStacks(recipeIndex);
+            final String handlerName = GuiRecipeTab.getHandlerInfo(handler).getHandlerName();
+            PositionedStack pStackResult = handler.getResultStack(recipeIndex);
+
+            if (pStackResult == null) {
+                for (PositionedStack otherStack : handler.getOtherStacks(recipeIndex)) {
+                    if (!FluidContainerRegistry.isContainer(otherStack.items[0])
+                            || StackInfo.getFluid(otherStack.items[0]) != null) {
+                        pStackResult = otherStack;
+                        break;
+                    }
+                }
+            }
+
+            return new RecipeId(extractItem(pStackResult), handlerName, extractIngredients(ingredients));
+        }
+
         public static RecipeId of(JsonObject json) {
             String handlerName = null;
             List<ItemStack> ingredients = new ArrayList<>();
