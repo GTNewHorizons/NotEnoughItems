@@ -64,6 +64,7 @@ nei.itempanel.fill_crafting_grid=Fill Crafting Grid
 nei.itempanel.fill_crafting_grid_quantity=Fill Crafting Grid With Quantity
 nei.itempanel.open_crafting=Recipe to make this item
 nei.itempanel.open_usage=Recipes that use this item
+nei.itempanel.infinite_item=Give Infinite Item
 nei.itempanel.copy_name=Copy Item Name
 nei.itempanel.copy_oredict=Copy Item OreDictionary
 nei.itempanel.copy_id=Copy Item ID
