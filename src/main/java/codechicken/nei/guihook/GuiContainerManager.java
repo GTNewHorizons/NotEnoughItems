@@ -5,7 +5,6 @@ import static codechicken.lib.gui.GuiDraw.fontRenderer;
 import static codechicken.lib.gui.GuiDraw.getMousePosition;
 import static codechicken.lib.gui.GuiDraw.renderEngine;
 import static codechicken.nei.NEIClientUtils.translate;
-import static com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil.formatNumber;
 
 import java.awt.Point;
 import java.util.ArrayList;
@@ -43,8 +42,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemList;
@@ -213,14 +210,14 @@ public class GuiContainerManager {
                 return String.format(
                         fullPattern,
                         valueFormatter.apply(stackSize),
-                        formatNumber(units),
+                        NEIClientUtils.formatNumber(units),
                         valueFormatter.apply(maxStackSize),
                         valueFormatter.apply(remainder));
             } else {
                 return String.format(
                         shortPattern,
                         valueFormatter.apply(stackSize),
-                        formatNumber(units),
+                        NEIClientUtils.formatNumber(units),
                         valueFormatter.apply(maxStackSize));
             }
         }
@@ -238,7 +235,7 @@ public class GuiContainerManager {
                     stack.getMaxStackSize(),
                     translate("inventory.tooltip.count.item", "%s = %s * %s + %s"),
                     translate("inventory.tooltip.count.item", "%s = %s * %s"),
-                    NumberFormatUtil::formatNumber);
+                    NEIClientUtils::formatNumber);
         }
     }
 
@@ -255,7 +252,7 @@ public class GuiContainerManager {
                 144,
                 translate("inventory.tooltip.count.fluid", "%s = %s * %s + %s"),
                 translate("inventory.tooltip.count.fluid", "%s = %s * %s"),
-                NumberFormatUtil::formatFluid);
+                NEIClientUtils::formatFluid);
     }
 
     /**
