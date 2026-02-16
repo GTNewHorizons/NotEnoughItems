@@ -46,6 +46,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Iterables;
+import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.inventory.InventoryRange;
@@ -123,6 +124,24 @@ public class NEIClientUtils extends NEIServerUtils {
 
             return numberFormat;
         });
+    }
+
+    public static String formatNumber(long aNumber) {
+
+        if (NEIModContainer.isGTNHLibLoaded()) {
+            return NumberFormatUtil.formatNumber(aNumber);
+        }
+
+        return getDecimalFormat().format(aNumber);
+    }
+
+    public static String formatFluid(long aNumber) {
+
+        if (NEIModContainer.isGTNHLibLoaded()) {
+            return NumberFormatUtil.formatFluid(aNumber);
+        }
+
+        return getDecimalFormat().format(aNumber) + " L";
     }
 
     public static void deleteHeldItem() {
