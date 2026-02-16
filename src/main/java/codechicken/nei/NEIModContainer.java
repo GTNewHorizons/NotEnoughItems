@@ -55,7 +55,7 @@ public class NEIModContainer extends DummyModContainer {
         modMetadata.name = "NotEnoughItems";
         modMetadata.modId = "NotEnoughItems";
         modMetadata.version = Tags.VERSION;
-        modMetadata.authorList = Arrays.asList("ChickenBones", "mitchej123");
+        modMetadata.authorList = Arrays.asList("ChickenBones", "mitchej123", "SLPrime");
         modMetadata.url = "https://github.com/GTNewHorizons/NotEnoughItems";
         modMetadata.description = "Recipe Viewer, Inventory Manager, Item Spawner, Cheats and more; GTNH Version includes many enhancements.";
         return modMetadata;
@@ -80,7 +80,6 @@ public class NEIModContainer extends DummyModContainer {
     public List<ArtifactVersion> getDependencies() {
         List<ArtifactVersion> deps = new ArrayList<>();
         deps.add(VersionParser.parseVersionReference("CodeChickenCore@[" + codechicken.core.asm.Tags.VERSION + ",)"));
-        deps.add(VersionParser.parseVersionReference("gtnhlib@[0.6.0,)"));
         return deps;
     }
 
