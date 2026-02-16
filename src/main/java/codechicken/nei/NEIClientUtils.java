@@ -204,7 +204,7 @@ public class NEIClientUtils extends NEIServerUtils {
     public static void cheatItem(ItemStack stack, int button, int mode) {
         if (!canCheatItem(stack)) return;
 
-        if (mode == -1 && button == 0 && shiftKey() && NEIClientConfig.hasSMPCounterPart()) {
+        if (mode == -1 && button == 0 && controlKey() && NEIClientConfig.hasSMPCounterPart()) {
             for (IInfiniteItemHandler handler : ItemInfo.infiniteHandlers) {
                 if (!handler.canHandleItem(stack)) continue;
 
