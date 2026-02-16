@@ -585,6 +585,9 @@ public abstract class ShortcutInputHandler {
             hotkeys.put(
                     NEIClientUtils.getKeyName(NEIClientUtils.SHIFT_HASH, NEIMouseUtils.MOUSE_BTN_RMB),
                     NEIClientUtils.translate("itempanel.open_usage"));
+            hotkeys.put(
+                    NEIClientUtils.getKeyName(NEIClientUtils.CTRL_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
+                    NEIClientUtils.translate("itempanel.infinite_item"));
         } else {
             hotkeys.put(
                     NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
