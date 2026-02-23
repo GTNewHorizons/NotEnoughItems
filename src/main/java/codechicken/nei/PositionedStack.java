@@ -104,7 +104,7 @@ public class PositionedStack {
         items = filteringPermutations(items, GuiRecipe.getSearchItemFilter());
         items = filteringPermutations(items, additionalFilter);
 
-        items.sort(Comparator.comparing(FavoriteRecipes::contains).reversed());
+        items.sort(Comparator.comparing(FavoriteRecipes::containsManual).reversed());
         return items;
     }
 

@@ -117,7 +117,8 @@ public class ItemCraftablesPanel
                                 .entrySet().stream()
                                 .sorted(
                                         Map.Entry.comparingByKey(
-                                                Comparator.comparing(FavoriteRecipes::contains).reversed()
+                                                Comparator.comparing(FavoriteRecipes::containsManual)
+                                                        .thenComparing(FavoriteRecipes::contains).reversed()
                                                         .thenComparing(ItemSorter.instance)))
                                 .limit(maxSlotIndex).collect(Collectors.toList());
                         int slotIndex = 0;
