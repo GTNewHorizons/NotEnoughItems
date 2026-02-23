@@ -31,7 +31,7 @@ public class AcceptsFollowingTooltipLineHandler extends ItemsTooltipLineHandler 
             ItemStack activeStack, int maxRows) {
 
         if (items.size() > 1) {
-            items.sort(Comparator.comparing(FavoriteRecipes::contains).reversed());
+            items.sort(Comparator.comparing(FavoriteRecipes::containsManual).reversed());
             return new AcceptsFollowingTooltipLineHandler(tooltipGUID, items, activeStack, maxRows);
         }
 
@@ -42,7 +42,7 @@ public class AcceptsFollowingTooltipLineHandler extends ItemsTooltipLineHandler 
     protected void drawItem(int x, int y, ItemStack drawStack, String stackSize) {
         super.drawItem(x, y, drawStack, stackSize);
 
-        if (FavoriteRecipes.contains(drawStack)) {
+        if (FavoriteRecipes.containsManual(drawStack)) {
             NEIClientUtils.drawNEIOverlayText("F", x, y);
         }
     }

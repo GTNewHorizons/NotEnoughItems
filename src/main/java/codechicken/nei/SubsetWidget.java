@@ -10,9 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,9 +50,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
     protected static final int MARGIN = 2;
     protected static final char PREFIX = '%';
 
-    protected static ReentrantReadWriteLock hiddenItemLock = new ReentrantReadWriteLock();
-    protected static Lock hiddenWriteLock = hiddenItemLock.writeLock();
-    protected static Lock hiddenReadLock = hiddenItemLock.readLock();
+    private static final Object hiddenLock = new Object();
 
     public static class SubsetTag {
 
@@ -377,11 +372,18 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
             }
             final AnyMultiItemFilter filter = new AnyMultiItemFilter();
             final Set<ItemStack> filteredItems = new HashSet<>();
+            final List<SubsetTag> snapshot;
 
-            for (SubsetTag tag : tags.values()) {
+            synchronized (tags) {
+                snapshot = new ArrayList<>(tags.values());
+            }
+
+            for (SubsetTag tag : snapshot) {
                 if (tag.filter != null && matches(tag.path, searchText, pattern)) {
-                    filteredItems.addAll(tag.items);
-                    filter.filters.add(tag.filter);
+                    synchronized (tag.items) {
+                        filteredItems.addAll(tag.items);
+                        filter.filters.add(tag.filter);
+                    }
                 }
             }
 
@@ -414,6 +416,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
      * All operations on this variable should be synchronised.
      */
     private static final ItemStackSet hiddenItems = new ItemStackSet();
+
     private static final Map<String, SubsetTag> tags = new HashMap<>();
     private static final SubsetTag root = new SubsetTag("");
     protected static boolean enableSearchBySubsets = false;
@@ -436,6 +439,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
             }
 
             updateHiddenItems();
+            SearchField.searchParser.clearCache();
         }
     }
 
@@ -447,24 +451,14 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
                     parentpath -> parentpath.equals(path.toLowerCase())
                             || parentpath.startsWith(path.toLowerCase() + "."));
             updateHiddenItems();
+            SearchField.searchParser.clearCache();
         }
     }
 
     public static boolean isHidden(ItemStack item) {
-        try {
-            if (hiddenReadLock.tryLock(5, TimeUnit.SECONDS)) {
-                try {
-                    return hiddenItems.contains(item);
-                } finally {
-                    hiddenReadLock.unlock();
-                }
-            } else {
-                NEIClientConfig.logger.error("Unable to obtain read lock in 'isHidden'");
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        synchronized (hiddenLock) {
+            return hiddenItems.contains(item);
         }
-        return false;
     }
 
     private static List<ItemStack> getItems(SubsetTag tag, List<ItemStack> items) {
@@ -478,90 +472,45 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
     }
 
     public static void showOnly(SubsetTag tag) {
-        try {
-            if (hiddenWriteLock.tryLock(5, TimeUnit.SECONDS)) {
-                try {
-                    hiddenItems.clear();
-                    hiddenItems.addAll(getItems(root, new ArrayList<>()));
-                    hiddenItems.removeAll(getItems(tag, new ArrayList<>()));
-                } finally {
-                    hiddenWriteLock.unlock();
-                }
-            } else {
-                NEIClientConfig.logger.error("Unable to obtain write lock in 'showOnly'");
-            }
-
-            calculateVisibility();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        synchronized (hiddenLock) {
+            hiddenItems.clear();
+            hiddenItems.addAll(getItems(root, new ArrayList<>()));
+            hiddenItems.removeAll(getItems(tag, new ArrayList<>()));
         }
+
+        calculateVisibility();
     }
 
     public static void setHidden(SubsetTag tag, boolean hidden) {
-        try {
-            if (hiddenWriteLock.tryLock(5, TimeUnit.SECONDS)) {
-                try {
-                    List<ItemStack> tagItems = getItems(tag, new ArrayList<>());
+        synchronized (hiddenLock) {
+            final List<ItemStack> tagItems = getItems(tag, new ArrayList<>());
 
-                    if (hidden) {
-                        hiddenItems.addAll(tagItems);
-                    } else {
-                        hiddenItems.removeAll(tagItems);
-                    }
-
-                } finally {
-                    hiddenWriteLock.unlock();
-                }
+            if (hidden) {
+                hiddenItems.addAll(tagItems);
             } else {
-                NEIClientConfig.logger.error("Unable to obtain write lock in 'setHidden'");
+                hiddenItems.removeAll(tagItems);
             }
-
-            calculateVisibility();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
+
+        calculateVisibility();
     }
 
     public static void setHidden(ItemStack item, boolean hidden) {
-        try {
-            if (hiddenWriteLock.tryLock(5, TimeUnit.SECONDS)) {
-                try {
-
-                    if (hidden) {
-                        hiddenItems.add(item);
-                    } else {
-                        hiddenItems.remove(item);
-                    }
-
-                } finally {
-                    hiddenWriteLock.unlock();
-                }
+        synchronized (hiddenLock) {
+            if (hidden) {
+                hiddenItems.add(item);
             } else {
-                NEIClientConfig.logger.error("Unable to obtain write lock in 'setHidden'");
+                hiddenItems.remove(item);
             }
-
-            calculateVisibility();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
+        calculateVisibility();
     }
 
     public static void unhideAll() {
-        try {
-            if (hiddenWriteLock.tryLock(5, TimeUnit.SECONDS)) {
-                try {
-                    hiddenItems.clear();
-                } finally {
-                    hiddenWriteLock.unlock();
-                }
-            } else {
-                NEIClientConfig.logger.error("Unable to obtain write lock in 'unhideAll'");
-            }
-
-            calculateVisibility();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        synchronized (hiddenLock) {
+            hiddenItems.clear();
         }
+        calculateVisibility();
     }
 
     public static void updateHiddenItems() {
@@ -646,29 +595,20 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
             return;
         }
 
-        try {
-            if (hiddenWriteLock.tryLock(5, TimeUnit.SECONDS)) {
-                try {
-                    hiddenItems.clear();
-                    hiddenItems.addAll(itemList);
-                } finally {
-                    hiddenWriteLock.unlock();
-                }
-            } else {
-                NEIClientConfig.logger.error("Unable to obtain second write lock in 'loadHidden'");
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        synchronized (hiddenLock) {
+            hiddenItems.clear();
+            hiddenItems.addAll(itemList);
         }
-
     }
 
     public static void saveHidden() {
         if (NEIClientConfig.world == null) return;
 
         final NBTTagList list = new NBTTagList();
-        for (ItemStack stack : hiddenItems.values()) {
-            list.appendTag(stack.writeToNBT(new NBTTagCompound()));
+        synchronized (hiddenLock) {
+            for (ItemStack stack : hiddenItems.values()) {
+                list.appendTag(stack.writeToNBT(new NBTTagCompound()));
+            }
         }
 
         NEIClientConfig.world.nbt.setTag("hiddenItems", list);
@@ -686,14 +626,22 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
         public void execute() {
 
             try {
-                final List<SubsetTag> list = new ArrayList<>(tags.values());
+                final List<SubsetTag> list;
+
+                synchronized (tags) {
+                    list = new ArrayList<>(tags.values());
+                }
 
                 root.clearCache();
 
                 list.parallelStream().forEach(tag -> {
                     tag.clearCache();
-                    ItemList.items.stream().filter(tag.filter::matches)
-                            .collect(Collectors.toCollection(() -> tag.items));
+
+                    if (!(tag.filter instanceof NothingItemFilter)) {
+                        ItemList.items.stream().filter(tag.filter::matches)
+                                .collect(Collectors.toCollection(() -> tag.items));
+                    }
+
                 });
 
                 for (SubsetTag tag : list) {
@@ -729,6 +677,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
                 e.printStackTrace();
             }
 
+            SearchField.searchParser.clearCache();
         }
     }
 

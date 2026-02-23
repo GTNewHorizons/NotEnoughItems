@@ -37,6 +37,7 @@ public class NEIRecipeWidget extends Widget {
 
     protected AcceptsFollowingTooltipLineHandler acceptsFollowingTooltipLineHandler;
     protected final WeakHashMap<PositionedStack, List<ItemStack>> permutations = new WeakHashMap<>();
+    protected int favoriteRevision = -1;
     protected boolean update = true;
     protected int cycleticks = 0;
     protected int lastcycle = -1;
@@ -506,18 +507,26 @@ public class NEIRecipeWidget extends Widget {
 
     protected void updatePermutations() {
 
+        if (this.favoriteRevision != FavoriteRecipes.getRevision()) {
+            this.favoriteRevision = FavoriteRecipes.getRevision();
+            this.acceptsFollowingTooltipLineHandler = null;
+            this.permutations.clear();
+        }
+
         for (PositionedStack pStack : getInputs()) {
             if (pStack.items.length > 1) {
-                final List<ItemStack> permutations = this.permutations
-                        .computeIfAbsent(pStack, stack -> stack.getFilteredPermutations(FavoriteRecipes::contains));
+                final List<ItemStack> permutations = this.permutations.computeIfAbsent(
+                        pStack,
+                        stack -> stack.getFilteredPermutations(FavoriteRecipes::containsManual));
                 pStack.setPermutationToRender(permutations.get(this.lastcycle % permutations.size()));
             }
         }
 
         for (PositionedStack pStack : getCatalysts()) {
             if (pStack.items.length > 1) {
-                final List<ItemStack> permutations = this.permutations
-                        .computeIfAbsent(pStack, stack -> stack.getFilteredPermutations(FavoriteRecipes::contains));
+                final List<ItemStack> permutations = this.permutations.computeIfAbsent(
+                        pStack,
+                        stack -> stack.getFilteredPermutations(FavoriteRecipes::containsManual));
                 pStack.setPermutationToRender(permutations.get(this.lastcycle % permutations.size()));
             }
         }
