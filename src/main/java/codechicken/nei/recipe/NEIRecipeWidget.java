@@ -215,13 +215,13 @@ public class NEIRecipeWidget extends Widget {
 
         this.handlerRef.handler.drawForeground(this.handlerRef.recipeIndex);
 
-        final GuiRecipeButton overlayButton = getRecipeButtons().stream()
-                .filter(
-                        b -> this.showAsWidget ? b instanceof GuiOverlayButton
-                                : b.contains(mouseX - this.x, mouseY - this.y - yShift))
-                .findAny().orElse(null);
+        final GuiRecipeButton overlayButton = forEachButtons(
+                button -> (this.showAsWidget ? button instanceof GuiOverlayButton : button.contains(mouseX, mouseY))
+                        ? button
+                        : null,
+                (GuiRecipeButton) null);
 
-        if (overlayButton != null && overlayButton.enabled) {
+        if (overlayButton != null) {
             NEIClientUtils.gl2DRenderContext(() -> overlayButton.drawItemOverlay());
         }
 

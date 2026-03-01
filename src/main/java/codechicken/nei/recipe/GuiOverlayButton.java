@@ -3,7 +3,6 @@ package codechicken.nei.recipe;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
@@ -98,8 +97,9 @@ public class GuiOverlayButton extends GuiRecipeButton {
         this.firstGui = firstGui != null && firstGui.inventorySlots != null ? firstGui : null;
 
         this.canUseOverlayRenderer = this.firstGui != null && handlerRef.getRecipeOverlayRenderer(firstGui) != null;
-        this.canFillCraftingGrid = this.firstGui != null && handlerRef.getOverlayHandler(firstGui) != null;
-        this.hasOverlay = this.canUseOverlayRenderer || this.canFillCraftingGrid;
+        this.canFillCraftingGrid = this.firstGui != null && this.handlerRef.canFillCraftingGrid(this.firstGui);
+        this.hasOverlay = this.canUseOverlayRenderer
+                || this.firstGui != null && handlerRef.getOverlayHandler(firstGui) != null;
 
         setRequireShiftForOverlayRecipe(NEIClientConfig.requireShiftForOverlayRecipe());
         ingredientsOverlay();
@@ -107,16 +107,20 @@ public class GuiOverlayButton extends GuiRecipeButton {
 
     @Override
     public List<String> handleTooltip(List<String> currenttip) {
-        currenttip.add(NEIClientUtils.translate("recipe.overlay"));
 
-        if (!this.enabled && requireShiftForOverlayRecipe() && canFillCraftingGrid()) {
-            currenttip.set(currenttip.size() - 1, currenttip.get(currenttip.size() - 1) + GuiDraw.TOOLTIP_LINESPACE);
-            currenttip.add(
-                    EnumChatFormatting.RED + NEIClientUtils.translate("recipe.overlay.mismatch")
-                            + EnumChatFormatting.RESET);
-        } else if (this.missedMaterialsTooltipLineHandler != null) {
+        if (!this.enabled || this.missedMaterialsTooltipLineHandler != null && this.canFillCraftingGrid) {
+            currenttip.add(NEIClientUtils.translate("recipe.overlay") + GuiDraw.TOOLTIP_LINESPACE);
+        } else {
+            currenttip.add(NEIClientUtils.translate("recipe.overlay"));
+        }
 
-            if ((!requireShiftForOverlayRecipe() || NEIClientUtils.shiftKey()) && canFillCraftingGrid()) {
+        if (!this.enabled) {
+            currenttip.add(EnumChatFormatting.RED + NEIClientUtils.translate("recipe.overlay.mismatch"));
+        }
+
+        if (this.missedMaterialsTooltipLineHandler != null && this.canFillCraftingGrid) {
+
+            if (!requireShiftForOverlayRecipe() || NEIClientUtils.shiftKey()) {
                 this.missedMaterialsTooltipLineHandler.setLabelColor(EnumChatFormatting.RED);
             } else {
                 this.missedMaterialsTooltipLineHandler.setLabelColor(EnumChatFormatting.GRAY);
@@ -174,7 +178,7 @@ public class GuiOverlayButton extends GuiRecipeButton {
     protected void drawContent(Minecraft minecraft, int y, int x, boolean mouseOver) {
         DrawableResource icon = ICON_OVERLAY;
 
-        if (hasOverlay() && (!requireShiftForOverlayRecipe() || NEIClientUtils.shiftKey())) {
+        if (this.canFillCraftingGrid && (!requireShiftForOverlayRecipe() || NEIClientUtils.shiftKey())) {
             icon = this.missedMaterialsTooltipLineHandler == null ? ICON_FILL : ICON_FILL_ERROR;
         }
 
@@ -212,10 +216,12 @@ public class GuiOverlayButton extends GuiRecipeButton {
         if (this.itemPresenceCache.size() != ingredients.size()) {
             this.itemPresenceCache.clear();
 
-            if (canFillCraftingGrid()) {
+            if (this.firstGui != null) {
                 this.itemPresenceCache.addAll(this.handlerRef.getPresenceOverlay(this.firstGui));
-            } else if (this.firstGui != null) {
-                this.itemPresenceCache.addAll(presenceOverlay(ingredients));
+
+                if (this.itemPresenceCache.isEmpty()) {
+                    this.itemPresenceCache.addAll(presenceOverlay(ingredients));
+                }
             }
 
             final List<ItemStack> items = this.itemPresenceCache.stream().filter(state -> !state.isPresent())
@@ -230,6 +236,8 @@ public class GuiOverlayButton extends GuiRecipeButton {
             } else {
                 this.missedMaterialsTooltipLineHandler = null;
             }
+
+            updateEnabled();
         }
 
         return this.itemPresenceCache;
@@ -237,7 +245,12 @@ public class GuiOverlayButton extends GuiRecipeButton {
 
     public void setRequireShiftForOverlayRecipe(boolean require) {
         this.requireShiftForOverlayRecipe = require;
-        this.enabled = hasOverlay() && (this.requireShiftForOverlayRecipe || canFillCraftingGrid());
+        updateEnabled();
+    }
+
+    private void updateEnabled() {
+        this.enabled = hasOverlay() || this.canFillCraftingGrid
+                && (this.requireShiftForOverlayRecipe || this.missedMaterialsTooltipLineHandler == null);
     }
 
     public void setCanUseOverlayRenderer(boolean use) {
@@ -253,7 +266,7 @@ public class GuiOverlayButton extends GuiRecipeButton {
     }
 
     public boolean canFillCraftingGrid() {
-        return this.missedMaterialsTooltipLineHandler == null || this.handlerRef.canFillCraftingGrid(this.firstGui);
+        return this.canFillCraftingGrid && this.missedMaterialsTooltipLineHandler == null;
     }
 
     public boolean hasOverlay() {
@@ -265,7 +278,7 @@ public class GuiOverlayButton extends GuiRecipeButton {
     }
 
     protected List<ItemOverlayState> presenceOverlay(List<PositionedStack> ingredients) {
-        final List<ItemOverlayState> itemPresenceSlots = new ArrayList<>();
+        final List<ItemOverlayState> states = new ArrayList<>();
         final List<ItemStack> invStacks = this.firstGui.inventorySlots.inventorySlots.stream()
                 .filter(
                         s -> s != null && s.getStack() != null
@@ -275,28 +288,29 @@ public class GuiOverlayButton extends GuiRecipeButton {
                 .map(s -> s.getStack().copy()).collect(Collectors.toCollection(ArrayList::new));
 
         for (PositionedStack stack : ingredients) {
-            Optional<ItemStack> used = invStacks.stream().filter(is -> is.stackSize > 0 && stack.contains(is))
-                    .findAny();
+            boolean found = false;
 
-            itemPresenceSlots.add(new ItemOverlayState(stack, used.isPresent()));
-
-            if (used.isPresent()) {
-                ItemStack is = used.get();
-                is.stackSize -= 1;
+            for (ItemStack is : invStacks) {
+                if (is.stackSize > 0 && stack.contains(is)) {
+                    is.stackSize--;
+                    found = true;
+                    break;
+                }
             }
+
+            states.add(new ItemOverlayState(stack, found));
         }
 
-        return itemPresenceSlots;
+        return states;
     }
 
     public void overlayRecipe(boolean shift) {
-        if (!hasOverlay()) return;
 
         if (!requireShiftForOverlayRecipe() || shift) {
-            if (canFillCraftingGrid()) {
+            if (this.canFillCraftingGrid) {
                 this.handlerRef.fillCraftingGrid(this.firstGui, 0);
             }
-        } else if (useOverlayRenderer()) {
+        } else if (hasOverlay() && useOverlayRenderer()) {
             this.handlerRef.useOverlayRenderer(this.firstGui);
         }
 
