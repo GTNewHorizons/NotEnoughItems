@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -31,12 +32,14 @@ import codechicken.nei.api.IGuiContainerOverlay;
 import codechicken.nei.api.ShortcutInputHandler;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
+import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class NEIRecipeWidget extends Widget {
 
     protected AcceptsFollowingTooltipLineHandler acceptsFollowingTooltipLineHandler;
-    protected final WeakHashMap<PositionedStack, List<ItemStack>> permutations = new WeakHashMap<>();
+    protected final Map<PositionedStack, Integer> favoriteIndexes = new WeakHashMap<>();
+    protected final Map<PositionedStack, List<ItemStack>> permutations = new WeakHashMap<>();
     protected int favoriteRevision = -1;
     protected boolean update = true;
     protected int cycleticks = 0;
@@ -188,6 +191,11 @@ public class NEIRecipeWidget extends Widget {
         GuiContainerManager.enableMatrixStackLogging();
 
         for (PositionedStack pStack : getInputs()) {
+
+            if (!this.permutations.containsKey(pStack)) {
+                updatePermutationsFor(pStack);
+            }
+
             GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
 
             if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
@@ -196,6 +204,11 @@ public class NEIRecipeWidget extends Widget {
         }
 
         for (PositionedStack pStack : getCatalysts()) {
+
+            if (!this.permutations.containsKey(pStack)) {
+                updatePermutationsFor(pStack);
+            }
+
             GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
 
             if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
@@ -244,6 +257,38 @@ public class NEIRecipeWidget extends Widget {
 
     @Override
     public boolean handleKeyPress(int keyID, char keyChar) {
+
+        if (NEIClientConfig.favoritesEnabled() && NEIClientUtils.shiftKey()
+                && NEIClientConfig.isKeyHashDown("gui.favorite_item")) {
+            final Point mouse = GuiDraw.getMousePosition();
+            final int yShift = this.handlerInfo.getYShift();
+            PositionedStack pStackOver = null;
+
+            for (PositionedStack pStack : getInputs()) {
+                if (pStack.contains(mouse.x - this.x, mouse.y - this.y - yShift)) {
+                    pStackOver = pStack;
+                    break;
+                }
+            }
+
+            if (pStackOver != null) {
+
+                if (FavoriteRecipes.containsManual(pStackOver.item)) {
+                    FavoriteRecipes.setFavorite(pStackOver.item, null);
+                } else {
+                    FavoriteRecipes.setFavorite(
+                            pStackOver.item,
+                            RecipeId.of(
+                                    pStackOver.item,
+                                    FavoriteRecipes.FAVORITE_ITEM,
+                                    Arrays.asList(new ItemStack(Blocks.fire, 1), pStackOver.item)));
+                }
+
+                return true;
+            }
+
+        }
+
         return false;
     }
 
@@ -342,10 +387,11 @@ public class NEIRecipeWidget extends Widget {
 
             if (hovered == null || hovered.items.length <= 1) {
                 this.acceptsFollowingTooltipLineHandler = null;
-            } else if (this.acceptsFollowingTooltipLineHandler == null
-                    || this.acceptsFollowingTooltipLineHandler.tooltipGUID != hovered) {
+            } else if ((this.acceptsFollowingTooltipLineHandler == null
+                    || this.acceptsFollowingTooltipLineHandler.tooltipGUID != hovered)
+                    && this.permutations.getOrDefault(hovered, Collections.emptyList()).size() > 1) {
                         this.acceptsFollowingTooltipLineHandler = AcceptsFollowingTooltipLineHandler
-                                .of(hovered, hovered.getFilteredPermutations(), hovered.item);
+                                .of(hovered, this.permutations.get(hovered), hovered.item);
                     }
         } else if (this.acceptsFollowingTooltipLineHandler != null) {
             this.acceptsFollowingTooltipLineHandler = null;
@@ -360,6 +406,7 @@ public class NEIRecipeWidget extends Widget {
 
     @Override
     public Map<String, String> handleHotkeys(int mouseX, int mouseY, Map<String, String> hotkeys) {
+        final int yShift = this.handlerInfo.getYShift();
         final Map<String, String> buttonHotkeys = forEachButtons(
                 button -> button.contains(mouseX, mouseY) ? button.handleHotkeys(mouseX, mouseY, hotkeys) : null,
                 hotkeys);
@@ -370,6 +417,14 @@ public class NEIRecipeWidget extends Widget {
                             NEIClientUtils.SHIFT_HASH,
                             NEIMouseUtils.MOUSE_BTN_NONE + NEIMouseUtils.MOUSE_SCROLL),
                     NEIClientUtils.translate("recipe.accepts.scroll"));
+        }
+
+        if (getInputs().stream().anyMatch(
+                pStack -> this.permutations.getOrDefault(pStack, Collections.emptyList()).size() > 1
+                        && pStack.contains(mouseX - this.x, mouseY - this.y - yShift))) {
+            hotkeys.put(
+                    NEIClientConfig.getKeyName("gui.favorite_item", NEIClientUtils.SHIFT_HASH),
+                    NEIClientUtils.translate("recipe.favorite.toggle"));
         }
 
         return buttonHotkeys;
@@ -396,8 +451,8 @@ public class NEIRecipeWidget extends Widget {
         if (!NEIClientUtils.shiftKey()) return false;
         final PositionedStack overStack = getPositionedStackMouseOver(mx, my);
 
-        if (overStack != null && overStack.items.length > 1) {
-            final List<ItemStack> items = overStack.getFilteredPermutations();
+        if (overStack != null && this.permutations.getOrDefault(overStack, Collections.emptyList()).size() > 1) {
+            final List<ItemStack> items = this.permutations.get(overStack);
             final int stackIndex = indexOf(items, overStack.item);
             final ItemStack stack = items.get((items.size() - scroll + stackIndex) % items.size());
 
@@ -506,29 +561,21 @@ public class NEIRecipeWidget extends Widget {
     }
 
     protected void updatePermutations() {
+        final int rev = FavoriteRecipes.getRevision();
 
-        if (this.favoriteRevision != FavoriteRecipes.getRevision()) {
-            this.favoriteRevision = FavoriteRecipes.getRevision();
+        if (this.favoriteRevision != rev) {
+            this.favoriteRevision = rev;
             this.acceptsFollowingTooltipLineHandler = null;
+            this.favoriteIndexes.clear();
             this.permutations.clear();
         }
 
         for (PositionedStack pStack : getInputs()) {
-            if (pStack.items.length > 1) {
-                final List<ItemStack> permutations = this.permutations.computeIfAbsent(
-                        pStack,
-                        stack -> stack.getFilteredPermutations(FavoriteRecipes::containsManual));
-                pStack.setPermutationToRender(permutations.get(this.lastcycle % permutations.size()));
-            }
+            updatePermutationsFor(pStack);
         }
 
         for (PositionedStack pStack : getCatalysts()) {
-            if (pStack.items.length > 1) {
-                final List<ItemStack> permutations = this.permutations.computeIfAbsent(
-                        pStack,
-                        stack -> stack.getFilteredPermutations(FavoriteRecipes::containsManual));
-                pStack.setPermutationToRender(permutations.get(this.lastcycle % permutations.size()));
-            }
+            updatePermutationsFor(pStack);
         }
 
         if (this.acceptsFollowingTooltipLineHandler != null) {
@@ -536,6 +583,34 @@ public class NEIRecipeWidget extends Widget {
                     .setActiveStack(((PositionedStack) this.acceptsFollowingTooltipLineHandler.tooltipGUID).item);
         }
 
+    }
+
+    private void updatePermutationsFor(PositionedStack pStack) {
+        List<ItemStack> perms = this.permutations.get(pStack);
+        int favoriteIndex = this.favoriteIndexes.getOrDefault(pStack, -1);
+
+        if (perms == null) {
+            perms = pStack.getFilteredPermutations();
+            favoriteIndex = -1;
+
+            if (perms.size() > 1) {
+                for (ItemStack item : perms) {
+                    if (!FavoriteRecipes.containsManual(item)) break;
+                    favoriteIndex++;
+                }
+            }
+
+            this.permutations.put(pStack, perms);
+            this.favoriteIndexes.put(pStack, favoriteIndex);
+        }
+
+        if (perms.size() > 1) {
+            final int size = favoriteIndex != -1 ? favoriteIndex + 1 : perms.size();
+
+            if (size > 0) {
+                pStack.setPermutationToRender(perms.get(this.lastcycle % size));
+            }
+        }
     }
 
     protected List<PositionedStack> getInputs() {

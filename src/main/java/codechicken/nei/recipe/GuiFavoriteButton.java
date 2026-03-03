@@ -205,29 +205,47 @@ public class GuiFavoriteButton extends GuiRecipeButton {
 
                     if (stack == null) {
                         stack = ingr.getItemStack();
-                        RecipeId recipeId = FavoriteRecipes.getFavorite(stack);
+                        RecipeId recipeId = FavoriteRecipes.getManualFavorite(stack);
 
                         if (recipeId == null) {
                             for (ItemStack permStack : permutations) {
-                                if ((recipeId = FavoriteRecipes.getFavorite(permStack)) != null) {
+                                if ((recipeId = FavoriteRecipes.getManualFavorite(permStack)) != null) {
                                     stack = permStack;
                                     break;
                                 }
                             }
                         }
 
-                        Recipe recipe = Recipe.of(recipeId);
+                        if (recipeId == null) {
+                            recipeId = FavoriteRecipes.getGeneratedFavorite(stack);
+                        }
 
-                        if (recipe == null) {
-                            stack = null;
-                        } else {
-                            items.add(stack);
-
-                            if (depth >= 0) {
-                                result.add(recipe);
-                                localLoop.add(recipe);
+                        if (recipeId == null) {
+                            for (ItemStack permStack : permutations) {
+                                if ((recipeId = FavoriteRecipes.getGeneratedFavorite(permStack)) != null) {
+                                    stack = permStack;
+                                    break;
+                                }
                             }
                         }
+
+                        if (recipeId != null && FavoriteRecipes.FAVORITE_ITEM.contains(recipeId.getHandleName())) {
+                            items.add(stack);
+                        } else {
+                            Recipe recipe = Recipe.of(recipeId);
+
+                            if (recipe == null) {
+                                stack = null;
+                            } else {
+                                items.add(stack);
+
+                                if (depth >= 0) {
+                                    result.add(recipe);
+                                    localLoop.add(recipe);
+                                }
+                            }
+                        }
+
                     }
 
                     if (stack != null) {

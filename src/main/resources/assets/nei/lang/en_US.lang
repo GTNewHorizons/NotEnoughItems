@@ -202,6 +202,7 @@ nei.options.keys.gui.itemzoom_hold=Hold to Display Item Zoom
 nei.options.keys.gui.itemzoom_zoom_in=Item Zoom In
 nei.options.keys.gui.itemzoom_zoom_out=Item Zoom Out
 nei.options.keys.gui.favorite=Add Favorite
+nei.options.keys.gui.favorite_item=Toggle Favorite
 nei.options.keys.world=World
 nei.options.keys.world.chunkoverlay=Chunk Boundary Overlay
 nei.options.keys.world.moboverlay=Mob Spawn Overlay
@@ -574,6 +575,7 @@ nei.recipe.overlay.bookmarkRecipeAndCount=Save with Recipe & Count
 nei.recipe.favorite=Favorite
 nei.recipe.favorite.bookmark_recipe=Save Recipe Tree
 nei.recipe.favorite.change_result_index=Change Output
+nei.recipe.favorite.toggle=Toggle Favorite
 
 nei.recipe.information=Information
 

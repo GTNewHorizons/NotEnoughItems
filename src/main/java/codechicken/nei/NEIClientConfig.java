@@ -827,6 +827,7 @@ public class NEIClientConfig {
         API.addHashBind("gui.search", Keyboard.KEY_F);
         API.addKeyBind("gui.bookmark", Keyboard.KEY_A);
         API.addHashBind("gui.favorite", Keyboard.KEY_F + NEIClientUtils.SHIFT_HASH);
+        API.addKeyBind("gui.favorite_item", Keyboard.KEY_F);
         API.addHashBind("gui.remove_recipe", Keyboard.KEY_A + NEIClientUtils.SHIFT_HASH);
         API.addKeyBind("gui.bookmark_pull_items", Keyboard.KEY_V);
         API.addKeyBind("gui.overlay", Keyboard.KEY_S);
@@ -1009,7 +1010,6 @@ public class NEIClientConfig {
                     SubsetWidget.loadHidden();
                     CollapsibleItems.load();
                     ItemSorter.loadConfig();
-                    FavoriteRecipes.load();
 
                     // Set pluginNEIConfigLoaded here before posting the NEIConfigsLoadedEvent. This used to be the
                     // other way around, but apparently if your modpack includes 800 mods the event poster might not

@@ -52,6 +52,11 @@ public class RecipeHandlerRef {
         return null;
     }
 
+    public static void clearCache() {
+        recipeRefCache.clear();
+        transferAlghoritmCache.clear();
+    }
+
     private GuiContainer prepareGui(GuiContainer firstGui) {
 
         if (firstGui instanceof GuiRecipe gui) {
