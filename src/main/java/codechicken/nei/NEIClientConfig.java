@@ -797,7 +797,7 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.favorites.generateSingleRecipeFavorites")
                 .setComment("Automatically generate favorites for items with only one recipe").getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.favorites.generateSingleRecipeFavorites", true) {
+        API.addOption(new OptionToggleButton("inventory.favorites.generateSingleRecipeFavorites", false) {
 
             @Override
             public boolean onClick(int button) {

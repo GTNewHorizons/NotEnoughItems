@@ -278,7 +278,7 @@ public class FormattedTextField extends GuiTextField {
         }
 
         Tessellator tessellator = Tessellator.instance;
-        GL11.glColor4f(0.0F, 0.0F, 255.0F, 255.0F);
+        GL11.glColor4f(0.0F, 0.0F, 1.0F, 1.0F);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_COLOR_LOGIC_OP);
         GL11.glLogicOp(GL11.GL_OR_REVERSE);
