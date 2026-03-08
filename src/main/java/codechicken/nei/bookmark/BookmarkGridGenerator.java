@@ -228,7 +228,7 @@ public class BookmarkGridGenerator {
         index = Math.max(0, index);
 
         while (j++ < maxIndex) {
-            boolean isFirstColumn = (index % gridColumns) == 0;
+            final boolean isFirstColumn = (index % gridColumns) == 0;
 
             if (this.grid.isInvalidSlot(index % maxIndex)) {
                 index++;
@@ -239,7 +239,7 @@ public class BookmarkGridGenerator {
                 return index;
             } else if (isFirstColumn && (meta.recipeId == null || previousMeta == null
                     || previousMeta.groupId != meta.groupId
-                    || meta.type == BookmarkItemType.ITEM
+                    || meta.type != BookmarkItemType.INGREDIENT
                     || !meta.recipeId.equals(previousMeta.recipeId)
                     || index + 1 < maxIndex && this.grid.isInvalidSlot((index + 1) % maxIndex))) {
                         // In first column must be an item without recipe, a recipe result, or an ingredient
@@ -248,6 +248,7 @@ public class BookmarkGridGenerator {
                     } else
                 if (!isFirstColumn && meta.type != BookmarkItemType.ITEM
                         && previousMeta.type != BookmarkItemType.ITEM
+                        && meta.groupId == previousMeta.groupId
                         && meta.recipeId != null
                         && meta.recipeId.equals(previousMeta.recipeId)) {
                             return index;
