@@ -796,8 +796,8 @@ public class NEIClientConfig {
         API.addOption(new OptionToggleButton("inventory.favorites.showRecipeTooltipInGui", true));
 
         tag.getTag("inventory.favorites.generateSingleRecipeFavorites")
-                .setComment("Automatically generate favorites for items with only one recipe").getBooleanValue(true);
-        API.addOption(new OptionToggleButton("inventory.favorites.generateSingleRecipeFavorites", false) {
+                .setComment("Automatically generate favorites for items with only one recipe").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.favorites.generateSingleRecipeFavorites", true) {
 
             @Override
             public boolean onClick(int button) {
@@ -807,7 +807,7 @@ public class NEIClientConfig {
             }
         });
 
-        tag.getTag("inventory.favorites.depth").setComment("Bookmark creation depth").getIntValue(3);
+        tag.getTag("inventory.favorites.depth").setComment("Bookmark creation depth").getIntValue(9);
         API.addOption(new OptionIntegerField("inventory.favorites.depth", 0, 100));
     }
 
