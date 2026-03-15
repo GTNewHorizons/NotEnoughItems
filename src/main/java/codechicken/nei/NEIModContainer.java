@@ -80,6 +80,7 @@ public class NEIModContainer extends DummyModContainer {
     public List<ArtifactVersion> getDependencies() {
         List<ArtifactVersion> deps = new ArrayList<>();
         deps.add(VersionParser.parseVersionReference("CodeChickenCore@[" + codechicken.core.asm.Tags.VERSION + ",)"));
+        deps.add(VersionParser.parseVersionReference("gtnhlib@[0.9.6,)"));
         return deps;
     }
 
