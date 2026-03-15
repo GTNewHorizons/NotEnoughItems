@@ -122,8 +122,7 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
     }
 
     @Override
-    public Rectangle4i calculateBounds() {
-        final GuiContainer gui = NEIClientUtils.getGuiContainer();
+    public Rectangle4i calculateBounds(GuiContainer gui) {
         final int maxWidth = (gui.width - 176) / 2 - PADDING * 2;
         final int maxHeight = gui.height - PADDING * 2;
         final int freeSpace = (gui.width - gui.xSize) / 2 - PADDING * 2;

@@ -82,14 +82,14 @@ public abstract class PanelWidget<T extends ItemsGrid<? extends ItemsGridSlot, ?
 
     public abstract String getLabelText();
 
-    public abstract Rectangle4i calculateBounds();
+    public abstract Rectangle4i calculateBounds(GuiContainer gui);
 
     protected static int snapDownToMultiple(int value, int multiple) {
         return (value / multiple) * multiple;
     }
 
     public void resize(GuiContainer gui) {
-        final Rectangle4i bounds = calculateBounds();
+        final Rectangle4i bounds = calculateBounds(gui);
 
         x = bounds.x;
         y = bounds.y;
