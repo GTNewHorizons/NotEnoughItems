@@ -127,18 +127,18 @@ public class NEIRecipeWidget extends Widget {
                 final UpdateRecipeButtonsEvent.Post postEvent = new UpdateRecipeButtonsEvent.Post(
                         guiRecipe,
                         this,
-                        getDefatulButtons());
+                        getDefaultButtons());
                 MinecraftForge.EVENT_BUS.post(postEvent);
                 return postEvent.buttonList;
             }
 
         } else {
-            return getDefatulButtons();
+            return getDefaultButtons();
         }
 
     }
 
-    protected List<GuiRecipeButton> getDefatulButtons() {
+    protected List<GuiRecipeButton> getDefaultButtons() {
         GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
         final List<GuiRecipeButton> buttons = new ArrayList<>();
         final boolean showFavorites = NEIClientConfig.favoritesEnabled() && handlerInfo.getShowFavoritesButton();
@@ -169,7 +169,7 @@ public class NEIRecipeWidget extends Widget {
         if (this.update) {
             this.update = false;
 
-            if (!NEIClientUtils.shiftKey() && (this.cycleticks++) / 20 != this.lastcycle || this.lastcycle == -1) {
+            if (!NEIClientUtils.shiftKey() && ((this.cycleticks++) / 20) != this.lastcycle || this.lastcycle == -1) {
                 this.lastcycle = this.cycleticks / 20;
                 updatePermutations();
             }
@@ -381,15 +381,15 @@ public class NEIRecipeWidget extends Widget {
                 for (PositionedStack pStack : getCatalysts()) {
                     if (pStack.contains(mousex - this.x, mousey - this.y - yShift)) {
                         hovered = pStack;
+                        break;
                     }
                 }
             }
 
-            if (hovered == null || hovered.items.length <= 1) {
+            if (hovered == null || this.permutations.getOrDefault(hovered, Collections.emptyList()).size() <= 1) {
                 this.acceptsFollowingTooltipLineHandler = null;
-            } else if ((this.acceptsFollowingTooltipLineHandler == null
-                    || this.acceptsFollowingTooltipLineHandler.tooltipGUID != hovered)
-                    && this.permutations.getOrDefault(hovered, Collections.emptyList()).size() > 1) {
+            } else if (this.acceptsFollowingTooltipLineHandler == null
+                    || this.acceptsFollowingTooltipLineHandler.tooltipGUID != hovered) {
                         this.acceptsFollowingTooltipLineHandler = AcceptsFollowingTooltipLineHandler
                                 .of(hovered, this.permutations.get(hovered), hovered.item);
                     }
@@ -602,6 +602,7 @@ public class NEIRecipeWidget extends Widget {
 
             this.permutations.put(pStack, perms);
             this.favoriteIndexes.put(pStack, favoriteIndex);
+            pStack.setPermutationToRender(perms.get(0));
         }
 
         if (perms.size() > 1) {
