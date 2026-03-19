@@ -183,7 +183,7 @@ public class NEIServerUtils {
     public static boolean areStacksSameTypeWithNBT(ItemStack stack1, ItemStack stack2) {
         return stack1 != null && stack2 != null
                 && stack1.getItem() == stack2.getItem()
-                && (!stack2.getHasSubtypes() || stack2.getItemDamage() == stack1.getItemDamage())
+                && (stack2.isItemStackDamageable() || stack2.getItemDamage() == stack1.getItemDamage())
                 && NBTHelper.matchTag(stack1.getTagCompound(), stack2.getTagCompound());
     }
 
