@@ -588,6 +588,7 @@ public class NEIRecipeWidget extends Widget {
     private void updatePermutationsFor(PositionedStack pStack) {
         List<ItemStack> perms = this.permutations.get(pStack);
         int favoriteIndex = this.favoriteIndexes.getOrDefault(pStack, -1);
+        boolean needsUpdate = false;
 
         if (perms == null) {
             perms = pStack.getFilteredPermutations();
@@ -602,10 +603,10 @@ public class NEIRecipeWidget extends Widget {
 
             this.permutations.put(pStack, perms);
             this.favoriteIndexes.put(pStack, favoriteIndex);
-            pStack.setPermutationToRender(perms.get(0));
+            needsUpdate = true;
         }
 
-        if (perms.size() > 1) {
+        if (perms.size() > 1 || needsUpdate) {
             final int size = favoriteIndex != -1 ? favoriteIndex + 1 : perms.size();
 
             if (size > 0) {

@@ -98,10 +98,14 @@ public class DefaultOverlayHandler implements IOverlayHandler {
                 && presenceOverlay(firstGui, handler, recipeIndex).stream().allMatch(state -> state.isPresent());
     }
 
+    protected Slot getCraftingResultSlot(GuiContainer gui) {
+        return gui.inventorySlots.inventorySlots.stream().filter(slot -> slot instanceof SlotCrafting).findFirst()
+                .orElse(null);
+    }
+
     @Override
     public boolean craft(GuiContainer firstGui, IRecipeHandler handler, int recipeIndex, int multiplier) {
-        final Slot craftingSlot = firstGui.inventorySlots.inventorySlots.stream()
-                .filter(slot -> slot instanceof SlotCrafting).findFirst().orElse(null);
+        final Slot craftingSlot = getCraftingResultSlot(firstGui);
 
         if (craftingSlot == null) {
             return false;
@@ -145,7 +149,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
 
     /**
      * Gets the slots in the crafting matrix for the given GUI and recipe handler.
-     * 
+     *
      * @param gui
      * @param handler
      * @return
@@ -194,9 +198,10 @@ public class DefaultOverlayHandler implements IOverlayHandler {
     }
 
     private void moveIngredients(GuiContainer gui, List<IngredientDistribution> assignedIngredients, int multiplier) {
+        final Slot craftingSlot = getCraftingResultSlot(gui);
 
         for (Slot slot : gui.inventorySlots.inventorySlots) {
-            if (slot instanceof SlotCrafting || !slot.getHasStack()
+            if (slot == craftingSlot || !slot.getHasStack()
                     || !canMoveFrom(slot, gui)
                     || !slot.canTakeStack(gui.mc.thePlayer))
                 continue;
@@ -422,8 +427,8 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         return null;
     }
 
-    protected boolean canStack(ItemStack stack1, ItemStack stack2) {
-        if (stack1 == null || stack2 == null) return true;
-        return NEIClientUtils.areStacksSameTypeCraftingWithNBT(stack1, stack2);
+    protected boolean canStack(ItemStack dst, ItemStack src) {
+        if (dst == null || src == null) return true;
+        return NEIClientUtils.areStacksSameTypeCraftingWithNBT(dst, src);
     }
 }

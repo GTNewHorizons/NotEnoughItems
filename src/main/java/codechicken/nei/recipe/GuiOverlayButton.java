@@ -96,10 +96,11 @@ public class GuiOverlayButton extends GuiRecipeButton {
         super(handlerRef, x, y, handlerRef.recipeIndex + BUTTON_ID_SHIFT, "+");
         this.firstGui = firstGui != null && firstGui.inventorySlots != null ? firstGui : null;
 
-        this.canUseOverlayRenderer = this.firstGui != null && handlerRef.getRecipeOverlayRenderer(firstGui) != null;
-        this.canFillCraftingGrid = this.firstGui != null && this.handlerRef.canFillCraftingGrid(this.firstGui);
-        this.hasOverlay = this.canUseOverlayRenderer
-                || this.firstGui != null && handlerRef.getOverlayHandler(firstGui) != null;
+        if (this.firstGui != null) {
+            this.canUseOverlayRenderer = this.handlerRef.getRecipeOverlayRenderer(this.firstGui) != null;
+            this.canFillCraftingGrid = this.handlerRef.canFillCraftingGrid(this.firstGui);
+            this.hasOverlay = this.canUseOverlayRenderer || this.handlerRef.getOverlayHandler(this.firstGui) != null;
+        }
 
         setRequireShiftForOverlayRecipe(NEIClientConfig.requireShiftForOverlayRecipe());
         ingredientsOverlay();
