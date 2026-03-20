@@ -61,7 +61,6 @@ import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
-import codechicken.nei.recipe.RecipeInfo;
 import codechicken.nei.util.ItemUntranslator;
 import codechicken.nei.util.NEIKeyboardUtils;
 import codechicken.obfuscator.ObfuscationRun;
@@ -149,6 +148,7 @@ public class NEIClientConfig {
         API.addOption(new OptionToggleButton("inventory.widgetsenabled"));
 
         tag.getTag("findFuelsParallel").getBooleanValue(true);
+        tag.getTag("showRepairOnlyForDamageableItems").getBooleanValue(true);
 
         tag.getTag("inventory.autocrafting").getBooleanValue(true);
         tag.getTag("inventory.dynamicFontSize").getBooleanValue(true);
@@ -978,7 +978,6 @@ public class NEIClientConfig {
             // main NEI config loading
             ItemInfo.load();
             GuiInfo.load();
-            RecipeInfo.load();
             HeldItemHandler.load();
             LayoutManager.load();
             NEIController.load();

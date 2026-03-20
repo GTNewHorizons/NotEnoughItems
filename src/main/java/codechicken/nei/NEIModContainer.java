@@ -104,6 +104,7 @@ public class NEIModContainer extends DummyModContainer {
     public void init(FMLInitializationEvent event) {
         if (CommonUtils.isClient()) {
             ClientHandler.load();
+            IMCForNEI.IMCSender();
         }
         ServerHandler.load();
     }

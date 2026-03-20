@@ -32,6 +32,7 @@ import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.recipe.RecipeHandlerRef;
+import codechicken.nei.recipe.RepairRecipeHandler;
 import codechicken.nei.search.TooltipFilter;
 import codechicken.nei.util.ItemUntranslator;
 import cpw.mods.fml.common.FMLLog;
@@ -433,6 +434,7 @@ public class ItemList {
 
             loadFinished = true;
 
+            RepairRecipeHandler.findRepairRecipesOnceParallel();
             RecipeHandlerRef.clearCache();
             FavoriteRecipes.reload();
             SubsetWidget.updateHiddenItems();

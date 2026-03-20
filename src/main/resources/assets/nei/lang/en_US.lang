@@ -556,6 +556,7 @@ nei.recipe.firework=Fireworks
 nei.recipe.firework.tooltip0=Dyes add colours to the charges
 nei.recipe.firework.tooltip1=Recolouring adds fade colours to the charge
 nei.recipe.firework.tooltip2=Multiple charges can be spawned from one rocket
+nei.recipe.repair=Repair
 nei.recipe.brewing=Brewing
 nei.recipe.profiler.crafting=Crafting Profiling
 nei.recipe.profiler.usage=Usage Profiling
