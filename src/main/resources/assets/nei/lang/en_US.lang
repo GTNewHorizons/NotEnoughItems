@@ -525,6 +525,7 @@ nei.options.tools.dump.handlers.mode.0=CSV
 nei.options.tools.dump.handlers.mode.1=Json
 
 nei.debug.RecipeHandler.title=Debug Recipe Handler
+nei.debug.RecipeHandler.copy=Copy
 nei.debug.RecipeHandler.Name=Name
 nei.debug.RecipeHandler.Id=ID
 nei.debug.RecipeHandler.Key=Key
@@ -536,7 +537,14 @@ nei.debug.RecipeHandler.yShift=yShift
 nei.debug.RecipeHandler.MultiWidgets=Multi Widgets
 nei.debug.RecipeHandler.Height=Height
 nei.debug.RecipeHandler.Width=Width
+nei.debug.RecipeHandler.ShowFavorites=Show Favorites
+nei.debug.RecipeHandler.ShowOverlay=Show Overlays
 nei.debug.RecipeHandler.UseCustomScroll=Use Custom Scroll
+nei.debug.RecipeHandler.Override=Override
+nei.debug.RecipeHandler.checkbox.on=On
+nei.debug.RecipeHandler.checkbox.off=Off
+nei.debug.RecipeHandler.yes=Yes
+nei.debug.RecipeHandler.no=No
 
 nei.recipe.page=Page %s/%s
 nei.recipe.tooltip=Recipes

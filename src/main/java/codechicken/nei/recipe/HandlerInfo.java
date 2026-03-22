@@ -45,13 +45,13 @@ public class HandlerInfo {
 
     @Deprecated
     public void setHandlerDimensions(int height, int width, int maxRecipesPerPage) {
-        setHandlerDimensions(width, height, maxRecipesPerPage > 1);
+        setHandlerDimensions(width, height);
+        setMultipleWidgetsAllowed(maxRecipesPerPage > 1);
     }
 
-    public void setHandlerDimensions(int width, int height, boolean multipleWidgetsAllowed) {
+    public void setHandlerDimensions(int width, int height) {
         this.height = height;
         this.width = width;
-        this.multipleWidgetsAllowed = multipleWidgetsAllowed;
     }
 
     public boolean setItem(String itemId, String nbtString) {
@@ -100,6 +100,10 @@ public class HandlerInfo {
     @Deprecated
     public int getMaxRecipesPerPage() {
         return this.multipleWidgetsAllowed ? Integer.MAX_VALUE : 1;
+    }
+
+    public void setMultipleWidgetsAllowed(boolean multipleWidgetsAllowed) {
+        this.multipleWidgetsAllowed = multipleWidgetsAllowed;
     }
 
     public boolean isMultipleWidgetsAllowed() {

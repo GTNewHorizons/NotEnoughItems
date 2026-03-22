@@ -2,6 +2,7 @@ package codechicken.nei.scroll;
 
 import java.awt.Point;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -38,7 +39,7 @@ public class ScrollContainer extends WidgetContainer {
     protected int paddingBlockStart = 0;
     protected int paddingBlockEnd = 0;
 
-    protected final Map<Widget, Point> relativePostion = new HashMap<>();
+    protected final Map<Widget, Point> relativePosition = new HashMap<>();
     protected ScrollBar horizontalScrollBar;
     protected ScrollBar verticalScrollBar;
     protected int fade = 0;
@@ -80,23 +81,40 @@ public class ScrollContainer extends WidgetContainer {
 
     @Override
     public void clear() {
+
+        for (Map.Entry<Widget, Point> entry : this.relativePosition.entrySet()) {
+            entry.getKey().x = entry.getValue().x;
+            entry.getKey().y = entry.getValue().y;
+        }
+
         super.clear();
-        this.relativePostion.clear();
+        this.relativePosition.clear();
     }
 
     @Override
     public boolean removeIf(Predicate<Widget> filter) {
-        this.relativePostion.keySet().removeIf(filter);
+        final Iterator<Map.Entry<Widget, Point>> it = this.relativePosition.entrySet().iterator();
+
+        while (it.hasNext()) {
+            final Map.Entry<Widget, Point> entry = it.next();
+
+            if (filter.test(entry.getKey())) {
+                entry.getKey().x = entry.getValue().x;
+                entry.getKey().y = entry.getValue().y;
+                it.remove();
+            }
+        }
+
         return super.removeIf(filter);
     }
 
     public void addWidget(Widget widget) {
         super.addWidget(widget);
-        this.relativePostion.put(widget, new Point(widget.x, widget.y));
+        this.relativePosition.put(widget, new Point(widget.x, widget.y));
     }
 
     public Point getWidgetPosition(Widget widget) {
-        return this.relativePostion.get(widget);
+        return this.relativePosition.get(widget);
     }
 
     public void setPaddingInline(int start, int end) {
@@ -275,7 +293,7 @@ public class ScrollContainer extends WidgetContainer {
         this.actualHeight = 0;
         this.actualWidth = 0;
 
-        for (Map.Entry<Widget, Point> entry : this.relativePostion.entrySet()) {
+        for (Map.Entry<Widget, Point> entry : this.relativePosition.entrySet()) {
             entry.getKey().x = entry.getValue().x;
             entry.getKey().y = entry.getValue().y;
         }
@@ -385,6 +403,10 @@ public class ScrollContainer extends WidgetContainer {
     @Override
     public boolean handleKeyPress(int keyCode, char keyChar) {
 
+        if (super.handleKeyPress(keyCode, keyChar)) {
+            return true;
+        }
+
         if (this.isFocused()) {
             switch (keyCode) {
                 case Keyboard.KEY_UP:
@@ -402,7 +424,7 @@ public class ScrollContainer extends WidgetContainer {
             }
         }
 
-        return super.handleKeyPress(keyCode, keyChar);
+        return false;
     }
 
 }

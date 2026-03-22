@@ -93,7 +93,8 @@ public class IMCHandler {
             final boolean multipleWidgetsAllowed = tag.hasKey("multipleWidgetsAllowed")
                     ? tag.getBoolean("multipleWidgetsAllowed")
                     : tag.hasKey("maxRecipesPerPage") && tag.getInteger("maxRecipesPerPage") > 1;
-            info.setHandlerDimensions(handlerWidth, handlerHeight, multipleWidgetsAllowed);
+            info.setHandlerDimensions(handlerWidth, handlerHeight);
+            info.setMultipleWidgetsAllowed(multipleWidgetsAllowed);
         } catch (NumberFormatException ignored) {
             NEIClientConfig.logger.info("Error setting handler dimensions for {}", handler);
         }

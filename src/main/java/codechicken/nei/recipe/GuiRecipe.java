@@ -783,7 +783,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         return this.recipeCatalyst;
     }
 
-    protected void forceRefreshPage() {
+    public void forceRefreshPage() {
         this.currenthandlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
 
         final int currentPage = this.handlerPages.getCurrentPageIndex();

@@ -33,6 +33,7 @@ import codechicken.nei.Widget;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.event.NEIRegisterHandlerInfosEvent;
 import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.recipe.debug.DebugHandlerWidget;
 import cpw.mods.fml.common.Loader;
 
 public abstract class GuiRecipeTab extends Widget {
@@ -258,7 +259,8 @@ public abstract class GuiRecipeTab extends Widget {
                     final int handlerHeight = intOrDefault(record.get("handlerHeight"), HandlerInfo.DEFAULT_HEIGHT);
                     final int handlerWidth = intOrDefault(record.get("handlerWidth"), HandlerInfo.DEFAULT_WIDTH);
                     final boolean multipleWidgetsAllowed = intOrDefault(record.get("maxRecipesPerPage"), 1) > 1;
-                    info.setHandlerDimensions(handlerWidth, handlerHeight, multipleWidgetsAllowed);
+                    info.setHandlerDimensions(handlerWidth, handlerHeight);
+                    info.setMultipleWidgetsAllowed(multipleWidgetsAllowed);
                 } catch (NumberFormatException ignored) {
                     NEIClientConfig.logger.info("Error setting handler dimensions for " + handler);
                 }
@@ -292,11 +294,12 @@ public abstract class GuiRecipeTab extends Widget {
         }
         NEIClientConfig.logger.info("Sending {}", NEIRegisterHandlerInfosEvent.class.getSimpleName());
         MinecraftForge.EVENT_BUS.post(new NEIRegisterHandlerInfosEvent());
+        DebugHandlerWidget.instance.loadHandlerInfoPatch();
     }
 
     private static HandlerInfo getDefaultHandlerInfo() {
         final HandlerInfo info = new HandlerInfo("Unknown", "Unknown", "Unknown", false, "");
-        info.setHandlerDimensions(HandlerInfo.DEFAULT_WIDTH, HandlerInfo.DEFAULT_HEIGHT, false);
+        info.setHandlerDimensions(HandlerInfo.DEFAULT_WIDTH, HandlerInfo.DEFAULT_HEIGHT);
         return info;
     }
 

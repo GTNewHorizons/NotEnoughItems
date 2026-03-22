@@ -22,7 +22,6 @@ import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.FavoriteRecipes;
-import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
@@ -33,6 +32,7 @@ import codechicken.nei.api.ShortcutInputHandler;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.recipe.debug.DebugHandlerWidget;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class NEIRecipeWidget extends Widget {
@@ -252,7 +252,7 @@ public class NEIRecipeWidget extends Widget {
             }
         }
 
-        LayoutManager.recipeHandlerWidget.drawGuiPlaceholder(this);
+        DebugHandlerWidget.instance.drawGuiPlaceholder(this);
     }
 
     @Override

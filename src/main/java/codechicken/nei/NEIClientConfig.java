@@ -56,7 +56,6 @@ import codechicken.nei.config.OptionToggleButtonBoubs;
 import codechicken.nei.config.OptionUtilities;
 import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
-import codechicken.nei.recipe.DebugHandlerWidget;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.InformationHandler;
@@ -1017,8 +1016,6 @@ public class NEIClientConfig {
                     // API. I don't expect any handler to do this, but who knows what modders have come up with...
                     pluginNEIConfigLoaded = true;
                     MinecraftForge.EVENT_BUS.post(new NEIConfigsLoadedEvent());
-
-                    DebugHandlerWidget.loadHandlerInfoPatch();
                     ItemList.loadItems.restart();
                 }
             }.start();

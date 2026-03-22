@@ -256,6 +256,10 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
             return rect.hashCode();
         }
 
+        public Rectangle getRect() {
+            return rect;
+        }
+
         Rectangle rect;
         String outputId;
         Object[] results;
