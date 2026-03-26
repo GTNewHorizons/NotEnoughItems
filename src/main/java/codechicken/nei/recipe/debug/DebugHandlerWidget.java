@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -18,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.util.EnumChatFormatting;
 
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.input.Keyboard;
@@ -25,6 +25,7 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
+import codechicken.nei.Button;
 import codechicken.nei.ClientHandler;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -45,6 +46,7 @@ public class DebugHandlerWidget extends Widget {
 
     private static class HandlerInfoRecord {
 
+        public HandlerInfo info;
         public String handlerKey;
         public int yShift;
         public int width;
@@ -58,6 +60,7 @@ public class DebugHandlerWidget extends Widget {
         private String csvLine;
 
         public HandlerInfoRecord(String handlerKey, HandlerInfo info) {
+            this.info = info;
             this.handlerKey = handlerKey;
             this.yShift = info.getYShift();
             this.width = info.getWidth();
@@ -70,32 +73,56 @@ public class DebugHandlerWidget extends Widget {
             this.csvLine = toCsvLine();
         }
 
-        public void applyTo(HandlerInfo info) {
-            info.setYShift(this.yShift);
-            info.setHandlerDimensions(this.width, this.height);
-            info.setMultipleWidgetsAllowed(this.multiWidgets);
-            info.setUseCustomScroll(this.useCustomScroll);
-            info.setShowFavoritesButton(this.showFavorites);
-            info.setShowOverlayButton(this.showOverlay);
+        public void apply() {
+            this.info.setYShift(this.yShift);
+            this.info.setHandlerDimensions(this.width, this.height);
+            this.info.setMultipleWidgetsAllowed(this.multiWidgets);
+            this.info.setUseCustomScroll(this.useCustomScroll);
+            this.info.setShowFavoritesButton(this.showFavorites);
+            this.info.setShowOverlayButton(this.showOverlay);
             NEIClientConfig.handlerOrdering.put(this.handlerKey, this.order);
+        }
+
+        public void apply(String csvLine) {
+            final String[] parts = csvLine.split(",");
+
+            this.yShift = intOrDefault(parts[1], this.yShift);
+            this.height = intOrDefault(parts[2], this.height);
+            this.width = intOrDefault(parts[3], this.width);
+            this.multiWidgets = intOrDefault(parts[4], this.multiWidgets ? 1 : 0) == 1;
+            this.order = intOrDefault(parts[5], this.order);
+            this.useCustomScroll = intOrDefault(parts[6], this.useCustomScroll ? 1 : 0) == 1;
+            this.showFavorites = intOrDefault(parts[7], this.showFavorites ? 1 : 0) == 1;
+            this.showOverlay = intOrDefault(parts[8], this.showOverlay ? 1 : 0) == 1;
+
+            apply();
         }
 
         public String toCsvLine() {
             return String.join(
                     ",",
-                    handlerKey,
-                    String.valueOf(yShift),
-                    String.valueOf(height),
-                    String.valueOf(width),
-                    String.valueOf(multiWidgets ? 1 : 0),
-                    String.valueOf(order),
-                    String.valueOf(useCustomScroll ? 1 : 0),
-                    String.valueOf(showFavorites ? 1 : 0),
-                    String.valueOf(showOverlay ? 1 : 0));
+                    this.handlerKey,
+                    String.valueOf(this.yShift),
+                    String.valueOf(this.height),
+                    String.valueOf(this.width),
+                    String.valueOf(this.multiWidgets ? 1 : 0),
+                    String.valueOf(this.order),
+                    String.valueOf(this.useCustomScroll ? 1 : 0),
+                    String.valueOf(this.showFavorites ? 1 : 0),
+                    String.valueOf(this.showOverlay ? 1 : 0));
         }
 
         public boolean isUnmodified() {
             return this.csvLine.equals(this.toCsvLine());
+        }
+
+        private int intOrDefault(String str, int defaultValue) {
+            if (str == null || str.isEmpty()) return defaultValue;
+            try {
+                return Integer.parseInt(str);
+            } catch (NumberFormatException e) {
+                return defaultValue;
+            }
         }
     }
 
@@ -114,12 +141,11 @@ public class DebugHandlerWidget extends Widget {
     private final Map<String, IUpdatableWidget> values = new LinkedHashMap<>();
     private Map<String, HandlerInfoRecord> patches = new HashMap<>();
 
-    private IRecipeHandler handler;
-    private HandlerInfo handlerInfo;
     private HandlerInfoRecord record;
 
     private Point dragPoint = null;
     private boolean showWidget = false;
+    private Button resetButton;
 
     private final DrawableResource BG_TEXTURE = new DrawableBuilder(
             "nei:textures/gui/recipebg.png",
@@ -147,29 +173,19 @@ public class DebugHandlerWidget extends Widget {
         y = addInfoWidget("HHack", y);
         y = addInfoWidget("ModName", y);
         y = addInfoWidget("ModId", y);
-        y = addInfoWidget("Override", y);
+        y = addOverrideInfoWidget("Override", y);
 
         y = addTextFieldWidget("Order", 0, (field, oldText) -> {
-
-            if (field.getInteger() != record.order) {
-                record.order = field.getInteger();
-                saveHandlerInfoPatch();
-            }
-
+            record.order = field.getInteger();
+            saveHandlerInfoPatch();
         }, y);
 
         y = addTextFieldWidget("yShift", 0, (field, oldText) -> {
-
-            if (field.getInteger() != handlerInfo.getYShift()) {
-                handlerInfo.setYShift(field.getInteger());
-                record.yShift = field.getInteger();
-                saveHandlerInfoPatch();
-            }
-
+            record.yShift = field.getInteger();
+            saveHandlerInfoPatch();
         }, y);
 
         y = addCheckboxWidget("MultiWidgets", button -> {
-            handlerInfo.setMultipleWidgetsAllowed(button.value);
             record.multiWidgets = button.value;
             saveHandlerInfoPatch();
         }, y);
@@ -182,39 +198,26 @@ public class DebugHandlerWidget extends Widget {
         this.values.put("height_readonly", readonly);
 
         y = addTextFieldWidget("Height", HandlerInfo.DEFAULT_HEIGHT, (field, oldText) -> {
-
-            if (field.getInteger() != handlerInfo.getHeight()) {
-                handlerInfo.setHandlerDimensions(handlerInfo.getWidth(), field.getInteger());
-                record.height = field.getInteger();
-                saveHandlerInfoPatch();
-            }
-
+            record.height = field.getInteger();
+            saveHandlerInfoPatch();
         }, y);
 
         y = addTextFieldWidget("Width", HandlerInfo.DEFAULT_WIDTH, (field, oldText) -> {
-
-            if (field.getInteger() != handlerInfo.getWidth()) {
-                handlerInfo.setHandlerDimensions(field.getInteger(), handlerInfo.getHeight());
-                record.width = field.getInteger();
-                saveHandlerInfoPatch();
-            }
-
+            record.width = field.getInteger();
+            saveHandlerInfoPatch();
         }, y);
 
         y = addCheckboxWidget("UseCustomScroll", button -> {
-            handlerInfo.setUseCustomScroll(button.value);
             record.useCustomScroll = button.value;
             saveHandlerInfoPatch();
         }, y);
 
         y = addCheckboxWidget("ShowFavorites", button -> {
-            handlerInfo.setShowFavoritesButton(button.value);
             record.showFavorites = button.value;
             saveHandlerInfoPatch();
         }, y);
 
         y = addCheckboxWidget("ShowOverlay", button -> {
-            handlerInfo.setShowOverlayButton(button.value);
             record.showOverlay = button.value;
             saveHandlerInfoPatch();
         }, y);
@@ -278,10 +281,52 @@ public class DebugHandlerWidget extends Widget {
         return y + value.h + 1;
     }
 
+    private int addOverrideInfoWidget(String key, int y) {
+        final LabelWidget label = new LabelWidget(0x888888, false);
+        final LabelWidget value = new LabelWidget(0xffffff, true);
+        this.resetButton = new Button(NEIClientUtils.translate("debug.RecipeHandler.reset")) {
+
+            @Override
+            public boolean onButtonPress(boolean rightclick) {
+                if (record != null) {
+                    record.apply(record.csvLine);
+                    saveHandlerInfoPatch();
+                    record = null;// force update of button state
+                }
+                return true;
+            }
+
+            @Override
+            public void draw(int mousex, int mousey) {
+                this.state = record != null && record.isUnmodified() ? 2 : 0;
+                super.draw(mousex, mousey);
+            }
+        };
+
+        this.resetButton.w = 58;
+        this.resetButton.h = 16;
+        this.resetButton.y = label.y = value.y = y;
+        this.resetButton.x = this.w - INLINE_PADDING * 2 - this.resetButton.w - 1;
+
+        label.w = LABEL_WIDTH;
+        value.x = LABEL_WIDTH + 5;
+        value.w = this.resetButton.x - value.x - 2;
+
+        label.updateValue(NEIClientUtils.translate(TOOLTIP_PREFIX + key));
+
+        this.container.addWidget(label);
+        this.container.addWidget(value);
+        this.values.put(key.toLowerCase(), value);
+
+        this.container.addWidget(this.resetButton);
+
+        return y + value.h + 1;
+    }
+
     @Override
     public void draw(int mx, int my) {
 
-        if (this.handler != null) {
+        if (this.record != null) {
             GL11.glColor4f(1F, 1F, 1F, 1F);
             GL11.glScaled(1, 1, 2f);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -318,24 +363,22 @@ public class DebugHandlerWidget extends Widget {
 
         if (this.showWidget && gui instanceof GuiRecipe recipe) {
 
-            if (this.handler != recipe.getHandler()) {
-                this.handler = recipe.getHandler();
-                this.handlerInfo = GuiRecipeTab.getHandlerInfo(handler);
+            if (this.record == null || !this.record.handlerKey.equals(getHandlerID(recipe.getHandler()))) {
+                final IRecipeHandler handler = recipe.getHandler();
                 this.record = this.patches.computeIfAbsent(
                         getHandlerID(handler),
-                        handlerKey -> new HandlerInfoRecord(handlerKey, handlerInfo));
-
+                        handlerKey -> new HandlerInfoRecord(handlerKey, GuiRecipeTab.getHandlerInfo(handler)));
                 final boolean isHeightHackApplied = NEIClientConfig.heightHackHandlerRegex.stream()
-                        .map(pattern -> pattern.matcher(this.handler.getHandlerId())).anyMatch(Matcher::matches);
+                        .map(pattern -> pattern.matcher(handler.getHandlerId())).anyMatch(Matcher::matches);
 
-                this.values.get("name").updateValue(this.handler.getRecipeName());
-                this.values.get("id").updateValue(this.handler.getOverlayIdentifier());
-                this.values.get("key").updateValue(this.handler.getHandlerId());
+                this.values.get("name").updateValue(handler.getRecipeName());
+                this.values.get("id").updateValue(handler.getOverlayIdentifier());
+                this.values.get("key").updateValue(handler.getHandlerId());
                 this.values.get("hhack").updateValue(
                         isHeightHackApplied ? NEIClientUtils.translate("debug.RecipeHandler.yes")
                                 : NEIClientUtils.translate("debug.RecipeHandler.no"));
-                this.values.get("modname").updateValue(this.handlerInfo.getModName());
-                this.values.get("modid").updateValue(this.handlerInfo.getModId());
+                this.values.get("modname").updateValue(this.record.info.getModName());
+                this.values.get("modid").updateValue(this.record.info.getModId());
 
                 this.values.get("order").updateValue(String.valueOf(this.record.order));
                 this.values.get("yshift").updateValue(String.valueOf(this.record.yShift));
@@ -349,9 +392,7 @@ public class DebugHandlerWidget extends Widget {
                 this.values.get("showfavorites").updateValue(String.valueOf(this.record.showFavorites));
                 this.values.get("showoverlay").updateValue(String.valueOf(this.record.showOverlay));
 
-                this.values.get("override").updateValue(
-                        this.record.isUnmodified() ? NEIClientUtils.translate("debug.RecipeHandler.no")
-                                : NEIClientUtils.translate("debug.RecipeHandler.yes"));
+                updateOverride();
 
                 this.container.removeIf(
                         widget -> this.values.get("height") == widget || this.values.get("height_readonly") == widget);
@@ -364,9 +405,7 @@ public class DebugHandlerWidget extends Widget {
             }
 
         } else {
-            this.handler = null;
             this.record = null;
-            this.handlerInfo = null;
             this.showWidget = false;
         }
 
@@ -375,12 +414,12 @@ public class DebugHandlerWidget extends Widget {
 
     @Override
     public List<String> handleTooltip(int mx, int my, List<String> tooltip) {
-        return this.handler != null ? this.container.handleTooltip(mx, my, tooltip) : tooltip;
+        return this.record != null ? this.container.handleTooltip(mx, my, tooltip) : tooltip;
     }
 
     @Override
     public Map<String, String> handleHotkeys(int mousex, int mousey, Map<String, String> hotkeys) {
-        return this.handler != null ? this.container.handleHotkeys(mousex, mousey, hotkeys) : hotkeys;
+        return this.record != null ? this.container.handleHotkeys(mousex, mousey, hotkeys) : hotkeys;
     }
 
     @Override
@@ -390,7 +429,7 @@ public class DebugHandlerWidget extends Widget {
                 && NEIClientUtils.shiftKey()) {
             this.showWidget = !this.showWidget;
             return true;
-        } else if (this.handler != null) {
+        } else if (this.record != null) {
 
             if (this.container.handleKeyPress(keyID, keyChar)) {
                 return true;
@@ -406,7 +445,7 @@ public class DebugHandlerWidget extends Widget {
 
     @Override
     public void onGuiClick(int mx, int my) {
-        if (this.handler != null) {
+        if (this.record != null) {
             this.container.onGuiClick(mx, my);
         }
     }
@@ -414,7 +453,7 @@ public class DebugHandlerWidget extends Widget {
     @Override
     public boolean handleClick(int mx, int my, int button) {
 
-        if (this.handler != null) {
+        if (this.record != null) {
 
             if (new Rectangle4i(this.x + INLINE_PADDING, this.y + BORDER_PADDING, this.w - INLINE_PADDING * 2, 12)
                     .contains(mx, my)) {
@@ -424,19 +463,19 @@ public class DebugHandlerWidget extends Widget {
             this.container.handleClick(mx, my, button);
         }
 
-        return this.handler != null;
+        return this.record != null;
     }
 
     @Override
     public boolean contains(int px, int py) {
-        return this.handler != null && super.contains(px, py);
+        return this.record != null && super.contains(px, py);
     }
 
     @Override
     public void mouseUp(int mx, int my, int button) {
         this.dragPoint = null;
 
-        if (this.handler != null) {
+        if (this.record != null) {
             this.container.mouseUp(mx, my, button);
         }
     }
@@ -444,7 +483,7 @@ public class DebugHandlerWidget extends Widget {
     @Override
     public boolean onMouseWheel(int scrolled, int mousex, int mousey) {
 
-        if (this.handler != null && contains(mousex, mousey)) {
+        if (this.record != null && contains(mousex, mousey)) {
             this.container.onMouseWheel(scrolled, mousex, mousey);
             return true;
         }
@@ -454,7 +493,7 @@ public class DebugHandlerWidget extends Widget {
 
     @Override
     public boolean handleClickExt(int mx, int my, int button) {
-        return this.handler != null && this.container.handleClickExt(mx, my, button);
+        return this.record != null && this.container.handleClickExt(mx, my, button);
     }
 
     @Override
@@ -542,24 +581,14 @@ public class DebugHandlerWidget extends Widget {
 
             for (String line : lines.collect(Collectors.toCollection(HashSet::new))) {
                 if (HEADER.equals(line)) continue;
-                final String[] parts = Arrays.copyOf((line + ",null,null,null,null,null,null,null,null").split(","), 9);
-                final String handler = parts[0];
+                final String[] parts = (line).split(",");
+                final String handlerKey = parts[0];
 
-                if (GuiRecipeTab.handlerMap.containsKey(handler)) {
-                    final HandlerInfo info = GuiRecipeTab.handlerMap.get(handler);
-                    final HandlerInfoRecord record = patches
-                            .computeIfAbsent(handler, handlerKey -> new HandlerInfoRecord(handler, info));
-
-                    record.yShift = intOrDefault(parts[1], info.getYShift());
-                    record.height = intOrDefault(parts[2], info.getHeight());
-                    record.width = intOrDefault(parts[3], info.getWidth());
-                    record.multiWidgets = intOrDefault(parts[4], info.isMultipleWidgetsAllowed() ? 1 : 0) == 1;
-                    record.order = intOrDefault(parts[5], NEIClientConfig.handlerOrdering.getOrDefault(handler, 0));
-                    record.useCustomScroll = intOrDefault(parts[6], info.getUseCustomScroll() ? 1 : 0) == 1;
-                    record.showFavorites = intOrDefault(parts[7], info.getShowFavoritesButton() ? 1 : 0) == 1;
-                    record.showOverlay = intOrDefault(parts[8], info.getShowOverlayButton() ? 1 : 0) == 1;
-
-                    record.applyTo(info);
+                if (GuiRecipeTab.handlerMap.containsKey(handlerKey)) {
+                    final HandlerInfoRecord record = patches.computeIfAbsent(
+                            handlerKey,
+                            key -> new HandlerInfoRecord(key, GuiRecipeTab.handlerMap.get(key)));
+                    record.apply((line + ",null,null,null,null,null,null,null,null"));
                 }
 
             }
@@ -585,9 +614,8 @@ public class DebugHandlerWidget extends Widget {
         } catch (IOException e) {}
 
         if (this.record != null) {
-            this.values.get("override").updateValue(
-                    this.record.isUnmodified() ? NEIClientUtils.translate("debug.RecipeHandler.no")
-                            : NEIClientUtils.translate("debug.RecipeHandler.yes"));
+            updateOverride();
+            record.apply();
         }
 
         if (NEIClientUtils.getGuiContainer() instanceof GuiRecipe<?>recipe) {
@@ -595,12 +623,15 @@ public class DebugHandlerWidget extends Widget {
         }
     }
 
-    private int intOrDefault(String str, int defaultValue) {
-        if (str == null || str.isEmpty()) return defaultValue;
-        try {
-            return Integer.parseInt(str);
-        } catch (NumberFormatException e) {
-            return defaultValue;
+    private void updateOverride() {
+        this.container.removeIf(widget -> widget == this.resetButton);
+
+        if (this.record.isUnmodified()) {
+            this.values.get("override").updateValue(NEIClientUtils.translate("debug.RecipeHandler.no"));
+        } else {
+            this.values.get("override")
+                    .updateValue(EnumChatFormatting.RED + NEIClientUtils.translate("debug.RecipeHandler.yes"));
+            this.container.addWidget(this.resetButton);
         }
     }
 

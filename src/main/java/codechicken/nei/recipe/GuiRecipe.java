@@ -784,9 +784,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     public void forceRefreshPage() {
-        this.currenthandlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
-
         final int currentPage = this.handlerPages.getCurrentPageIndex();
+        this.currenthandlers.sort(NEIClientConfig.HANDLER_COMPARATOR);
+        this.recipetype = this.currenthandlers.indexOf(this.handler.original);
+
         setRecipePage(this.recipetype);
         this.handlerPages.changePage(currentPage);
 

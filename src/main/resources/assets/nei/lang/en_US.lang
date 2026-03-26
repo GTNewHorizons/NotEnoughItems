@@ -545,6 +545,7 @@ nei.debug.RecipeHandler.checkbox.on=On
 nei.debug.RecipeHandler.checkbox.off=Off
 nei.debug.RecipeHandler.yes=Yes
 nei.debug.RecipeHandler.no=No
+nei.debug.RecipeHandler.reset=Reset
 
 nei.recipe.page=Page %s/%s
 nei.recipe.tooltip=Recipes
