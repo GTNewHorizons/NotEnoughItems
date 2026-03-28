@@ -62,14 +62,15 @@ public class RecipeChainDetails {
         }
 
         public static BookmarkChainItem of(BookmarkItem item, long shiftItem, CalculatedType calculatedType) {
-            return new BookmarkChainItem(item, shiftItem, item.amount, calculatedType);
+            return new BookmarkChainItem(item, shiftItem, item.getAmount(), calculatedType);
         }
 
         public static BookmarkChainItem of(BookmarkItem item) {
+            final long amount = item.getAmount();
             return new BookmarkChainItem(
                     item,
-                    item.amount,
-                    item.amount,
+                    amount,
+                    amount,
                     item.type == BookmarkItemType.INGREDIENT ? CalculatedType.INGREDIENT : CalculatedType.RESULT);
         }
 
@@ -100,7 +101,7 @@ public class RecipeChainDetails {
         public void append(long amount, long calculatedAmount) {
             this.shiftAmount += amount;
             this.calculatedAmount += calculatedAmount;
-            this.item.amount = this.calculatedAmount;
+            this.item.multiplier = this.item.getMultiplierFromAmount(this.calculatedAmount);
         }
     }
 
@@ -181,9 +182,9 @@ public class RecipeChainDetails {
                 final BookmarkItem item = entry.getValue();
                 if (this.recipeInMiddle.contains(item.recipeId)) {
                     this.calculatedItems.get(itemIndex)
-                            .setRealAmount(Math.max(0, item.factor * (item.getMultiplier() - 1)));
+                            .setRealAmount(Math.max(0, item.getAmount(item.getMultiplier() - 1)));
                 } else {
-                    this.calculatedItems.get(itemIndex).setRealAmount(item.amount);
+                    this.calculatedItems.get(itemIndex).setRealAmount(item.getAmount());
                 }
             }
         }
@@ -239,7 +240,7 @@ public class RecipeChainDetails {
 
         for (BookmarkItem item : chainItems) {
             if (recipeRelations.contains(item.recipeId)) {
-                subChainItems.add(item.copyWithAmount(recipeId.equals(item.recipeId) ? item.amount : 0));
+                subChainItems.add(item.copyWithMultiplier(recipeId.equals(item.recipeId) ? item.multiplier : 0));
             }
         }
 
@@ -272,14 +273,14 @@ public class RecipeChainDetails {
         for (RecipeId relRecipeId : recipeRelations) {
             for (BookmarkItem item : math.recipeResults) {
                 if (item.recipeId.equals(relRecipeId)) {
-                    final long amount = item.amount - math.requiredAmount.getOrDefault(item, 0L);
+                    final long amount = item.getAmount() - math.requiredAmount.getOrDefault(item, 0L);
 
                     if (item.recipeId.equals(recipeId)) {
                         multiplier.put(item.recipeId, item.getMultiplier());
                         items.computeIfAbsent(
                                 StackInfo.getItemStackGUID(item.itemStack),
                                 is -> BookmarkChainItem.of(item, 0, 0, CalculatedType.RESULT))
-                                .append(amount, item.amount);
+                                .append(amount, item.getAmount());
                     } else if (amount > 0) {
                         items.computeIfAbsent(
                                 StackInfo.getItemStackGUID(item.itemStack),
@@ -292,17 +293,17 @@ public class RecipeChainDetails {
                 if (item.recipeId.equals(relRecipeId)) {
                     final BookmarkItem prefItem = math.preferredItems.get(item);
                     final long amount = math.requiredAmount.containsKey(prefItem) ? 0
-                            : math.requiredAmount.getOrDefault(item, item.amount);
+                            : math.requiredAmount.getOrDefault(item, item.getAmount());
                     final long refAmount = prefItem != null && !topLevelRecipes.contains(prefItem.recipeId)
                             ? math.requiredAmount.getOrDefault(prefItem, 0L)
                             : 0;
 
-                    if (amount != 0 || item.amount > refAmount && math.requiredAmount.containsKey(prefItem)
+                    if (amount != 0 || item.getAmount() > refAmount && math.requiredAmount.containsKey(prefItem)
                             || recipeId.equals(item.recipeId) && multiplier.get(recipeId) == 0) {
                         items.computeIfAbsent(
                                 StackInfo.getItemStackGUID(item.itemStack),
                                 is -> BookmarkChainItem.of(item, 0, 0, CalculatedType.INGREDIENT))
-                                .append(amount, item.amount - refAmount);
+                                .append(amount, item.getAmount() - refAmount);
                     }
                 }
             }
@@ -312,7 +313,7 @@ public class RecipeChainDetails {
     }
 
     private void generateResult(RecipeChainMath math, BookmarkItem item, int itemIndex) {
-        final long amount = item.amount - math.requiredAmount.getOrDefault(item, 0L);
+        final long amount = item.getAmount() - math.requiredAmount.getOrDefault(item, 0L);
         final CalculatedType calculatedType = math.outputRecipes.containsKey(item.recipeId) ? CalculatedType.RESULT
                 : CalculatedType.REMAINDER;
 
@@ -322,7 +323,7 @@ public class RecipeChainDetails {
     private void generateIngredient(RecipeChainMath math, BookmarkItem item, int itemIndex) {
         final BookmarkItem prefItem = math.preferredItems.get(item);
         final long amount = math.requiredAmount.containsKey(prefItem) ? 0
-                : math.requiredAmount.getOrDefault(item, item.amount);
+                : math.requiredAmount.getOrDefault(item, item.getAmount());
 
         this.calculatedItems.put(itemIndex, BookmarkChainItem.of(item, amount, CalculatedType.INGREDIENT));
     }

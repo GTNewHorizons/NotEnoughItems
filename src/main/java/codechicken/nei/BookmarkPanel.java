@@ -19,6 +19,7 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
 
 import org.apache.commons.io.IOUtils;
 
@@ -184,27 +185,33 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         if (itemStack != null && this.grid.indexOf(groupId, itemStack, recipeId, false) == -1) {
             final boolean existsRecipe = recipeId != null
                     && this.grid.existsRecipe(recipeId, BookmarkGrid.DEFAULT_GROUP_ID);
-            final NBTTagCompound nbTag = StackInfo.itemStackToNBT(itemStack);
-            long count = nbTag.getInteger("Count");
-            long factor = existsRecipe ? Math.max(count, 1) : 1;
+            final Recipe recipe = Recipe.of(recipeId);
+            final BookmarkItem.Builder builder;
+
+            if (recipe != null) {
+                builder = BookmarkItem.builder(groupId, itemStack, recipe, BookmarkItemType.RESULT);
+            } else {
+                builder = BookmarkItem.builder(groupId, itemStack).recipeId(recipeId)
+                        .factor(StackInfo.getAmount(itemStack));
+            }
+
+            builder.multiplier(1);
 
             if (existsRecipe) {
+                builder.type(BookmarkItemType.RESULT);
+
                 for (int i = 0; i < this.grid.size(); i++) {
                     if (this.grid.getBookmarkItem(i).equalsRecipe(recipeId, groupId)) {
-                        count *= this.grid.getBookmarkItem(i).getMultiplier();
+                        builder.multiplier(this.grid.getBookmarkItem(i).getMultiplier());
                         break;
                     }
                 }
+
+            } else {
+                builder.type(BookmarkItemType.ITEM);
             }
 
-            this.grid.addItem(
-                    BookmarkItem.of(
-                            groupId,
-                            StackInfo.withAmount(itemStack, count),
-                            factor,
-                            recipeId,
-                            existsRecipe ? BookmarkItemType.RESULT : BookmarkItemType.ITEM),
-                    true);
+            this.grid.addItem(builder.build(), true);
             return true;
         }
 
@@ -212,9 +219,11 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     }
 
     public boolean addRecipe(Recipe recipe, int multiplier, int groupId) {
+        if (recipe == null) return false;
+
         final RecipeId recipeId = recipe.getRecipeId();
 
-        if (recipe != null && this.grid.getGroup(groupId) != null && !this.grid.existsRecipe(recipeId, groupId)) {
+        if (this.grid.getGroup(groupId) != null && !this.grid.existsRecipe(recipeId, groupId)) {
             this.grid.addRecipe(recipe, multiplier, groupId);
             return true;
         }
@@ -245,15 +254,22 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                 ItemStack stack = recipeId.getResult();
 
                 if (stack != null && uniqueRecipe.add(recipeId)) {
-                    this.grid.addItem(
-                            BookmarkItem
-                                    .of(groupId, stack, StackInfo.getAmount(stack), recipeId, BookmarkItemType.ITEM),
-                            true);
+                    final Recipe recipe = Recipe.of(recipeId);
+                    final BookmarkItem.Builder builder;
+
+                    if (recipe != null) {
+                        builder = BookmarkItem.builder(groupId, stack, recipe, BookmarkItemType.RESULT);
+                    } else {
+                        builder = BookmarkItem.builder(groupId, stack).recipeId(recipeId)
+                                .factor(StackInfo.getAmount(stack));
+                    }
+
+                    this.grid.addItem(builder.multiplier(1).type(BookmarkItemType.ITEM).build(), true);
                     uniqueStack.add(stack);
                 }
 
             } else {
-                ItemStack stack = extractItem(item);
+                final ItemStack stack = extractItem(item);
 
                 if (stack != null && !uniqueStack.contains(stack)) {
                     this.grid.addItem(BookmarkItem.of(groupId, stack), true);
@@ -925,6 +941,15 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
         if (slot != null) {
 
+            if (slot.getBookmarkItem().chance != PositionedStack.CHANCE_FULL) {
+                currenttip.add(
+                        1,
+                        EnumChatFormatting.DARK_GRAY + NEIClientUtils.translate(
+                                "recipe.chance",
+                                NEIClientUtils.formatNumber(
+                                        slot.getBookmarkItem().chance * 100f / PositionedStack.CHANCE_FULL)));
+            }
+
             if (slot.getType() == BookmarkItemType.INGREDIENT && slot.getRecipeId() != null
                     && slot.getBookmarkItem().permutations.size() > 1) {
                 RecipeId recipeId = slot.getRecipeId();
@@ -1119,7 +1144,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
             for (BookmarkItem item : math.initialItems) {
                 final long invStackSize = inventory.getOrDefault(item.itemStack, 0L);
-                final long amount = item.amount - invStackSize * item.fluidCellAmount;
+                final long amount = item.getAmount() - invStackSize * item.fluidCellAmount;
                 if (amount > 0) {
                     pullItemStacks.add(item.getItemStack(amount));
                 }
@@ -1133,7 +1158,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             for (BookmarkItem item : math.initialItems) {
                 final long invStackSize = inventory.getOrDefault(item.itemStack, 0L);
                 final long strStackSize = containerStorage.getOrDefault(item.itemStack, 0L);
-                final long amount = item.amount - invStackSize * item.fluidCellAmount
+                final long amount = item.getAmount() - invStackSize * item.fluidCellAmount
                         - strStackSize * item.fluidCellAmount;
 
                 if (amount > 0) {

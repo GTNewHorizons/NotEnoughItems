@@ -49,9 +49,9 @@ public class RecipeChainIterator implements Iterator<Map<RecipeId, Long>> {
         final Set<RecipeId> skipRecipes = new HashSet<>();
         final Map<RecipeId, Long> rootRecipes = new HashMap<>();
         final HashMap<BookmarkItem, BookmarkItem> preferredItems = new HashMap<>(this.math.preferredItems);
-        preferredItems.values()
-                .removeIf(item -> item == null || item.amount == 0 || this.precessedRecipes.contains(item.recipeId));
-        preferredItems.keySet().removeIf(item -> item.amount == 0);
+        preferredItems.values().removeIf(
+                item -> item == null || item.getAmount() == 0 || this.precessedRecipes.contains(item.recipeId));
+        preferredItems.keySet().removeIf(item -> item.getAmount() == 0);
 
         for (Map.Entry<BookmarkItem, BookmarkItem> entry : preferredItems.entrySet()) {
             final BookmarkItem keyItem = entry.getKey();

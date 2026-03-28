@@ -14,6 +14,7 @@ import codechicken.nei.ItemsGrid.MouseContext;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIClientUtils.Alignment;
+import codechicken.nei.PositionedStack;
 import codechicken.nei.bookmark.BookmarkGrid.BookmarkMouseContext;
 import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.RecipeChainDetails.CalculatedType;
@@ -83,8 +84,8 @@ public class BookmarksGridSlot extends ItemsGridSlot {
         this.isOutputRecipe = group.crafting != null && group.crafting.outputRecipes.contains(bookmarkItem.recipeId);
         this.isFluidDisplay = StackInfo.itemStackToNBT(bookmarkItem.itemStack).hasKey("gtFluidName");
 
-        this.realMultiplier = bookmarkItem.getMultiplier(realAmount);
-        this.calculatedMultiplier = bookmarkItem.getMultiplier(calculatedAmount);
+        this.realMultiplier = bookmarkItem.getMultiplierFromAmount(realAmount);
+        this.calculatedMultiplier = bookmarkItem.getMultiplierFromAmount(calculatedAmount);
 
         if (this.group.crafting != null && this.group.crafting.calculatedItems.containsKey(this.itemIndex)) {
             this.realType = this.group.crafting.calculatedItems.get(this.itemIndex).calculatedType
@@ -355,9 +356,10 @@ public class BookmarksGridSlot extends ItemsGridSlot {
             amount = this.shiftAmount;
         }
 
-        if (amount > 0 || shownItemType == ShownItemType.REAL && this.bookmarkItem.factor > 0) {
+        if (amount > 0 || shownItemType == ShownItemType.REAL && !this.bookmarkItem.emptyFactor()) {
             final float panelFactor = (rect.w - 2) / (DEFAULT_SLOT_SIZE - 2);
             final long stackSize = this.bookmarkItem.getStackSize(amount);
+            int color = 0xFFFFFF;
             String amountString = "";
 
             if (stackSize < 10_000) {
@@ -370,11 +372,16 @@ public class BookmarksGridSlot extends ItemsGridSlot {
                 amountString += "L";
             }
 
+            if (this.bookmarkItem.chance != PositionedStack.CHANCE_FULL) {
+                amountString = "~" + amountString;
+                color = 0xFFAA00;
+            }
+
             NEIClientUtils.drawNEIOverlayText(
                     amountString,
                     new Rectangle4i(rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2),
                     panelFactor,
-                    0xFFFFFF,
+                    color,
                     true,
                     this.isFluidDisplay ? Alignment.BottomLeft : Alignment.BottomRight);
         }

@@ -25,6 +25,7 @@ import com.google.gson.JsonSyntaxException;
 
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.NEIClientConfig;
+import codechicken.nei.PositionedStack;
 import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.StackInfo;
@@ -249,30 +250,36 @@ public class BookmarkStorage {
         ItemStack itemStack = StackInfo.loadFromNBT(itemStackNBT);
 
         if (itemStack != null) {
-            RecipeId recipeId = null;
-            boolean isFluid = itemStackNBT.hasKey("gtFluidName");
-            int groupId = jsonObject.has("groupId") ? jsonObject.get("groupId").getAsInt()
+            int groupId = jsonObject.has("groupId") && grid.groups.containsKey(jsonObject.get("groupId").getAsInt())
+                    ? jsonObject.get("groupId").getAsInt()
                     : BookmarkGrid.DEFAULT_GROUP_ID;
-            int factor = jsonObject.has("factor") ? Math.abs(jsonObject.get("factor").getAsInt()) : (isFluid ? 144 : 1);
-            BookmarkItemType type = jsonObject.has("type") ? BookmarkItemType.fromInt(jsonObject.get("type").getAsInt())
-                    : null;
+            final BookmarkItem.Builder builder = BookmarkItem.builder(groupId, itemStack);
 
-            if (type == null) {
-                // old format
-                type = jsonObject.has("ingredient") && jsonObject.get("ingredient").getAsBoolean()
-                        ? BookmarkItemType.INGREDIENT
-                        : BookmarkItemType.RESULT;
+            if (jsonObject.has("type")) {
+                builder.type(BookmarkItemType.fromInt(jsonObject.get("type").getAsInt()));
+            } else if (jsonObject.has("ingredient") && jsonObject.get("ingredient").getAsBoolean()) {
+                builder.type(BookmarkItemType.INGREDIENT);
+            } else {
+                builder.type(BookmarkItemType.RESULT);
+            }
+
+            if (jsonObject.has("multiplier")) {
+                builder.multiplier(jsonObject.get("multiplier").getAsInt());
+            }
+
+            if (jsonObject.has("factor")) {
+                builder.factor(jsonObject.get("factor").getAsInt());
+            }
+
+            if (jsonObject.has("chance")) {
+                builder.chance(jsonObject.get("chance").getAsInt());
             }
 
             if (jsonObject.get("recipeId") instanceof JsonObject recipeJson) {
-                recipeId = RecipeId.of(recipeJson);
+                builder.recipeId(RecipeId.of(recipeJson));
             }
 
-            if (!grid.groups.containsKey(groupId)) {
-                groupId = BookmarkGrid.DEFAULT_GROUP_ID;
-            }
-
-            grid.addItem(BookmarkItem.of(groupId, itemStack, factor, recipeId, type), false);
+            grid.addItem(builder.build(), false);
         }
 
         return itemStack != null;
@@ -321,7 +328,8 @@ public class BookmarkStorage {
                     JsonObject row = new JsonObject();
 
                     row.add("item", NBTJson.toJsonObject(StackInfo.itemStackToNBT(item.getItemStack())));
-                    row.add("factor", new JsonPrimitive(item.getFactor()));
+                    row.add("multiplier", new JsonPrimitive(item.multiplier));
+                    row.add("factor", new JsonPrimitive(item.factor));
                     row.add("type", new JsonPrimitive(item.type.toInt()));
 
                     if (item.groupId != BookmarkGrid.DEFAULT_GROUP_ID) {
@@ -330,6 +338,10 @@ public class BookmarkStorage {
 
                     if (item.recipeId != null) {
                         row.add("recipeId", item.recipeId.toJsonObject());
+                    }
+
+                    if (item.chance != PositionedStack.CHANCE_FULL) {
+                        row.add("chance", new JsonPrimitive(item.chance));
                     }
 
                     strings.add(NBTJson.toJson(row));

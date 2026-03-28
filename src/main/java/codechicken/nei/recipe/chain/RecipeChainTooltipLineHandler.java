@@ -73,7 +73,7 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
                 if (!this.lastControlKey) {
                     final List<ItemStack> items = inventory.values();
                     for (BookmarkItem item : math.recipeResults) {
-                        if (item.factor > 0 && this.math.outputRecipes.containsKey(item.recipeId)) {
+                        if (!item.emptyFactor() && this.math.outputRecipes.containsKey(item.recipeId)) {
                             long amount = 0;
 
                             for (ItemStack stack : items) {
@@ -83,15 +83,18 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
                                 }
                             }
 
-                            if (amount >= item.amount) {
-                                final long itemAmount = item.factor * this.math.outputRecipes.get(item.recipeId);
+                            if (amount >= item.getAmount()) {
+                                final long itemAmount = item.getAmount(this.math.outputRecipes.get(item.recipeId));
+
                                 if (itemAmount > 0) {
                                     amount += itemAmount - amount % itemAmount;
                                 }
 
                                 this.math.outputRecipes.put(
                                         item.recipeId,
-                                        Math.max(this.math.outputRecipes.get(item.recipeId), amount / item.factor));
+                                        Math.max(
+                                                this.math.outputRecipes.get(item.recipeId),
+                                                item.getMultiplierFromAmount(amount)));
                             }
                         }
                     }
@@ -122,7 +125,7 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
 
             for (BookmarkItem item : math.recipeIngredients) {
                 final long amount = math.requiredAmount.containsKey(math.preferredItems.get(item)) ? 0
-                        : math.requiredAmount.getOrDefault(item, item.amount);
+                        : math.requiredAmount.getOrDefault(item, item.getAmount());
 
                 if (amount > 0) {
                     inputs.add(item.getItemStack(amount));
@@ -130,7 +133,7 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
             }
 
             for (BookmarkItem item : math.recipeResults) {
-                final long amount = item.amount - math.requiredAmount.getOrDefault(item, 0L);
+                final long amount = item.getAmount() - math.requiredAmount.getOrDefault(item, 0L);
 
                 if (amount > 0) {
                     if (math.outputRecipes.containsKey(item.recipeId)) {
@@ -155,12 +158,12 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
                 if (inventory.contains(item.itemStack)) {
                     final long invAmount = inventory.get(item.itemStack) * item.fluidCellAmount;
 
-                    if ((item.amount - invAmount) > 0) {
-                        inputs.add(item.getItemStack(item.amount - invAmount));
+                    if ((item.getAmount() - invAmount) > 0) {
+                        inputs.add(item.getItemStack(item.getAmount() - invAmount));
                     }
 
-                    if (Math.min(item.amount, invAmount) > 0) {
-                        available.add(item.getItemStack(Math.min(item.amount, invAmount)));
+                    if (Math.min(item.getAmount(), invAmount) > 0) {
+                        available.add(item.getItemStack(Math.min(item.getAmount(), invAmount)));
                     }
 
                 } else {

@@ -899,12 +899,15 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     private String getHandlerTitleColorCode(boolean hovered) {
-        final String key = hovered ? "recipe.title.color.hover" : "recipe.title.color.normal";
-        final String translated = NEIClientUtils.translate(key);
-        if (!translated.startsWith("nei.")) { // Optional localization string for resource packs
-            return translated;
+
+        if (hovered) {
+            return NEIClientUtils
+                    .getTextColorOrDefault("recipe.title.color.hover", EnumChatFormatting.YELLOW.toString());
+        } else {
+            return NEIClientUtils
+                    .getTextColorOrDefault("recipe.title.color.normal", EnumChatFormatting.WHITE.toString());
         }
-        return hovered ? EnumChatFormatting.YELLOW.toString() : EnumChatFormatting.WHITE.toString();
+
     }
 
     @Override
