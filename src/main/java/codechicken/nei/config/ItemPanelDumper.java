@@ -15,7 +15,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.StatCollector;
 
 import org.lwjgl.input.Keyboard;
 
@@ -192,15 +191,15 @@ public class ItemPanelDumper extends DataDumper {
         if (getMode() == PNG && dumpButtonSize().contains(mousex, mousey) && showItemSizeWarning()) {
             int res = getRes();
             currenttip.add(
-                    StatCollector.translateToLocalFormatted(
+                    NEIClientUtils.translate(
                             "nei.options.tools.dump.itempanel.icon.warning.1",
                             ItemPanels.itemPanel.getItems().size(),
                             res,
                             res));
             currenttip.add(
-                    StatCollector.translateToLocalFormatted(
+                    NEIClientUtils.translate(
                             "nei.options.tools.dump.itempanel.icon.warning.2",
-                            StatCollector.translateToLocal("nei.key.shift")));
+                            NEIClientUtils.translate("nei.key.shift")));
         }
         return currenttip;
     }
