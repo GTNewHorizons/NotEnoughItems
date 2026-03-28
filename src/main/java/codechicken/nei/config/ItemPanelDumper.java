@@ -16,8 +16,6 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
-import org.lwjgl.input.Keyboard;
-
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemPanels;
@@ -140,8 +138,7 @@ public class ItemPanelDumper extends DataDumper {
     }
 
     private boolean acknowledgedItemSizeWarning() {
-        return !showItemSizeWarning() || Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)
-                || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
+        return !showItemSizeWarning() || NEIClientUtils.shiftKey();
     }
 
     private boolean showItemSizeWarning() {
