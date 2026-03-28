@@ -23,6 +23,7 @@ import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.PositionedStack;
 import codechicken.nei.SearchField;
 import codechicken.nei.bookmark.BookmarkGrid;
 import codechicken.nei.bookmark.BookmarkGroup;
@@ -646,8 +647,10 @@ public abstract class ShortcutInputHandler {
         final List<ItemStack> playerInventory = AutoCraftingManager.getInventoryItems(guiContainer).values();
         final RecipeId rootRecipeId = math.createMasterRoot();
 
-        for (BookmarkItem item : math.recipeIngredients) {
-            if (item.amount > 0 && rootRecipeId.equals(item.recipeId)) {
+        for (int i = 0; i < math.recipeIngredients.size(); i++) {
+            final BookmarkItem item = math.recipeIngredients.get(i);
+
+            if (item.getAmount() > 0 && rootRecipeId.equals(item.recipeId)) {
                 long amount = 0;
 
                 for (ItemStack stack : playerInventory) {
@@ -656,8 +659,12 @@ public abstract class ShortcutInputHandler {
                     }
                 }
 
-                if (amount >= item.amount) {
-                    item.factor = item.amount = amount + item.amount - (amount % item.amount);
+                if (amount >= item.getAmount()) {
+                    math.recipeIngredients.set(
+                            i,
+                            BookmarkItem.builder(item).multiplier(1)
+                                    .factor(amount + item.getAmount() - (amount % item.getAmount()))
+                                    .chance(PositionedStack.CHANCE_FULL).build());
                 }
             }
         }

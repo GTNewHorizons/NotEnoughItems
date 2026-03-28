@@ -14,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 import codechicken.nei.ItemStackAmount;
+import codechicken.nei.ItemStackSet;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
@@ -48,6 +49,7 @@ public class RecipeChainMath {
     public final List<BookmarkItem> recipeResults = new ArrayList<>();
 
     public final Map<BookmarkItem, BookmarkItem> preferredItems = new HashMap<>();
+
     public final Map<BookmarkItem, Long> requiredAmount = new HashMap<>();
     public final List<ItemStack> containerItems = new ArrayList<>();
     private final List<ItemStack> containerItemsBlacklist = new ArrayList<>();
@@ -59,9 +61,9 @@ public class RecipeChainMath {
             if (item.recipeId == null || item.type == BookmarkItemType.ITEM) {
                 this.initialItems.add(item.copy());
             } else if (item.type == BookmarkItemType.INGREDIENT) {
-                this.recipeIngredients.add(item.copyWithAmount(0));
+                this.recipeIngredients.add(item.copyWithMultiplier(0));
             } else {
-                this.recipeResults.add(item.copyWithAmount(0));
+                this.recipeResults.add(item.copyWithMultiplier(0));
                 multipliers.put(
                         item.recipeId,
                         Math.max(multipliers.getOrDefault(item.recipeId, 0L), item.getMultiplier()));
@@ -129,17 +131,18 @@ public class RecipeChainMath {
         visited.add(recipeId);
 
         for (BookmarkItem ingrItem : this.recipeIngredients) {
-            if (ingrItem.factor > 0 && recipeId.equals(ingrItem.recipeId) && !preferredItems.containsKey(ingrItem)) {
+            if (!ingrItem.emptyFactor() && recipeId.equals(ingrItem.recipeId)
+                    && !preferredItems.containsKey(ingrItem)) {
                 BookmarkItem activeItem = null;
                 BookmarkItem prefItem = null;
 
                 for (BookmarkItem item : this.recipeResults) {
-                    if (item.factor > 0 && !visited.contains(item.recipeId) && item.containsItems(ingrItem)) {
+                    if (!item.emptyFactor() && !visited.contains(item.recipeId) && item.containsItems(ingrItem)) {
 
-                        if ((activeItem == null || item.factor > activeItem.factor) && NEIClientUtils
+                        if ((activeItem == null || item.getAmount(1) > activeItem.getAmount(1)) && NEIClientUtils
                                 .areStacksSameTypeCraftingWithNBT(ingrItem.itemStack, item.itemStack)) {
                             activeItem = item;
-                        } else if (prefItem == null || item.factor > prefItem.factor) {
+                        } else if (prefItem == null || item.getAmount(1) > prefItem.getAmount(1)) {
                             prefItem = item;
                         }
 
@@ -164,7 +167,7 @@ public class RecipeChainMath {
         int maxDepth = 0;
 
         for (BookmarkItem ingrItem : preferredItems.keySet()) {
-            if (ingrItem.factor > 0 && recipeId.equals(ingrItem.recipeId)) {
+            if (!ingrItem.emptyFactor() && recipeId.equals(ingrItem.recipeId)) {
                 maxDepth = Math.max(maxDepth, getMaxDepth(preferredItems.get(ingrItem).recipeId, preferredItems) + 1);
             }
         }
@@ -176,7 +179,7 @@ public class RecipeChainMath {
         visited.add(recipeId);
 
         for (BookmarkItem ingrItem : this.recipeIngredients) {
-            if (ingrItem.factor > 0 && recipeId.equals(ingrItem.recipeId) && preferredItems.containsKey(ingrItem)) {
+            if (!ingrItem.emptyFactor() && recipeId.equals(ingrItem.recipeId) && preferredItems.containsKey(ingrItem)) {
                 BookmarkItem prefItem = preferredItems.get(ingrItem);
 
                 if (visited.contains(prefItem.recipeId)) {
@@ -184,6 +187,7 @@ public class RecipeChainMath {
                 } else {
                     removeLoop(prefItem.recipeId, preferredItems, visited);
                 }
+
             }
         }
 
@@ -195,22 +199,22 @@ public class RecipeChainMath {
 
         for (BookmarkItem item : this.recipeResults) {
             if (this.outputRecipes.containsKey(item.recipeId) && !ROOT_RECIPE_ID.equals(item.recipeId)) {
-                final long amount = item.factor * this.outputRecipes.get(item.recipeId);
+                final long multiplier = this.outputRecipes.get(item.recipeId);
+                final long amount = item.getAmount(multiplier);
                 rootIngredients.add(
-                        BookmarkItem.of(
-                                -1,
-                                item.getItemStack(amount),
-                                item.getStackSize(amount),
-                                ROOT_RECIPE_ID,
-                                BookmarkItemType.INGREDIENT,
-                                BookmarkItem.generatePermutations(item.itemStack, null)));
+                        BookmarkItem.builder(-1, item.getItemStack(amount)).factor(item.getStackSize(amount))
+                                .permutations(BookmarkItem.Builder.generatePermutations(item.itemStack))
+                                .recipeId(ROOT_RECIPE_ID).type(BookmarkItemType.INGREDIENT).build());
+
             }
         }
 
         this.outputRecipes.clear();
         this.outputRecipes.put(ROOT_RECIPE_ID, 1L);
         this.recipeResults.removeIf(item -> ROOT_RECIPE_ID.equals(item.recipeId));
-        this.recipeResults.add(BookmarkItem.of(-1, ROOT_ITEM, 1, ROOT_RECIPE_ID, BookmarkItemType.RESULT));
+        this.recipeResults.add(
+                BookmarkItem.builder(-1, ROOT_ITEM).factor(1).recipeId(ROOT_RECIPE_ID).type(BookmarkItemType.RESULT)
+                        .build());
         this.recipeIngredients.addAll(rootIngredients);
 
         return ROOT_RECIPE_ID;
@@ -226,24 +230,20 @@ public class RecipeChainMath {
 
     public static RecipeChainMath of(Recipe recipe, long multiplier) {
         final List<BookmarkItem> chainItems = new ArrayList<>();
-        final RecipeId recipeId = recipe.getRecipeId();
         final ItemStack result = recipe.getResult();
+        final ItemStackSet ingredients = new ItemStackSet();
 
-        chainItems.add(BookmarkItem.of(-1, result, StackInfo.getAmount(result), recipeId, BookmarkItemType.RESULT));
+        chainItems
+                .add(BookmarkItem.builder(-1, result, recipe, BookmarkItemType.RESULT).multiplier(multiplier).build());
 
         for (RecipeIngredient ingr : recipe.getIngredients()) {
-            chainItems.add(
-                    BookmarkItem.of(
-                            -1,
-                            ingr.getItemStack(),
-                            ingr.getAmount(),
-                            recipeId,
-                            BookmarkItemType.INGREDIENT,
-                            BookmarkItem.generatePermutations(ingr.getItemStack(), recipe)));
+            ingredients.add(ingr.getItemStack());
         }
 
-        for (BookmarkItem item : chainItems) {
-            item.amount *= multiplier;
+        for (ItemStack ingrStack : ingredients.values()) {
+            chainItems.add(
+                    BookmarkItem.builder(-1, ingrStack, recipe, BookmarkItemType.INGREDIENT).multiplier(multiplier)
+                            .build());
         }
 
         return new RecipeChainMath(chainItems, Collections.emptySet());
@@ -253,7 +253,7 @@ public class RecipeChainMath {
         final ItemStackAmount missedItems = new ItemStackAmount();
 
         for (BookmarkItem item : this.recipeResults) {
-            long amount = item.amount - this.requiredAmount.getOrDefault(item, 0L);
+            long amount = item.getAmount() - this.requiredAmount.getOrDefault(item, 0L);
             if (amount > 0) {
                 missedItems.add(item.getItemStack(amount));
             }
@@ -261,7 +261,7 @@ public class RecipeChainMath {
 
         for (BookmarkItem item : this.recipeIngredients) {
             long amount = this.requiredAmount.containsKey(this.preferredItems.get(item)) ? 0
-                    : this.requiredAmount.getOrDefault(item, item.amount);
+                    : this.requiredAmount.getOrDefault(item, item.getAmount());
             if (amount > 0) {
                 missedItems.add(item.getItemStack(amount));
             }
@@ -279,11 +279,11 @@ public class RecipeChainMath {
     private void resetCalculation() {
 
         for (BookmarkItem item : this.recipeIngredients) {
-            item.amount = 0;
+            item.multiplier = 0;
         }
 
         for (BookmarkItem item : this.recipeResults) {
-            item.amount = 0;
+            item.multiplier = 0;
         }
 
         this.preferredItems.clear();
@@ -313,8 +313,8 @@ public class RecipeChainMath {
         }
 
         for (BookmarkItem prefItem : this.recipeResults) {
-            if (prefItem.factor > 0 && this.outputRecipes.containsKey(prefItem.recipeId)) {
-                final long prefAmount = prefItem.factor * this.outputRecipes.get(prefItem.recipeId);
+            if (!prefItem.emptyFactor() && this.outputRecipes.containsKey(prefItem.recipeId)) {
+                final long prefAmount = prefItem.getAmount(this.outputRecipes.get(prefItem.recipeId));
 
                 if (prefItem.itemStack.getItem().hasContainerItem(prefItem.itemStack)) {
                     this.containerItemsBlacklist.add(prefItem.itemStack);
@@ -327,23 +327,15 @@ public class RecipeChainMath {
         }
 
         for (BookmarkItem prefItem : this.recipeResults) {
-            if (prefItem.factor > 0 && this.outputRecipes.containsKey(prefItem.recipeId)
+            if (!prefItem.emptyFactor() && this.outputRecipes.containsKey(prefItem.recipeId)
                     && this.requiredAmount.containsKey(prefItem)) {
-                final long prefAmount = prefItem.factor * this.outputRecipes.get(prefItem.recipeId);
+                final long prefAmount = prefItem.getAmount(this.outputRecipes.get(prefItem.recipeId));
                 this.requiredAmount.put(prefItem, this.requiredAmount.get(prefItem) - prefAmount);
             }
         }
 
         StackInfo.pauseItemDamageSound(isPausedItemDamageSound);
         return this;
-    }
-
-    private void prepareIngredients(RecipeId recipeId, long stepShift, List<RecipeId> visited) {
-        for (BookmarkItem item : this.recipeIngredients) {
-            if (item.factor > 0 && recipeId.equals(item.recipeId)) {
-                calculateSuitableRecipe(item, item.factor * stepShift, visited);
-            }
-        }
     }
 
     private void calculateSuitableRecipe(BookmarkItem ingrItem, long ingrAmount, List<RecipeId> visited) {
@@ -366,7 +358,7 @@ public class RecipeChainMath {
         if (ingrAmount > 0) {
             for (BookmarkItem item : this.initialItems) {
                 if (item.containsItems(ingrItem)
-                        && (ingrAmount = addRequiredAmount(item, ingrAmount, item.amount)) == 0) {
+                        && (ingrAmount = addRequiredAmount(item, ingrAmount, item.getAmount())) == 0) {
                     break;
                 }
             }
@@ -379,17 +371,25 @@ public class RecipeChainMath {
             addRequiredAmount(prefItem, ingrAmount, Long.MAX_VALUE);
         } else {
             addRequiredAmount(prefItem, ingrAmount, Long.MAX_VALUE);
-            final long shift = (long) Math
-                    .ceil((this.requiredAmount.get(prefItem) - prefItem.amount) / (double) prefItem.factor);
+            final long multiplier = prefItem
+                    .getMultiplierFromAmount(this.requiredAmount.get(prefItem) - prefItem.getAmount());
 
-            if (shift > 0) {
-                addShift(prefItem.recipeId, shift);
+            if (multiplier > 0) {
+                addShift(prefItem.recipeId, multiplier);
                 visited.add(prefItem.recipeId);
-                prepareIngredients(prefItem.recipeId, shift, visited);
+                prepareIngredients(prefItem.recipeId, multiplier, visited);
                 visited.remove(prefItem.recipeId);
             }
         }
 
+    }
+
+    private void prepareIngredients(RecipeId recipeId, long multiplier, List<RecipeId> visited) {
+        for (BookmarkItem item : this.recipeIngredients) {
+            if (!item.emptyFactor() && recipeId.equals(item.recipeId)) {
+                calculateSuitableRecipe(item, item.getAmount(multiplier), visited);
+            }
+        }
     }
 
     private long addRequiredAmount(BookmarkItem prefItem, long ingrAmount, long maxAmount) {
@@ -489,7 +489,7 @@ public class RecipeChainMath {
                 final NBTTagCompound toolStats = tagCompound.getCompoundTag("GT.ToolStats");
                 final long maxDamage = toolStats.getLong("MaxDamage");
                 final long damage = toolStats.getLong("Damage");
-                final long leftSteps = (long) Math.ceil((maxDamage - damage) / (double) damagePerContainerCraft);
+                final long leftSteps = (maxDamage - damage + damagePerContainerCraft - 1) / damagePerContainerCraft;
                 final long availableSteps = Math.min(steps, Math.max(1, leftSteps));
 
                 steps -= availableSteps;
@@ -552,13 +552,13 @@ public class RecipeChainMath {
     private void addShift(RecipeId recipeId, long shift) {
         for (BookmarkItem item : this.recipeIngredients) {
             if (recipeId.equals(item.recipeId)) {
-                item.amount += item.factor * shift;
+                item.multiplier += shift;
             }
         }
 
         for (BookmarkItem item : this.recipeResults) {
             if (recipeId.equals(item.recipeId)) {
-                item.amount += item.factor * shift;
+                item.multiplier += shift;
             }
         }
     }
