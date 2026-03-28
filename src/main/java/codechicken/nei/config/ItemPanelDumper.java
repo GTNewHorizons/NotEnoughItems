@@ -136,7 +136,7 @@ public class ItemPanelDumper extends DataDumper {
     @Override
     public void dumpFile() {
         if (getMode() == PNG && acknowledgedItemSizeWarning())
-            Minecraft.getMinecraft().displayGuiScreen(new GuiItemIconDumper(this, getRes()));
+            mc.displayGuiScreen(new GuiItemIconDumper(this, getRes()));
         else super.dumpFile();
     }
 
