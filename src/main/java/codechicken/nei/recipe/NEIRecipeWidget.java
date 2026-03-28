@@ -269,7 +269,7 @@ public class NEIRecipeWidget extends Widget {
             if (!chanceText.isEmpty()) {
                 NEIClientUtils.drawNEIOverlayText(
                         chanceText,
-                        new Rectangle4i(pStack.relx + 1, pStack.rely + 1, 16, 16),
+                        new Rectangle4i(pStack.relx, pStack.rely, 16, 16),
                         0.5f,
                         this.chanceColor,
                         true,
