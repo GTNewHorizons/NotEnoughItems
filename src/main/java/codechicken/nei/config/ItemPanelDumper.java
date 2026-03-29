@@ -189,14 +189,14 @@ public class ItemPanelDumper extends DataDumper {
             int res = getRes();
             currenttip.add(
                     NEIClientUtils.translate(
-                            "nei.options.tools.dump.itempanel.icon.warning.1",
+                            "options.tools.dump.itempanel.icon.warning.1",
                             ItemPanels.itemPanel.getItems().size(),
                             res,
                             res));
             currenttip.add(
                     NEIClientUtils.translate(
-                            "nei.options.tools.dump.itempanel.icon.warning.2",
-                            NEIClientUtils.translate("nei.key.shift")));
+                            "options.tools.dump.itempanel.icon.warning.2",
+                            NEIClientUtils.translate("key.shift")));
         }
         return currenttip;
     }
