@@ -126,7 +126,7 @@ public class NEIClientUtils extends NEIServerUtils {
         });
     }
 
-    public static String formatNumber(long aNumber) {
+    public static String formatNumber(Number aNumber) {
 
         if (NEIModContainer.isGTNHLibLoaded()) {
             return NumberFormatUtil.formatNumber(aNumber);
@@ -135,7 +135,7 @@ public class NEIClientUtils extends NEIServerUtils {
         return getDecimalFormat().format(aNumber);
     }
 
-    public static String formatFluid(long aNumber) {
+    public static String formatFluid(Number aNumber) {
 
         if (NEIModContainer.isGTNHLibLoaded()) {
             return NumberFormatUtil.formatFluid(aNumber);
@@ -524,6 +524,11 @@ public class NEIClientUtils extends NEIServerUtils {
         } else {
             reportErrorBuffered(e, buffer, "null");
         }
+    }
+
+    public static String getTextColorOrDefault(String key, String defaultColor) {
+        final String translated = NEIClientUtils.translate(key); // Optional localization string for resource packs
+        return translated.startsWith("nei.") ? defaultColor : translated;
     }
 
     public static void drawRect(double left, double top, double width, double height, Color color) {

@@ -24,7 +24,7 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.ItemPanels;
-import codechicken.nei.ItemStackAmount;
+import codechicken.nei.ItemStackSet;
 import codechicken.nei.ItemsGrid;
 import codechicken.nei.ItemsGrid.MouseContext;
 import codechicken.nei.LayoutManager;
@@ -33,6 +33,7 @@ import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.recipe.Recipe.RecipeIngredient;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.recipe.chain.RecipeChainMath;
 
@@ -139,17 +140,16 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
             if (group.collapsedRecipes.contains(collapsedRecipeId)) {
 
                 for (BookmarkItem item : this.bookmarkItems) {
-                    if (item.groupId == groupId && collapsedRecipeId.equals(item.recipeId)
-                            && item.amount == item.factor) {
-                        item.amount = 0;
+                    if (item.groupId == groupId && collapsedRecipeId.equals(item.recipeId) && item.multiplier == 1) {
+                        item.multiplier = 0;
                     }
                 }
 
             } else {
 
                 for (BookmarkItem item : this.bookmarkItems) {
-                    if (item.groupId == groupId && collapsedRecipeId.equals(item.recipeId) && item.amount == 0) {
-                        item.amount = item.factor;
+                    if (item.groupId == groupId && collapsedRecipeId.equals(item.recipeId) && item.multiplier == 0) {
+                        item.multiplier = 1;
                     }
                 }
 
@@ -627,15 +627,16 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         for (int itemIndex = 0; itemIndex < this.bookmarkItems.size(); itemIndex++) {
             final BookmarkItem item = this.bookmarkItems.get(itemIndex);
             if (item.groupId == groupId && (recipeRelations == null || recipeRelations.contains(item.recipeId))) {
-                long amount = item.amount;
 
                 if (recipeId != null && group.crafting != null
                         && group.crafting.calculatedItems.containsKey(itemIndex)
                         && recipeId.equals(item.recipeId)) {
-                    amount = group.crafting.calculatedItems.get(itemIndex).getCalculatedAmount();
+                    chainItems.add(
+                            item.copyWithAmount(group.crafting.calculatedItems.get(itemIndex).getCalculatedAmount()));
+                } else {
+                    chainItems.add(item.copy());
                 }
 
-                chainItems.add(item.copyWithAmount(amount));
             }
         }
 
@@ -896,34 +897,28 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
     }
 
     public void addRecipe(Recipe recipe, int multiplier, int groupId) {
-        final RecipeId recipeId = recipe.getRecipeId();
-        final List<ItemStack> results = recipe.getResults().stream().map(res -> res.getItemStack())
-                .collect(Collectors.toList());
-        final List<ItemStack> ingredients = recipe.getIngredients().stream().map(ingr -> ingr.getItemStack())
-                .collect(Collectors.toList());
+        final ItemStackSet results = new ItemStackSet();
+        final ItemStackSet ingredients = new ItemStackSet();
 
-        for (ItemStack stack : ItemStackAmount.of(results).values()) {
-            long factor = StackInfo.getAmount(stack);
+        for (RecipeIngredient result : recipe.getResults()) {
+            results.add(result.getItemStack());
+        }
+
+        for (RecipeIngredient ingr : recipe.getIngredients()) {
+            ingredients.add(ingr.getItemStack());
+        }
+
+        for (ItemStack stack : results.values()) {
             this.addItem(
-                    BookmarkItem.of(
-                            groupId,
-                            StackInfo.withAmount(stack, factor * multiplier),
-                            factor,
-                            recipeId,
-                            BookmarkItemType.RESULT),
+                    BookmarkItem.builder(groupId, stack, recipe, BookmarkItemType.RESULT).multiplier(multiplier)
+                            .build(),
                     true);
         }
 
-        for (ItemStack stack : ItemStackAmount.of(ingredients).values()) {
-            long factor = StackInfo.getAmount(stack);
+        for (ItemStack stack : ingredients.values()) {
             this.addItem(
-                    BookmarkItem.of(
-                            groupId,
-                            StackInfo.withAmount(stack, factor * multiplier),
-                            factor,
-                            recipeId,
-                            BookmarkItemType.INGREDIENT,
-                            BookmarkItem.generatePermutations(stack, recipe)),
+                    BookmarkItem.builder(groupId, stack, recipe, BookmarkItemType.INGREDIENT).multiplier(multiplier)
+                            .build(),
                     true);
         }
     }
@@ -1133,8 +1128,8 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
             final Set<Long> sizes = new HashSet<>();
 
             for (BookmarkItem item : this.bookmarkItems) {
-                if (item.groupId == targetGroupId && item.amount > 0) {
-                    sizes.add(Math.max(item.getStackSize(), item.factor / item.fluidCellAmount));
+                if (item.groupId == targetGroupId && item.getAmount() > 0) {
+                    sizes.add(Math.max(item.getStackSize(), item.getStackSize(item.getAmount(1))));
                     items.add(item);
                 }
             }
@@ -1143,14 +1138,16 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
             long multiplier = Integer.MAX_VALUE;
 
             for (BookmarkItem item : items) {
-                long customFactor = (long) Math.ceil(item.amount / (double) gcd);
-                long customMultiplier = (long) (customFactor > 0 ? Math.ceil(item.amount / (double) customFactor) : 0);
+                final long amount = item.getAmount();
+                final long customFactor = (amount + gcd - 1) / gcd;
+                final long customMultiplier = customFactor > 0 ? ((amount + customFactor - 1) / customFactor) : 0;
                 multiplier = Math.min(shiftMultiplier(customMultiplier, shift, 1), multiplier);
             }
 
             for (BookmarkItem item : items) {
-                long customFactor = (long) Math.ceil(item.amount / (double) gcd);
-                item.amount = customFactor * multiplier;
+                final long amount = item.getAmount();
+                final long customFactor = (amount + gcd - 1) / gcd;
+                item.multiplier = item.getMultiplierFromAmount(customFactor * multiplier);
             }
         } else {
             final Map<RecipeId, Long> recipeMultipliers = new HashMap<>();
@@ -1158,7 +1155,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
             final List<BookmarkItem> items = new ArrayList<>();
 
             for (BookmarkItem item : this.bookmarkItems) {
-                if (item.factor > 0
+                if (!item.emptyFactor()
                         && outputRecipes.stream().anyMatch(recipeId -> item.equalsRecipe(recipeId, targetGroupId))) {
                     final long multiplier = recipeMultipliers.getOrDefault(item.recipeId, (long) Integer.MAX_VALUE);
                     final boolean recipeInMiddle = group.crafting != null
@@ -1168,7 +1165,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
                             item.recipeId,
                             Math.min(
                                     shiftMultiplier(
-                                            Math.max(recipeInMiddle ? 1 : 0, item.getMultiplier()),
+                                            Math.max(recipeInMiddle ? 1 : 0, item.multiplier),
                                             shift,
                                             recipeInMiddle ? 1 : 0),
                                     multiplier));
@@ -1177,7 +1174,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
             }
 
             for (BookmarkItem item : items) {
-                item.amount = item.factor * recipeMultipliers.getOrDefault(item.recipeId, 0L);
+                item.multiplier = recipeMultipliers.getOrDefault(item.recipeId, 0L);
             }
         }
 
@@ -1197,10 +1194,10 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
             long multiplier = Integer.MAX_VALUE;
 
             for (BookmarkItem item : this.bookmarkItems) {
-                if (item.equalsRecipe(recipeId, targetItem.groupId) && item.factor > 0) {
+                if (item.equalsRecipe(recipeId, targetItem.groupId) && !item.emptyFactor()) {
                     multiplier = Math.min(
                             shiftMultiplier(
-                                    Math.max(recipeInMiddle ? 1 : 0, item.getMultiplier()),
+                                    Math.max(recipeInMiddle ? 1 : 0, item.multiplier),
                                     shift,
                                     recipeInMiddle ? 1 : 0),
                             multiplier);
@@ -1208,8 +1205,8 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
             }
 
             for (BookmarkItem item : this.bookmarkItems) {
-                if (item.equalsRecipe(recipeId, targetItem.groupId) && item.factor > 0) {
-                    item.amount = item.factor * multiplier;
+                if (item.equalsRecipe(recipeId, targetItem.groupId) && !item.emptyFactor()) {
+                    item.multiplier = multiplier;
                 }
             }
 
@@ -1217,7 +1214,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
 
             for (BookmarkItem item : this.bookmarkItems) {
                 if (targetItem.equals(item)) {
-                    item.amount = item.factor * shiftMultiplier(item.getMultiplier(), shift, 0);
+                    item.multiplier = shiftMultiplier(item.multiplier, shift, 0);
                     break;
                 }
             }

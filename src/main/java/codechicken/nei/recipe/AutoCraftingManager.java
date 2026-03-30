@@ -91,7 +91,7 @@ public class AutoCraftingManager {
 
             for (BookmarkItem item : math.initialItems) {
                 final long invStackSize = inventory.getOrDefault(item.itemStack, 0L);
-                final long amount = Math.max(0, item.amount - invStackSize * item.fluidCellAmount);
+                final long amount = Math.max(0, item.getAmount() - invStackSize * item.fluidCellAmount);
                 if (amount > 0) {
                     initialItems.add(item.copyWithAmount(amount));
                 }

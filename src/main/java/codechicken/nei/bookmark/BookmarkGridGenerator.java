@@ -189,13 +189,11 @@ public class BookmarkGridGenerator {
         for (int shadowIndex : shadows) {
             final boolean isIngredient = shadows.get(0) != shadowIndex
                     || group.crafting.calculatedItems.get(shadowIndex).calculatedType == CalculatedType.INGREDIENT;
-            final BookmarkItem shadowBookmarkItem = BookmarkItem.of(
-                    bookmarkItem.groupId,
-                    bookmarkItem.itemStack,
-                    1,
-                    bookmarkItem.recipeId,
-                    isIngredient ? BookmarkItemType.INGREDIENT : BookmarkItemType.RESULT,
-                    Collections.emptyMap());
+
+            final BookmarkItem shadowBookmarkItem = BookmarkItem.builder(bookmarkItem.groupId, bookmarkItem.itemStack)
+                    .multiplier(1).factor(StackInfo.getAmount(bookmarkItem.itemStack)).recipeId(bookmarkItem.recipeId)
+                    .type(isIngredient ? BookmarkItemType.INGREDIENT : BookmarkItemType.RESULT)
+                    .permutations(Collections.emptyMap()).build();
 
             if ((absoluteSlotIndex = nextSlotIndex(
                     absoluteSlotIndex + 1,

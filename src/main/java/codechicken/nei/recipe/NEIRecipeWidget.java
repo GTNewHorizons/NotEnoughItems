@@ -1,6 +1,7 @@
 package codechicken.nei.recipe;
 
 import java.awt.Point;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,9 +22,11 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.NEIClientUtils.Alignment;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.Widget;
@@ -37,9 +40,12 @@ import codechicken.nei.util.NEIMouseUtils;
 
 public class NEIRecipeWidget extends Widget {
 
+    private static final DecimalFormat chanceFormat = new DecimalFormat("##0.##%");
     protected AcceptsFollowingTooltipLineHandler acceptsFollowingTooltipLineHandler;
     protected final Map<PositionedStack, Integer> favoriteIndexes = new WeakHashMap<>();
     protected final Map<PositionedStack, List<ItemStack>> permutations = new WeakHashMap<>();
+    protected final Map<PositionedStack, String> chances = new WeakHashMap<>();
+    protected int chanceColor = 0xFDD835;
     protected int favoriteRevision = -1;
     protected boolean update = true;
     protected int cycleticks = 0;
@@ -54,7 +60,18 @@ public class NEIRecipeWidget extends Widget {
     public NEIRecipeWidget(RecipeHandlerRef handlerRef) {
         this.handlerRef = handlerRef;
         this.handlerInfo = GuiRecipeTab.getHandlerInfo(this.handlerRef.handler);
+        this.chanceColor = getHexValue(
+                NEIClientUtils.getTextColorOrDefault("recipe.overlay.chance", "0xFDD835"),
+                this.chanceColor);
         update();
+    }
+
+    private int getHexValue(String color, int defaultValue) {
+        try {
+            return (int) Long.parseLong(color.replace("0x", ""), 16);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 
     public void setLocation(int x, int y) {
@@ -196,11 +213,7 @@ public class NEIRecipeWidget extends Widget {
                 updatePermutationsFor(pStack);
             }
 
-            GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
-
-            if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
-                NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, 0x80FFFFFF));
-            }
+            drawItem(pStack, mouseX, mouseY, yShift);
         }
 
         for (PositionedStack pStack : getCatalysts()) {
@@ -209,19 +222,11 @@ public class NEIRecipeWidget extends Widget {
                 updatePermutationsFor(pStack);
             }
 
-            GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
-
-            if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
-                NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, 0x80FFFFFF));
-            }
+            drawItem(pStack, mouseX, mouseY, yShift);
         }
 
         for (PositionedStack pStack : getOutputs()) {
-            GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
-
-            if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
-                NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, 0x80FFFFFF));
-            }
+            drawItem(pStack, mouseX, mouseY, yShift);
         }
 
         GuiContainerManager.disableMatrixStackLogging();
@@ -253,6 +258,41 @@ public class NEIRecipeWidget extends Widget {
         }
 
         DebugHandlerWidget.instance.drawGuiPlaceholder(this);
+    }
+
+    protected void drawItem(PositionedStack pStack, int mouseX, int mouseY, int yShift) {
+        GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
+
+        if (NEIClientConfig.showRecipeItemChances()) {
+            final String chanceText = this.chances.computeIfAbsent(pStack, k -> getChanceText(k));
+
+            if (!chanceText.isEmpty()) {
+                NEIClientUtils.drawNEIOverlayText(
+                        chanceText,
+                        new Rectangle4i(pStack.relx, pStack.rely, 16, 16),
+                        0.5f,
+                        this.chanceColor,
+                        true,
+                        Alignment.TopLeft);
+            }
+        }
+
+        if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
+            NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, 0x80FFFFFF));
+        }
+    }
+
+    protected String getChanceText(PositionedStack pStack) {
+
+        if (StackInfo.getAmount(pStack.item) == 0) { // not consumed
+            return NEIClientUtils.translate("recipe.chance.nc");
+        } else if (pStack.getChance() == 0) { // not consumed parallel
+            return NEIClientUtils.translate("recipe.chance.ncp");
+        } else if (pStack.getChance() != PositionedStack.CHANCE_FULL) { // chance based
+            return chanceFormat.format(pStack.getChance() / (float) PositionedStack.CHANCE_FULL);
+        }
+
+        return "";
     }
 
     @Override

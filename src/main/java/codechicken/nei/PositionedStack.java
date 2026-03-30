@@ -21,12 +21,16 @@ import codechicken.nei.recipe.StackInfo;
  */
 public class PositionedStack {
 
+    /** Maximum chance value representing 100% probability (1 unit = 0.01%). */
+    public static final int CHANCE_FULL = 10_000;
+
     public int relx;
     public int rely;
     public ItemStack[] items;
     // compatibility dummy
     public ItemStack item;
 
+    protected int chance = CHANCE_FULL;
     private boolean permutated = false;
 
     public PositionedStack(Object object, int x, int y, boolean genPerms) {
@@ -82,6 +86,10 @@ public class PositionedStack {
         for (ItemStack item : items) if (item.stackSize > i) item.stackSize = i;
     }
 
+    public int getChance() {
+        return this.chance;
+    }
+
     public PositionedStack copy() {
         PositionedStack pStack = new PositionedStack(
                 Arrays.stream(this.items).map(ItemStack::copy).toArray(ItemStack[]::new),
@@ -89,6 +97,7 @@ public class PositionedStack {
                 rely,
                 false);
         pStack.permutated = this.permutated;
+        pStack.chance = getChance();
         return pStack;
     }
 

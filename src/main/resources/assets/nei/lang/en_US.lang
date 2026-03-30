@@ -302,6 +302,9 @@ nei.options.inventory.guirecipe.handlerInfo.tip=Use shift+d while in the Recipes
 nei.options.inventory.guirecipe.handlerInfo.true=Enabled
 nei.options.inventory.guirecipe.handlerInfo.false=Disabled
 nei.options.inventory.guirecipe.maxHeight=Max Height
+nei.options.inventory.guirecipe.chance=Show Change
+nei.options.inventory.guirecipe.chance.true=Yes
+nei.options.inventory.guirecipe.chance.false=No
 nei.options.inventory.showItemQuantityWidget=Show Item Quantity Widget
 nei.options.inventory.showItemQuantityWidget.true=Yes
 nei.options.inventory.showItemQuantityWidget.false=No
@@ -557,6 +560,10 @@ nei.recipe.shapeless=Shapeless Crafting
 nei.recipe.furnace=Smelting
 nei.recipe.fuel=Fuel
 nei.recipe.fuel.smeltCount=Smelts %s items
+nei.recipe.chance=Chance: %s%%
+nei.recipe.chance.nc=NC
+nei.recipe.chance.ncp=NC(P)
+
 # Deprecated
 nei.recipe.fuel.required=%s required
 # Deprecated
