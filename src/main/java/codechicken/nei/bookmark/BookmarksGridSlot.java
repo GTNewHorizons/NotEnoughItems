@@ -64,18 +64,18 @@ public class BookmarksGridSlot extends ItemsGridSlot {
     protected final boolean isFirstOutput;
     protected final int rowIndex;
 
-    public BookmarksGridSlot(int slotIndex, int itemIndex, long realAmount, long shiftAmount, long calculatedAmount,
-            BookmarkItem bookmarkItem, CalculatedType calculatedType, BookmarkGroup group) {
+    public BookmarksGridSlot(int slotIndex, int itemIndex, long realMultiplier, long shiftAmount,
+            long calculatedMultiplier, BookmarkItem bookmarkItem, CalculatedType calculatedType, BookmarkGroup group) {
         super(
                 slotIndex,
                 itemIndex,
-                calculatedType != null ? bookmarkItem.getItemStack(calculatedAmount)
-                        : bookmarkItem.getItemStack(realAmount));
+                calculatedType != null ? bookmarkItem.getItemStack(bookmarkItem.getAmount(calculatedMultiplier))
+                        : bookmarkItem.getItemStack(bookmarkItem.getAmount(realMultiplier)));
 
         this.emptyItemStack = bookmarkItem.getItemStack(0);
-        this.realAmount = realAmount;
+        this.realAmount = bookmarkItem.getAmount(realMultiplier);
         this.shiftAmount = shiftAmount;
-        this.calculatedAmount = calculatedAmount;
+        this.calculatedAmount = calculatedType != null ? bookmarkItem.getAmount(calculatedMultiplier) : this.realAmount;
 
         this.group = group;
         this.calculatedType = calculatedType;
@@ -84,8 +84,8 @@ public class BookmarksGridSlot extends ItemsGridSlot {
         this.isOutputRecipe = group.crafting != null && group.crafting.outputRecipes.contains(bookmarkItem.recipeId);
         this.isFluidDisplay = StackInfo.itemStackToNBT(bookmarkItem.itemStack).hasKey("gtFluidName");
 
-        this.realMultiplier = bookmarkItem.getMultiplierFromAmount(realAmount);
-        this.calculatedMultiplier = bookmarkItem.getMultiplierFromAmount(calculatedAmount);
+        this.realMultiplier = realMultiplier;
+        this.calculatedMultiplier = calculatedMultiplier;
 
         if (this.group.crafting != null && this.group.crafting.calculatedItems.containsKey(this.itemIndex)) {
             this.realType = this.group.crafting.calculatedItems.get(this.itemIndex).calculatedType

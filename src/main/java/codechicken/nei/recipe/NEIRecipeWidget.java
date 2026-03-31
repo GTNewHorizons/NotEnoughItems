@@ -263,7 +263,7 @@ public class NEIRecipeWidget extends Widget {
     protected void drawItem(PositionedStack pStack, int mouseX, int mouseY, int yShift) {
         GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
 
-        if (NEIClientConfig.showRecipeItemChances()) {
+        if (this.handlerInfo.getShowChanceInfo()) {
             final String chanceText = this.chances.computeIfAbsent(pStack, k -> getChanceText(k));
 
             if (!chanceText.isEmpty()) {
