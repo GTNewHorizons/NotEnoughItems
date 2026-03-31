@@ -266,9 +266,6 @@ public class NEIClientConfig {
         tag.getTag("inventory.guirecipe.profile").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.guirecipe.profile", true));
 
-        tag.getTag("inventory.guirecipe.chance").getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.guirecipe.chance", true));
-
         tag.getTag("inventory.guirecipe.handlerInfo").setComment("ADVANCED: Handler Info Widget")
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.guirecipe.handlerInfo", true));
@@ -1141,10 +1138,6 @@ public class NEIClientConfig {
 
     public static boolean requireShiftForOverlayRecipe() {
         return getBooleanSetting("inventory.guirecipe.shiftOverlayRecipe");
-    }
-
-    public static boolean showRecipeItemChances() {
-        return getBooleanSetting("inventory.guirecipe.chance");
     }
 
     public static boolean isEnabled() {

@@ -371,8 +371,8 @@ public class RecipeChainMath {
             addRequiredAmount(prefItem, ingrAmount, Long.MAX_VALUE);
         } else {
             addRequiredAmount(prefItem, ingrAmount, Long.MAX_VALUE);
-            final long multiplier = prefItem
-                    .getMultiplierFromAmount(this.requiredAmount.get(prefItem) - prefItem.getAmount());
+            final long multiplier = Math
+                    .max(0, prefItem.getMultiplierFromAmount(this.requiredAmount.get(prefItem)) - prefItem.multiplier);
 
             if (multiplier > 0) {
                 addShift(prefItem.recipeId, multiplier);

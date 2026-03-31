@@ -318,7 +318,7 @@ public class BookmarkGridGenerator {
             return group.crafting.calculatedItems.get(itemIndex);
         } else {
             BookmarkChainItem item = BookmarkChainItem.of(this.grid.getBookmarkItem(itemIndex));
-            item.setRealAmount(item.getShiftAmount());
+            item.setRealMultiplier(item.getItem().getMultiplierFromAmount(item.getShiftAmount()));
             return item;
         }
     }
@@ -331,7 +331,7 @@ public class BookmarkGridGenerator {
             return new BookmarksGridSlot(
                     slotIndex,
                     itemIndex,
-                    chainItem.getRealAmount(),
+                    chainItem.getRealMultiplier(),
                     0,
                     0,
                     chainItem.getItem(),
@@ -341,9 +341,9 @@ public class BookmarkGridGenerator {
             return new BookmarksGridSlot(
                     slotIndex,
                     itemIndex,
-                    chainItem.getRealAmount(),
+                    chainItem.getRealMultiplier(),
                     chainItem.getShiftAmount(),
-                    chainItem.getCalculatedAmount(),
+                    chainItem.getCalculatedMultiplier(),
                     chainItem.getItem(),
                     chainItem.calculatedType,
                     group);

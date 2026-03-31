@@ -42,27 +42,27 @@ public class RecipeChainDetails {
 
         private final BookmarkItem item;
 
-        private long realAmount = 0L;
+        private long realMultiplier = 0L;
         private long shiftAmount = 0L;
-        private long calculatedAmount = 0L;
+        private long calculatedMultiplier = 0L;
 
         public CalculatedType calculatedType;
 
-        protected BookmarkChainItem(BookmarkItem item, long shiftItem, long calculatedItem,
+        protected BookmarkChainItem(BookmarkItem item, long shiftItem, long calculatedMultiplier,
                 CalculatedType calculatedType) {
             this.item = item.copy();
             this.shiftAmount = shiftItem;
-            this.calculatedAmount = calculatedItem;
+            this.calculatedMultiplier = calculatedMultiplier;
             this.calculatedType = calculatedType;
         }
 
-        public static BookmarkChainItem of(BookmarkItem item, long shiftItem, long calculatedAmount,
+        public static BookmarkChainItem of(BookmarkItem item, long shiftItem, long calculatedMultiplier,
                 CalculatedType calculatedType) {
-            return new BookmarkChainItem(item, shiftItem, calculatedAmount, calculatedType);
+            return new BookmarkChainItem(item, shiftItem, calculatedMultiplier, calculatedType);
         }
 
         public static BookmarkChainItem of(BookmarkItem item, long shiftItem, CalculatedType calculatedType) {
-            return new BookmarkChainItem(item, shiftItem, item.getAmount(), calculatedType);
+            return new BookmarkChainItem(item, shiftItem, item.getMultiplier(), calculatedType);
         }
 
         public static BookmarkChainItem of(BookmarkItem item) {
@@ -78,20 +78,24 @@ public class RecipeChainDetails {
             return this.item.getItemStack(amount);
         }
 
-        public void setRealAmount(long amount) {
-            this.realAmount = amount;
+        public void setRealMultiplier(long multiplier) {
+            this.realMultiplier = multiplier;
         }
 
-        public long getRealAmount() {
-            return this.realAmount;
+        public long getRealMultiplier() {
+            return this.realMultiplier;
+        }
+
+        public void setCalculatedMultiplier(long multiplier) {
+            this.calculatedMultiplier = multiplier;
+        }
+
+        public long getCalculatedMultiplier() {
+            return this.calculatedMultiplier;
         }
 
         public long getShiftAmount() {
             return this.shiftAmount;
-        }
-
-        public long getCalculatedAmount() {
-            return this.calculatedAmount;
         }
 
         public BookmarkItem getItem() {
@@ -100,8 +104,8 @@ public class RecipeChainDetails {
 
         public void append(long amount, long calculatedAmount) {
             this.shiftAmount += amount;
-            this.calculatedAmount += calculatedAmount;
-            this.item.multiplier = this.item.getMultiplierFromAmount(this.calculatedAmount);
+            this.calculatedMultiplier += this.item.getMultiplierFromAmount(calculatedAmount);
+            this.item.multiplier = this.calculatedMultiplier;
         }
     }
 
@@ -181,10 +185,9 @@ public class RecipeChainDetails {
             if (itemIndex >= 0 && this.calculatedItems.containsKey(itemIndex)) {
                 final BookmarkItem item = entry.getValue();
                 if (this.recipeInMiddle.contains(item.recipeId)) {
-                    this.calculatedItems.get(itemIndex)
-                            .setRealAmount(Math.max(0, item.getAmount(item.getMultiplier() - 1)));
+                    this.calculatedItems.get(itemIndex).setRealMultiplier(item.getMultiplier() - 1);
                 } else {
-                    this.calculatedItems.get(itemIndex).setRealAmount(item.getAmount());
+                    this.calculatedItems.get(itemIndex).setRealMultiplier(item.getMultiplier());
                 }
             }
         }
@@ -259,7 +262,8 @@ public class RecipeChainDetails {
             }
 
             if (this.calculatedItems.containsKey(itemIndex)) {
-                this.calculatedItems.get(itemIndex).setRealAmount(value.getShiftAmount());
+                this.calculatedItems.get(itemIndex)
+                        .setRealMultiplier(value.getItem().getMultiplierFromAmount(value.getShiftAmount()));
             }
         }
 
@@ -284,7 +288,8 @@ public class RecipeChainDetails {
                     } else if (amount > 0) {
                         items.computeIfAbsent(
                                 StackInfo.getItemStackGUID(item.itemStack),
-                                is -> BookmarkChainItem.of(item, 0, 0, CalculatedType.RESULT)).append(amount, amount);
+                                is -> BookmarkChainItem.of(item, 0, 0, CalculatedType.RESULT))
+                                .append(amount, item.getAmount());
                     }
                 }
             }

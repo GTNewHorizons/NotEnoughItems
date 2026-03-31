@@ -632,7 +632,8 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
                         && group.crafting.calculatedItems.containsKey(itemIndex)
                         && recipeId.equals(item.recipeId)) {
                     chainItems.add(
-                            item.copyWithAmount(group.crafting.calculatedItems.get(itemIndex).getCalculatedAmount()));
+                            item.copyWithMultiplier(
+                                    group.crafting.calculatedItems.get(itemIndex).getCalculatedMultiplier()));
                 } else {
                     chainItems.add(item.copy());
                 }
