@@ -348,15 +348,19 @@ public class BookmarksGridSlot extends ItemsGridSlot {
     }
 
     protected void drawStackSize(Rectangle4i rect, ShownItemType shownItemType) {
+        boolean drawChance = this.calculatedMultiplier > 0;
         long amount = this.calculatedAmount;
 
         if (shownItemType == null || shownItemType == ShownItemType.REAL || this.calculatedType == null) {
             amount = this.realAmount;
+            drawChance = this.realMultiplier > 0;
         } else if (shownItemType == ShownItemType.SHIFT) {
             amount = this.shiftAmount;
+            drawChance = false;
         }
 
-        if (amount > 0 || shownItemType == ShownItemType.REAL && !this.bookmarkItem.emptyFactor()) {
+        if (amount > 0 || this.bookmarkItem.chance != PositionedStack.CHANCE_FULL && drawChance
+                || shownItemType == ShownItemType.REAL && !this.bookmarkItem.emptyFactor()) {
             final float panelFactor = (rect.w - 2) / (DEFAULT_SLOT_SIZE - 2);
             final long stackSize = this.bookmarkItem.getStackSize(amount);
             int color = 0xFFFFFF;

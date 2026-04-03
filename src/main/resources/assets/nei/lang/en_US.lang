@@ -541,6 +541,7 @@ nei.debug.RecipeHandler.Height=Height
 nei.debug.RecipeHandler.Width=Width
 nei.debug.RecipeHandler.ShowFavorites=Show Favorites
 nei.debug.RecipeHandler.ShowOverlay=Show Overlays
+nei.debug.RecipeHandler.ShowBadge=Show Badge
 nei.debug.RecipeHandler.UseCustomScroll=Use Custom Scroll
 nei.debug.RecipeHandler.Override=Override
 nei.debug.RecipeHandler.checkbox.on=On
@@ -557,9 +558,15 @@ nei.recipe.shapeless=Shapeless Crafting
 nei.recipe.furnace=Smelting
 nei.recipe.fuel=Fuel
 nei.recipe.fuel.smeltCount=Smelts %s items
-nei.recipe.chance=Chance: %s%%
-nei.recipe.chance.nc=NC
-nei.recipe.chance.ncp=NC(P)
+
+nei.recipe.badge.nc=NC
+nei.recipe.badge.nc.tooltip=Does not get consumed in the process
+
+nei.recipe.badge.ncp=NC(P)
+nei.recipe.badge.ncp.tooltip=Considered in parallel calculation, but not get consumed
+
+nei.recipe.badge.chance.consume=Consume Chance: %s
+nei.recipe.badge.chance.output=Output Chance: %s
 
 # Deprecated
 nei.recipe.fuel.required=%s required

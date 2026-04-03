@@ -86,6 +86,10 @@ public class PositionedStack {
         for (ItemStack item : items) if (item.stackSize > i) item.stackSize = i;
     }
 
+    public String getCustomBadge() {
+        return null;
+    }
+
     public int getChance() {
         return this.chance;
     }
@@ -97,7 +101,7 @@ public class PositionedStack {
                 rely,
                 false);
         pStack.permutated = this.permutated;
-        pStack.chance = getChance();
+        pStack.chance = this.chance;
         return pStack;
     }
 

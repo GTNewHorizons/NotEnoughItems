@@ -318,7 +318,7 @@ public class BookmarkGridGenerator {
             return group.crafting.calculatedItems.get(itemIndex);
         } else {
             BookmarkChainItem item = BookmarkChainItem.of(this.grid.getBookmarkItem(itemIndex));
-            item.setRealMultiplier(item.getItem().getMultiplierFromAmount(item.getShiftAmount()));
+            item.setRealMultiplier(item.getCalculatedMultiplier());
             return item;
         }
     }

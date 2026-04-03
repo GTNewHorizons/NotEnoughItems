@@ -95,6 +95,7 @@ public class NEIClientUtils extends NEIServerUtils {
 
     /** Formats a number with group separator and at most 2 fraction digits. */
     private static final Map<Locale, DecimalFormat> decimalFormatters = new HashMap<>();
+    private static final DecimalFormat CHANCE_FORMAT = new DecimalFormat("##0.##%");
 
     public static final int ALT_HASH = NEIKeyboardUtils.ALT_HASH;
     public static final int SHIFT_HASH = NEIKeyboardUtils.SHIFT_HASH;
@@ -142,6 +143,10 @@ public class NEIClientUtils extends NEIServerUtils {
         }
 
         return getDecimalFormat().format(aNumber) + " L";
+    }
+
+    public static String formatChance(float chance) {
+        return CHANCE_FORMAT.format(chance);
     }
 
     public static void deleteHeldItem() {

@@ -221,7 +221,7 @@ public class BookmarkItem {
 
         for (RecipeIngredient res : items) {
             if (res.contains(stack)) {
-                amount += res.getAmount() * res.getChance();
+                amount += 1L * res.getAmount() * res.getChance();
             }
         }
 
