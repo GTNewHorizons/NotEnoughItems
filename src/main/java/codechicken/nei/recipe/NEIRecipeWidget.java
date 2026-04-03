@@ -469,7 +469,7 @@ public class NEIRecipeWidget extends Widget {
 
             if (hovered == null || !NEIClientConfig.showCycledIngredientsTooltip()
                     || this.permutations.getOrDefault(hovered, Collections.emptyList()).size() <= 1
-                    || getOutputs().indexOf(hovered) == -1) {
+                    || getOutputs().indexOf(hovered) != -1) {
                 this.acceptsFollowingTooltipLineHandler = null;
             } else if (this.acceptsFollowingTooltipLineHandler == null
                     || this.acceptsFollowingTooltipLineHandler.tooltipGUID != hovered) {
