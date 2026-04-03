@@ -70,7 +70,7 @@ public class RecipeChainDetails {
             return new BookmarkChainItem(
                     item,
                     amount,
-                    amount,
+                    item.getMultiplier(),
                     item.type == BookmarkItemType.INGREDIENT ? CalculatedType.INGREDIENT : CalculatedType.RESULT);
         }
 

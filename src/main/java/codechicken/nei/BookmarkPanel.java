@@ -942,12 +942,14 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         if (slot != null) {
 
             if (slot.getBookmarkItem().chance != PositionedStack.CHANCE_FULL) {
+                final String chanceText = NEIClientUtils
+                        .formatChance(slot.getBookmarkItem().chance / (float) PositionedStack.CHANCE_FULL);
                 currenttip.add(
                         1,
-                        EnumChatFormatting.DARK_GRAY + NEIClientUtils.translate(
-                                "recipe.chance",
-                                NEIClientUtils.formatNumber(
-                                        slot.getBookmarkItem().chance * 100f / PositionedStack.CHANCE_FULL)));
+                        EnumChatFormatting.GRAY + NEIClientUtils.translate(
+                                slot.getType() == BookmarkItemType.INGREDIENT ? "recipe.badge.chance.consume"
+                                        : "recipe.badge.chance.output",
+                                chanceText));
             }
 
             if (slot.getType() == BookmarkItemType.INGREDIENT && slot.getRecipeId() != null
