@@ -319,9 +319,19 @@ public class NEIRecipeWidget extends Widget {
     }
 
     protected void drawItem(PositionedStack pStack, int mouseX, int mouseY, int yShift, boolean input) {
-        final Badge badge = this.badgeCache.computeIfAbsent(pStack, k -> Badge.of(k, input));
-
         GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
+
+        if (this.handlerInfo.getShowBadge()) {
+            drawBadge(pStack, input);
+        }
+
+        if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
+            NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, 0x80FFFFFF));
+        }
+    }
+
+    protected void drawBadge(PositionedStack pStack, boolean input) {
+        final Badge badge = this.badgeCache.computeIfAbsent(pStack, k -> Badge.of(k, input));
 
         if (badge != null && !badge.getText().isEmpty()) {
             NEIClientUtils.drawNEIOverlayText(
@@ -331,10 +341,6 @@ public class NEIRecipeWidget extends Widget {
                     badge.getColor(),
                     true,
                     Alignment.TopLeft);
-        }
-
-        if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
-            NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, 0x80FFFFFF));
         }
     }
 
@@ -452,7 +458,7 @@ public class NEIRecipeWidget extends Widget {
         if (itemstack != null) {
             final PositionedStack hovered = getPositionedStackMouseOver(mousex, mousey);
 
-            if (hovered != null) {
+            if (hovered != null && this.handlerInfo.getShowBadge()) {
                 final Badge badge = this.badgeCache
                         .computeIfAbsent(hovered, k -> Badge.of(k, getOutputs().indexOf(k) == -1));
 
@@ -645,6 +651,7 @@ public class NEIRecipeWidget extends Widget {
             this.acceptsFollowingTooltipLineHandler = null;
             this.favoriteIndexes.clear();
             this.permutations.clear();
+            this.badgeCache.clear();
         }
 
         for (PositionedStack pStack : getInputs()) {

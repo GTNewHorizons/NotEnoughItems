@@ -56,6 +56,7 @@ public class DebugHandlerWidget extends Widget {
         public boolean useCustomScroll;
         public boolean showFavorites;
         public boolean showOverlay;
+        public boolean showBadge;
 
         private String csvLine;
 
@@ -70,6 +71,7 @@ public class DebugHandlerWidget extends Widget {
             this.useCustomScroll = info.getUseCustomScroll();
             this.showFavorites = info.getShowFavoritesButton();
             this.showOverlay = info.getShowOverlayButton();
+            this.showBadge = info.getShowBadge();
             this.csvLine = toCsvLine();
         }
 
@@ -80,6 +82,7 @@ public class DebugHandlerWidget extends Widget {
             this.info.setUseCustomScroll(this.useCustomScroll);
             this.info.setShowFavoritesButton(this.showFavorites);
             this.info.setShowOverlayButton(this.showOverlay);
+            this.info.setShowBadge(this.showBadge);
             NEIClientConfig.handlerOrdering.put(this.handlerKey, this.order);
         }
 
@@ -94,6 +97,7 @@ public class DebugHandlerWidget extends Widget {
             this.useCustomScroll = intOrDefault(parts[6], this.useCustomScroll ? 1 : 0) == 1;
             this.showFavorites = intOrDefault(parts[7], this.showFavorites ? 1 : 0) == 1;
             this.showOverlay = intOrDefault(parts[8], this.showOverlay ? 1 : 0) == 1;
+            this.showBadge = intOrDefault(parts[9], this.showBadge ? 1 : 0) == 1;
 
             apply();
         }
@@ -109,7 +113,8 @@ public class DebugHandlerWidget extends Widget {
                     String.valueOf(this.order),
                     String.valueOf(this.useCustomScroll ? 1 : 0),
                     String.valueOf(this.showFavorites ? 1 : 0),
-                    String.valueOf(this.showOverlay ? 1 : 0));
+                    String.valueOf(this.showOverlay ? 1 : 0),
+                    String.valueOf(this.showBadge ? 1 : 0));
         }
 
         public boolean isUnmodified() {
@@ -132,7 +137,7 @@ public class DebugHandlerWidget extends Widget {
     private static final int LABEL_WIDTH = 50;
 
     private static final String TOOLTIP_PREFIX = "debug.RecipeHandler.";
-    private static final String HEADER = "HandlerId,YShift,Height,Width,MultiWidgets,Order,UseCustomScroll,ShowFavorites,ShowOverlay";
+    private static final String HEADER = "HandlerId,YShift,Height,Width,MultiWidgets,Order,UseCustomScroll,ShowFavorites,ShowOverlay,ShowBadge";
     private final int[] COLORS = new int[] { 0x2200FF00, 0x22FF0000, 0x220000FF, 0x2200FFFF, 0x22FF00FF, 0x22FFFF00 };
 
     public static DebugHandlerWidget instance = new DebugHandlerWidget();
@@ -219,6 +224,11 @@ public class DebugHandlerWidget extends Widget {
 
         y = addCheckboxWidget("ShowOverlay", button -> {
             record.showOverlay = button.value;
+            saveHandlerInfoPatch();
+        }, y);
+
+        y = addCheckboxWidget("ShowBadge", button -> {
+            record.showBadge = button.value;
             saveHandlerInfoPatch();
         }, y);
 
@@ -391,6 +401,7 @@ public class DebugHandlerWidget extends Widget {
 
                 this.values.get("showfavorites").updateValue(String.valueOf(this.record.showFavorites));
                 this.values.get("showoverlay").updateValue(String.valueOf(this.record.showOverlay));
+                this.values.get("showbadge").updateValue(String.valueOf(this.record.showBadge));
 
                 updateOverride();
 
@@ -588,7 +599,7 @@ public class DebugHandlerWidget extends Widget {
                     final HandlerInfoRecord record = patches.computeIfAbsent(
                             handlerKey,
                             key -> new HandlerInfoRecord(key, GuiRecipeTab.handlerMap.get(key)));
-                    record.apply((line + ",null,null,null,null,null,null,null,null"));
+                    record.apply((line + ",null,null,null,null,null,null,null,null,null"));
                 }
 
             }

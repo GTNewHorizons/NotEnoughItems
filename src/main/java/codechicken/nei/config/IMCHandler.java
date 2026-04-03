@@ -103,7 +103,7 @@ public class IMCHandler {
         info.setUseCustomScroll(tag.hasKey("useCustomScroll") && tag.getBoolean("useCustomScroll"));
         info.setShowFavoritesButton(!tag.hasKey("showFavoritesButton") || tag.getBoolean("showFavoritesButton"));
         info.setShowOverlayButton(!tag.hasKey("showOverlayButton") || tag.getBoolean("showOverlayButton"));
-        info.setShowChanceInfo(!tag.hasKey("showChanceInfo") || tag.getBoolean("showChanceInfo"));
+        info.setShowBadge(!tag.hasKey("showBadge") || tag.getBoolean("showBadge"));
 
         GuiRecipeTab.handlerAdderFromIMC.remove(handler);
         GuiRecipeTab.handlerAdderFromIMC.put(handler, info);

@@ -30,7 +30,7 @@ public class HandlerInfo {
     private boolean multipleWidgetsAllowed = false;
     private boolean showFavoritesButton = true;
     private boolean showOverlayButton = true;
-    private boolean showChanceInfo = true;
+    private boolean showBadge = true;
     private boolean useCustomScroll = false;
 
     private ItemStack itemStack = null;
@@ -143,12 +143,12 @@ public class HandlerInfo {
         this.showOverlayButton = showOverlayButton;
     }
 
-    public boolean getShowChanceInfo() {
-        return this.showChanceInfo;
+    public boolean getShowBadge() {
+        return this.showBadge;
     }
 
-    public void setShowChanceInfo(boolean showChanceInfo) {
-        this.showChanceInfo = showChanceInfo;
+    public void setShowBadge(boolean showBadge) {
+        this.showBadge = showBadge;
     }
 
     public boolean getUseCustomScroll() {
@@ -225,8 +225,8 @@ public class HandlerInfo {
             return this;
         }
 
-        public Builder setShowChanceInfo(boolean showChanceInfo) {
-            this.info.showChanceInfo = showChanceInfo;
+        public Builder setShowBadge(boolean showBadge) {
+            this.info.showBadge = showBadge;
             return this;
         }
 
