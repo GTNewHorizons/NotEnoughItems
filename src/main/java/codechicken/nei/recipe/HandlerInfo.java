@@ -30,7 +30,7 @@ public class HandlerInfo {
     private boolean multipleWidgetsAllowed = false;
     private boolean showFavoritesButton = true;
     private boolean showOverlayButton = true;
-    private boolean showBadge = true;
+    private boolean showBadge = false;
     private boolean useCustomScroll = false;
 
     private ItemStack itemStack = null;
