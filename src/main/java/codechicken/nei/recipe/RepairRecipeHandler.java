@@ -120,10 +120,14 @@ public class RepairRecipeHandler extends TemplateRecipeHandler {
         final List<ItemStack> permutations = new ArrayList<>();
 
         for (ItemStack itemstack2 : ItemList.items) {
-            if (itemstack1.getItem().getIsRepairable(itemstack1, itemstack2)) {
-                final ItemStack right = itemstack2.copy();
-                right.stackSize = 4;
-                permutations.add(right);
+            try {
+                if (itemstack1.getItem().getIsRepairable(itemstack1, itemstack2)) {
+                    final ItemStack right = itemstack2.copy();
+                    right.stackSize = 4;
+                    permutations.add(right);
+                }
+            } catch (Exception e) {
+                // Catch exceptions from mods that don't properly implement getIsRepairable
             }
         }
 
