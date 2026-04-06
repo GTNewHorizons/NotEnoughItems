@@ -15,7 +15,6 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.opengl.GL11;
@@ -26,7 +25,6 @@ import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
-import codechicken.nei.NEIClientUtils.Alignment;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.Widget;
@@ -40,81 +38,10 @@ import codechicken.nei.util.NEIMouseUtils;
 
 public class NEIRecipeWidget extends Widget {
 
-    private static class Badge {
-
-        protected final String text;
-        protected final String tooltip;
-        protected int badgeTextColor = 0xFDD835;
-
-        public Badge(String text, String tooltip, int badgeTextColor) {
-            this.text = text;
-            this.tooltip = tooltip;
-            this.badgeTextColor = badgeTextColor;
-        }
-
-        public Badge(String text, String tooltip) {
-            this(
-                    text,
-                    tooltip,
-                    getHexValue(NEIClientUtils.getTextColorOrDefault("recipe.badge.color", "0xFFAA00"), 0xFFAA00));
-        }
-
-        public String getText() {
-            return this.text;
-        }
-
-        public String getTooltip() {
-            return this.tooltip;
-        }
-
-        public int getColor() {
-            return this.badgeTextColor;
-        }
-
-        private static int getHexValue(String color, int defaultValue) {
-            try {
-                return (int) Long.parseLong(color.replace("0x", ""), 16);
-            } catch (NumberFormatException e) {
-                return defaultValue;
-            }
-        }
-
-        public static Badge of(PositionedStack pStack, boolean input) {
-            final String badge = pStack.getCustomBadge();
-
-            if (badge != null) {
-                return badge.isEmpty() ? null : new Badge(badge, "");
-            }
-
-            if (input) {
-                if (StackInfo.getAmount(pStack.item) == 0) {
-                    return new Badge(
-                            NEIClientUtils.translate("recipe.badge.nc"),
-                            NEIClientUtils.translate("recipe.badge.nc.tooltip"));
-                } else if (pStack.getChance() == 0) {
-                    return new Badge(
-                            NEIClientUtils.translate("recipe.badge.ncp"),
-                            NEIClientUtils.translate("recipe.badge.ncp.tooltip"));
-                } else if (pStack.getChance() != PositionedStack.CHANCE_FULL) {
-                    final String chanceText = NEIClientUtils
-                            .formatChance(pStack.getChance() / (float) PositionedStack.CHANCE_FULL);
-                    return new Badge(chanceText, NEIClientUtils.translate("recipe.badge.chance.consume", chanceText));
-                }
-            } else if (pStack.getChance() != PositionedStack.CHANCE_FULL) {
-                final String chanceText = NEIClientUtils
-                        .formatChance(pStack.getChance() / (float) PositionedStack.CHANCE_FULL);
-                return new Badge(chanceText, NEIClientUtils.translate("recipe.badge.chance.output", chanceText));
-            }
-
-            return null;
-        }
-
-    }
-
     protected AcceptsFollowingTooltipLineHandler acceptsFollowingTooltipLineHandler;
     protected final Map<PositionedStack, Integer> favoriteIndexes = new WeakHashMap<>();
     protected final Map<PositionedStack, List<ItemStack>> permutations = new WeakHashMap<>();
-    protected final Map<PositionedStack, Badge> badgeCache = new WeakHashMap<>();
+    protected final Map<PositionedStack, List<Badge>> badgeCache = new WeakHashMap<>();
     protected int favoriteRevision = -1;
     protected boolean update = true;
     protected int cycleticks = 0;
@@ -330,17 +257,46 @@ public class NEIRecipeWidget extends Widget {
         }
     }
 
-    protected void drawBadge(PositionedStack pStack, boolean input) {
-        final Badge badge = this.badgeCache.computeIfAbsent(pStack, k -> Badge.of(k, input));
+    protected List<Badge> getBadges(PositionedStack pStack, boolean input) {
 
-        if (badge != null && !badge.getText().isEmpty()) {
-            NEIClientUtils.drawNEIOverlayText(
-                    badge.getText(),
-                    new Rectangle4i(pStack.relx, pStack.rely, 16, 16),
-                    0.5f,
-                    badge.getColor(),
-                    true,
-                    Alignment.TopLeft);
+        return this.badgeCache.computeIfAbsent(pStack, k -> {
+            final List<Badge> badges = k.getBadges();
+
+            if (badges == null) {
+                final String customBadge = k.getCustomBadge();
+
+                if (customBadge != null) {
+                    return customBadge.isEmpty() ? Collections.emptyList()
+                            : Collections.singletonList(new Badge(customBadge));
+                }
+
+                if (input) {
+                    if (StackInfo.getAmount(pStack.item) == 0) {
+                        return Collections.singletonList(Badge.notConsumed());
+                    } else if (pStack.getChance() == 0) {
+                        return Collections.singletonList(Badge.notConsumedParallel());
+                    } else if (pStack.getChance() != PositionedStack.CHANCE_FULL) {
+                        return Collections.singletonList(
+                                Badge.consumeChance(pStack.getChance() / (float) PositionedStack.CHANCE_FULL));
+                    }
+                } else if (pStack.getChance() != PositionedStack.CHANCE_FULL) {
+                    return Collections.singletonList(
+                            Badge.outputChance(pStack.getChance() / (float) PositionedStack.CHANCE_FULL));
+                }
+
+                return Collections.emptyList();
+            }
+
+            return badges;
+        });
+
+    }
+
+    protected void drawBadge(PositionedStack pStack, boolean input) {
+        final List<Badge> badges = getBadges(pStack, input);
+
+        for (Badge badge : badges) {
+            badge.draw(new Rectangle4i(pStack.relx, pStack.rely, 16, 16));
         }
     }
 
@@ -459,11 +415,12 @@ public class NEIRecipeWidget extends Widget {
             final PositionedStack hovered = getPositionedStackMouseOver(mousex, mousey);
 
             if (hovered != null && this.handlerInfo.getShowBadge()) {
-                final Badge badge = this.badgeCache
-                        .computeIfAbsent(hovered, k -> Badge.of(k, getOutputs().indexOf(k) == -1));
+                final List<Badge> badges = getBadges(hovered, getOutputs().indexOf(hovered) == -1);
 
-                if (badge != null && !badge.getTooltip().isEmpty()) {
-                    tooltip.add(EnumChatFormatting.GRAY + badge.getTooltip());
+                for (Badge badge : badges) {
+                    if (badge.getTooltip() != null && !badge.getTooltip().isEmpty()) {
+                        tooltip.addAll(badge.getTooltip());
+                    }
                 }
             }
 

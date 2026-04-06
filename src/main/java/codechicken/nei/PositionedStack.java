@@ -13,6 +13,7 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.recipe.Badge;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.StackInfo;
 
@@ -86,12 +87,20 @@ public class PositionedStack {
         for (ItemStack item : items) if (item.stackSize > i) item.stackSize = i;
     }
 
+    public List<Badge> getBadges() {
+        return null;
+    }
+
     public String getCustomBadge() {
         return null;
     }
 
     public int getChance() {
         return this.chance;
+    }
+
+    public void setChance(int chance) {
+        this.chance = chance;
     }
 
     public PositionedStack copy() {
