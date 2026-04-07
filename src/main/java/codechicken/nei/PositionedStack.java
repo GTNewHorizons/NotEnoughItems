@@ -91,10 +91,6 @@ public class PositionedStack {
         return null;
     }
 
-    public String getCustomBadge() {
-        return null;
-    }
-
     public int getChance() {
         return this.chance;
     }
