@@ -73,6 +73,7 @@ public class IMCForNEI {
 
         API.registerRecipeHandler(new ProfilerRecipeHandler(true));
         API.registerUsageHandler(new ProfilerRecipeHandler(false));
+        sendProfilerRecipeHandler();
     }
 
     private static void sendHandler(String aName, String aBlock) {
@@ -130,6 +131,19 @@ public class IMCForNEI {
         aNBT.setInteger("imageWidth", 16);
         aNBT.setInteger("imageHeight", 16);
         aNBT.setInteger("handlerHeight", 65);
+        aNBT.setInteger("handlerWidth", 166);
+        aNBT.setBoolean("multipleWidgetsAllowed", true);
+        aNBT.setInteger("yShift", 0);
+        FMLInterModComms.sendMessage("NotEnoughItems", "registerHandlerInfo", aNBT);
+    }
+
+    private static void sendProfilerRecipeHandler() {
+        NBTTagCompound aNBT = new NBTTagCompound();
+        aNBT.setString("handler", "codechicken.nei.recipe.ProfilerRecipeHandler");
+        aNBT.setString("modName", "Not Enough Items");
+        aNBT.setString("modId", "nei");
+        aNBT.setString("itemName", "minecraft:clock");
+        aNBT.setInteger("handlerHeight", 16);
         aNBT.setInteger("handlerWidth", 166);
         aNBT.setBoolean("multipleWidgetsAllowed", true);
         aNBT.setInteger("yShift", 0);

@@ -1,16 +1,24 @@
 package codechicken.nei.recipe;
 
-import static codechicken.lib.gui.GuiDraw.drawString;
 import static codechicken.lib.gui.GuiDraw.getStringWidth;
 
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.core.TaskProfiler.ProfilerResult;
+import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
@@ -20,12 +28,104 @@ import codechicken.nei.util.AsyncTaskProfiler;
 
 public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
 
-    private static final AsyncTaskProfiler profiler = new AsyncTaskProfiler();
+    public static class RecipeProfiler {
 
-    public static AsyncTaskProfiler getProfiler() {
-        return profiler;
+        private final AsyncTaskProfiler profiler = new AsyncTaskProfiler();
+        private final Map<String, IRecipeHandler> handlerMap = new ConcurrentHashMap<>();
+        private final AtomicInteger idCounter = new AtomicInteger(0);
+        private boolean isProfiling = false;
+
+        public <T extends IRecipeHandler> ArrayList<T> start(String profilerSection, Supplier<ArrayList<T>> callback) {
+            profilerInfos.clear();
+            this.handlerMap.clear();
+            this.idCounter.set(0);
+
+            if (NEIClientConfig.isProfileRecipeEnabled()) {
+                this.profiler.clear();
+                this.profiler.start(EnumChatFormatting.getTextWithoutFormattingCodes(profilerSection));
+                this.isProfiling = true;
+
+                try {
+                    return callback.get();
+                } finally {
+                    this.profiler.end();
+                    this.isProfiling = false;
+
+                    final List<ProfilerResult> results = this.profiler.getResults();
+
+                    results.sort(
+                            Comparator.comparingLong((ProfilerResult profilerResult) -> profilerResult.time)
+                                    .reversed());
+
+                    for (ProfilerResult profilerResult : results) {
+                        profilerInfos.add(new ProfilerInfo(handlerMap.get(profilerResult.name), profilerResult));
+                    }
+                }
+
+            } else {
+                return callback.get();
+            }
+        }
+
+        public <T extends IRecipeHandler> T profile(T handler, Supplier<T> callback) {
+            if (this.isProfiling && !(handler instanceof ProfilerRecipeHandler)) {
+                final String id = String.valueOf(idCounter.incrementAndGet());
+                this.handlerMap.put(id, handler);
+                this.profiler.clearCurrent();
+                this.profiler.start(id);
+
+                try {
+                    T result = callback.get();
+
+                    if (result != null) {
+                        this.handlerMap.put(id, result);
+                    }
+
+                    return result;
+                } finally {
+                    this.profiler.end();
+                }
+            } else {
+                return callback.get();
+            }
+        }
+
     }
 
+    protected static class ProfilerInfo {
+
+        public final String modName;
+        public final IRecipeHandler handler;
+        public final List<String> tooltip = new ArrayList<>();
+        public final String title;
+        public final String time;
+
+        public ProfilerInfo(IRecipeHandler handler, ProfilerResult result) {
+            this.handler = handler;
+            this.time = (result.time < 1_000_000 ? (result.time / 1_000) + "us" : (result.time / 1_000_000) + "ms");
+
+            if (handler == null) {
+                this.title = result.name;
+                this.modName = "Unknown";
+            } else {
+                final HandlerInfo handlerInfo = GuiRecipeTab.getHandlerInfo(handler);
+                final String handlerName = handlerInfo != null ? handlerInfo.getHandlerName() : "Unknown";
+
+                this.title = EnumChatFormatting.getTextWithoutFormattingCodes(handler.getRecipeName());
+                this.modName = handlerInfo != null ? handlerInfo.getModName() : "Unknown";
+
+                this.tooltip.add(EnumChatFormatting.GRAY + "HandlerName: " + handlerName);
+                this.tooltip.add(EnumChatFormatting.GRAY + "HandlerID: " + handler.getOverlayIdentifier());
+                this.tooltip.add(EnumChatFormatting.GRAY + "HandlerOrder: " + NEIClientConfig.getHandlerOrder(handler));
+            }
+
+        }
+
+    }
+
+    public static final RecipeProfiler recipeProfiler = new RecipeProfiler();
+    protected static final List<ProfilerInfo> profilerInfos = new ArrayList<>();
+    private static final int WIDTH = 166;
     private final boolean crafting;
 
     public ProfilerRecipeHandler(boolean crafting) {
@@ -39,11 +139,7 @@ public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
 
     @Override
     public int numRecipes() {
-        if (!NEIClientConfig.isProfileRecipeEnabled()) return 0;
-
-        return (int) Math.ceil(
-                ((crafting ? GuiCraftingRecipe.craftinghandlers.size() : GuiUsageRecipe.usagehandlers.size()) - 1)
-                        / 6D);
+        return NEIClientConfig.isProfileRecipeEnabled() ? Math.max(1, profilerInfos.size()) : 0;
     }
 
     @Override
@@ -51,21 +147,32 @@ public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
 
     @Override
     public void drawForeground(int recipe) {
-        List<ProfilerResult> results = profiler.getResults();
-        results.removeIf(profilerResult -> getRecipeName().equals(profilerResult.name));
+        if (recipe >= profilerInfos.size()) return;
 
-        results.sort((o1, o2) -> o1.time < o2.time ? 1 : -1);
+        final ProfilerInfo info = profilerInfos.get(recipe);
+        final int valueWidth = getStringWidth(info.time);
+        final IRecipeHandler handler = info.handler;
+        final boolean hovered = handler != null && handler.numRecipes() > 0
+                && isHandlerTitleHovered(recipe, GuiDraw.getMousePosition());
 
-        for (int i = recipe * 6; i < results.size() && i < (recipe + 1) * 6; i++) {
-            ProfilerResult r = results.get(i);
-            int y = (i % 6) * 20 + 6;
-            drawString(r.name, 8, y, 0xFF808080, false);
+        GuiDraw.drawString(
+                NEIClientUtils.cropText(GuiDraw.fontRenderer, info.title, WIDTH - valueWidth - 2),
+                0,
+                3,
+                hovered ? 0xFFFFDD00 : 0xFF808080,
+                false);
+        GuiDraw.drawString(info.time, WIDTH - valueWidth, 3, 0xFF404040, false);
+    }
 
-            String s;
-            if (r.time < 1000000L) s = (r.time / 1000) + "us";
-            else s = (r.time / 1000000) + "ms";
+    private boolean isHandlerTitleHovered(int recipe, Point mouse) {
+        final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
 
-            drawString(s, 156 - getStringWidth(s), y + 10, 0xFF404040, false);
+        if (guiContainer instanceof GuiRecipe guiRecipe) {
+            final Point recipePosition = guiRecipe.getRecipePosition(recipe);
+            return new Rectangle(recipePosition.x, recipePosition.y, WIDTH, 16)
+                    .contains(mouse.x - guiContainer.guiLeft, mouse.y - guiContainer.guiTop);
+        } else {
+            return false;
         }
     }
 
@@ -104,6 +211,22 @@ public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
 
     @Override
     public List<String> handleTooltip(GuiRecipe<?> gui, List<String> currenttip, int recipe) {
+        if (recipe >= profilerInfos.size()) return currenttip;
+
+        final ProfilerInfo r = profilerInfos.get(recipe);
+
+        currenttip.add(r.title + ": " + r.time);
+
+        if (r.handler != null) {
+            currenttip.add(EnumChatFormatting.GRAY + "Recipes: " + r.handler.numRecipes() + GuiDraw.TOOLTIP_LINESPACE);
+
+            if (NEIClientUtils.shiftKey()) {
+                currenttip.addAll(r.tooltip);
+            }
+
+            currenttip.add(EnumChatFormatting.BLUE + r.modName);
+        }
+
         return currenttip;
     }
 
@@ -119,6 +242,23 @@ public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
 
     @Override
     public boolean mouseClicked(GuiRecipe<?> gui, int button, int recipe) {
+        if (recipe >= profilerInfos.size()) return false;
+
+        final ProfilerInfo r = profilerInfos.get(recipe);
+
+        if (r.handler != null) {
+            final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
+
+            if (guiContainer instanceof GuiRecipe guiRecipe) {
+                int index = guiRecipe.currenthandlers.indexOf(r.handler);
+
+                if (index != -1) {
+                    guiRecipe.setRecipePage(index);
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 

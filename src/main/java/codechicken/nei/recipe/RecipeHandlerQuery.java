@@ -12,10 +12,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import codechicken.core.TaskProfiler;
 import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
-import codechicken.nei.util.AsyncTaskProfiler;
 
 public class RecipeHandlerQuery<T extends IRecipeHandler> {
 
@@ -34,30 +32,22 @@ public class RecipeHandlerQuery<T extends IRecipeHandler> {
     }
 
     public ArrayList<T> runWithProfiling(String profilerSection) {
-        TaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
+        return ProfilerRecipeHandler.recipeProfiler.start(profilerSection, () -> {
 
-        // Save the current config state here, as it may be altered
-        // if getRecipeHandlesParallel took so long and player accidentally changed config.
-        boolean profileRecipes = NEIClientConfig.isProfileRecipeEnabled();
-        if (profileRecipes) {
-            profiler.clear();
-            profiler.start(profilerSection);
-        }
+            try {
+                ArrayList<T> handlers = getRecipeHandlersParallel();
 
-        try {
-            ArrayList<T> handlers = getRecipeHandlersParallel();
-
-            if (error) {
+                if (error) {
+                    displayRecipeLookupError();
+                }
+                return handlers;
+            } catch (InterruptedException | ExecutionException e) {
+                printLog(e);
                 displayRecipeLookupError();
+                return new ArrayList<>(0);
             }
-            return handlers;
-        } catch (InterruptedException | ExecutionException e) {
-            printLog(e);
-            displayRecipeLookupError();
-            return new ArrayList<>(0);
-        } finally {
-            if (profileRecipes) profiler.end();
-        }
+
+        });
     }
 
     private ArrayList<T> getRecipeHandlersParallel() throws InterruptedException, ExecutionException {
@@ -77,40 +67,42 @@ public class RecipeHandlerQuery<T extends IRecipeHandler> {
 
     private ArrayList<T> getSerialHandlersWithRecipes() {
 
-        return serialRecipeHandlers.stream().map(handler -> {
-            AsyncTaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
-            profiler.clearCurrent();
-            profiler.start(handler.getRecipeName());
-            try {
-                return isHidden(handler) ? null : recipeHandlerFunction.apply(handler);
-            } catch (Throwable t) {
-                printLog(t);
-                error = true;
-                return null;
-            } finally {
-                profiler.end();
-            }
-        }).filter(h -> h != null && h.numRecipes() > 0 && SearchRecipeHandler.findFirst(h, (recipeIndex) -> true) != -1)
+        return serialRecipeHandlers.stream()
+                .map(handler -> ProfilerRecipeHandler.recipeProfiler.profile(handler, () -> {
+
+                    try {
+                        return isHidden(handler) ? null : recipeHandlerFunction.apply(handler);
+                    } catch (Throwable t) {
+                        printLog(t);
+                        error = true;
+                        return null;
+                    }
+
+                }))
+                .filter(
+                        h -> h != null && h.numRecipes() > 0
+                                && SearchRecipeHandler.findFirst(h, (recipeIndex) -> true) != -1)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private ArrayList<T> getHandlersWithRecipes() throws InterruptedException, ExecutionException {
 
-        return ItemList.forkJoinPool.submit(() -> recipeHandlers.parallelStream().map(handler -> {
-            AsyncTaskProfiler profiler = ProfilerRecipeHandler.getProfiler();
-            profiler.clearCurrent();
-            profiler.start(handler.getRecipeName());
-            try {
-                return isHidden(handler) ? null : recipeHandlerFunction.apply(handler);
-            } catch (Throwable t) {
-                printLog(t);
-                error = true;
-                return null;
-            } finally {
-                profiler.end();
-            }
-        }).filter(h -> h != null && h.numRecipes() > 0 && SearchRecipeHandler.findFirst(h, (recipeIndex) -> true) != -1)
-                .collect(Collectors.toCollection(ArrayList::new))).get();
+        return ItemList.forkJoinPool.submit(
+                () -> recipeHandlers.parallelStream()
+                        .map(handler -> ProfilerRecipeHandler.recipeProfiler.profile(handler, () -> {
+                            try {
+                                return isHidden(handler) ? null : recipeHandlerFunction.apply(handler);
+                            } catch (Throwable t) {
+                                printLog(t);
+                                error = true;
+                                return null;
+                            }
+                        }))
+                        .filter(
+                                h -> h != null && h.numRecipes() > 0
+                                        && SearchRecipeHandler.findFirst(h, (recipeIndex) -> true) != -1)
+                        .collect(Collectors.toCollection(ArrayList::new)))
+                .get();
     }
 
     private boolean isHidden(T handler) {

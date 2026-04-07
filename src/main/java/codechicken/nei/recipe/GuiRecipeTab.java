@@ -23,12 +23,12 @@ import net.minecraftforge.common.MinecraftForge;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIClientConfig;
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.Widget;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.event.NEIRegisterHandlerInfosEvent;
@@ -139,18 +139,16 @@ public abstract class GuiRecipeTab extends Widget {
 
     public void addTooltips(List<String> tooltip) {
         tooltip.add(handler.getRecipeTabName().trim());
-
         String handlerMod = getHandlerMod(handlerName, handlerID);
-        tooltip.add(EnumChatFormatting.BLUE + handlerMod);
 
-        boolean shiftHeld = Keyboard.getEventKeyState()
-                && (Keyboard.getEventKey() == Keyboard.KEY_LSHIFT || Keyboard.getEventKey() == Keyboard.KEY_RSHIFT);
-        if (handlerMod.equals("Unknown") || shiftHeld) {
+        if (handlerMod.equals("Unknown") || NEIClientUtils.shiftKey()) {
             tooltip.add("");
-            tooltip.add("HandlerName: " + handlerName);
-            tooltip.add("HandlerID: " + handlerID);
-            tooltip.add("HandlerOrder: " + NEIClientConfig.getHandlerOrder(handler));
+            tooltip.add(EnumChatFormatting.GRAY + "HandlerName: " + handlerName);
+            tooltip.add(EnumChatFormatting.GRAY + "HandlerID: " + handlerID);
+            tooltip.add(EnumChatFormatting.GRAY + "HandlerOrder: " + NEIClientConfig.getHandlerOrder(handler));
         }
+
+        tooltip.add(EnumChatFormatting.BLUE + handlerMod);
     }
 
     public abstract boolean onButtonPress(boolean rightclick);
