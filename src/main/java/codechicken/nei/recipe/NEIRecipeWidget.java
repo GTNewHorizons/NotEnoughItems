@@ -263,12 +263,6 @@ public class NEIRecipeWidget extends Widget {
             final List<Badge> badges = k.getBadges();
 
             if (badges == null) {
-                final String customBadge = k.getCustomBadge();
-
-                if (customBadge != null) {
-                    return customBadge.isEmpty() ? Collections.emptyList()
-                            : Collections.singletonList(new Badge(customBadge));
-                }
 
                 if (input) {
                     if (StackInfo.getAmount(pStack.item) == 0) {

@@ -22,8 +22,8 @@ public class Badge {
         this.text = text;
         this.tooltip = Arrays.stream(tooltip).map(t -> EnumChatFormatting.GRAY + t).collect(Collectors.toList());
         this.badgeTextColor = getHexValue(
-                NEIClientUtils.getTextColorOrDefault("recipe.badge.color", "0xFFAA00"),
-                0xFFAA00);
+                NEIClientUtils.getTextColorOrDefault("recipe.badge.color", "0xFDD835"),
+                0xFDD835);
     }
 
     public String getText() {
