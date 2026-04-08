@@ -1,6 +1,7 @@
 package codechicken.nei;
 
 import static codechicken.lib.gui.GuiDraw.getMousePosition;
+import static codechicken.nei.NEIClientConfig.canCheatItem;
 
 import java.awt.Point;
 import java.util.LinkedList;
@@ -151,6 +152,8 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
                 && slot != null
                 && slot.getStack() != null
                 && slot.isItemValid(slot.getStack())) {
+            if (!canCheatItem(slot.getStack())) return false;
+
             NEIClientUtils.cheatItem(slot.getStack(), button, 1);
             return true;
         }
