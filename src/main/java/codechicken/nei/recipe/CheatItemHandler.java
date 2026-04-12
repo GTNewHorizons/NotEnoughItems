@@ -1,6 +1,9 @@
 package codechicken.nei.recipe;
 
+import static com.gtnewhorizon.gtnhlib.ClientProxy.mc;
+
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
@@ -30,9 +33,16 @@ public class CheatItemHandler extends INEIGuiAdapter {
                         .min(contents + add, Math.min(overSlot.getSlotStackLimit(), draggedStack.getMaxStackSize()));
 
                 if (total > contents) {
-                    NEIClientUtils
-                            .setSlotContents(overSlot.slotNumber, NEIServerUtils.copyStack(draggedStack, total), true);
-                    NEICPH.sendGiveItem(NEIServerUtils.copyStack(draggedStack, total), false, false);
+                    if (mc.currentScreen instanceof GuiContainerCreative gcc) {
+                        mc.thePlayer.inventory.addItemStackToInventory(draggedStack);
+                        gcc.inventorySlots.detectAndSendChanges();
+                    } else {
+                        NEIClientUtils.setSlotContents(
+                                overSlot.slotNumber,
+                                NEIServerUtils.copyStack(draggedStack, total),
+                                true);
+                        NEICPH.sendGiveItem(NEIServerUtils.copyStack(draggedStack, total), false, false);
+                    }
                     draggedStack.stackSize -= total - contents;
                 }
 
