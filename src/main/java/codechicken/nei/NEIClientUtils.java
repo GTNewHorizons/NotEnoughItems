@@ -274,13 +274,16 @@ public class NEIClientUtils extends NEIServerUtils {
                     if (given >= stack.stackSize) break;
                 }
                 if (given > 0) {
-                    if (mc().currentScreen instanceof GuiContainerCreative gcc)
+                    if (mc().currentScreen instanceof GuiContainerCreative gcc) {
+                        mc().thePlayer.inventory.addItemStackToInventory(stack);
                         gcc.inventorySlots.detectAndSendChanges();
-                    NEICPH.sendGiveItem(copyStack(typestack, given), false, false);
+                    } else NEICPH.sendGiveItem(copyStack(typestack, given), false, false);
                 }
             } else {
-                if (mc().currentScreen instanceof GuiContainerCreative gcc) gcc.inventorySlots.detectAndSendChanges();
-                NEICPH.sendGiveItem(stack, infinite, true);
+                if (mc().currentScreen instanceof GuiContainerCreative gcc) {
+                    mc().thePlayer.inventory.addItemStackToInventory(stack);
+                    gcc.inventorySlots.detectAndSendChanges();
+                } else NEICPH.sendGiveItem(stack, infinite, true);
             }
         } else {
             for (int given = 0; given < stack.stackSize;) {
