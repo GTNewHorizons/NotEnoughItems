@@ -1,12 +1,12 @@
 package codechicken.nei.mixins;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C0EPacketClickWindow;
 
@@ -75,8 +75,9 @@ public class MixinMinecraft_GuiContainerCreative {
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/entity/player/InventoryPlayer;setItemStack(Lnet/minecraft/item/ItemStack;)V"))
-    private void nei$setServerHandItem(InventoryPlayer instance, ItemStack itemStack) {
-        if (itemStack != null && GuiScreen.isShiftKeyDown()) itemStack.stackSize = itemStack.getMaxStackSize();
+    private void nei$setServerHandItem(InventoryPlayer instance, ItemStack itemStack, Slot slotIn, int slotId,
+            int clickedButton, int clickType) {
+        if (itemStack != null && clickType == 1) itemStack.stackSize = itemStack.getMaxStackSize();
         NEIClientUtils.setSlotContents(-999, itemStack, false);
     }
 
