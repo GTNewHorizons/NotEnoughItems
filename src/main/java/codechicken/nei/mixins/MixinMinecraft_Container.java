@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(Container.class)
 public class MixinMinecraft_Container {
 
+    // Disable client -> server slots sync
     @Redirect(
             method = "slotClick",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/inventory/Container;detectAndSendChanges()V"))
