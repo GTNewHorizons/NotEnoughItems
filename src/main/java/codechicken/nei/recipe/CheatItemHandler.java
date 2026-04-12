@@ -33,16 +33,10 @@ public class CheatItemHandler extends INEIGuiAdapter {
                         .min(contents + add, Math.min(overSlot.getSlotStackLimit(), draggedStack.getMaxStackSize()));
 
                 if (total > contents) {
-                    if (mc.currentScreen instanceof GuiContainerCreative gcc) {
-                        mc.thePlayer.inventory.addItemStackToInventory(draggedStack);
-                        gcc.inventorySlots.detectAndSendChanges();
-                    } else {
-                        NEIClientUtils.setSlotContents(
-                                overSlot.slotNumber,
-                                NEIServerUtils.copyStack(draggedStack, total),
-                                true);
-                        NEICPH.sendGiveItem(NEIServerUtils.copyStack(draggedStack, total), false, false);
-                    }
+                    final int slotNumber = mc.currentScreen instanceof GuiContainerCreative ? overSlot.getSlotIndex()
+                            : overSlot.slotNumber;
+                    NEIClientUtils.setSlotContents(slotNumber, NEIServerUtils.copyStack(draggedStack, total), true);
+                    NEICPH.sendGiveItem(NEIServerUtils.copyStack(draggedStack, total), false, false);
                     draggedStack.stackSize -= total - contents;
                 }
 
