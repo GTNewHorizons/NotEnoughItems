@@ -2,12 +2,16 @@
   "required": true,
   "minVersion": "0.8.5-GTNH",
   "package": "codechicken.nei.mixins",
-  "refmap": "mixins.mymodid.refmap.json",
+  "refmap": "mixins.NotEnoughItems.refmap.json",
   "target": "@env(DEFAULT)",
   "compatibilityLevel": "JAVA_8",
   "client": [
     "MixinMinecraft_GuiContainerCreative",
-    "MixinMinecraft_GuiContainerCreative$MixinMinecraft_GuiContainerCreative_ContainerCreative"
+    "MixinMinecraft_GuiContainerCreative_ContainerCreative",
+    "MixinMinecraft_PlayerControllerMP"
   ],
-  "server": []
+  "server": [],
+  "mixins": [
+    "MixinMinecraft_Container"
+  ]
 }
