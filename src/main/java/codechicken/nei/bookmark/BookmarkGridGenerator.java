@@ -66,10 +66,14 @@ public class BookmarkGridGenerator {
         while (itemIndex < size && absoluteSlotIndex != -1) {
             final BookmarkItem bookmarkItem = this.grid.getBookmarkItem(itemIndex);
             final BookmarkGroup group = this.grid.getGroup(bookmarkItem.groupId);
+            final boolean isCollapsedRecipeAnchor = group.crafting != null && bookmarkItem.recipeId != null
+                    && bookmarkItem.type != BookmarkItemType.INGREDIENT
+                    && group.collapsedRecipes.contains(bookmarkItem.recipeId);
 
-            if (group.crafting != null && (!group.crafting.calculatedItems.containsKey(itemIndex)
-                    || bookmarkItem.recipeId != null && !bookmarkItem.recipeId
-                            .equals(group.crafting.itemToRecipe.getOrDefault(itemIndex, bookmarkItem.recipeId)))) {
+            if (group.crafting != null && !isCollapsedRecipeAnchor
+                    && (!group.crafting.calculatedItems.containsKey(itemIndex)
+                            || bookmarkItem.recipeId != null && !bookmarkItem.recipeId.equals(
+                                    group.crafting.itemToRecipe.getOrDefault(itemIndex, bookmarkItem.recipeId)))) {
                 itemIndex++;
             } else if (group.collapsed) {
                 final List<Integer> results = getGroupResults(bookmarkItem.groupId, itemIndex, size);
