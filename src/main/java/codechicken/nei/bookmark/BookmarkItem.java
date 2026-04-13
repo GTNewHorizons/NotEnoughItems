@@ -80,6 +80,7 @@ public class BookmarkItem {
 
         public BookmarkItem build() {
             final Map<String, ItemStack> perms;
+            long multiplier = 0;
 
             if (this.permutations != null) {
                 perms = this.permutations;
@@ -97,9 +98,15 @@ public class BookmarkItem {
                 perms = Builder.generatePermutations(this.stack);
             }
 
+            if (this.multiplier >= 0) {
+                multiplier = this.multiplier;
+            } else if (this.factor > 0) {
+                multiplier = StackInfo.getAmount(this.stack) / this.factor;
+            }
+
             return new BookmarkItem(
                     this.groupId,
-                    this.multiplier >= 0 ? this.multiplier : StackInfo.getAmount(this.stack) / this.factor,
+                    multiplier,
                     this.factor,
                     this.chance,
                     this.stack,
