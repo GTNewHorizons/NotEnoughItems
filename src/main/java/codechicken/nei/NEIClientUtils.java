@@ -32,7 +32,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.player.EntityPlayer;
@@ -273,18 +272,8 @@ public class NEIClientUtils extends NEIServerUtils {
                     given += qty;
                     if (given >= stack.stackSize) break;
                 }
-                if (given > 0) {
-                    if (mc().currentScreen instanceof GuiContainerCreative gcc) {
-                        mc().thePlayer.inventory.addItemStackToInventory(stack);
-                        gcc.inventorySlots.detectAndSendChanges();
-                    } else NEICPH.sendGiveItem(copyStack(typestack, given), false, false);
-                }
-            } else {
-                if (mc().currentScreen instanceof GuiContainerCreative gcc) {
-                    mc().thePlayer.inventory.addItemStackToInventory(stack);
-                    gcc.inventorySlots.detectAndSendChanges();
-                } else NEICPH.sendGiveItem(stack, infinite, true);
-            }
+                if (given > 0) NEICPH.sendGiveItem(copyStack(typestack, given), false, false);
+            } else NEICPH.sendGiveItem(stack, infinite, true);
         } else {
             for (int given = 0; given < stack.stackSize;) {
                 int qty = Math.min(stack.stackSize - given, stack.getMaxStackSize());
