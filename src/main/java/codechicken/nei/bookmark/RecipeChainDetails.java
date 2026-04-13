@@ -185,7 +185,7 @@ public class RecipeChainDetails {
             if (itemIndex >= 0 && this.calculatedItems.containsKey(itemIndex)) {
                 final BookmarkItem item = entry.getValue();
                 if (this.recipeInMiddle.contains(item.recipeId)) {
-                    this.calculatedItems.get(itemIndex).setRealMultiplier(item.getMultiplier() - 1);
+                    this.calculatedItems.get(itemIndex).setRealMultiplier(Math.max(0, item.getMultiplier() - 1));
                 } else {
                     this.calculatedItems.get(itemIndex).setRealMultiplier(item.getMultiplier());
                 }
