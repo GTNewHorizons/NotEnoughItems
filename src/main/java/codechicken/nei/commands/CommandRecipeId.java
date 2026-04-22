@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChatStyle;
@@ -31,7 +29,6 @@ import com.google.gson.JsonParser;
 
 import codechicken.core.CommonUtils;
 import codechicken.nei.ClientHandler;
-import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.recipe.GuiCraftingRecipe;
@@ -39,6 +36,7 @@ import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.ICraftingHandler;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.RecipeHandlerQuery;
+import codechicken.nei.recipe.TemplateRecipeHandler;
 import codechicken.nei.util.NBTJson;
 
 public class CommandRecipeId extends CommandBase {
@@ -150,36 +148,31 @@ public class CommandRecipeId extends CommandBase {
             sendChatInfoMessage(sender, "nei.chat.recipeid.dump.start");
 
             try (BufferedWriter writer = Files.newBufferedWriter(currFile.toPath(), StandardCharsets.UTF_8)) {
-                int total = ItemList.items.size();
+                final ArrayList<ICraftingHandler> handlers = getCraftingHandlers();
+                final int total = handlers.size();
                 int count = 0;
 
-                for (ItemStack stack : ItemList.items) {
-
-                    if (count % 1000 == 0) {
-                        NEIClientConfig.logger.info(
-                                "({}/{}). Processing {} crafting recipes...",
-                                count,
-                                total,
-                                stack.getDisplayName());
-                    }
-
+                for (ICraftingHandler handler : handlers) {
                     count++;
+                    NEIClientConfig.logger.info(
+                            "({}/{}). Processing {} handler recipes...",
+                            count,
+                            total,
+                            GuiRecipeTab.getHandlerInfo(handler).getHandlerName());
 
-                    for (ICraftingHandler handler : getCraftingHandlers(stack)) {
-                        for (int index = 0, num = handler.numRecipes(); index < num; index++) {
-                            try {
-                                final Recipe recipe = Recipe.of(handler, index);
-                                if (!recipe.getIngredients().isEmpty() && !recipe.getResults().isEmpty()) {
-                                    writer.write(NBTJson.toJson(recipe.getRecipeId().toJsonObject()));
-                                    writer.newLine();
-                                }
-                            } catch (Exception ex) {
-                                NEIClientConfig.logger.error(
-                                        "Found Broken RecipeId {}:{}",
-                                        GuiRecipeTab.getHandlerInfo(handler).getHandlerName(),
-                                        stack,
-                                        ex);
+                    for (int index = 0, num = handler.numRecipes(); index < num; index++) {
+                        try {
+                            final Recipe recipe = Recipe.of(handler, index);
+                            if (!recipe.getIngredients().isEmpty() && !recipe.getResults().isEmpty()) {
+                                writer.write(NBTJson.toJson(recipe.getRecipeId().toJsonObject()));
+                                writer.newLine();
                             }
+                        } catch (Exception ex) {
+                            NEIClientConfig.logger.error(
+                                    "Found Broken RecipeId {}:{}",
+                                    GuiRecipeTab.getHandlerInfo(handler).getHandlerName(),
+                                    index,
+                                    ex);
                         }
                     }
                 }
@@ -192,15 +185,17 @@ public class CommandRecipeId extends CommandBase {
             sendChatInfoMessage(sender, "nei.chat.recipeid.dump.finish");
         }
 
-        private ArrayList<ICraftingHandler> getCraftingHandlers(Object... results) {
-            return new RecipeHandlerQuery<>(
-                    h -> h.getRecipeHandler("item", results),
+        private ArrayList<ICraftingHandler> getCraftingHandlers() {
+            return new RecipeHandlerQuery<>(handler -> {
+                if (handler instanceof TemplateRecipeHandler templateHandler) {
+                    return templateHandler.getAllRecipeHandler();
+                }
+                return handler.getRecipeHandler("all");
+            },
                     this.craftinghandlers,
                     this.serialCraftingHandlers,
                     "Error while looking up crafting recipe",
-                    "outputId: item",
-                    "results: " + Arrays.toString(results))
-                            .runWithProfiling(NEIClientUtils.translate("recipe.concurrent.crafting"));
+                    "outputId: all").runWithProfiling(NEIClientUtils.translate("recipe.concurrent.crafting"));
         }
 
     }

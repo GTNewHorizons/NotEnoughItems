@@ -21,7 +21,6 @@ import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.recipe.Recipe.RecipeId;
-import codechicken.nei.recipe.TemplateRecipeHandler.RecipeTransferRect;
 
 public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
@@ -103,18 +102,7 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
     private static ICraftingHandler buildAllRecipesHandler(ICraftingHandler handler) {
         if (handler instanceof TemplateRecipeHandler templateHandler) {
-            TemplateRecipeHandler allHandler = templateHandler.newInstance();
-            if (allHandler.transferRects.isEmpty()) {
-                allHandler.loadCraftingRecipes("all");
-                return allHandler;
-            }
-            for (RecipeTransferRect rect : allHandler.transferRects) {
-                if (allHandler.specifyTransferRect() == null
-                        || allHandler.specifyTransferRect().equals(rect.outputId)) {
-                    allHandler.loadCraftingRecipes(rect.outputId, rect.results);
-                    return allHandler;
-                }
-            }
+            return templateHandler.getAllRecipeHandler();
         }
         return handler.getRecipeHandler("all");
     }
