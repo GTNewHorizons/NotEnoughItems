@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -216,6 +217,27 @@ public class CommandRecipeId extends CommandBase {
     }
 
     @Override
+    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+        if (args.length == 1) {
+            return getListOfStringsMatchingLastWord(args, "dump", "diff");
+        }
+
+        if ("dump".equals(args[0])) {
+            if (args.length == 2) {
+                return getListOfStringsMatchingLastWord(args, getRecipeIdFilenames());
+            }
+        }
+
+        if ("diff".equals(args[0])) {
+            if (args.length == 2 || args.length == 3) {
+                return getListOfStringsMatchingLastWord(args, getRecipeIdFilenames());
+            }
+        }
+
+        return Collections.emptyList();
+    }
+
+    @Override
     public void processCommand(ICommandSender sender, String[] args) {
         final String command = args.length == 0 ? null : args[0];
 
@@ -274,6 +296,23 @@ public class CommandRecipeId extends CommandBase {
 
     private static File getFile(String filename) {
         return new File(CommonUtils.getMinecraftDir(), "recipeid/" + filename + ".json");
+    }
+
+    private static String[] getRecipeIdFilenames() {
+        final File dir = new File(CommonUtils.getMinecraftDir(), "recipeid");
+        final File[] files = dir.listFiles((currentDir, name) -> name.endsWith(".json"));
+
+        if (files == null || files.length == 0) {
+            return new String[] {};
+        }
+
+        final String[] names = new String[files.length];
+        for (int i = 0; i < files.length; i++) {
+            final String name = files[i].getName();
+            names[i] = name.substring(0, name.length() - ".json".length());
+        }
+
+        return names;
     }
 
     private static void sendChatInfoMessage(ICommandSender sender, String translationKey, Object... args) {
