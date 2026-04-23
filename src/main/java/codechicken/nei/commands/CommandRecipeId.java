@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import net.minecraft.command.CommandBase;
@@ -176,7 +178,7 @@ public class CommandRecipeId extends CommandBase {
          * <p>
          * - generates a lot of duplicates, up to 75% of file size is duplicates (and it's 300mb out of 400mb...)
          */
-        private void processDump(BufferedWriter writer) {
+        private void processDump(BufferedWriter writer) throws IOException {
             final int total = ItemList.items.size();
             int count = 0;
 
@@ -189,7 +191,7 @@ public class CommandRecipeId extends CommandBase {
                 count++;
 
                 for (ICraftingHandler handler : getCraftingHandlers(stack)) {
-                    writeRecipes(writer, handler, stack.toString());
+                    writeLines(writer, collectRecipeLines(handler, stack.toString()));
                 }
             }
         }
@@ -205,29 +207,42 @@ public class CommandRecipeId extends CommandBase {
          * + doesn't have nearly as many duplicates, but something can still slip in, for example from
          * FuelRecipeHandler. The dump has a size of only 100 MB instead of 400 MB from the regular dumper
          */
-        private void processFastDump(BufferedWriter writer) {
+        private void processFastDump(BufferedWriter writer) throws IOException {
             final ArrayList<ICraftingHandler> handlers = getCraftingHandlers();
             final int total = handlers.size();
-            int count = 0;
+            final AtomicInteger count = new AtomicInteger();
 
-            for (ICraftingHandler handler : handlers) {
-                count++;
-                NEIClientConfig.logger.info(
-                        "({}/{}). Processing {} handler recipes...",
-                        count,
-                        total,
-                        GuiRecipeTab.getHandlerInfo(handler).getHandlerName());
-                writeRecipes(writer, handler, Integer.toString(count));
+            try {
+                final List<List<String>> linesByHandler = ItemList.forkJoinPool.submit(() -> {
+                    return handlers.parallelStream().map(handler -> {
+                        final String handlerName = GuiRecipeTab.getHandlerInfo(handler).getHandlerName();
+                        final List<String> lines = collectRecipeLines(handler, handlerName);
+                        final int current = count.incrementAndGet();
+                        NEIClientConfig.logger
+                                .info("({}/{}). Processed {} handler recipes.", current, total, handlerName);
+                        return lines;
+                    }).collect(Collectors.toList());
+                }).get();
+
+                for (List<String> lines : linesByHandler) {
+                    writeLines(writer, lines);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("Interrupted while dumping RecipeId", e);
+            } catch (ExecutionException e) {
+                throw new IOException("Error while dumping RecipeId", e);
             }
         }
 
-        private void writeRecipes(BufferedWriter writer, ICraftingHandler handler, String context) {
+        private List<String> collectRecipeLines(ICraftingHandler handler, String context) {
+            final List<String> lines = new ArrayList<>(handler.numRecipes());
+
             for (int index = 0, num = handler.numRecipes(); index < num; index++) {
                 try {
                     final Recipe recipe = Recipe.of(handler, index);
                     if (!recipe.getIngredients().isEmpty() && !recipe.getResults().isEmpty()) {
-                        writer.write(NBTJson.toJson(recipe.getRecipeId().toJsonObject()));
-                        writer.newLine();
+                        lines.add(NBTJson.toJson(recipe.getRecipeId().toJsonObject()));
                     }
                 } catch (Exception ex) {
                     NEIClientConfig.logger.error(
@@ -236,6 +251,15 @@ public class CommandRecipeId extends CommandBase {
                             context,
                             ex);
                 }
+            }
+
+            return lines;
+        }
+
+        private void writeLines(BufferedWriter writer, List<String> lines) throws IOException {
+            for (String line : lines) {
+                writer.write(line);
+                writer.newLine();
             }
         }
 
