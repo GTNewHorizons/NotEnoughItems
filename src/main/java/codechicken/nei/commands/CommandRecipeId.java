@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChatStyle;
@@ -30,6 +31,7 @@ import com.google.gson.JsonParser;
 
 import codechicken.core.CommonUtils;
 import codechicken.nei.ClientHandler;
+import codechicken.nei.ItemList;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.recipe.GuiCraftingRecipe;
@@ -124,12 +126,16 @@ public class CommandRecipeId extends CommandBase {
 
         private ArrayList<ICraftingHandler> craftinghandlers = new ArrayList<>();
         private ArrayList<ICraftingHandler> serialCraftingHandlers = new ArrayList<>();
+
         protected final ICommandSender sender;
         protected final File currFile;
+        protected final boolean fastDump;
 
-        public ProcessDumpThread(ICommandSender sender, File currFile) {
+        public ProcessDumpThread(ICommandSender sender, File currFile, boolean fastDump) {
             this.sender = sender;
             this.currFile = currFile;
+            this.fastDump = fastDump;
+
             ClientHandler.loadSettingsFile("recipeidblacklist.cfg", lines -> {
                 final Set<String> names = lines.collect(Collectors.toSet());
 
@@ -149,33 +155,10 @@ public class CommandRecipeId extends CommandBase {
             sendChatInfoMessage(sender, "nei.chat.recipeid.dump.start");
 
             try (BufferedWriter writer = Files.newBufferedWriter(currFile.toPath(), StandardCharsets.UTF_8)) {
-                final ArrayList<ICraftingHandler> handlers = getCraftingHandlers();
-                final int total = handlers.size();
-                int count = 0;
-
-                for (ICraftingHandler handler : handlers) {
-                    count++;
-                    NEIClientConfig.logger.info(
-                            "({}/{}). Processing {} handler recipes...",
-                            count,
-                            total,
-                            GuiRecipeTab.getHandlerInfo(handler).getHandlerName());
-
-                    for (int index = 0, num = handler.numRecipes(); index < num; index++) {
-                        try {
-                            final Recipe recipe = Recipe.of(handler, index);
-                            if (!recipe.getIngredients().isEmpty() && !recipe.getResults().isEmpty()) {
-                                writer.write(NBTJson.toJson(recipe.getRecipeId().toJsonObject()));
-                                writer.newLine();
-                            }
-                        } catch (Exception ex) {
-                            NEIClientConfig.logger.error(
-                                    "Found Broken RecipeId {}:{}",
-                                    GuiRecipeTab.getHandlerInfo(handler).getHandlerName(),
-                                    index,
-                                    ex);
-                        }
-                    }
+                if (fastDump) {
+                    processFastDump(writer);
+                } else {
+                    processDump(writer);
                 }
 
             } catch (Exception e) {
@@ -184,6 +167,85 @@ public class CommandRecipeId extends CommandBase {
 
             NEIClientConfig.logger.info("Finished processing recipe handlers!");
             sendChatInfoMessage(sender, "nei.chat.recipeid.dump.finish");
+        }
+
+        /**
+         * + technically more reliable and supports some weird handlers
+         * <p>
+         * - very very very slow, took 1 hour to get a dump in GTNH on M1 in background
+         * <p>
+         * - generates a lot of duplicates, up to 75% of file size is duplicates (and it's 300mb out of 400mb...)
+         */
+        private void processDump(BufferedWriter writer) {
+            final int total = ItemList.items.size();
+            int count = 0;
+
+            for (ItemStack stack : ItemList.items) {
+                if (count % 1000 == 0) {
+                    NEIClientConfig.logger
+                            .info("({}/{}). Processing {} crafting recipes...", count, total, stack.getDisplayName());
+                }
+
+                count++;
+
+                for (ICraftingHandler handler : getCraftingHandlers(stack)) {
+                    writeRecipes(writer, handler, stack.toString());
+                }
+            }
+        }
+
+        /**
+         * - may skip some handlers if they're not TemplateRecipeHandler / just weird ones (like gendustry handlers)
+         * <p>
+         * + but in terms of GT recipes everything is dumped, and surprisingly it catches even more GT recipes than the
+         * regular dumper (in particular, it has a lot of new hammer, extruder, blast furnace, etc. recipes)
+         * <p>
+         * + way faster, took like 2.5 minutes
+         * <p>
+         * + doesn't have nearly as many duplicates, but something can still slip in, for example from
+         * FuelRecipeHandler. The dump has a size of only 100 MB instead of 400 MB from the regular dumper
+         */
+        private void processFastDump(BufferedWriter writer) {
+            final ArrayList<ICraftingHandler> handlers = getCraftingHandlers();
+            final int total = handlers.size();
+            int count = 0;
+
+            for (ICraftingHandler handler : handlers) {
+                count++;
+                NEIClientConfig.logger.info(
+                        "({}/{}). Processing {} handler recipes...",
+                        count,
+                        total,
+                        GuiRecipeTab.getHandlerInfo(handler).getHandlerName());
+                writeRecipes(writer, handler, Integer.toString(count));
+            }
+        }
+
+        private void writeRecipes(BufferedWriter writer, ICraftingHandler handler, String context) {
+            for (int index = 0, num = handler.numRecipes(); index < num; index++) {
+                try {
+                    final Recipe recipe = Recipe.of(handler, index);
+                    if (!recipe.getIngredients().isEmpty() && !recipe.getResults().isEmpty()) {
+                        writer.write(NBTJson.toJson(recipe.getRecipeId().toJsonObject()));
+                        writer.newLine();
+                    }
+                } catch (Exception ex) {
+                    NEIClientConfig.logger.error(
+                            "Found Broken RecipeId {}:{}",
+                            GuiRecipeTab.getHandlerInfo(handler).getHandlerName(),
+                            context,
+                            ex);
+                }
+            }
+        }
+
+        private ArrayList<ICraftingHandler> getCraftingHandlers(Object... results) {
+            return new RecipeHandlerQuery<>(
+                    handler -> handler.getRecipeHandler("item", results),
+                    this.craftinghandlers,
+                    this.serialCraftingHandlers,
+                    "Error while looking up crafting recipe",
+                    "outputId: item").runWithProfiling(NEIClientUtils.translate("recipe.concurrent.crafting"));
         }
 
         private ArrayList<ICraftingHandler> getCraftingHandlers() {
@@ -208,7 +270,7 @@ public class CommandRecipeId extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/recipeid dump <filename> OR /recipeid diff <prev-filename> <curr-filename> [subset name]";
+        return "/recipeid [dump|fast-dump] <filename> OR /recipeid diff <prev-filename> <curr-filename> <subset name>";
     }
 
     @Override
@@ -219,19 +281,11 @@ public class CommandRecipeId extends CommandBase {
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 1) {
-            return getListOfStringsMatchingLastWord(args, "dump", "diff");
+            return getListOfStringsMatchingLastWord(args, "dump", "fast-dump", "diff");
         }
 
-        if ("dump".equals(args[0])) {
-            if (args.length == 2) {
-                return getListOfStringsMatchingLastWord(args, getRecipeIdFilenames());
-            }
-        }
-
-        if ("diff".equals(args[0])) {
-            if (args.length == 2 || args.length == 3) {
-                return getListOfStringsMatchingLastWord(args, getRecipeIdFilenames());
-            }
+        if ("diff".equals(args[0]) && (args.length == 2 || args.length == 3)) {
+            return getListOfStringsMatchingLastWord(args, getRecipeIdFilenames());
         }
 
         return Collections.emptyList();
@@ -242,7 +296,9 @@ public class CommandRecipeId extends CommandBase {
         final String command = args.length == 0 ? null : args[0];
 
         if ("dump".equals(command)) {
-            processDumpCommand(sender, args);
+            processDumpCommand(sender, args, false);
+        } else if ("fast-dump".equals(command)) {
+            processDumpCommand(sender, args, true);
         } else if ("diff".equals(command)) {
             processDiffCommand(sender, args);
         } else {
@@ -280,7 +336,7 @@ public class CommandRecipeId extends CommandBase {
         (new ProcessDiffThread(sender, prevFilename, currFilename, diffFilename)).start();
     }
 
-    protected void processDumpCommand(ICommandSender sender, String[] args) {
+    protected void processDumpCommand(ICommandSender sender, String[] args, boolean fastDump) {
 
         if (args.length > 2) {
             sendChatErrorMessage(sender, "nei.chat.recipeid.many_params", getCommandUsage(sender));
@@ -291,7 +347,7 @@ public class CommandRecipeId extends CommandBase {
         final String currFilename = args.length == 2 ? args[1] : "recipeId";
         if (!dir.exists()) dir.mkdirs();
 
-        (new ProcessDumpThread(sender, getFile(currFilename))).start();
+        (new ProcessDumpThread(sender, getFile(currFilename), fastDump)).start();
     }
 
     private static File getFile(String filename) {
