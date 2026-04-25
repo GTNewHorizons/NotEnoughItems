@@ -535,6 +535,24 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
     }
 
+    public ICraftingHandler getAllRecipeHandler() {
+        TemplateRecipeHandler handler = newInstance();
+        if (handler.transferRects.isEmpty()) {
+            handler.loadCraftingRecipes("all");
+            return handler;
+        }
+
+        final String transferRectId = handler.specifyTransferRect();
+        for (RecipeTransferRect rect : handler.transferRects) {
+            if (transferRectId == null || transferRectId.equals(rect.outputId)) {
+                handler.loadCraftingRecipes(rect.outputId, rect.results);
+                return handler;
+            }
+        }
+
+        return handler.getRecipeHandler("all");
+    }
+
     public ICraftingHandler getRecipeHandler(String outputId, Object... results) {
         TemplateRecipeHandler handler = newInstance();
         handler.loadCraftingRecipes(outputId, results);
