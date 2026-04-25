@@ -296,15 +296,26 @@ public class FormattedTextField extends GuiTextField {
         int shift = 0;
 
         for (int i = 0; i < position; i++) {
-            while (this.formattedText.length() > i + shift && this.formattedText.charAt(i + shift) == '\u00a7') {
+            while (this.formattedText.length() > i + shift + 1 && this.formattedText.charAt(i + shift) == '\u00a7'
+                    && isFormattingCode(this.formattedText.charAt(i + shift + 1))) {
                 shift += 2;
             }
         }
 
-        return position + shift;
+        return Math.min(position + shift, this.formattedText.length());
+    }
+
+    private static boolean isFormattingCode(char c) {
+        return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')
+                || (c >= 'k' && c <= 'o')
+                || c == 'r'
+                || (c >= 'A' && c <= 'F')
+                || (c >= 'K' && c <= 'O')
+                || c == 'R';
     }
 
     private String getPreviousColor(int position) {
+        position = Math.min(position, this.formattedText.length() - 1);
         while (position >= 0) {
             if (this.formattedText.charAt(position) == '\u00a7') {
                 return this.formattedText.substring(position, position + 2);
