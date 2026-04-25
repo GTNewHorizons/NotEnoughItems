@@ -898,25 +898,35 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
     }
 
     public void addRecipe(Recipe recipe, int multiplier, int groupId) {
-        final ItemStackSet results = new ItemStackSet();
-        final ItemStackSet ingredients = new ItemStackSet();
+        final ItemStackSet seenResults = new ItemStackSet();
+        final ItemStackSet seenIngredients = new ItemStackSet();
+        final List<ItemStack> results = new ArrayList<>();
+        final List<ItemStack> ingredients = new ArrayList<>();
 
         for (RecipeIngredient result : recipe.getResults()) {
-            results.add(result.getItemStack());
+            ItemStack stack = result.getItemStack();
+            if (!seenResults.contains(stack)) {
+                seenResults.add(stack);
+                results.add(stack);
+            }
         }
 
         for (RecipeIngredient ingr : recipe.getIngredients()) {
-            ingredients.add(ingr.getItemStack());
+            ItemStack stack = ingr.getItemStack();
+            if (!seenIngredients.contains(stack)) {
+                seenIngredients.add(stack);
+                ingredients.add(stack);
+            }
         }
 
-        for (ItemStack stack : results.values()) {
+        for (ItemStack stack : results) {
             this.addItem(
                     BookmarkItem.builder(groupId, stack, recipe, BookmarkItemType.RESULT).multiplier(multiplier)
                             .build(),
                     true);
         }
 
-        for (ItemStack stack : ingredients.values()) {
+        for (ItemStack stack : ingredients) {
             this.addItem(
                     BookmarkItem.builder(groupId, stack, recipe, BookmarkItemType.INGREDIENT).multiplier(multiplier)
                             .build(),
