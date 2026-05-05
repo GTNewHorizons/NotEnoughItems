@@ -99,8 +99,9 @@ public class IMCHandler {
             NEIClientConfig.logger.info("Error setting handler dimensions for {}", handler);
         }
 
-        // true if not set to false
-        info.setUseCustomScroll(tag.hasKey("useCustomScroll") && tag.getBoolean("useCustomScroll"));
+        final boolean allowOverflow = tag.hasKey("useCustomScroll") && tag.getBoolean("useCustomScroll");
+        info.setAllowOverflowX(tag.hasKey("allowOverflowX") ? tag.getBoolean("allowOverflowX") : true);
+        info.setAllowOverflowY(tag.hasKey("allowOverflowY") ? tag.getBoolean("allowOverflowY") : allowOverflow);
         info.setShowFavoritesButton(!tag.hasKey("showFavoritesButton") || tag.getBoolean("showFavoritesButton"));
         info.setShowOverlayButton(!tag.hasKey("showOverlayButton") || tag.getBoolean("showOverlayButton"));
         info.setShowBadge(tag.hasKey("showBadge") && tag.getBoolean("showBadge"));

@@ -66,7 +66,7 @@ public class NEIRecipeWidget extends Widget {
 
     public void update() {
 
-        if (this.showAsWidget || !this.handlerInfo.getUseCustomScroll()) {
+        if (this.showAsWidget || !this.handlerInfo.isAllowOverflowY()) {
             final int recipeHeight = this.handlerRef.handler.getRecipeHeight(this.handlerRef.recipeIndex);
             this.w = Math.max(166, this.handlerInfo.getWidth());
             this.h = recipeHeight > 0 ? recipeHeight : this.handlerInfo.getHeight();
@@ -145,7 +145,7 @@ public class NEIRecipeWidget extends Widget {
         final List<GuiRecipeButton> buttons = new ArrayList<>();
         final boolean showFavorites = NEIClientConfig.favoritesEnabled() && handlerInfo.getShowFavoritesButton();
         final boolean showOverlay = handlerInfo.getShowOverlayButton();
-        final int x = Math.min(168, this.w) - GuiRecipeButton.BUTTON_WIDTH;
+        final int x = Math.min(166, this.w) - GuiRecipeButton.BUTTON_WIDTH;
         int y = this.h - GuiRecipeButton.BUTTON_HEIGHT - 6;
 
         if (guiContainer instanceof IGuiContainerOverlay overlay) {
