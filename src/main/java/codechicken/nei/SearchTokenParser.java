@@ -111,7 +111,7 @@ public class SearchTokenParser {
         clearCache();
     }
 
-    public void clearCache() {
+    public synchronized void clearCache() {
         this.providersCache.clear();
         this.filtersCache.clear();
         this.recipesCache.clear();
