@@ -251,7 +251,6 @@ public class ItemList {
 
         private void updateOrdering(List<ItemStack> items) {
             final Map<ItemStack, Integer> newOrdering = new HashMap<>();
-            ItemSorter.sort(items);
 
             if (!CollapsibleItems.isEmpty()) {
                 final HashMap<Integer, Integer> groups = new HashMap<>();
@@ -423,6 +422,9 @@ public class ItemList {
                     ItemSorter.instance.ordering.put(stack, index++);
                 }
             }
+
+            if (interrupted()) return;
+            ItemSorter.sort(items);
 
             if (interrupted()) return;
             ItemList.items = items;
