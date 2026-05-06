@@ -62,7 +62,7 @@ public class GuiItemIconDumper extends GuiScreen {
     }
 
     private void returnScreen(IChatComponent msg) {
-        Minecraft.getMinecraft().displayGuiScreen(opt.slot.getGui());
+        Minecraft.getMinecraft().displayGuiScreen(opt.getSlot().getGui());
         NEIClientUtils.printChatMessage(msg);
     }
 

@@ -85,7 +85,7 @@ public class OptionKeyBind extends OptionButton {
             return false;
         }
 
-        for (Option o : slot.options) {
+        for (Option o : getSlot().options) {
             if (o instanceof OptionKeyBind && o != this && ((OptionKeyBind) o).getValue() == keyboard) {
                 return true;
             }

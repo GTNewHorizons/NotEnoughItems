@@ -131,13 +131,15 @@ public class OptionList extends OptionButton {
     /**
      * Adds this option to a temporary slot and gui for internal setting manipulation.
      */
-    public void synthesizeEnvironment(boolean world) {
-        getGui(null, this, world).addWidgets();
+    public GuiOptionList synthesizeEnvironment(boolean world) {
+        GuiOptionList gui = getGui(null, this, world);
+        gui.addWidgets();
+        return gui;
     }
 
     @Override
     public boolean onClick(int button) {
-        openGui(slot.getGui(), slot.getGui().worldConfig());
+        openGui(getSlot().getGui(), getSlot().getGui().worldConfig());
         return true;
     }
 

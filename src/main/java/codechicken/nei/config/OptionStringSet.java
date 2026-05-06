@@ -131,6 +131,6 @@ public abstract class OptionStringSet extends Option {
     }
 
     public int buttonX() {
-        return slot.slotWidth() - (24 * options.size() - 4);
+        return getSlot().slotWidth() - (24 * options.size() - 4);
     }
 }

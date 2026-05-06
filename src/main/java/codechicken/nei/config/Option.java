@@ -1,5 +1,6 @@
 package codechicken.nei.config;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
@@ -17,7 +18,11 @@ public abstract class Option {
                 .playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
     }
 
-    public OptionScrollSlot slot;
+    private WeakReference<OptionScrollSlot> slotRef;
+
+    public OptionScrollSlot getSlot() {
+        return slotRef != null ? slotRef.get() : null;
+    }
 
     public String namespace = null;
     public final String name;
@@ -134,7 +139,7 @@ public abstract class Option {
      * @return true if the gui is in world config mode
      */
     public boolean worldConfig() {
-        return slot.getGui().worldConfig();
+        return getSlot().getGui().worldConfig();
     }
 
     /**
@@ -189,7 +194,7 @@ public abstract class Option {
     }
 
     public void onAdded(OptionScrollSlot slot) {
-        this.slot = slot;
+        this.slotRef = new WeakReference<>(slot);
     }
 
     public void onAdded(OptionList list) {

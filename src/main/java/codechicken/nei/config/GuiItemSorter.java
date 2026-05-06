@@ -98,7 +98,7 @@ public class GuiItemSorter extends GuiOptionPane {
 
     @Override
     public GuiScreen getParentScreen() {
-        return opt.slot.getGui();
+        return opt.getSlot().getGui();
     }
 
     @Override
