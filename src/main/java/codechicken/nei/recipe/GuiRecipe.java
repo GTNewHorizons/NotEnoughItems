@@ -308,7 +308,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         @Override
         public Widget getWidgetUnderMouse(int mousex, int mousey) {
 
-            if (handlerInfo.getUseCustomScroll() && !this.widgets.isEmpty()) {
+            if (handlerInfo.isAllowOverflowY() && !this.widgets.isEmpty()) {
                 return this.widgets.get(0);
             }
 
@@ -346,7 +346,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         this.container.x = this.guiLeft + 3;
         this.container.y = this.guiTop + 32;
-        this.container.h = this.ySize - 32 - 5;
+        this.container.h = this.ySize - 32 - 4;
 
         GuiRecipe.toggleSearch.icon = new DrawableBuilder("nei:textures/nei_sprites.png", 0, 76, 10, 10).build();
         GuiRecipe.toggleSearch.w = GuiRecipe.toggleSearch.h = 12;
@@ -372,9 +372,17 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         if (this.handlerPages.rebuildPages() || this.lastPage != this.handlerPages.getCurrentPageIndex()) {
             this.lastPage = this.handlerPages.getCurrentPageIndex();
+            updateContainerSize();
+
             this.container.setWidgets(this.handlerPages.getCurrentPageWidgets());
 
-            if (this.handlerInfo.getUseCustomScroll()) {
+            if (!this.handlerInfo.isAllowOverflowX() && this.handlerInfo.getWidth() > this.xSize - 6) {
+                this.container.setHorizontalScroll(ScrollBar.defaultHorizontalBar().setTrackPadding(1, 0, 1, 0));
+            } else {
+                this.container.setHorizontalScroll(null);
+            }
+
+            if (this.handlerInfo.isAllowOverflowY()) {
                 this.container.setVerticalScroll(null);
             } else if (this.container.w == this.xSize - 6) {
                 this.container.setVerticalScroll(VERTICAL_SCROLLBAR);
@@ -416,7 +424,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         this.recipetype = (this.currenthandlers.size() + idx) % this.currenthandlers.size();
         this.handler = new SearchRecipeHandler<>(this.currenthandlers.get(this.recipetype));
         this.handlerInfo = GuiRecipeTab.getHandlerInfo(this.handler.original);
-        this.container.w = Math.max(this.xSize - 6, this.handlerInfo.getWidth());
+        updateContainerSize();
         this.handlerPages = new RecipePageManager(this.handler, this.handlerInfo, this.container);
         this.prevpage.enabled = this.nextpage.enabled = this.handlerPages.getNumPages() > 1;
         this.lastPage = -1;
@@ -426,7 +434,19 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         GuiRecipe.toggleSearch.state = 0;
 
         this.container.setVerticalScrollOffset(0);
+        this.container.setHorizontalScrollOffset(0);
         this.recipeTabs.update(this);
+    }
+
+    private void updateContainerSize() {
+        final int width = this.xSize - 6;
+        this.container.w = Math.max(width, this.handlerInfo.getWidth());
+        this.container.h = this.ySize - 32 - 4;
+
+        if (!this.handlerInfo.isAllowOverflowX() && this.handlerInfo.getWidth() > width) {
+            this.container.w = width;
+            this.container.h -= 8;
+        }
     }
 
     public int openTargetRecipe(RecipeId recipeId) {

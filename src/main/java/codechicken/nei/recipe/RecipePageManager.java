@@ -42,10 +42,10 @@ public class RecipePageManager {
         this.cacheKey = cacheKey;
         this.pageWidgets.clear();
 
-        final boolean useCustomScroll = this.handlerInfo.getUseCustomScroll();
+        final boolean allowOverflowY = this.handlerInfo.isAllowOverflowY();
         final int handlerHeight = this.handlerInfo.getHeight() + this.handlerInfo.getYShift();
-        final boolean multipleWidgetsAllowed = !useCustomScroll && handlerInfo.isMultipleWidgetsAllowed();
-        final boolean infiniteScroll = !useCustomScroll
+        final boolean multipleWidgetsAllowed = !allowOverflowY && handlerInfo.isMultipleWidgetsAllowed();
+        final boolean infiniteScroll = !allowOverflowY
                 && NEIClientConfig.getBooleanSetting("inventory.guirecipe.infiniteScroll");
 
         final int heightAvailable = this.container.getVisibleHeight();
@@ -59,7 +59,7 @@ public class RecipePageManager {
             final NEIRecipeWidget widget = RecipeHandlerRef.of(this.handler.original, recipeIndex).getRecipeWidget();
             widget.w = width;
 
-            if (useCustomScroll) {
+            if (allowOverflowY) {
                 widget.h = Math.min(handlerHeight, heightAvailable);
             }
 
@@ -84,7 +84,7 @@ public class RecipePageManager {
     }
 
     public boolean isMultipleWidgetsAllowed() {
-        return !this.handlerInfo.getUseCustomScroll() && this.handlerInfo.isMultipleWidgetsAllowed();
+        return !this.handlerInfo.isAllowOverflowY() && this.handlerInfo.isMultipleWidgetsAllowed();
     }
 
     public int getNumRecipes() {

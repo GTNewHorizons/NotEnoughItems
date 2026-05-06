@@ -78,7 +78,7 @@ public class IntegerField extends TextField implements IUpdatableWidget {
     @Override
     public boolean onMouseWheel(int i, int mx, int my) {
         if (!contains(mx, my)) return false;
-        setText(Integer.toString(getInteger() + i));
+        setText(Integer.toString(getInteger() - i));
         return true;
     }
 

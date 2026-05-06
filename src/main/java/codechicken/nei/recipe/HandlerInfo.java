@@ -31,7 +31,9 @@ public class HandlerInfo {
     private boolean showFavoritesButton = true;
     private boolean showOverlayButton = true;
     private boolean showBadge = false;
-    private boolean useCustomScroll = false;
+
+    private boolean allowOverflowX = true;
+    private boolean allowOverflowY = false;
 
     private ItemStack itemStack = null;
     private DrawableResource image = null;
@@ -151,12 +153,26 @@ public class HandlerInfo {
         this.showBadge = showBadge;
     }
 
-    public boolean getUseCustomScroll() {
-        return this.useCustomScroll;
+    @Deprecated
+    public void setUseCustomScroll(boolean useCustomScroll) {
+        this.allowOverflowX = useCustomScroll;
+        this.allowOverflowY = useCustomScroll;
     }
 
-    public void setUseCustomScroll(boolean useCustomScroll) {
-        this.useCustomScroll = useCustomScroll;
+    public boolean isAllowOverflowX() {
+        return this.allowOverflowX;
+    }
+
+    public void setAllowOverflowX(boolean allowOverflowX) {
+        this.allowOverflowX = allowOverflowX;
+    }
+
+    public boolean isAllowOverflowY() {
+        return this.allowOverflowY;
+    }
+
+    public void setAllowOverflowY(boolean allowOverflowY) {
+        this.allowOverflowY = allowOverflowY;
     }
 
     public static class Builder {
@@ -195,6 +211,7 @@ public class HandlerInfo {
             return this;
         }
 
+        @Deprecated
         public Builder setUseCustomScroll(boolean useCustomScroll) {
             this.info.setUseCustomScroll(useCustomScroll);
             return this;
@@ -238,6 +255,16 @@ public class HandlerInfo {
 
         public Builder setMultipleWidgetsAllowed(boolean multipleWidgetsAllowed) {
             this.info.multipleWidgetsAllowed = multipleWidgetsAllowed;
+            return this;
+        }
+
+        public Builder setAllowOverflowX(boolean allowOverflowX) {
+            this.info.allowOverflowX = allowOverflowX;
+            return this;
+        }
+
+        public Builder setAllowOverflowY(boolean allowOverflowY) {
+            this.info.allowOverflowY = allowOverflowY;
             return this;
         }
 

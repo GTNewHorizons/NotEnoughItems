@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +52,8 @@ public class DebugHandlerWidget extends Widget {
         public int height;
         public boolean multiWidgets;
         public int order;
-        public boolean useCustomScroll;
+        public boolean allowOverflowX;
+        public boolean allowOverflowY;
         public boolean showFavorites;
         public boolean showOverlay;
         public boolean showBadge;
@@ -68,7 +68,8 @@ public class DebugHandlerWidget extends Widget {
             this.height = info.getHeight();
             this.multiWidgets = info.isMultipleWidgetsAllowed();
             this.order = NEIClientConfig.handlerOrdering.getOrDefault(handlerKey, 0);
-            this.useCustomScroll = info.getUseCustomScroll();
+            this.allowOverflowX = info.isAllowOverflowX();
+            this.allowOverflowY = info.isAllowOverflowY();
             this.showFavorites = info.getShowFavoritesButton();
             this.showOverlay = info.getShowOverlayButton();
             this.showBadge = info.getShowBadge();
@@ -79,7 +80,8 @@ public class DebugHandlerWidget extends Widget {
             this.info.setYShift(this.yShift);
             this.info.setHandlerDimensions(this.width, this.height);
             this.info.setMultipleWidgetsAllowed(this.multiWidgets);
-            this.info.setUseCustomScroll(this.useCustomScroll);
+            this.info.setAllowOverflowX(this.allowOverflowX);
+            this.info.setAllowOverflowY(this.allowOverflowY);
             this.info.setShowFavoritesButton(this.showFavorites);
             this.info.setShowOverlayButton(this.showOverlay);
             this.info.setShowBadge(this.showBadge);
@@ -94,10 +96,11 @@ public class DebugHandlerWidget extends Widget {
             this.width = intOrDefault(parts[3], this.width);
             this.multiWidgets = intOrDefault(parts[4], this.multiWidgets ? 1 : 0) == 1;
             this.order = intOrDefault(parts[5], this.order);
-            this.useCustomScroll = intOrDefault(parts[6], this.useCustomScroll ? 1 : 0) == 1;
-            this.showFavorites = intOrDefault(parts[7], this.showFavorites ? 1 : 0) == 1;
-            this.showOverlay = intOrDefault(parts[8], this.showOverlay ? 1 : 0) == 1;
-            this.showBadge = intOrDefault(parts[9], this.showBadge ? 1 : 0) == 1;
+            this.allowOverflowX = intOrDefault(parts[6], this.allowOverflowX ? 1 : 0) == 1;
+            this.allowOverflowY = intOrDefault(parts[7], this.allowOverflowY ? 1 : 0) == 1;
+            this.showFavorites = intOrDefault(parts[8], this.showFavorites ? 1 : 0) == 1;
+            this.showOverlay = intOrDefault(parts[9], this.showOverlay ? 1 : 0) == 1;
+            this.showBadge = intOrDefault(parts[10], this.showBadge ? 1 : 0) == 1;
 
             apply();
         }
@@ -111,7 +114,8 @@ public class DebugHandlerWidget extends Widget {
                     String.valueOf(this.width),
                     String.valueOf(this.multiWidgets ? 1 : 0),
                     String.valueOf(this.order),
-                    String.valueOf(this.useCustomScroll ? 1 : 0),
+                    String.valueOf(this.allowOverflowX ? 1 : 0),
+                    String.valueOf(this.allowOverflowY ? 1 : 0),
                     String.valueOf(this.showFavorites ? 1 : 0),
                     String.valueOf(this.showOverlay ? 1 : 0),
                     String.valueOf(this.showBadge ? 1 : 0));
@@ -137,7 +141,7 @@ public class DebugHandlerWidget extends Widget {
     private static final int LABEL_WIDTH = 50;
 
     private static final String TOOLTIP_PREFIX = "debug.RecipeHandler.";
-    private static final String HEADER = "HandlerId,YShift,Height,Width,MultiWidgets,Order,UseCustomScroll,ShowFavorites,ShowOverlay,ShowBadge";
+    private static final String HEADER = "HandlerId,YShift,Height,Width,MultiWidgets,Order,AllowOverflowX,AllowOverflowY,ShowFavorites,ShowOverlay,ShowBadge";
     private final int[] COLORS = new int[] { 0x2200FF00, 0x22FF0000, 0x220000FF, 0x2200FFFF, 0x22FF00FF, 0x22FFFF00 };
 
     public static DebugHandlerWidget instance = new DebugHandlerWidget();
@@ -212,8 +216,13 @@ public class DebugHandlerWidget extends Widget {
             saveHandlerInfoPatch();
         }, y);
 
-        y = addCheckboxWidget("UseCustomScroll", button -> {
-            record.useCustomScroll = button.value;
+        y = addCheckboxWidget("AllowOverflowX", button -> {
+            record.allowOverflowX = button.value;
+            saveHandlerInfoPatch();
+        }, y);
+
+        y = addCheckboxWidget("AllowOverflowY", button -> {
+            record.allowOverflowY = button.value;
             saveHandlerInfoPatch();
         }, y);
 
@@ -397,7 +406,8 @@ public class DebugHandlerWidget extends Widget {
                 this.values.get("width").updateValue(String.valueOf(this.record.width));
 
                 this.values.get("multiwidgets").updateValue(String.valueOf(this.record.multiWidgets));
-                this.values.get("usecustomscroll").updateValue(String.valueOf(this.record.useCustomScroll));
+                this.values.get("allowoverflowx").updateValue(String.valueOf(this.record.allowOverflowX));
+                this.values.get("allowoverflowy").updateValue(String.valueOf(this.record.allowOverflowY));
 
                 this.values.get("showfavorites").updateValue(String.valueOf(this.record.showFavorites));
                 this.values.get("showoverlay").updateValue(String.valueOf(this.record.showOverlay));
@@ -589,17 +599,23 @@ public class DebugHandlerWidget extends Widget {
     public void loadHandlerInfoPatch() {
 
         ClientHandler.loadSettingsFile("handlers.patch", lines -> {
+            final List<String> linesList = lines.collect(Collectors.toCollection(ArrayList::new));
 
-            for (String line : lines.collect(Collectors.toCollection(HashSet::new))) {
-                if (HEADER.equals(line)) continue;
-                final String[] parts = (line).split(",");
+            if (linesList.isEmpty() || !HEADER.equals(linesList.get(0))) {
+                return;
+            }
+
+            linesList.remove(0);
+
+            for (String line : linesList) {
+                final String[] parts = line.split(",");
                 final String handlerKey = parts[0];
 
                 if (GuiRecipeTab.handlerMap.containsKey(handlerKey)) {
                     final HandlerInfoRecord record = patches.computeIfAbsent(
                             handlerKey,
                             key -> new HandlerInfoRecord(key, GuiRecipeTab.handlerMap.get(key)));
-                    record.apply((line + ",null,null,null,null,null,null,null,null,null"));
+                    record.apply((line + ",null,null,null,null,null,null,null,null,null,null"));
                 }
 
             }
