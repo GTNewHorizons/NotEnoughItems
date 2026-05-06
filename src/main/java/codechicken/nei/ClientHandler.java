@@ -45,6 +45,7 @@ import codechicken.core.ClassDiscoverer;
 import codechicken.core.ClientUtils;
 import codechicken.lib.packet.PacketCustom;
 import codechicken.nei.api.API;
+import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.IConfigureNEI;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.guihook.GuiContainerManager;
@@ -374,6 +375,7 @@ public class ClientHandler {
         } else if (event.gui == null) {
             /* prevent WorldClient reference being held in the Gui */
             NEIController.manager = null;
+            GuiInfo.clearGuiHandlers();
         }
     }
 
