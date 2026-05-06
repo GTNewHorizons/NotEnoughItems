@@ -247,7 +247,7 @@ public class GuiPanelSettings extends GuiScreenWidget {
     public void keyTyped(char c, int keycode) {
 
         if (keycode == Keyboard.KEY_ESCAPE || keycode == Keyboard.KEY_BACK) {
-            Minecraft.getMinecraft().displayGuiScreen(opt.slot.getGui());
+            Minecraft.getMinecraft().displayGuiScreen(opt.getSlot().getGui());
             return;
         }
 

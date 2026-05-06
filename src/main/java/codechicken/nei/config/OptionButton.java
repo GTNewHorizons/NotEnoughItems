@@ -57,10 +57,10 @@ public abstract class OptionButton extends Option {
     }
 
     public Rectangle buttonSize() {
-        if (getPrefix() == null) return new Rectangle(0, 0, slot.slotWidth(), 20);
+        if (getPrefix() == null) return new Rectangle(0, 0, getSlot().slotWidth(), 20);
 
         int width = Math.max(60, getStringWidth(getButtonText()) + 8);
-        return new Rectangle(slot.slotWidth() - width, 0, width, 20);
+        return new Rectangle(getSlot().slotWidth() - width, 0, width, 20);
     }
 
     public String getPrefix() {

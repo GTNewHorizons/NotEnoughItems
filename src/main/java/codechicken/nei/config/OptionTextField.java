@@ -53,7 +53,7 @@ public class OptionTextField extends Option {
     }
 
     protected int getMaxInputWidth() {
-        return slot.slotWidth();
+        return getSlot().slotWidth();
     }
 
     public boolean isEnabled() {
@@ -64,9 +64,10 @@ public class OptionTextField extends Option {
     public void draw(int mousex, int mousey, float frame) {
         GuiDraw.drawString(getPrefix(), 10, 6, -1);
 
-        textField.w = Math
-                .max(60, Math.min(getMaxInputWidth(), slot.slotWidth() - GuiDraw.getStringWidth(getPrefix())) - 16);
-        textField.x = slot.slotWidth() - textField.w;
+        textField.w = Math.max(
+                60,
+                Math.min(getMaxInputWidth(), getSlot().slotWidth() - GuiDraw.getStringWidth(getPrefix())) - 16);
+        textField.x = getSlot().slotWidth() - textField.w;
         textField.draw(mousex, mousey);
     }
 
