@@ -84,12 +84,13 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         efuels.add(Item.getItemFromBlock(Blocks.wooden_door));
         efuels.add(Item.getItemFromBlock(Blocks.trapped_chest));
 
-        Stopwatch stopwatch = Stopwatch.createStarted();
+        final Stopwatch stopwatch = Stopwatch.createStarted();
+        final List<ItemStack> itemsSnapshot = new ArrayList<>(ItemList.items);
         if (parallel) {
             try {
                 FurnaceRecipeHandler.afuels = ItemList.forkJoinPool
                         .submit(
-                                () -> ItemList.items.parallelStream().map(TemplateRecipeHandler::identifyFuel)
+                                () -> itemsSnapshot.parallelStream().map(TemplateRecipeHandler::identifyFuel)
                                         .filter(Objects::nonNull).collect(Collectors.toCollection(ArrayList::new)))
                         .get();
             } catch (InterruptedException | ExecutionException e) {
@@ -97,7 +98,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
                 e.printStackTrace();
             }
         } else {
-            FurnaceRecipeHandler.afuels = ItemList.items.stream().map(TemplateRecipeHandler::identifyFuel)
+            FurnaceRecipeHandler.afuels = itemsSnapshot.stream().map(TemplateRecipeHandler::identifyFuel)
                     .filter(Objects::nonNull).collect(Collectors.toCollection(ArrayList::new));
         }
 
