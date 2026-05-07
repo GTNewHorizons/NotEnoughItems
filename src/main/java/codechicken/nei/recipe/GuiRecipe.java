@@ -347,17 +347,6 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         this.nextpage.xPosition = rightButtonX;
         this.nextpage.yPosition = guiTop + 17;
 
-        this.typeArea.setBounds(
-                this.prevtype.xPosition + BUTTON_WIDTH,
-                this.prevtype.yPosition,
-                this.nexttype.xPosition - this.prevtype.xPosition - BUTTON_WIDTH - 1,
-                BUTTON_HEIGHT);
-        this.pageArea.setBounds(
-                this.prevpage.xPosition + BUTTON_WIDTH,
-                this.prevpage.yPosition,
-                this.nextpage.xPosition - this.prevpage.xPosition - BUTTON_WIDTH - 1,
-                BUTTON_HEIGHT);
-
         this.container.x = this.guiLeft + 3;
         this.container.y = this.guiTop + 32;
         this.container.h = this.ySize - 32 - 4;
@@ -372,8 +361,18 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         GuiRecipe.searchField.w = this.xSize - (BORDER_PADDING + BUTTON_WIDTH) * 2 + 1 - GuiRecipe.toggleSearch.w - 45;
         GuiRecipe.searchField.h = 14;
 
-        this.buttonList.addAll(Arrays.asList(this.prevtype, this.nexttype, this.prevpage, this.nextpage));
+        this.typeArea.setBounds(
+                this.prevtype.xPosition + BUTTON_WIDTH,
+                this.prevtype.yPosition,
+                this.nexttype.xPosition - this.prevtype.xPosition - BUTTON_WIDTH - 1,
+                BUTTON_HEIGHT);
+        this.pageArea.setBounds(
+                GuiRecipe.toggleSearch.x + BUTTON_WIDTH,
+                this.prevpage.yPosition,
+                this.nextpage.xPosition - GuiRecipe.toggleSearch.x - BUTTON_WIDTH - 1,
+                BUTTON_HEIGHT);
 
+        this.buttonList.addAll(Arrays.asList(this.prevtype, this.nexttype, this.prevpage, this.nextpage));
         if (this.currenthandlers.size() == 1) {
             this.prevtype.visible = false;
             this.nexttype.visible = false;
@@ -720,8 +719,9 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         // Finally, if nothing else has handled scrolling, try changing to the next
         // recipe page.
         if (NEIClientConfig.getBooleanSetting("inventory.guirecipe.scrollPages")
-                && new Rectangle(this.guiLeft, this.guiTop, this.xSize, this.ySize).contains(mouse)
-                || this.pageArea.contains(mouse)) {
+                && this.container.boundsInside().contains(mouse.x, mouse.y)
+                || this.pageArea.contains(mouse)
+                        && (!GuiRecipe.searchField.isVisible() || !GuiRecipe.searchField.contains(mouse.x, mouse.y))) {
 
             if (scroll > 0) {
                 prevPage();
