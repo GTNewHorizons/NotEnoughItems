@@ -263,6 +263,10 @@ public class NEIClientConfig {
                 .setComment("Require holding shift to move items when overlaying recipe").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.guirecipe.shiftOverlayRecipe", true));
 
+        tag.getTag("inventory.guirecipe.scrollPages").setComment("Disable page scroll when overlaying recipe")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.scrollPages", true));
+
         tag.getTag("inventory.guirecipe.profile").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.guirecipe.profile", true));
 

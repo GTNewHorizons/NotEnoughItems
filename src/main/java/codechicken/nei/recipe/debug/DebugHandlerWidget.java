@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntPredicate;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
@@ -187,12 +188,12 @@ public class DebugHandlerWidget extends Widget {
         y = addTextFieldWidget("Order", 0, (field, oldText) -> {
             record.order = field.getInteger();
             saveHandlerInfoPatch();
-        }, y);
+        }, null, y);
 
         y = addTextFieldWidget("yShift", 0, (field, oldText) -> {
             record.yShift = field.getInteger();
             saveHandlerInfoPatch();
-        }, y);
+        }, null, y);
 
         y = addCheckboxWidget("MultiWidgets", button -> {
             record.multiWidgets = button.value;
@@ -209,12 +210,12 @@ public class DebugHandlerWidget extends Widget {
         y = addTextFieldWidget("Height", HandlerInfo.DEFAULT_HEIGHT, (field, oldText) -> {
             record.height = field.getInteger();
             saveHandlerInfoPatch();
-        }, y);
+        }, newValue -> newValue > 0, y);
 
         y = addTextFieldWidget("Width", HandlerInfo.DEFAULT_WIDTH, (field, oldText) -> {
             record.width = field.getInteger();
             saveHandlerInfoPatch();
-        }, y);
+        }, newValue -> newValue >= HandlerInfo.DEFAULT_WIDTH, y);
 
         y = addCheckboxWidget("AllowOverflowX", button -> {
             record.allowOverflowX = button.value;
@@ -263,9 +264,10 @@ public class DebugHandlerWidget extends Widget {
         return y + value.h + 1;
     }
 
-    private int addTextFieldWidget(String key, int defaultValue, BiConsumer<IntegerField, String> onChange, int y) {
+    private int addTextFieldWidget(String key, int defaultValue, BiConsumer<IntegerField, String> onChange,
+            IntPredicate validator, int y) {
         final LabelWidget label = new LabelWidget(0x888888, false);
-        final IntegerField value = new IntegerField(key, onChange, defaultValue);
+        final IntegerField value = new IntegerField(key, onChange, validator, defaultValue);
 
         label.y = value.y = y;
         value.w = 60;

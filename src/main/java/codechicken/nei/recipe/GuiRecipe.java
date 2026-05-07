@@ -92,6 +92,9 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private GuiButton prevtype;
     private GuiButton nexttype;
 
+    private Rectangle typeArea = new Rectangle();
+    private Rectangle pageArea = new Rectangle();
+
     private int lastPage = -1;
     private final GuiRecipeTabs recipeTabs;
     private final GuiRecipeCatalyst recipeCatalyst;
@@ -358,8 +361,18 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         GuiRecipe.searchField.w = this.xSize - (BORDER_PADDING + BUTTON_WIDTH) * 2 + 1 - GuiRecipe.toggleSearch.w - 45;
         GuiRecipe.searchField.h = 14;
 
-        this.buttonList.addAll(Arrays.asList(this.prevtype, this.nexttype, this.prevpage, this.nextpage));
+        this.typeArea.setBounds(
+                this.prevtype.xPosition + BUTTON_WIDTH,
+                this.prevtype.yPosition,
+                this.nexttype.xPosition - this.prevtype.xPosition - BUTTON_WIDTH - 1,
+                BUTTON_HEIGHT);
+        this.pageArea.setBounds(
+                GuiRecipe.toggleSearch.x + BUTTON_WIDTH,
+                this.prevpage.yPosition,
+                this.nextpage.xPosition - GuiRecipe.toggleSearch.x - BUTTON_WIDTH - 1,
+                BUTTON_HEIGHT);
 
+        this.buttonList.addAll(Arrays.asList(this.prevtype, this.nexttype, this.prevpage, this.nextpage));
         if (this.currenthandlers.size() == 1) {
             this.prevtype.visible = false;
             this.nexttype.visible = false;
@@ -377,8 +390,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             this.container.setWidgets(this.handlerPages.getCurrentPageWidgets());
 
             if (!this.handlerInfo.isAllowOverflowX() && this.handlerInfo.getWidth() > this.xSize - 6) {
+                this.container.setPaddingInline(0, 2);
                 this.container.setHorizontalScroll(ScrollBar.defaultHorizontalBar().setTrackPadding(1, 0, 1, 0));
             } else {
+                this.container.setPaddingInline(0, 0);
                 this.container.setHorizontalScroll(null);
             }
 
@@ -691,7 +706,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         // If shift is held, try switching to the next recipe handler. Replicates the
         // GuiRecipeTabs.mouseScrolled()
         // without the checking for the cursor being inside the tabbar.
-        if (NEIClientUtils.shiftKey()) {
+        if (NEIClientUtils.shiftKey() || this.typeArea.contains(mouse)) {
             if (scroll < 0) {
                 nextType();
             } else {
@@ -703,7 +718,11 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         // Finally, if nothing else has handled scrolling, try changing to the next
         // recipe page.
-        if (new Rectangle(this.guiLeft, this.guiTop, this.xSize, this.ySize).contains(mouse)) {
+        if (NEIClientConfig.getBooleanSetting("inventory.guirecipe.scrollPages")
+                && this.container.boundsInside().contains(mouse.x, mouse.y)
+                || this.pageArea.contains(mouse)
+                        && (!GuiRecipe.searchField.isVisible() || !GuiRecipe.searchField.contains(mouse.x, mouse.y))) {
+
             if (scroll > 0) {
                 prevPage();
             } else {
@@ -845,16 +864,16 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         final int textMiddle = (BUTTON_WIDTH - this.fontRendererObj.FONT_HEIGHT) / 2;
 
         drawRect(
-                this.prevtype.xPosition + BUTTON_WIDTH - 1,
-                this.prevtype.yPosition,
-                this.nexttype.xPosition,
-                this.prevtype.yPosition + BUTTON_HEIGHT,
+                this.typeArea.x,
+                this.typeArea.y,
+                this.typeArea.x + this.typeArea.width,
+                this.typeArea.y + this.typeArea.height,
                 0x30000000);
         drawRect(
-                this.prevpage.xPosition + BUTTON_WIDTH - 1,
-                this.prevpage.yPosition,
-                this.nextpage.xPosition,
-                this.prevpage.yPosition + BUTTON_HEIGHT,
+                this.pageArea.x,
+                this.pageArea.y,
+                this.pageArea.x + this.pageArea.width,
+                this.pageArea.y + this.pageArea.height,
                 0x30000000);
 
         final String handlerTitle = this.handler.original.getRecipeName().trim();
@@ -863,7 +882,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 this.fontRendererObj,
                 titleColorCode + handlerTitle + EnumChatFormatting.RESET,
                 this.guiLeft + this.xSize / 2,
-                this.prevtype.yPosition + textMiddle,
+                this.typeArea.y + textMiddle,
                 0xffffff);
 
         if (this.handler.searchingAvailable()) {
@@ -886,7 +905,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                     this.fontRendererObj,
                     recipePage,
                     GuiRecipe.searchField.x + GuiRecipe.searchField.w + 22,
-                    this.prevpage.yPosition + textMiddle,
+                    this.pageArea.y + textMiddle,
                     0xffffff);
         } else {
             final String recipePage = NEIClientUtils.translate(
@@ -897,7 +916,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                     this.fontRendererObj,
                     recipePage,
                     this.guiLeft + this.xSize / 2,
-                    this.prevpage.yPosition + textMiddle,
+                    this.pageArea.y + textMiddle,
                     0xffffff);
         }
 

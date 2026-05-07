@@ -1,6 +1,7 @@
 package codechicken.nei.recipe.debug;
 
 import java.util.function.BiConsumer;
+import java.util.function.IntPredicate;
 
 import net.minecraft.client.Minecraft;
 
@@ -13,10 +14,13 @@ public class IntegerField extends TextField implements IUpdatableWidget {
 
     protected int defaultValue = 0;
     protected BiConsumer<IntegerField, String> onChange;
+    protected IntPredicate validator;
 
-    public IntegerField(String ident, BiConsumer<IntegerField, String> onChange, int defaultValue) {
+    public IntegerField(String ident, BiConsumer<IntegerField, String> onChange, IntPredicate validator,
+            int defaultValue) {
         super(ident);
         this.onChange = onChange;
+        this.validator = validator;
         this.defaultValue = defaultValue;
         this.h = 16;
         this.z = 2;
@@ -68,8 +72,12 @@ public class IntegerField extends TextField implements IUpdatableWidget {
     }
 
     protected int getInteger() {
+        return getInteger(text());
+    }
+
+    protected int getInteger(String text) {
         try {
-            return Integer.parseInt(text());
+            return Integer.parseInt(text);
         } catch (NumberFormatException nfe) {
             return this.defaultValue;
         }
@@ -80,6 +88,13 @@ public class IntegerField extends TextField implements IUpdatableWidget {
         if (!contains(mx, my)) return false;
         setText(Integer.toString(getInteger() - i));
         return true;
+    }
+
+    @Override
+    public void setText(String newValue) {
+        if (validator == null || validator.test(getInteger(newValue))) {
+            super.setText(newValue);
+        }
     }
 
     public void updateValue(String newValue) {
