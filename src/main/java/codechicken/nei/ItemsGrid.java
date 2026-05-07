@@ -15,6 +15,7 @@ import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.item.ItemStack;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.GuiInfo;
@@ -27,7 +28,7 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
     protected static class ScreenCapture {
 
         private long nextCacheRefresh = 0;
-        private Framebuffer framebuffer;
+        private final Framebuffer framebuffer;
 
         public ScreenCapture() {
             this.framebuffer = new Framebuffer(1, 1, true);
@@ -51,7 +52,7 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
         }
 
         public void captureScreen(Runnable callback, int mode) {
-            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
+            GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
 
             resetFramebuffer();
             this.framebuffer.bindFramebuffer(false);
@@ -84,6 +85,21 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
             } else {
                 this.framebuffer.framebufferClear();
             }
+
+            // Copy stencil values (required by mui2)
+            OpenGlHelper.func_153171_g(GL30.GL_READ_FRAMEBUFFER, minecraft.getFramebuffer().framebufferObject);
+            OpenGlHelper.func_153171_g(GL30.GL_DRAW_FRAMEBUFFER, this.framebuffer.framebufferObject);
+            GL30.glBlitFramebuffer(
+                    0,
+                    0,
+                    minecraft.displayWidth,
+                    minecraft.displayHeight,
+                    0,
+                    0,
+                    minecraft.displayWidth,
+                    minecraft.displayHeight,
+                    GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT,
+                    GL11.GL_NEAREST);
         }
 
         public void renderCapturedScreen() {
