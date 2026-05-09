@@ -28,6 +28,7 @@ import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.Widget;
+import codechicken.nei.api.API;
 import codechicken.nei.api.IGuiContainerOverlay;
 import codechicken.nei.api.ShortcutInputHandler;
 import codechicken.nei.guihook.GuiContainerManager;
@@ -403,11 +404,18 @@ public class NEIRecipeWidget extends Widget {
             return tooltip;
         }
 
-        tooltip = this.handlerRef.handler.handleItemTooltip(guiRecipe, itemstack, tooltip, this.handlerRef.recipeIndex);
+        final PositionedStack hovered = getPositionedStackMouseOver(mousex, mousey);
+
+        try {
+            API.beginHandleItemTooltip(hovered, mousex, mousey);
+
+            tooltip = this.handlerRef.handler
+                    .handleItemTooltip(guiRecipe, itemstack, tooltip, this.handlerRef.recipeIndex);
+        } finally {
+            API.endHandleItemTooltip();
+        }
 
         if (itemstack != null) {
-            final PositionedStack hovered = getPositionedStackMouseOver(mousex, mousey);
-
             if (hovered != null && this.handlerInfo.getShowBadge()) {
                 final List<Badge> badges = getBadges(hovered, getOutputs().indexOf(hovered) == -1);
 

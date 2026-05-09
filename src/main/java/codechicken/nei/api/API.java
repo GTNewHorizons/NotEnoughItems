@@ -11,6 +11,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.input.Keyboard;
 
 import com.google.common.collect.Sets;
@@ -24,6 +25,7 @@ import codechicken.nei.KeyManager.KeyState;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.OffsetPositioner;
+import codechicken.nei.PositionedStack;
 import codechicken.nei.SearchField;
 import codechicken.nei.SearchField.ISearchProvider;
 import codechicken.nei.SearchTokenParser.ISearchParserProvider;
@@ -442,4 +444,50 @@ public class API {
 
     @Deprecated
     public static void addRecipeCatalyst(List<ItemStack> stacks, Class<? extends IRecipeHandler> handler) {}
+
+    private static boolean inHandleItemTooltip;
+    private static PositionedStack itemTooltipHoveredStack;
+    private static int itemTooltipMouseX, itemTooltipMouseY;
+
+    public static void beginHandleItemTooltip(PositionedStack stack, int mouseX, int mouseY) {
+        inHandleItemTooltip = true;
+        itemTooltipHoveredStack = stack;
+        itemTooltipMouseX = mouseX;
+        itemTooltipMouseY = mouseY;
+    }
+
+    public static void endHandleItemTooltip() {
+        inHandleItemTooltip = false;
+        itemTooltipHoveredStack = null;
+        itemTooltipMouseX = 0;
+        itemTooltipMouseY = 0;
+    }
+
+    /// Gets the stack that is currently being hovered over. This can only be called within
+    /// [IRecipeHandler#handleItemTooltip(GuiRecipe, PositionedStack, List, int)].
+    @Nullable
+    public static PositionedStack getItemTooltipHoveredStack() {
+        if (!inHandleItemTooltip) throw new IllegalStateException(
+                "Cannot call getItemTooltipHoveredStack outside of IRecipeHandler.handleItemTooltip");
+
+        return itemTooltipHoveredStack;
+    }
+
+    /// Gets the screen-space mouse X coordinate. This can only be called within
+    /// [IRecipeHandler#handleItemTooltip(GuiRecipe, PositionedStack, List, int)].
+    public static int getItemTooltipMouseX() {
+        if (!inHandleItemTooltip) throw new IllegalStateException(
+                "Cannot call getItemTooltipMouseX outside of IRecipeHandler.handleItemTooltip");
+
+        return itemTooltipMouseX;
+    }
+
+    /// Gets the screen-space mouse Y coordinate. This can only be called within
+    /// [IRecipeHandler#handleItemTooltip(GuiRecipe, PositionedStack, List, int)].
+    public static int getItemTooltipMouseY() {
+        if (!inHandleItemTooltip) throw new IllegalStateException(
+                "Cannot call getItemTooltipMouseY outside of IRecipeHandler.handleItemTooltip");
+
+        return itemTooltipMouseY;
+    }
 }
