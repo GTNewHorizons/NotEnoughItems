@@ -367,9 +367,9 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 this.nexttype.xPosition - this.prevtype.xPosition - BUTTON_WIDTH - 1,
                 BUTTON_HEIGHT);
         this.pageArea.setBounds(
-                GuiRecipe.toggleSearch.x + BUTTON_WIDTH,
+                this.prevpage.xPosition + BUTTON_WIDTH,
                 this.prevpage.yPosition,
-                this.nextpage.xPosition - GuiRecipe.toggleSearch.x - BUTTON_WIDTH - 1,
+                this.nextpage.xPosition - this.prevpage.xPosition - BUTTON_WIDTH - 1,
                 BUTTON_HEIGHT);
 
         this.buttonList.addAll(Arrays.asList(this.prevtype, this.nexttype, this.prevpage, this.nextpage));
@@ -721,6 +721,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         if (NEIClientConfig.getBooleanSetting("inventory.guirecipe.scrollPages")
                 && this.container.boundsInside().contains(mouse.x, mouse.y)
                 || this.pageArea.contains(mouse)
+                        && (!this.handler.searchingAvailable() || !GuiRecipe.toggleSearch.contains(mouse.x, mouse.y))
                         && (!GuiRecipe.searchField.isVisible() || !GuiRecipe.searchField.contains(mouse.x, mouse.y))) {
 
             if (scroll > 0) {
