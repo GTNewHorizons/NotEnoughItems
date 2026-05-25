@@ -197,7 +197,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         return ingredSlots;
     }
 
-    private void moveIngredients(GuiContainer gui, List<IngredientDistribution> assignedIngredients, int multiplier) {
+    protected void moveIngredients(GuiContainer gui, List<IngredientDistribution> assignedIngredients, int multiplier) {
         final Slot craftingSlot = getCraftingResultSlot(gui);
 
         for (Slot slot : gui.inventorySlots.inventorySlots) {
@@ -249,7 +249,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         }
     }
 
-    private int calculateRecipeQuantity(List<IngredientDistribution> assignedIngredients) {
+    protected int calculateRecipeQuantity(List<IngredientDistribution> assignedIngredients) {
         int quantity = Integer.MAX_VALUE;
 
         for (IngredientDistribution distrib : assignedIngredients) {
@@ -275,7 +275,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         return quantity;
     }
 
-    private Slot[][] assignIngredSlots(GuiContainer gui, List<PositionedStack> ingredients,
+    protected Slot[][] assignIngredSlots(GuiContainer gui, List<PositionedStack> ingredients,
             List<IngredientDistribution> assignedIngredients) {
         Slot[][] recipeSlots = mapIngredSlots(gui, ingredients); // setup the slot map
 
@@ -320,7 +320,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         return recipeSlots;
     }
 
-    private List<IngredientDistribution> assignIngredients(List<PositionedStack> ingredients,
+    protected List<IngredientDistribution> assignIngredients(List<PositionedStack> ingredients,
             List<DistributedIngred> ingredStacks) {
         ArrayList<IngredientDistribution> assignedIngredients = new ArrayList<>();
         for (PositionedStack posstack : ingredients) // assign what we need and have
@@ -358,7 +358,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         return assignedIngredients;
     }
 
-    private void findInventoryQuantities(GuiContainer gui, List<DistributedIngred> ingredStacks) {
+    protected void findInventoryQuantities(GuiContainer gui, List<DistributedIngred> ingredStacks) {
         for (Slot slot : gui.inventorySlots.inventorySlots) /* work out how much we have to go round */ {
             if (slot.getHasStack() && canMoveFrom(slot, gui)) {
                 final ItemStack pstack = slot.getStack();
@@ -390,7 +390,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         }
     }
 
-    private List<DistributedIngred> getPermutationIngredients(List<PositionedStack> ingredients) {
+    protected List<DistributedIngred> getPermutationIngredients(List<PositionedStack> ingredients) {
         ArrayList<DistributedIngred> ingredStacks = new ArrayList<>();
         for (PositionedStack posstack : ingredients) /* work out what we need */ {
             for (ItemStack pstack : posstack.items) {
