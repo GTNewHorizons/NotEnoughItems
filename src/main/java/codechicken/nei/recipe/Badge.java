@@ -61,7 +61,7 @@ public class Badge {
         return this.alignment;
     }
 
-    private static int getHexValue(String color, int defaultValue) {
+    public static int getHexValue(String color, int defaultValue) {
         try {
             return (int) Long.parseLong(color.replace("0x", ""), 16);
         } catch (NumberFormatException e) {

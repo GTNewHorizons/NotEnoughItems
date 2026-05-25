@@ -9,6 +9,7 @@ import org.lwjgl.opengl.GL11;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.LayoutStyle;
 import codechicken.nei.drawable.DrawableBuilder;
+import codechicken.nei.recipe.Badge;
 
 public class LayoutStyleMinecraft extends LayoutStyle {
 
@@ -244,9 +245,21 @@ public class LayoutStyleMinecraft extends LayoutStyle {
 
         Image icon = b.getRenderIcon();
         if (icon == null) {
-            int colour = tex == 2 ? 0xffffa0 : tex == 0 ? 0x601010 : 0xe0e0e0;
+            final int colour;
+            if (tex == 2) {
+                colour = Badge.getHexValue(
+                        NEIClientUtils.getTextColorOrDefault("string.button.color.hover", "FFFFA0"),
+                        0xffffa0);
+            } else if (tex == 0) {
+                colour = Badge.getHexValue(
+                        NEIClientUtils.getTextColorOrDefault("string.button.color.red", "601010"),
+                        0x601010);
+            } else {
+                colour = Badge
+                        .getHexValue(NEIClientUtils.getTextColorOrDefault("string.button.color", "E0E0E0"), 0xe0e0e0);
+            }
 
-            drawStringC(b.getRenderLabel(), b.x + b.w / 2, b.y + (b.h - 8) / 2, colour);
+            drawStringC(b.getRenderLabel(), b.x + b.w / 2, b.y + (b.h - 8) / 2, b.getTextColor(colour));
         } else {
             GL11.glColor4f(1, 1, 1, 1);
 
