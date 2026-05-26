@@ -7,6 +7,8 @@ import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.GL11;
 
+import codechicken.nei.recipe.Badge;
+
 public class GuiNEIButton extends GuiButton {
 
     protected static final ResourceLocation guiTex = new ResourceLocation("textures/gui/widgets.png");
@@ -45,12 +47,15 @@ public class GuiNEIButton extends GuiButton {
     }
 
     protected int getTextColour(boolean mouseOver) {
-        int color = 0xe0e0e0;
+        int color = Badge.getHexValue(NEIClientUtils.getTextColorOrDefault("string.button.recipe.color", "E0E0E0"), 0xe0e0e0);
 
         if (!enabled) {
-            color = 0xffa0a0a0;
+            color = Badge.getHexValue(
+                    NEIClientUtils.getTextColorOrDefault("string.button.recipe.color.disabled", "A0A0A0"),
+                    0xffa0a0a0);
         } else if (mouseOver) {
-            color = 0xffffa0;
+            color = Badge
+                    .getHexValue(NEIClientUtils.getTextColorOrDefault("string.button.recipe.color.hover", "FFFFA0"), 0xffffa0);
         }
 
         return color;
