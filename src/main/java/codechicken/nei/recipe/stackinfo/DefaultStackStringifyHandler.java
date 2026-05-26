@@ -22,7 +22,7 @@ public class DefaultStackStringifyHandler implements IStackStringifyHandler {
         final NBTTagCompound nbTag = new NBTTagCompound();
         nbTag.setString("strId", strId);
         nbTag.setInteger("Count", saveStackSize ? stack.stackSize : 1);
-        nbTag.setShort("Damage", (short) stack.getItemDamage());
+        nbTag.setInteger("Damage", stack.getItemDamage());
 
         if (stack.hasTagCompound() && !stack.getTagCompound().hasNoTags()) {
             nbTag.setTag("tag", stack.getTagCompound().copy());
@@ -35,7 +35,7 @@ public class DefaultStackStringifyHandler implements IStackStringifyHandler {
         final String strId = nbtTag.getString("strId");
 
         nbtTag = (NBTTagCompound) nbtTag.copy();
-        nbtTag.setShort("id", (short) GameData.getItemRegistry().getId(strId)); // getObject
+        nbtTag.setInteger("id", GameData.getItemRegistry().getId(strId)); // getObject
 
         final ItemStack stack = ItemStack.loadItemStackFromNBT(nbtTag);
 
