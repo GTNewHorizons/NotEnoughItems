@@ -62,6 +62,13 @@ public class Badge {
     }
 
     public static int getHexValue(String color, int defaultValue) {
+        if (color.startsWith("&#") && color.length() >= 8) {
+            try {
+                return (int) Long.parseLong(color.substring(2, 8), 16);
+            } catch (NumberFormatException e) {
+                return defaultValue;
+            }
+        }
         try {
             return (int) Long.parseLong(color.replace("0x", ""), 16);
         } catch (NumberFormatException e) {
