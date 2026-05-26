@@ -77,7 +77,22 @@ public class RecipeHandlerRef {
             return this.handler.getOverlayHandler(firstGui, this.recipeIndex);
         }
 
+        if (firstGui != null && canUseSmartOverlay(firstGui)) {
+            return SmartOverlayHandler.INSTANCE;
+        }
+
         return null;
+    }
+
+    private boolean canUseSmartOverlay(GuiContainer gui) {
+        if (!(this.handler instanceof TemplateRecipeHandler templateHandler)
+                || templateHandler.getOverlayIdentifier() == null
+                || templateHandler.getGuiClass() == null
+                || !templateHandler.getGuiClass().isAssignableFrom(gui.getClass())) {
+            return false;
+        }
+
+        return SmartOverlayHandler.canHandle(gui, this.handler, this.recipeIndex);
     }
 
     public boolean canFillCraftingGrid(GuiContainer gui) {
