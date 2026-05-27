@@ -381,8 +381,13 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     public LinkedList<RecipeTransferRect> transferRects = new LinkedList<>();
 
     public TemplateRecipeHandler() {
-        loadTransferRects();
-        RecipeTransferRectHandler.registerRectsToGuis(getRecipeTransferRectGuis(), transferRects);
+        try {
+            loadTransferRects();
+            RecipeTransferRectHandler.registerRectsToGuis(getRecipeTransferRectGuis(), transferRects);
+        } catch (Exception e) {
+            NEIClientConfig.logger
+                    .error("NEI: Failed to load transfer rects for {}: {}", getClass().getName(), e.toString());
+        }
     }
 
     /**
