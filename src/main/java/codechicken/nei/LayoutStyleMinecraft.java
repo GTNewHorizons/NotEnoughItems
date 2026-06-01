@@ -244,7 +244,11 @@ public class LayoutStyleMinecraft extends LayoutStyle {
 
         Image icon = b.getRenderIcon();
         if (icon == null) {
-            int colour = tex == 2 ? 0xffffa0 : tex == 0 ? 0x601010 : 0xe0e0e0;
+            int labelColor = b.getRenderLabelColor();
+            int colour = labelColor != 0 ? labelColor
+                    : tex == 2 ? ColorUtils.buttonLabelHover.getColor()
+                            : tex == 0 ? ColorUtils.buttonLabelDisabled.getColor()
+                                    : ColorUtils.buttonLabelNormal.getColor();
 
             drawStringC(b.getRenderLabel(), b.x + b.w / 2, b.y + (b.h - 8) / 2, colour);
         } else {

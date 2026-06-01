@@ -19,6 +19,7 @@ import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.core.TaskProfiler.ProfilerResult;
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.ColorUtils;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
@@ -161,7 +162,7 @@ public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
                 3,
                 hovered ? 0xFFFFDD00 : 0xFF808080,
                 false);
-        GuiDraw.drawString(info.time, WIDTH - valueWidth, 3, 0xFF404040, false);
+        GuiDraw.drawString(info.time, WIDTH - valueWidth, 3, ColorUtils.textGray.getColor(), false);
     }
 
     private boolean isHandlerTitleHovered(int recipe, Point mouse) {

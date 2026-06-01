@@ -45,15 +45,12 @@ public class GuiNEIButton extends GuiButton {
     }
 
     protected int getTextColour(boolean mouseOver) {
-        int color = 0xe0e0e0;
-
         if (!enabled) {
-            color = 0xffa0a0a0;
+            return ColorUtils.buttonLabelInactive.getColor();
         } else if (mouseOver) {
-            color = 0xffffa0;
+            return ColorUtils.buttonLabelHover.getColor();
         }
-
-        return color;
+        return ColorUtils.buttonLabelNormal.getColor();
     }
 
     protected void drawContent(Minecraft minecraft, int y, int x, boolean mouseOver) {

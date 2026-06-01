@@ -27,6 +27,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.ColorUtils;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.Widget;
@@ -127,7 +128,7 @@ public abstract class GuiRecipeTab extends Widget {
 
             int textCenterX = x + (int) (getWidth() / 2f);
             int textCenterY = y + (int) (getHeight() / 2f) - 3;
-            int color = selected ? 0xffffa0 : 0xe0e0e0;
+            int color = selected ? ColorUtils.buttonLabelHover.getColor() : ColorUtils.buttonLabelNormal.getColor();
             fontRenderer.drawStringWithShadow(
                     text,
                     textCenterX - (int) (fontRenderer.getStringWidth(text) / 2f),
