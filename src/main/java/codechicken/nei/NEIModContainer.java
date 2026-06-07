@@ -9,11 +9,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.IReloadableResourceManager;
+
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import codechicken.core.CommonUtils;
 import codechicken.core.launch.CodeChickenCorePlugin;
+import codechicken.nei.api.ColorResource;
 import codechicken.nei.api.IConfigureNEI;
 import codechicken.nei.asm.NEICorePlugin;
 import codechicken.nei.config.IMCHandler;
@@ -105,6 +109,8 @@ public class NEIModContainer extends DummyModContainer {
         if (CommonUtils.isClient()) {
             ClientHandler.load();
             IMCForNEI.IMCSender();
+            ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager())
+                    .registerReloadListener(new ColorResource.CacheReloadListener());
         }
         ServerHandler.load();
     }

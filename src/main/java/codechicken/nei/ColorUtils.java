@@ -1,6 +1,6 @@
 package codechicken.nei;
 
-import com.gtnewhorizon.gtnhlib.color.ColorResource;
+import codechicken.nei.api.ColorResource;
 
 public class ColorUtils {
 

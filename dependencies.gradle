@@ -17,5 +17,4 @@ dependencies {
 
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
     testRuntimeOnly("org.lwjgl.lwjgl:lwjgl:2.9.3");
-    shadowImplementation("com.github.GTNewHorizons:GTNHLib:0.11.5")
 }
