@@ -189,13 +189,13 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             final BookmarkItem.Builder builder;
 
             if (recipe != null) {
-                builder = BookmarkItem.builder(groupId, itemStack, recipe, BookmarkItemType.RESULT);
-            } else {
+                builder = BookmarkItem.builder(groupId, itemStack, recipe, BookmarkItemType.RESULT).multiplier(1);
+            } else if (recipeId != null) {
                 builder = BookmarkItem.builder(groupId, itemStack).recipeId(recipeId)
-                        .factor(StackInfo.getAmount(itemStack));
+                        .factor(StackInfo.getAmount(itemStack)).multiplier(1);
+            } else {
+                builder = BookmarkItem.builder(groupId, itemStack).factor(1).multiplier(StackInfo.getAmount(itemStack));
             }
-
-            builder.multiplier(1);
 
             if (existsRecipe) {
                 builder.type(BookmarkItemType.RESULT);
