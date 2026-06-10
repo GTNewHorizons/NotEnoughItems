@@ -54,6 +54,7 @@ public class NEIActions {
         addAction("magnet", true);
         addAction("enchant", true);
         addAction("potion", true);
+        addAction("autocraft");
 
         canDisable.add("dawn");
         canDisable.add("noon");
