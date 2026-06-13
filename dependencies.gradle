@@ -1,4 +1,8 @@
 // Add your dependencies here
+configurations.create('gtnhlibEmbed') {
+    canBeConsumed = false
+    canBeResolved = true
+}
 
 dependencies {
     api('com.github.GTNewHorizons:CodeChickenCore:1.4.15:dev')
@@ -17,4 +21,13 @@ dependencies {
 
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
     testRuntimeOnly("org.lwjgl.lwjgl:lwjgl:2.9.3");
+
+    compileOnly("com.github.GTNewHorizons:GTNHLib:0.11.15") { transitive = false }
+    gtnhlibEmbed("com.github.GTNewHorizons:GTNHLib:0.11.15") { transitive = false }
+}
+
+tasks.jar {
+    from({ project.configurations.getByName('gtnhlibEmbed').collect { zipTree(it) } }) {
+        include 'com/gtnewhorizon/gtnhlib/color/ColorResource.class'
+    }
 }

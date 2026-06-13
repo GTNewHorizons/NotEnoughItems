@@ -24,8 +24,8 @@ public class GuiEnchantmentModifier extends GuiContainer {
 
     @Override
     protected void drawGuiContainerForegroundLayer(int par1, int par2) {
-        fontRendererObj.drawString(translate("enchant"), 12, 6, 0x404040);
-        fontRendererObj.drawString(translate("enchant.level"), 19, 20, 0x404040);
+        fontRendererObj.drawString(translate("enchant"), 12, 6, ColorUtils.textGray.getColor());
+        fontRendererObj.drawString(translate("enchant.level"), 19, 20, ColorUtils.textGray.getColor());
     }
 
     protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {
@@ -39,7 +39,11 @@ public class GuiEnchantmentModifier extends GuiContainer {
         container.drawScrollBar(this);
 
         String levelstring = "" + container.level;
-        fontRendererObj.drawString(levelstring, 33 - fontRendererObj.getStringWidth(levelstring) / 2, 34, 0xFF606060);
+        fontRendererObj.drawString(
+                levelstring,
+                33 - fontRendererObj.getStringWidth(levelstring) / 2,
+                34,
+                ColorUtils.textLightGray.getColor());
 
         GL11.glTranslatef(-guiLeft, -guiTop, 0);
     }

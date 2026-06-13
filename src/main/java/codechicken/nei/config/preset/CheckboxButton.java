@@ -5,6 +5,7 @@ import static codechicken.lib.gui.GuiDraw.drawStringC;
 import org.lwjgl.opengl.GL11;
 
 import codechicken.nei.Button;
+import codechicken.nei.ColorUtils;
 import codechicken.nei.LayoutManager;
 
 public abstract class CheckboxButton extends Button {
@@ -38,7 +39,8 @@ public abstract class CheckboxButton extends Button {
             tex = 1;
         }
 
-        int colour = tex == 2 ? 0xffffa0 : tex == 0 ? 0x601010 : 0xe0e0e0;
+        int colour = tex == 2 ? ColorUtils.buttonLabelHover.getColor()
+                : tex == 0 ? ColorUtils.buttonLabelDisabled.getColor() : ColorUtils.buttonLabelNormal.getColor();
         LayoutManager.drawButtonBackground(x, y, w, h, true, isChecked() ? 0 : tex);
         drawStringC(getRenderLabel(), x + w / 2, y + (h - 8) / 2, colour);
     }

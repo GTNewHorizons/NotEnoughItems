@@ -289,10 +289,10 @@ public class GuiPotionCreator extends GuiContainerWidget {
         CCRenderState.changeTexture("nei:textures/gui/potion.png");
         drawTexturedModalRect(0, 0, 0, 0, xSize, ySize);
 
-        FontUtils.drawCenteredString(translate("potion.favourite"), xSize / 2, 4, 0x404040);
-        fontRendererObj.drawString(translate("potion.duration"), 12, 40, 0x404040);
-        fontRendererObj.drawString(translate("potion.level"), 19, 73, 0x404040);
-        FontUtils.drawCenteredString(translateAmplifier(amplifier), 33, 86, 0xFF606060);
+        FontUtils.drawCenteredString(translate("potion.favourite"), xSize / 2, 4, ColorUtils.textGray.getColor());
+        fontRendererObj.drawString(translate("potion.duration"), 12, 40, ColorUtils.textGray.getColor());
+        fontRendererObj.drawString(translate("potion.level"), 19, 73, ColorUtils.textGray.getColor());
+        FontUtils.drawCenteredString(translateAmplifier(amplifier), 33, 86, ColorUtils.textGray.getColor());
     }
 
     @Override

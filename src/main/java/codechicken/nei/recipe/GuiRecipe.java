@@ -17,7 +17,6 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -25,6 +24,7 @@ import org.lwjgl.opengl.GL11;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.Button;
+import codechicken.nei.ColorUtils;
 import codechicken.nei.GuiNEIButton;
 import codechicken.nei.NEICPH;
 import codechicken.nei.NEIClientConfig;
@@ -878,13 +878,13 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 0x30000000);
 
         final String handlerTitle = this.handler.original.getRecipeName().trim();
-        final String titleColorCode = getHandlerTitleColorCode(isHandlerTitleHovered(mouseX, mouseY));
+        final int titleColor = getHandlerTitleColor(isHandlerTitleHovered(mouseX, mouseY));
         drawCenteredString(
                 this.fontRendererObj,
-                titleColorCode + handlerTitle + EnumChatFormatting.RESET,
+                handlerTitle,
                 this.guiLeft + this.xSize / 2,
                 this.typeArea.y + textMiddle,
-                0xffffff);
+                titleColor);
 
         if (this.handler.searchingAvailable()) {
             GuiRecipe.toggleSearch.draw(mouseX, mouseY);
@@ -938,16 +938,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         return new Rectangle(titleX, titleY, titleWidth, this.fontRendererObj.FONT_HEIGHT).contains(mousex, mousey);
     }
 
-    private String getHandlerTitleColorCode(boolean hovered) {
-
-        if (hovered) {
-            return NEIClientUtils
-                    .getTextColorOrDefault("recipe.title.color.hover", EnumChatFormatting.YELLOW.toString());
-        } else {
-            return NEIClientUtils
-                    .getTextColorOrDefault("recipe.title.color.normal", EnumChatFormatting.WHITE.toString());
-        }
-
+    private int getHandlerTitleColor(boolean hovered) {
+        return hovered ? ColorUtils.recipeTitle.getColor() : ColorUtils.recipeTitleHover.getColor();
     }
 
     @Override
