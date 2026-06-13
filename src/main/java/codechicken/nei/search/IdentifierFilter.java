@@ -27,7 +27,10 @@ public class IdentifierFilter implements ItemFilter {
 
     protected String getStringIdentifier(ItemStack stack) {
         String name = GameData.getItemRegistry().getNameForObject(stack.getItem());
-        return name == null || name.isEmpty() ? "Unknown:Unknown" : name;
+
+        if (name == null || name.isEmpty()) return "Unknown";
+
+        return name.substring(name.indexOf(':') + 1);
     }
 
 }
