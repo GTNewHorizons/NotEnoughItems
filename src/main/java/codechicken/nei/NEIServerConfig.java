@@ -108,6 +108,7 @@ public class NEIServerConfig {
         setDefaultFeature("save-state");
         setDefaultFeature("item");
         setDefaultFeature("delete");
+        setDefaultFeature("autocraft", "ALL");
         setDefaultFeature("notify-item", "CONSOLE, OP");
     }
 

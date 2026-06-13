@@ -1,8 +1,8 @@
 // Add your dependencies here
 
 dependencies {
-    api('com.github.GTNewHorizons:CodeChickenCore:1.4.12:dev')
-    devOnlyNonPublishable('com.github.GTNewHorizons:GTNHLib:0.9.47:dev')
+    api('com.github.GTNewHorizons:CodeChickenCore:1.4.15:dev')
+    devOnlyNonPublishable('com.github.GTNewHorizons:GTNHLib:0.11.15:dev')
 
     shadowImplementation('org.apache.commons:commons-csv:1.10.0')
 

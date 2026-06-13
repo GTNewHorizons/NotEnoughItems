@@ -1049,7 +1049,9 @@ public class NEIClientConfig {
     }
 
     public static boolean autocraftingEnabled() {
-        return getBooleanSetting("inventory.autocrafting");
+        if (!getBooleanSetting("inventory.autocrafting")) return false;
+        if (hasSMPCounterpart) return permissableActions.contains("autocraft");
+        return true;
     }
 
     public static boolean favoritesEnabled() {
