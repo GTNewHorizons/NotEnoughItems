@@ -939,7 +939,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     private int getHandlerTitleColor(boolean hovered) {
-        return hovered ? ColorUtils.recipeTitle.getColor() : ColorUtils.recipeTitleHover.getColor();
+        return hovered ? ColorUtils.recipeTitleHover.getColor() : ColorUtils.recipeTitle.getColor();
     }
 
     @Override

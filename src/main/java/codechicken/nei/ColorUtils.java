@@ -10,8 +10,8 @@ public class ColorUtils {
     // spotless:off
         textGray            = color.rgb("textGray",             "0x404040"),
         textLightGray       = color.rgb("textLightGray",        "0x606060"),
-        recipeTitle         = color.rgb("recipeTitle",          "0xFFFF55"),
-        recipeTitleHover    = color.rgb("recipeTitleHover",     "0xFFFFFF"),
+        recipeTitle         = color.rgb("recipeTitle",          "0xFFFFFF"),
+        recipeTitleHover    = color.rgb("recipeTitleHover",     "0xFFFF55"),
         subsetWidget        = color.rgb("subsetWidget",         "0xAA00AA"),
         recipeBadge         = color.rgb("recipeBadge",          "0xFDD835"),
         buttonLabelNormal   = color.rgb("buttonLabelNormal",    "0xE0E0E0"),
