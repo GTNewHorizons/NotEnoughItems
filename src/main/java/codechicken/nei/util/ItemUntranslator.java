@@ -179,11 +179,15 @@ public class ItemUntranslator {
     }
 
     private void collectDisplayNameForStack(ItemStack stack, Map<String, String> items) {
-        final String displayName = stripFormatting(stack.getDisplayName());
-        final String guidKey = determineGUIDForGeneration(stack, displayName, items);
+        try {
+            final String displayName = stripFormatting(stack.getDisplayName());
+            final String guidKey = determineGUIDForGeneration(stack, displayName, items);
 
-        if (!items.containsKey(guidKey)) {
-            items.put(guidKey, displayName);
+            if (!items.containsKey(guidKey)) {
+                items.put(guidKey, displayName);
+            }
+        } catch (Throwable e) {
+            NEIClientConfig.logger.warn("Failed to get display name for itemstack {}", stack, e);
         }
     }
 
