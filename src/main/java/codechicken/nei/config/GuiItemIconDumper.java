@@ -43,6 +43,7 @@ public class GuiItemIconDumper extends GuiScreen {
     }
 
     private Option opt;
+    private final GuiOptionList parentGui;
     private int drawIndex;
     private int parseIndex;
     private final File dir = new File(CommonUtils.getMinecraftDir(), "dumps/itempanel_icons");
@@ -52,6 +53,7 @@ public class GuiItemIconDumper extends GuiScreen {
 
     public GuiItemIconDumper(Option opt, int iconSize) {
         this.opt = opt;
+        this.parentGui = (GuiOptionList) Minecraft.getMinecraft().currentScreen;
         this.iconSize = iconSize;
         borderSize = iconSize / 16;
         boxSize = iconSize + borderSize * 2;
@@ -62,7 +64,7 @@ public class GuiItemIconDumper extends GuiScreen {
     }
 
     private void returnScreen(IChatComponent msg) {
-        Minecraft.getMinecraft().displayGuiScreen(opt.getSlot().getGui());
+        Minecraft.getMinecraft().displayGuiScreen(parentGui);
         NEIClientUtils.printChatMessage(msg);
     }
 

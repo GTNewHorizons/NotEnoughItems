@@ -7,10 +7,12 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 
 import org.lwjgl.opengl.GL11;
 
+import codechicken.lib.config.ConfigTag;
 import codechicken.lib.math.MathHelper;
 import codechicken.nei.ItemSorter;
 import codechicken.nei.ItemSorter.SortEntry;
@@ -48,6 +50,8 @@ public class GuiItemSorter extends GuiOptionPane {
     public final Option opt;
     public final List<SortItem> slots = new ArrayList<>();
     public final List<SortEntry> list;
+    private final GuiOptionList parentGui;
+    private final boolean world;
 
     boolean dragging;
     public SortItem dragged;
@@ -56,7 +60,9 @@ public class GuiItemSorter extends GuiOptionPane {
 
     public GuiItemSorter(Option opt) {
         this.opt = opt;
-        list = ItemSorter.fromSaveString(opt.renderTag().getValue());
+        this.parentGui = (GuiOptionList) Minecraft.getMinecraft().currentScreen;
+        this.world = parentGui.worldConfig();
+        list = ItemSorter.fromSaveString(renderTag(opt.configName()).getValue());
         for (SortEntry e : list) slots.add(new SortItem(e));
     }
 
@@ -98,7 +104,7 @@ public class GuiItemSorter extends GuiOptionPane {
 
     @Override
     public GuiScreen getParentScreen() {
-        return opt.getSlot().getGui();
+        return parentGui;
     }
 
     @Override
@@ -114,14 +120,22 @@ public class GuiItemSorter extends GuiOptionPane {
                 list.remove(dragged.e);
                 list.add(nslot, dragged.e);
 
-                opt.getTag().setValue(ItemSorter.getSaveString(list));
+                getTag(opt.configName()).setValue(ItemSorter.getSaveString(list));
                 LayoutManager.markItemsDirty();
 
-                if (opt.activeTag() == opt.getTag()) {
+                if (opt.activeTag() == getTag(opt.configName())) {
                     ItemSorter.list = new ArrayList<>(list);
                 }
             }
         }
+    }
+
+    private ConfigTag getTag(String s) {
+        return (world ? opt.worldConfigSet() : opt.globalConfigSet()).config.getTag(s);
+    }
+
+    private ConfigTag renderTag(String s) {
+        return (world && opt.worldSpecific(s) ? opt.worldConfigSet() : opt.globalConfigSet()).config.getTag(s);
     }
 
     public SortItem itemAt(int mx, int my) {
