@@ -17,12 +17,14 @@ import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PresetsList;
 import codechicken.nei.PresetsList.Preset;
+import codechicken.nei.config.GuiOptionList;
 import codechicken.nei.config.GuiOptionPane;
 import codechicken.nei.config.Option;
 
 public class GuiPresetList extends GuiOptionPane {
 
     private final Option opt;
+    private final GuiOptionList parentGui;
     protected static final int SLOT_HEIGHT = 24;
     protected static final int BUTTON_HEIGHT = 20;
     protected GuiCCButton createButton;
@@ -31,6 +33,7 @@ public class GuiPresetList extends GuiOptionPane {
 
     public GuiPresetList(Option opt) {
         this.opt = opt;
+        this.parentGui = (GuiOptionList) Minecraft.getMinecraft().currentScreen;
         this.createButton = new GuiCCButton(0, 2, 0, 16, NEIClientUtils.translate("presets.new"))
                 .setActionCommand("create");
         this.toggleButton = new GuiCCButton(0, 2, 0, 16, NEIClientUtils.translate("presets.toggle"))
@@ -253,7 +256,7 @@ public class GuiPresetList extends GuiOptionPane {
 
     @Override
     public GuiScreen getParentScreen() {
-        return opt.getSlot().getGui();
+        return parentGui;
     }
 
     @Override

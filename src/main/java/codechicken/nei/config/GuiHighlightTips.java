@@ -18,6 +18,7 @@ import org.lwjgl.input.Keyboard;
 
 import codechicken.core.gui.GuiCCButton;
 import codechicken.core.gui.GuiScreenWidget;
+import codechicken.lib.config.ConfigTag;
 import codechicken.lib.math.MathHelper;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.HUDRenderer;
@@ -27,12 +28,16 @@ public class GuiHighlightTips extends GuiScreenWidget {
     private final String name;
     private GuiCCButton toggleButton;
     private final Option opt;
+    private final GuiOptionList parentGui;
+    private final boolean world;
     private Point dragDown;
 
     public GuiHighlightTips(Option opt) {
         super(80, 20);
         this.opt = opt;
         name = opt.name;
+        this.parentGui = (GuiOptionList) Minecraft.getMinecraft().currentScreen;
+        this.world = parentGui.worldConfig();
     }
 
     @Override
@@ -48,7 +53,7 @@ public class GuiHighlightTips extends GuiScreenWidget {
     @Override
     public void actionPerformed(String ident, Object... params) {
         if (ident.equals("show")) {
-            opt.getTag(name).setBooleanValue(!show());
+            getTag(name).setBooleanValue(!show());
             updateNames();
         }
     }
@@ -58,13 +63,21 @@ public class GuiHighlightTips extends GuiScreenWidget {
     }
 
     private boolean show() {
-        return opt.renderTag(name).getBooleanValue();
+        return renderTag(name).getBooleanValue();
+    }
+
+    private ConfigTag getTag(String s) {
+        return (world ? opt.worldConfigSet() : opt.globalConfigSet()).config.getTag(s);
+    }
+
+    private ConfigTag renderTag(String s) {
+        return (world && opt.worldSpecific(s) ? opt.worldConfigSet() : opt.globalConfigSet()).config.getTag(s);
     }
 
     @Override
     public void keyTyped(char c, int keycode) {
         if (keycode == Keyboard.KEY_ESCAPE || keycode == Keyboard.KEY_BACK) {
-            Minecraft.getMinecraft().displayGuiScreen(opt.getSlot().getGui());
+            Minecraft.getMinecraft().displayGuiScreen(parentGui);
             return;
         }
         super.keyTyped(c, keycode);
@@ -82,7 +95,7 @@ public class GuiHighlightTips extends GuiScreenWidget {
     }
 
     public Point getPos() {
-        return new Point(opt.renderTag(name + ".x").getIntValue(), opt.renderTag(name + ".y").getIntValue());
+        return new Point(renderTag(name + ".x").getIntValue(), renderTag(name + ".y").getIntValue());
     }
 
     public Dimension sampleSize() // copied from HUDManager when running with the sample for this gui
@@ -148,8 +161,8 @@ public class GuiHighlightTips extends GuiScreenWidget {
     }
 
     private void setPos(Point p) {
-        opt.getTag(name).setBooleanValue(show()); // duplicates global tag for the option gui if in world mode
-        opt.getTag(name + ".x").setIntValue(p.x);
-        opt.getTag(name + ".y").setIntValue(p.y);
+        getTag(name).setBooleanValue(show()); // duplicates global tag for the option gui if in world mode
+        getTag(name + ".x").setIntValue(p.x);
+        getTag(name + ".y").setIntValue(p.y);
     }
 }

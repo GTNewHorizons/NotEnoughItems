@@ -92,7 +92,7 @@ public abstract class DataDumper extends Option {
     }
 
     public Rectangle4i dumpButtonSize() {
-        int width = 80;
+        int width = 50;
         return new Rectangle4i(getSlot().slotWidth() - width, 0, width, 20);
     }
 
