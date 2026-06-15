@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import codechicken.core.gui.GuiScreenWidget;
+import codechicken.lib.config.ConfigTag;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.vec.Rectangle4i;
@@ -21,7 +22,7 @@ import codechicken.nei.guihook.GuiContainerManager;
 
 public class GuiPanelSettings extends GuiScreenWidget {
 
-    private final Option opt;
+    private final GuiOptionList parentGui;
 
     private PanelPlaceholder bookmarksPanel;
     private PanelPlaceholder itemsPanel;
@@ -54,6 +55,7 @@ public class GuiPanelSettings extends GuiScreenWidget {
 
         private final Option opt;
         private final String name;
+        private final boolean world;
         private Rectangle4i margin;
         private Point dragDown;
         private String dragDir;
@@ -67,9 +69,10 @@ public class GuiPanelSettings extends GuiScreenWidget {
         private PanelResizeButton rightButton = new PanelResizeButton(PANEL_SIZE, PANEL_SIZE * 2);
         private PanelResizeButton bottomButton = new PanelResizeButton(PANEL_SIZE * 2, PANEL_SIZE);
 
-        public PanelPlaceholder(Option opt, String name) {
+        public PanelPlaceholder(Option opt, String name, boolean world) {
             this.opt = opt;
             this.name = name;
+            this.world = world;
         }
 
         public void resize(Rectangle4i margin) {
@@ -116,10 +119,10 @@ public class GuiPanelSettings extends GuiScreenWidget {
             final int minWidth = ItemsGrid.SLOT_SIZE;
             final int minHeight = ItemsGrid.SLOT_SIZE;
 
-            int paddingLeft = (int) Math.ceil(margin.w * opt.renderTag(name + ".left").getIntValue() / 100000.0);
-            int paddingTop = (int) Math.ceil(margin.h * opt.renderTag(name + ".top").getIntValue() / 100000.0);
-            int paddingRight = (int) Math.ceil(margin.w * opt.renderTag(name + ".right").getIntValue() / 100000.0);
-            int paddingBottom = (int) Math.ceil(margin.h * opt.renderTag(name + ".bottom").getIntValue() / 100000.0);
+            int paddingLeft = (int) Math.ceil(margin.w * getTag(name + ".left").getIntValue() / 100000.0);
+            int paddingTop = (int) Math.ceil(margin.h * getTag(name + ".top").getIntValue() / 100000.0);
+            int paddingRight = (int) Math.ceil(margin.w * getTag(name + ".right").getIntValue() / 100000.0);
+            int paddingBottom = (int) Math.ceil(margin.h * getTag(name + ".bottom").getIntValue() / 100000.0);
 
             if (dragDir != null) {
                 final Point mouse = GuiDraw.getMousePosition();
@@ -157,6 +160,10 @@ public class GuiPanelSettings extends GuiScreenWidget {
             paddingBottom = Math.min(margin.h - paddingTop - minHeight, Math.max(0, paddingBottom - deltaHeight));
 
             return new int[] { paddingLeft, paddingTop, paddingRight, paddingBottom };
+        }
+
+        private ConfigTag getTag(String s) {
+            return (world ? opt.worldConfigSet() : opt.globalConfigSet()).config.getTag(s);
         }
 
         protected void drawItems() {
@@ -219,10 +226,10 @@ public class GuiPanelSettings extends GuiScreenWidget {
             if (button == 0 && dragDown != null) {
                 int[] padding = getPaddings();
 
-                opt.renderTag(name + ".left").setIntValue(padding[0] * 100000 / margin.w);
-                opt.renderTag(name + ".top").setIntValue(padding[1] * 100000 / margin.h);
-                opt.renderTag(name + ".right").setIntValue(padding[2] * 100000 / margin.w);
-                opt.renderTag(name + ".bottom").setIntValue(padding[3] * 100000 / margin.h);
+                getTag(name + ".left").setIntValue(padding[0] * 100000 / margin.w);
+                getTag(name + ".top").setIntValue(padding[1] * 100000 / margin.h);
+                getTag(name + ".right").setIntValue(padding[2] * 100000 / margin.w);
+                getTag(name + ".bottom").setIntValue(padding[3] * 100000 / margin.h);
 
                 dragDir = null;
                 dragDown = null;
@@ -232,10 +239,11 @@ public class GuiPanelSettings extends GuiScreenWidget {
 
     public GuiPanelSettings(Option opt) {
         super(176, 198);
-        this.opt = opt;
+        this.parentGui = (GuiOptionList) Minecraft.getMinecraft().currentScreen;
 
-        bookmarksPanel = new PanelPlaceholder(opt, opt.name + ".bookmarks");
-        itemsPanel = new PanelPlaceholder(opt, opt.name + ".items");
+        boolean world = parentGui.worldConfig();
+        bookmarksPanel = new PanelPlaceholder(opt, opt.name + ".bookmarks", world);
+        itemsPanel = new PanelPlaceholder(opt, opt.name + ".items", world);
     }
 
     @Override
@@ -247,7 +255,7 @@ public class GuiPanelSettings extends GuiScreenWidget {
     public void keyTyped(char c, int keycode) {
 
         if (keycode == Keyboard.KEY_ESCAPE || keycode == Keyboard.KEY_BACK) {
-            Minecraft.getMinecraft().displayGuiScreen(opt.getSlot().getGui());
+            Minecraft.getMinecraft().displayGuiScreen(parentGui);
             return;
         }
 
