@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.lib.vec.Rectangle4i;
+import codechicken.nei.ColorUtils;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIClientUtils.Alignment;
 
@@ -14,16 +15,14 @@ public class Badge {
 
     protected final String text;
     protected final List<String> tooltip;
-    protected int badgeTextColor = 0xFDD835;
+    protected int badgeTextColor;
     protected boolean shadow = false;
     protected Alignment alignment = Alignment.TopLeft;
 
     public Badge(String text, String... tooltip) {
         this.text = text;
         this.tooltip = Arrays.stream(tooltip).map(t -> EnumChatFormatting.GRAY + t).collect(Collectors.toList());
-        this.badgeTextColor = getHexValue(
-                NEIClientUtils.getTextColorOrDefault("recipe.badge.color", "0xFDD835"),
-                0xFDD835);
+        this.badgeTextColor = ColorUtils.recipeBadge.getColor();
     }
 
     public String getText() {
@@ -59,14 +58,6 @@ public class Badge {
 
     public Alignment getAlignment() {
         return this.alignment;
-    }
-
-    private static int getHexValue(String color, int defaultValue) {
-        try {
-            return (int) Long.parseLong(color.replace("0x", ""), 16);
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
     }
 
     public void draw(Rectangle4i rect) {

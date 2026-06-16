@@ -57,6 +57,10 @@ public abstract class Button extends Widget {
         return label;
     }
 
+    public int getRenderLabelColor() {
+        return 0;
+    }
+
     public final String label;
     public Image icon;
 

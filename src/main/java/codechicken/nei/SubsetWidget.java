@@ -689,17 +689,17 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
     }
 
     @Override
-    public String getRenderLabel() {
+    public int getRenderLabelColor() {
+        return NEIClientConfig.subsetWidgetOnTop() ? 0 : ColorUtils.subsetWidget.getColor();
+    }
 
+    @Override
+    public String getRenderLabel() {
         if (NEIClientConfig.subsetWidgetOnTop()) {
             return NEIClientUtils.translate("inventory.item_subsets");
         } else {
-            return NEIClientUtils.getTextColorOrDefault(
-                    "gui.button.label.subset",
-                    EnumChatFormatting.DARK_PURPLE
-                            + String.valueOf(SearchField.searchParser.getRedefinedPrefix(PREFIX)));
+            return String.valueOf(SearchField.searchParser.getRedefinedPrefix(PREFIX));
         }
-
     }
 
     @Override
