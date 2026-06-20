@@ -23,6 +23,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
@@ -410,7 +411,11 @@ public class ItemList {
                         itemMap.putAll(item, permutations);
                     }
                 } catch (Throwable t) {
-                    NEIServerConfig.logger.error("Removing item: {} from list.", item, t);
+                    NEIServerConfig.logger.error(
+                            "Removing item: {} from list.\n{}: {}",
+                            item,
+                            t.getMessage(),
+                            Throwables.getStackTraceAsString(t));
                     erroredItems.add(item);
                 }
 
