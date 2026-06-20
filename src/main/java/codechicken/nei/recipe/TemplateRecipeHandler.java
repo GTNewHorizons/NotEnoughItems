@@ -30,6 +30,7 @@ import com.google.common.base.Stopwatch;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemList;
+import codechicken.nei.KeyManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
@@ -288,9 +289,9 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyCode) {
             if (!canHandle(gui)) return false;
 
-            if (NEIClientConfig.isKeyHashDown("gui.recipe")) {
+            if (KeyManager.isHashDown("recipe.recipe")) {
                 return transferRect(gui, false);
-            } else if (NEIClientConfig.isKeyHashDown("gui.usage")) {
+            } else if (KeyManager.isHashDown("recipe.usage")) {
                 return transferRect(gui, true);
             }
 
@@ -672,9 +673,9 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     @Override
     public boolean keyTyped(GuiRecipe<?> gui, char keyChar, int keyCode, int recipe) {
 
-        if (NEIClientConfig.isKeyHashDown("gui.recipe")) {
+        if (KeyManager.isHashDown("recipe.recipe")) {
             return transferRect(gui, recipe, false);
-        } else if (NEIClientConfig.isKeyHashDown("gui.usage")) {
+        } else if (KeyManager.isHashDown("recipe.usage")) {
             return transferRect(gui, recipe, true);
         }
 

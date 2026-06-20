@@ -19,6 +19,7 @@ import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.Image;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemStackSet;
+import codechicken.nei.KeyManager;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -122,7 +123,7 @@ public class GuiFavoriteButton extends GuiRecipeButton {
 
     public void lastKeyTyped(char keyChar, int keyID) {
 
-        if (NEIClientConfig.isKeyHashDown("gui.bookmark") && NEIClientUtils.shiftKey()) {
+        if (KeyManager.isKeyDown("bookmark.add") && NEIClientUtils.shiftKey()) {
             saveRecipeInBookmark();
         }
 
@@ -131,7 +132,7 @@ public class GuiFavoriteButton extends GuiRecipeButton {
     @Override
     public Map<String, String> handleHotkeys(int mousex, int mousey, Map<String, String> hotkeys) {
         hotkeys.put(
-                NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                KeyManager.getKeyName("bookmark.add", NEIClientUtils.SHIFT_HASH),
                 translate("recipe.favorite.bookmark_recipe"));
 
         if (this.recipe.getResults().size() > 1) {

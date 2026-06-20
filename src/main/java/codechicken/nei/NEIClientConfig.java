@@ -61,7 +61,6 @@ import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
 import codechicken.nei.util.ItemUntranslator;
-import codechicken.nei.util.NEIKeyboardUtils;
 import codechicken.obfuscator.ObfuscationRun;
 
 public class NEIClientConfig {
@@ -815,35 +814,37 @@ public class NEIClientConfig {
     }
 
     private static void setDefaultKeyBindings() {
-        API.addHashBind("gui.recipe", Keyboard.KEY_R);
-        API.addHashBind("gui.usage", Keyboard.KEY_U);
-        API.addKeyBind("gui.back", Keyboard.KEY_BACK);
-        API.addHashBind("gui.enchant", Keyboard.KEY_X);
-        API.addHashBind("gui.potion", Keyboard.KEY_P);
+        API.addKeyBind("gui.enchant", Keyboard.KEY_X);
+        API.addKeyBind("gui.potion", Keyboard.KEY_P);
         API.addKeyBind("gui.prev", Keyboard.KEY_PRIOR);
         API.addKeyBind("gui.next", Keyboard.KEY_NEXT);
-        API.addKeyBind("gui.prev_machine", Keyboard.KEY_UP);
-        API.addKeyBind("gui.next_machine", Keyboard.KEY_DOWN);
-        API.addKeyBind("gui.prev_recipe", Keyboard.KEY_LEFT);
-        API.addKeyBind("gui.next_recipe", Keyboard.KEY_RIGHT);
-        API.addHashBind("gui.hide", Keyboard.KEY_O);
-        API.addHashBind("gui.search", Keyboard.KEY_F);
-        API.addKeyBind("gui.bookmark", Keyboard.KEY_A);
-        API.addHashBind("gui.favorite", Keyboard.KEY_F + NEIClientUtils.SHIFT_HASH);
-        API.addKeyBind("gui.favorite_item", Keyboard.KEY_F);
-        API.addHashBind("gui.remove_recipe", Keyboard.KEY_A + NEIClientUtils.SHIFT_HASH);
-        API.addKeyBind("gui.bookmark_pull_items", Keyboard.KEY_V);
+        API.addKeyBind("gui.hide", Keyboard.KEY_O);
+        API.addKeyBind("gui.search", Keyboard.KEY_F);
         API.addKeyBind("gui.overlay", Keyboard.KEY_S);
         API.addKeyBind("gui.craft_items", Keyboard.KEY_C);
-        API.addHashBind("gui.hide_bookmarks", Keyboard.KEY_B);
         API.addKeyBind("gui.getprevioussearch", Keyboard.KEY_UP);
         API.addKeyBind("gui.getnextsearch", Keyboard.KEY_DOWN);
         API.addKeyBind("gui.next_tooltip", Keyboard.KEY_Z);
 
-        API.addHashBind("gui.itemzoom_toggle", Keyboard.KEY_Z + NEIClientUtils.SHIFT_HASH);
-        API.addHashBind("gui.itemzoom_hold", 0);
-        API.addHashBind("gui.itemzoom_zoom_in", 0);
-        API.addHashBind("gui.itemzoom_zoom_out", 0);
+        API.addKeyBind("recipe.recipe", Keyboard.KEY_R);
+        API.addKeyBind("recipe.usage", Keyboard.KEY_U);
+        API.addKeyBind("recipe.back", Keyboard.KEY_BACK);
+        API.addKeyBind("recipe.prev_machine", Keyboard.KEY_UP);
+        API.addKeyBind("recipe.next_machine", Keyboard.KEY_DOWN);
+        API.addKeyBind("recipe.prev_recipe", Keyboard.KEY_LEFT);
+        API.addKeyBind("recipe.next_recipe", Keyboard.KEY_RIGHT);
+
+        API.addKeyBind("bookmark.add", Keyboard.KEY_A);
+        API.addKeyBind("bookmark.favorite", Keyboard.KEY_F);
+        API.addKeyBind("bookmark.favorite_item", Keyboard.KEY_F);
+        API.addKeyBind("bookmark.remove_recipe", Keyboard.KEY_A);
+        API.addKeyBind("bookmark.pull_items", Keyboard.KEY_V);
+        API.addKeyBind("bookmark.hide", Keyboard.KEY_B);
+
+        API.addKeyBind("itemzoom.toggle", Keyboard.KEY_Z);
+        API.addKeyBind("itemzoom.hold", 0);
+        API.addKeyBind("itemzoom.zoom_in", 0);
+        API.addKeyBind("itemzoom.zoom_out", 0);
 
         API.addKeyBind("world.chunkoverlay", Keyboard.KEY_F9);
         API.addKeyBind("world.moboverlay", Keyboard.KEY_F7);
@@ -855,10 +856,11 @@ public class NEIClientConfig {
         API.addKeyBind("world.rain", 0);
         API.addKeyBind("world.heal", 0);
         API.addKeyBind("world.creative", 0);
-        API.addHashBind("gui.copy_name", Keyboard.KEY_C + NEIClientUtils.CTRL_HASH);
-        API.addHashBind("gui.copy_oredict", Keyboard.KEY_D + NEIClientUtils.CTRL_HASH);
-        API.addHashBind("gui.copy_id", Keyboard.KEY_X + NEIClientUtils.CTRL_HASH);
-        API.addHashBind("gui.chat_link_item", Keyboard.KEY_L + NEIClientUtils.CTRL_HASH);
+
+        API.addKeyBind("copy.name", Keyboard.KEY_C);
+        API.addKeyBind("copy.oredict", Keyboard.KEY_D);
+        API.addKeyBind("copy.identifier", Keyboard.KEY_X);
+        API.addKeyBind("copy.chat_link_item", Keyboard.KEY_L);
     }
 
     public static OptionList getOptionList() {
@@ -929,50 +931,28 @@ public class NEIClientConfig {
         world.saveNBT();
     }
 
-    private static final Map<String, String> keySettings = new HashMap<>();
-
     public static int getKeyBinding(String string) {
-        final String key = keySettings.computeIfAbsent(string, s -> "keys." + s);
-        return getSetting(key).getIntValue(Keyboard.KEY_NONE);
+        return KeyManager.getKeyCode(string);
     }
 
     public static void setDefaultKeyBinding(String string, int key) {
-        getSetting("keys." + string).getIntValue(key);
+        KeyManager.registerKeyBinding(string, key);
     }
 
     public static boolean isKeyHashDown(String string) {
-        final int hash = getKeyBinding(string);
-
-        if (hash != Keyboard.CHAR_NONE && Keyboard.getEventKeyState()) {
-            return KeyManager.keyStates.containsKey(string) ? Keyboard.isKeyDown(NEIKeyboardUtils.unhash(hash))
-                    : hash == NEIClientUtils.getKeyHash();
-        }
-
-        return false;
+        return KeyManager.isHashDown(string);
     }
 
     public static String getKeyName(String keyBind) {
-        return getKeyName(keyBind, 0);
+        return KeyManager.getKeyName(keyBind);
     }
 
     public static String getKeyName(String keyBind, int meta, int mouseBind) {
-        final int hash = getKeyBinding(keyBind);
-
-        if (hash == Keyboard.CHAR_NONE) {
-            return null;
-        }
-
-        return NEIClientUtils.getKeyName(hash + meta, mouseBind);
+        return KeyManager.getKeyName(keyBind, meta, mouseBind);
     }
 
     public static String getKeyName(String keyBind, int meta) {
-        final int hash = getKeyBinding(keyBind);
-
-        if (hash == Keyboard.CHAR_NONE) {
-            return null;
-        }
-
-        return NEIKeyboardUtils.getKeyName(hash + meta);
+        return KeyManager.getKeyName(keyBind, meta);
     }
 
     public static void bootNEI() {

@@ -15,6 +15,8 @@ import java.util.stream.Stream;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.Language;
 import net.minecraft.client.resources.LanguageManager;
+import net.minecraft.client.settings.GameSettings;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
@@ -160,6 +162,11 @@ public class SearchTokenParserTest {
         language = mock(Language.class);
         when(languageManager.getCurrentLanguage()).thenReturn(language);
         when(language.getLanguageCode()).thenReturn("en");
+
+        GameSettings gameSettings = mock(GameSettings.class);
+        gameSettings.keyBindings = new KeyBinding[0];
+        minecraft.gameSettings = gameSettings;
+
         config = mockStatic(NEIClientConfig.class);
         config.when(() -> NEIClientConfig.getBooleanSetting(eq("inventory.search.logSearchExceptions")))
                 .thenReturn(false);

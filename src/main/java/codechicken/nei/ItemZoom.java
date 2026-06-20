@@ -42,7 +42,7 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
 
         if (this.stack != null && this.availableAreaWidth >= SLOT_SIZE * 2
                 && (NEIClientConfig.getBooleanSetting("inventory.itemzoom.enabled")
-                        || NEIClientConfig.isKeyHashDown("gui.itemzoom_hold"))
+                        || KeyManager.isHashDown("itemzoom.hold"))
                 && GuiContainerManager.shouldShowTooltip(NEIClientUtils.getGuiContainer())) {
             final float inverseScaleFactor = 1.0f / this.scale;
             final float screenScale = getScreenScale();
@@ -74,7 +74,7 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
 
             if (NEIClientConfig.getBooleanSetting("inventory.itemzoom.enabled")
                     && NEIClientConfig.getBooleanSetting("inventory.itemzoom.helpText")) {
-                String keyName = NEIClientConfig.getKeyName("gui.itemzoom_toggle");
+                String keyName = KeyManager.getKeyName("itemzoom.toggle", NEIClientUtils.SHIFT_HASH);
 
                 if (keyName != null) {
                     String helpText = NEIClientUtils.translate("itemzoom.toggle", keyName);
@@ -198,24 +198,24 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
     @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyID) {
 
-        if (NEIClientConfig.isKeyHashDown("gui.itemzoom_toggle")) {
+        if (KeyManager.isHashDown("itemzoom.toggle", NEIClientUtils.SHIFT_HASH)) {
             NEIClientConfig.getSetting("inventory.itemzoom.enabled")
                     .setBooleanValue(!NEIClientConfig.getBooleanSetting("inventory.itemzoom.enabled"));
             return true;
         }
 
-        if (this.stack != null && NEIClientConfig.isKeyHashDown("gui.itemzoom_hold")) {
+        if (this.stack != null && KeyManager.isHashDown("itemzoom.hold")) {
             return true;
         }
 
-        if (this.stack != null && NEIClientConfig.isKeyHashDown("gui.itemzoom_zoom_in")) {
+        if (this.stack != null && KeyManager.isHashDown("itemzoom.zoom_in")) {
             increaseZoom(gui);
             previousKeyboardRepeatEnabled = Keyboard.areRepeatEventsEnabled();
             Keyboard.enableRepeatEvents(true);
             return true;
         }
 
-        if (this.stack != null && NEIClientConfig.isKeyHashDown("gui.itemzoom_zoom_out")) {
+        if (this.stack != null && KeyManager.isHashDown("itemzoom.zoom_out")) {
             decreaseZoom(gui);
             previousKeyboardRepeatEnabled = Keyboard.areRepeatEventsEnabled();
             Keyboard.enableRepeatEvents(true);

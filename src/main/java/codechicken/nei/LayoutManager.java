@@ -224,17 +224,17 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyID) {
 
-        if (NEIClientConfig.isKeyHashDown("gui.hide")) {
+        if (KeyManager.isHashDown("gui.hide")) {
             toggleBooleanSetting("inventory.hidden");
             return true;
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.hide_bookmarks")) {
+        if (KeyManager.isHashDown("bookmark.hide")) {
             toggleBooleanSetting("inventory.bookmarks.enabled");
             return true;
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.next_tooltip") && GuiContainerManager.incrementTooltipPage()) {
+        if (KeyManager.isKeyDown("gui.next_tooltip") && GuiContainerManager.incrementTooltipPage()) {
             return true;
         }
 
@@ -941,12 +941,12 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public void tickKeyStates() {
         if (Minecraft.getMinecraft().currentScreen != null) return;
 
-        if (KeyManager.keyStates.get("world.dawn").down) timeButtons[0].onButtonPress(false);
-        if (KeyManager.keyStates.get("world.noon").down) timeButtons[1].onButtonPress(false);
-        if (KeyManager.keyStates.get("world.dusk").down) timeButtons[2].onButtonPress(false);
-        if (KeyManager.keyStates.get("world.midnight").down) timeButtons[3].onButtonPress(false);
-        if (KeyManager.keyStates.get("world.rain").down) rain.onButtonPress(false);
-        if (KeyManager.keyStates.get("world.heal").down) heal.onButtonPress(false);
-        if (KeyManager.keyStates.get("world.creative").down) gamemode.onButtonPress(false);
+        if (KeyManager.isPressed("world.dawn")) timeButtons[0].onButtonPress(false);
+        if (KeyManager.isPressed("world.noon")) timeButtons[1].onButtonPress(false);
+        if (KeyManager.isPressed("world.dusk")) timeButtons[2].onButtonPress(false);
+        if (KeyManager.isPressed("world.midnight")) timeButtons[3].onButtonPress(false);
+        if (KeyManager.isPressed("world.rain")) rain.onButtonPress(false);
+        if (KeyManager.isPressed("world.heal")) heal.onButtonPress(false);
+        if (KeyManager.isPressed("world.creative")) gamemode.onButtonPress(false);
     }
 }
