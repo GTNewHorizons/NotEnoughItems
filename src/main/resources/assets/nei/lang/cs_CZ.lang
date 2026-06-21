@@ -60,11 +60,11 @@ nei.options.wbutton.tip.1=Přepisuji globální nastavení
 
 nei.options.keys=Nastavení kláves
 nei.options.keys.gui=Inventář
-nei.options.keys.gui.recipe=Recept
-nei.options.keys.gui.usage=Použití
+nei.options.keys.recipe.recipe=Recept
+nei.options.keys.recipe.usage=Použití
 nei.options.keys.gui.enchant=Očarování
 nei.options.keys.gui.potion=Lektvary
-nei.options.keys.gui.back=Předchozí recept
+nei.options.keys.recipe.back=Předchozí recept
 nei.options.keys.gui.prev=Předchozí stránka
 nei.options.keys.gui.next=Další stránka
 nei.options.keys.gui.hide=Přepnout viditelnost NEI

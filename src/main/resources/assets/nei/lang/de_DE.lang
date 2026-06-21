@@ -64,11 +64,11 @@ nei.options.wbutton.tip.1=Übergeht globale Einstellungen
 
 nei.options.keys=Tastenbelegung
 nei.options.keys.gui=Inventar
-nei.options.keys.gui.recipe=Rezept
-nei.options.keys.gui.usage=Nutzung
+nei.options.keys.recipe.recipe=Rezept
+nei.options.keys.recipe.usage=Nutzung
 nei.options.keys.gui.enchant=Verzauberungen
 nei.options.keys.gui.potion=Tränke
-nei.options.keys.gui.back=Vorheriges Rezept
+nei.options.keys.recipe.back=Vorheriges Rezept
 nei.options.keys.gui.prev=Vorherige Seite
 nei.options.keys.gui.next=Nächste Seite
 nei.options.keys.gui.hide=Verstelle NEI-Sichtbarkeit

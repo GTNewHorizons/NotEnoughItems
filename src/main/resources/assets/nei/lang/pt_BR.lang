@@ -60,11 +60,11 @@ nei.options.wbutton.tip.1=Substituindo configurações globais
 
 nei.options.keys=Atalhos de Teclado
 nei.options.keys.gui=Inventário
-nei.options.keys.gui.recipe=Receita
-nei.options.keys.gui.usage=Uso
+nei.options.keys.recipe.recipe=Receita
+nei.options.keys.recipe.usage=Uso
 nei.options.keys.gui.enchant=Encantamentos
 nei.options.keys.gui.potion=Poções
-nei.options.keys.gui.back=Receita Ant.
+nei.options.keys.recipe.back=Receita Ant.
 nei.options.keys.gui.prev=Pág. Anterior
 nei.options.keys.gui.next=Próxima Pág.
 nei.options.keys.gui.hide=Trocar Visibilidade do NEI
