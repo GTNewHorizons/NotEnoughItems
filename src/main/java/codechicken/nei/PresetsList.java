@@ -251,7 +251,7 @@ public class PresetsList {
         updateSubsets();
         CollapsibleItems.saveStates();
         CollapsibleItems.load();
-        LayoutManager.markItemsDirty();
+        ItemList.refreshItems.restart();
     }
 
     private static void updateSubsets() {
