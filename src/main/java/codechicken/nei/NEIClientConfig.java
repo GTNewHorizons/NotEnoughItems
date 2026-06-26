@@ -311,7 +311,7 @@ public class NEIClientConfig {
                 super.onClick(button);
                 CollapsibleItems.saveStates();
                 CollapsibleItems.load();
-                LayoutManager.markItemsDirty();
+                ItemList.refreshItems.restart();
                 return true;
             }
         });
@@ -1025,7 +1025,11 @@ public class NEIClientConfig {
             }.start();
         } else {
             SubsetWidget.loadHidden();
-            ItemList.loadItems.restart();
+            if (ItemList.loadFinished) {
+                ItemList.refreshItems.restart();
+            } else {
+                ItemList.loadItems.restart();
+            }
         }
 
     }
