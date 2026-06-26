@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +18,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.opengl.GL11;
@@ -413,9 +413,10 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
     }
 
     /**
-     * All operations on this variable should be synchronised.
+     * Canonical {@link StackInfo#getItemStackGUID(ItemStack)} of every hidden item, stored by GUID so the state
+     * survives world reloads. All operations should be synchronised.
      */
-    private static final ItemStackSet hiddenItems = new ItemStackSet();
+    private static final Set<String> hiddenItems = new HashSet<>();
 
     private static final Map<String, SubsetTag> tags = new HashMap<>();
     private static final SubsetTag root = new SubsetTag("");
@@ -456,9 +457,14 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
     }
 
     public static boolean isHidden(ItemStack item) {
+        final String guid = StackInfo.getItemStackGUID(item);
         synchronized (hiddenLock) {
-            return hiddenItems.contains(item);
+            return hiddenItems.contains(guid);
         }
+    }
+
+    private static List<String> toGUIDs(List<ItemStack> items) {
+        return items.stream().map(StackInfo::getItemStackGUID).collect(Collectors.toList());
     }
 
     private static List<ItemStack> getItems(SubsetTag tag, List<ItemStack> items) {
@@ -472,19 +478,22 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
     }
 
     public static void showOnly(SubsetTag tag) {
+        final List<String> allItems = toGUIDs(getItems(root, new ArrayList<>()));
+        final List<String> tagItems = toGUIDs(getItems(tag, new ArrayList<>()));
+
         synchronized (hiddenLock) {
             hiddenItems.clear();
-            hiddenItems.addAll(getItems(root, new ArrayList<>()));
-            hiddenItems.removeAll(getItems(tag, new ArrayList<>()));
+            hiddenItems.addAll(allItems);
+            hiddenItems.removeAll(tagItems);
         }
 
         calculateVisibility();
     }
 
     public static void setHidden(SubsetTag tag, boolean hidden) {
-        synchronized (hiddenLock) {
-            final List<ItemStack> tagItems = getItems(tag, new ArrayList<>());
+        final List<String> tagItems = toGUIDs(getItems(tag, new ArrayList<>()));
 
+        synchronized (hiddenLock) {
             if (hidden) {
                 hiddenItems.addAll(tagItems);
             } else {
@@ -496,11 +505,13 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
     }
 
     public static void setHidden(ItemStack item, boolean hidden) {
+        final String guid = StackInfo.getItemStackGUID(item);
+
         synchronized (hiddenLock) {
             if (hidden) {
-                hiddenItems.add(item);
+                hiddenItems.add(guid);
             } else {
-                hiddenItems.remove(item);
+                hiddenItems.remove(guid);
             }
         }
         calculateVisibility();
@@ -582,13 +593,23 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
     }
 
     public static void loadHidden() {
-        final List<ItemStack> itemList = new LinkedList<>();
+        final Set<String> guids = new HashSet<>();
 
         try {
+            final NBTTagList guidList = NEIClientConfig.world.nbt.getTagList("hiddenItems", 8);
+
+            for (int i = 0; i < guidList.tagCount(); i++) {
+                guids.add(guidList.getStringTagAt(i));
+            }
+
             final NBTTagList list = NEIClientConfig.world.nbt.getTagList("hiddenItems", 10);
 
             for (int i = 0; i < list.tagCount(); i++) {
-                itemList.add(ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(i)));
+                final ItemStack stack = ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(i));
+
+                if (stack != null) {
+                    guids.add(StackInfo.getItemStackGUID(stack));
+                }
             }
         } catch (Exception e) {
             NEIClientConfig.logger.error("Error loading hiddenItems", e);
@@ -597,7 +618,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
 
         synchronized (hiddenLock) {
             hiddenItems.clear();
-            hiddenItems.addAll(itemList);
+            hiddenItems.addAll(guids);
         }
     }
 
@@ -606,8 +627,8 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
 
         final NBTTagList list = new NBTTagList();
         synchronized (hiddenLock) {
-            for (ItemStack stack : hiddenItems.values()) {
-                list.appendTag(stack.writeToNBT(new NBTTagCompound()));
+            for (String guid : hiddenItems) {
+                list.appendTag(new NBTTagString(guid));
             }
         }
 
