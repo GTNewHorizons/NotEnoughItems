@@ -14,6 +14,7 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.config.ConfigTag;
 import codechicken.lib.math.MathHelper;
+import codechicken.nei.ItemList;
 import codechicken.nei.ItemSorter;
 import codechicken.nei.ItemSorter.SortEntry;
 import codechicken.nei.LayoutManager;
@@ -121,11 +122,12 @@ public class GuiItemSorter extends GuiOptionPane {
                 list.add(nslot, dragged.e);
 
                 getTag(opt.configName()).setValue(ItemSorter.getSaveString(list));
-                LayoutManager.markItemsDirty();
 
                 if (opt.activeTag() == getTag(opt.configName())) {
                     ItemSorter.list = new ArrayList<>(list);
                 }
+
+                ItemList.refreshItems.restart();
             }
         }
     }
