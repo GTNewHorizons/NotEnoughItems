@@ -24,12 +24,12 @@ public class PopupInputHandler implements IContainerInputHandler {
     @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyID) {
 
-        if (NEIClientConfig.isKeyHashDown("gui.enchant") && canPerformAction("enchant")) {
+        if (KeyManager.isHashDown("gui.enchant") && canPerformAction("enchant")) {
             NEICPH.sendOpenEnchantmentWindow();
             return true;
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.potion") && canPerformAction("potion")) {
+        if (KeyManager.isHashDown("gui.potion") && canPerformAction("potion")) {
             NEICPH.sendOpenPotionWindow();
             return true;
         }

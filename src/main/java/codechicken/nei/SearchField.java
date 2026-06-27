@@ -230,14 +230,14 @@ public class SearchField extends TextField implements ItemFilterProvider {
     @Override
     public void lastKeyTyped(int keyID, char keyChar) {
 
-        if (isVisible() && NEIClientConfig.isKeyHashDown("gui.search")) {
+        if (isVisible() && KeyManager.isHashDown("gui.search")) {
             setFocus(true);
         }
-        if (focused() && NEIClientConfig.isKeyHashDown("gui.getprevioussearch")) {
+        if (focused() && KeyManager.isKeyDown("gui.getprevioussearch")) {
             handleNavigateHistory(TextHistory.Direction.PREVIOUS);
         }
 
-        if (focused() && NEIClientConfig.isKeyHashDown("gui.getnextsearch")) {
+        if (focused() && KeyManager.isKeyDown("gui.getnextsearch")) {
             handleNavigateHistory(TextHistory.Direction.NEXT);
         }
     }

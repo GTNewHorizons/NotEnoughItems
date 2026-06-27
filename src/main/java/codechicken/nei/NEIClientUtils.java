@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
@@ -57,7 +56,6 @@ import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.IInfiniteItemHandler;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.util.NEIKeyboardUtils;
-import codechicken.nei.util.NEIMouseUtils;
 
 public class NEIClientUtils extends NEIServerUtils {
 
@@ -456,55 +454,8 @@ public class NEIClientUtils extends NEIServerUtils {
         return Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU);
     }
 
-    public static int getMetaHash() {
-        if (Keyboard.getEventKeyState()) {
-            int hash = 0;
-
-            if (altKey()) {
-                hash = hash | ALT_HASH;
-            }
-
-            if (shiftKey()) {
-                hash = hash | SHIFT_HASH;
-            }
-
-            if (controlKey()) {
-                hash = hash | CTRL_HASH;
-            }
-
-            return hash;
-        }
-
-        return 0;
-    }
-
-    public static int getKeyHash() {
-
-        if (Keyboard.getEventKeyState()) {
-            final int keycode = Keyboard.getEventKey();
-
-            if (!NEIKeyboardUtils.isHashKey(keycode)) {
-                return getMetaHash() + keycode;
-            }
-        }
-
-        return Keyboard.CHAR_NONE;
-    }
-
     public static String getKeyName(int keyBind, int mouseBind) {
-        StringJoiner keyText = new StringJoiner(" + ");
-        String keyHash = keyBind == Keyboard.KEY_NONE ? "" : NEIKeyboardUtils.getKeyName(keyBind);
-        String mouseHash = mouseBind == NEIMouseUtils.MOUSE_BTN_NONE ? "" : NEIMouseUtils.getKeyName(mouseBind);
-
-        if (!keyHash.isEmpty()) {
-            keyText.add(keyHash);
-        }
-
-        if (!mouseHash.isEmpty()) {
-            keyText.add(mouseHash);
-        }
-
-        return keyText.toString();
+        return KeyManager.getKeyName(keyBind, mouseBind);
     }
 
     public static void playClickSound() {

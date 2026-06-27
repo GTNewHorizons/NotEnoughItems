@@ -28,7 +28,7 @@ public class HUDRenderer implements IKeyStateTracker {
 
     @Override
     public void tickKeyStates() {
-        if (KeyManager.keyStates.get("world.highlight_tips").down) {
+        if (KeyManager.isPressed("world.highlight_tips")) {
             ConfigTag tag = NEIClientConfig.getSetting("world.highlight_tips");
             tag.setBooleanValue(!tag.getBooleanValue());
         }

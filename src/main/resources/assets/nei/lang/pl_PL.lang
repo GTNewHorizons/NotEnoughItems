@@ -60,11 +60,11 @@ nei.options.wbutton.tip.1=Nadpisywanie ustawienia globalnego
 
 nei.options.keys=Ustawienia klawiszy
 nei.options.keys.gui=Ekwipunek
-nei.options.keys.gui.recipe=Recepta
-nei.options.keys.gui.usage=Użytek
+nei.options.keys.recipe.recipe=Recepta
+nei.options.keys.recipe.usage=Użytek
 nei.options.keys.gui.enchant=Zaklęcia
 nei.options.keys.gui.potion=Eleksiry
-nei.options.keys.gui.back=Poprzednia recepta
+nei.options.keys.recipe.back=Poprzednia recepta
 nei.options.keys.gui.prev=Poprzednia strona
 nei.options.keys.gui.next=Następna strona
 nei.options.keys.gui.hide=Przełącz widzialność NEI

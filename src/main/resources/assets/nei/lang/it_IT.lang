@@ -64,11 +64,11 @@ nei.options.wbutton.tip.1=Sovrascrivendo le opzioni globali
 
 nei.options.keys=Controlli
 nei.options.keys.gui=Inventario
-nei.options.keys.gui.recipe=Ricetta
-nei.options.keys.gui.usage=Usi
+nei.options.keys.recipe.recipe=Ricetta
+nei.options.keys.recipe.usage=Usi
 nei.options.keys.gui.enchant=Incantare
 nei.options.keys.gui.potion=Pozioni
-nei.options.keys.gui.back=Ricetta precedente
+nei.options.keys.recipe.back=Ricetta precedente
 nei.options.keys.gui.prev=Pagina precedente
 nei.options.keys.gui.next=Pagina successiva
 nei.options.keys.gui.hide=Modifica visibilità NEI

@@ -20,7 +20,6 @@ import codechicken.nei.ItemList;
 import codechicken.nei.ItemSorter;
 import codechicken.nei.ItemStackSet;
 import codechicken.nei.KeyManager;
-import codechicken.nei.KeyManager.KeyState;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.OffsetPositioner;
@@ -32,7 +31,6 @@ import codechicken.nei.SubsetWidget.SubsetTag;
 import codechicken.nei.api.IRecipeFilter.IRecipeFilterProvider;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.config.Option;
-import codechicken.nei.config.OptionKeyBind;
 import codechicken.nei.recipe.CatalystInfo;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
@@ -206,20 +204,11 @@ public class API {
      * @param defaultKey The default value, commonly obtained from {@link Keyboard}
      */
     public static void addKeyBind(String ident, int defaultKey) {
-        NEIClientConfig.setDefaultKeyBinding(ident, defaultKey);
-        KeyManager.keyStates.put(ident, new KeyState());
-        addOption(new OptionKeyBind(ident));
+        KeyManager.registerKeyBinding(ident, defaultKey);
     }
 
-    /**
-     * Add a custom KeyBinding to be configured in the Controls menu.
-     *
-     * @param ident      An identifier for your key, eg "shoot"
-     * @param defaultKey The default value, commonly obtained from {@link Keyboard}
-     */
     public static void addHashBind(String ident, int defaultKey) {
-        NEIClientConfig.setDefaultKeyBinding(ident, defaultKey);
-        addOption(new OptionKeyBind(ident, true));
+        KeyManager.registerKeyBinding(ident, defaultKey);
     }
 
     public static void addOption(Option option) {
