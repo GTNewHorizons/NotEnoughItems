@@ -1,9 +1,11 @@
 package codechicken.nei.api;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -174,6 +176,21 @@ public class API {
             }
             LayoutManager.markItemsDirty();
         }
+    }
+
+    /**
+     * Add an alias name that this item can be found by in the search field, in addition to its display name.
+     */
+    public static void setAliases(ItemStack item, String... aliases) {
+        final List<String> list = Arrays.asList(aliases).stream().filter(Objects::nonNull).map(String::trim)
+                .filter(s -> !s.isEmpty()).collect(Collectors.toList());
+
+        if (list.isEmpty()) {
+            ItemInfo.itemAliases.remove(item);
+        } else {
+            ItemInfo.itemAliases.put(item, list);
+        }
+
     }
 
     /**
