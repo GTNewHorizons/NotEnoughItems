@@ -612,14 +612,12 @@ public class DebugHandlerWidget extends Widget {
             for (String line : linesList) {
                 final String[] parts = line.split(",");
                 final String handlerKey = parts[0];
-
-                if (GuiRecipeTab.handlerMap.containsKey(handlerKey)) {
-                    final HandlerInfoRecord record = patches.computeIfAbsent(
-                            handlerKey,
-                            key -> new HandlerInfoRecord(key, GuiRecipeTab.handlerMap.get(key)));
-                    record.apply((line + ",null,null,null,null,null,null,null,null,null,null"));
-                }
-
+                final HandlerInfoRecord record = patches.computeIfAbsent(
+                        handlerKey,
+                        key -> new HandlerInfoRecord(
+                                key,
+                                GuiRecipeTab.handlerMap.getOrDefault(key, GuiRecipeTab.DEFAULT_HANDLER_INFO)));
+                record.apply((line + ",null,null,null,null,null,null,null,null,null,null"));
             }
 
         });
