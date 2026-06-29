@@ -1,6 +1,7 @@
 package codechicken.nei.api;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -84,6 +85,7 @@ public class ItemInfo {
 
     public static final ArrayListMultimap<Layout, IHighlightHandler> highlightHandlers = ArrayListMultimap.create();
     public static final ItemStackMap<String> nameOverrides = new ItemStackMap<>();
+    public static final ItemStackMap<List<String>> itemAliases = new ItemStackMap<>();
     public static final ItemStackSet hiddenItems = new ItemStackSet();
     public static final AnyMultiItemFilter hiddenItemsRules = new AnyMultiItemFilter();
     public static final ItemStackSet finiteItems = new ItemStackSet();
@@ -107,6 +109,11 @@ public class ItemInfo {
 
     public static String getNameOverride(ItemStack stack) {
         return nameOverrides.get(stack);
+    }
+
+    public static List<String> getAliases(ItemStack stack) {
+        final List<String> aliases = itemAliases.get(stack);
+        return aliases != null ? aliases : Collections.emptyList();
     }
 
     public static boolean canBeInfinite(ItemStack stack) {
