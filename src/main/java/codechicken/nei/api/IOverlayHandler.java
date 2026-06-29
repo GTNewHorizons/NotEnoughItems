@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
+import codechicken.nei.NEIClientConfig;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.GuiOverlayButton.ItemOverlayState;
 import codechicken.nei.recipe.IRecipeHandler;
@@ -30,6 +31,10 @@ public interface IOverlayHandler {
 
     default boolean canCraft(GuiContainer firstGui, IRecipeHandler handler, int recipeIndex) {
         return false;
+    }
+
+    default boolean requireShiftForOverlayRecipe() {
+        return NEIClientConfig.requireShiftForOverlayRecipe();
     }
 
     default List<ItemOverlayState> presenceOverlay(GuiContainer firstGui, IRecipeHandler recipe, int recipeIndex) {
