@@ -1,5 +1,7 @@
 package codechicken.nei;
 
+import java.lang.reflect.Method;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
@@ -26,12 +28,10 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     public static int mobOverlay = 0;
     private static byte[] mobSpawnCache;
     private static long mobOverlayUpdateTime;
-    private static String oregenPatternName;
 
     public static void reset() {
         mobOverlay = 0;
         chunkOverlay = 0;
-        oregenPatternName = null;
     }
 
     @Override
@@ -377,20 +377,19 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glDisable(GL11.GL_BLEND);
     }
 
+    private static Method clientOregenPatternMethod;
+
     private static String getOregenPatternName() {
-
-        if (oregenPatternName == null) {
-            try {
+        try {
+            if (clientOregenPatternMethod == null) {
                 final ClassLoader loader = WorldOverlayRenderer.class.getClassLoader();
-                final Class<?> gtWorldGenerator = ReflectionHelper
-                        .getClass(loader, "gregtech.common.GTWorldgenerator", "gregtech.common.GT_Worldgenerator");
-                oregenPatternName = ((Enum<?>) gtWorldGenerator.getDeclaredField("oregenPattern").get(null)).name();
-            } catch (Exception ignored) {
-                oregenPatternName = "AXISSYMMETRICAL";
+                clientOregenPatternMethod = ReflectionHelper.getClass(loader, "gregtech.common.GTWorldgenerator")
+                        .getMethod("getClientOregenPattern");
             }
+            return ((Enum<?>) clientOregenPatternMethod.invoke(null)).name();
+        } catch (Exception ignored) {
+            return "AXISSYMMETRICAL";
         }
-
-        return oregenPatternName;
     }
 
     public static void load() {
