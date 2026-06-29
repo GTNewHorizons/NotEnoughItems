@@ -377,16 +377,20 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glDisable(GL11.GL_BLEND);
     }
 
+    private static Method serverOregenPatternMethod;
     private static Method clientOregenPatternMethod;
 
     private static String getOregenPatternName() {
         try {
-            if (clientOregenPatternMethod == null) {
-                final ClassLoader loader = WorldOverlayRenderer.class.getClassLoader();
-                clientOregenPatternMethod = ReflectionHelper.getClass(loader, "gregtech.common.GTWorldgenerator")
-                        .getMethod("getClientOregenPattern");
+            if (serverOregenPatternMethod == null) {
+                final Class<?> gtWorldGenerator = ReflectionHelper
+                        .getClass(WorldOverlayRenderer.class.getClassLoader(), "gregtech.common.GTWorldgenerator");
+                serverOregenPatternMethod = gtWorldGenerator.getMethod("getServerOregenPattern");
+                clientOregenPatternMethod = gtWorldGenerator.getMethod("getClientOregenPattern");
             }
-            return ((Enum<?>) clientOregenPatternMethod.invoke(null)).name();
+            final Method accessor = Minecraft.getMinecraft().isSingleplayer() ? serverOregenPatternMethod
+                    : clientOregenPatternMethod;
+            return ((Enum<?>) accessor.invoke(null)).name();
         } catch (Exception ignored) {
             return "AXISSYMMETRICAL";
         }
