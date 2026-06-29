@@ -666,9 +666,8 @@ public class DebugHandlerWidget extends Widget {
 
     private String getHandlerID(IRecipeHandler handler) {
 
-        if (GuiRecipeTab.handlerMap.containsKey(handler.getHandlerId())) {
-            return handler.getHandlerId();
-        } else if (handler instanceof TemplateRecipeHandler) {
+        if (!GuiRecipeTab.handlerMap.containsKey(handler.getHandlerId()) && handler instanceof TemplateRecipeHandler
+                && handler.getOverlayIdentifier() != null) {
             return handler.getOverlayIdentifier();
         }
 
