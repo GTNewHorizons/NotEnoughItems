@@ -17,6 +17,7 @@ import com.google.common.collect.ListMultimap;
 
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
+import codechicken.nei.api.ItemInfo;
 import codechicken.nei.util.ItemUntranslator;
 
 public class ItemList {
@@ -96,7 +97,15 @@ public class ItemList {
                 displayName = EnumChatFormatting
                         .getTextWithoutFormattingCodes(item.getItem().getItemStackDisplayName(item));
 
-                return displayName != null && !displayName.isEmpty() && this.pattern.matcher(displayName).find();
+                if (displayName != null && !displayName.isEmpty() && this.pattern.matcher(displayName).find()) {
+                    return true;
+                }
+            }
+
+            for (String alias : ItemInfo.getAliases(item)) {
+                if (this.pattern.matcher(alias).find()) {
+                    return true;
+                }
             }
 
             return false;
