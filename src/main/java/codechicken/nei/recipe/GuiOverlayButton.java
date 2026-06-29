@@ -20,6 +20,7 @@ import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
+import codechicken.nei.api.IOverlayHandler;
 import codechicken.nei.bookmark.BookmarkGrid;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
@@ -97,13 +98,18 @@ public class GuiOverlayButton extends GuiRecipeButton {
         super(handlerRef, x, y, handlerRef.recipeIndex + BUTTON_ID_SHIFT, "+");
         this.firstGui = firstGui != null && firstGui.inventorySlots != null ? firstGui : null;
 
+        IOverlayHandler overlayHandler = null;
+
         if (this.firstGui != null) {
+            overlayHandler = this.handlerRef.getOverlayHandler(this.firstGui);
             this.canUseOverlayRenderer = this.handlerRef.getRecipeOverlayRenderer(this.firstGui) != null;
             this.canFillCraftingGrid = this.handlerRef.canFillCraftingGrid(this.firstGui);
-            this.hasOverlay = this.canUseOverlayRenderer || this.handlerRef.getOverlayHandler(this.firstGui) != null;
+            this.hasOverlay = this.canUseOverlayRenderer || overlayHandler != null;
         }
 
-        setRequireShiftForOverlayRecipe(NEIClientConfig.requireShiftForOverlayRecipe());
+        setRequireShiftForOverlayRecipe(
+                overlayHandler != null ? overlayHandler.requireShiftForOverlayRecipe()
+                        : NEIClientConfig.requireShiftForOverlayRecipe());
         ingredientsOverlay();
     }
 
