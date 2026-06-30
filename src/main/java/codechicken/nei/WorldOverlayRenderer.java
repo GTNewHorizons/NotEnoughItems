@@ -1,6 +1,8 @@
 package codechicken.nei;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.concurrent.Callable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
@@ -377,22 +379,42 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glDisable(GL11.GL_BLEND);
     }
 
-    private static Method serverOregenPatternMethod;
-    private static Method clientOregenPatternMethod;
+    private static Callable<String> oregenPatternReader;
 
     private static String getOregenPatternName() {
+        if (oregenPatternReader == null) {
+            oregenPatternReader = resolveOregenPatternReader();
+        }
         try {
-            if (serverOregenPatternMethod == null) {
-                final Class<?> gtWorldGenerator = ReflectionHelper
-                        .getClass(WorldOverlayRenderer.class.getClassLoader(), "gregtech.common.GTWorldgenerator");
-                serverOregenPatternMethod = gtWorldGenerator.getMethod("getServerOregenPattern");
-                clientOregenPatternMethod = gtWorldGenerator.getMethod("getClientOregenPattern");
-            }
-            final Method accessor = Minecraft.getMinecraft().isSingleplayer() ? serverOregenPatternMethod
-                    : clientOregenPatternMethod;
-            return ((Enum<?>) accessor.invoke(null)).name();
+            return oregenPatternReader.call();
         } catch (Exception ignored) {
             return "AXISSYMMETRICAL";
+        }
+    }
+
+    private static Callable<String> resolveOregenPatternReader() {
+        try {
+            final Class<?> gtWorldGenerator = ReflectionHelper.getClass(
+                    WorldOverlayRenderer.class.getClassLoader(),
+                    "gregtech.common.GTWorldgenerator",
+                    "gregtech.common.GT_Worldgenerator");
+
+            try {
+                // GT5-Unofficial >= 5.09.54.02 support
+                final Method server = gtWorldGenerator.getMethod("getServerOregenPattern");
+                final Method client = gtWorldGenerator.getMethod("getClientOregenPattern");
+                return () -> {
+                    final Method accessor = Minecraft.getMinecraft().isSingleplayer() ? server : client;
+                    return ((Enum<?>) accessor.invoke(null)).name();
+                };
+            } catch (NoSuchMethodException legacy) {
+                // Older GT
+                final Field oregenPattern = gtWorldGenerator.getDeclaredField("oregenPattern");
+                oregenPattern.setAccessible(true);
+                return () -> ((Enum<?>) oregenPattern.get(null)).name();
+            }
+        } catch (Exception ignored) {
+            return () -> "AXISSYMMETRICAL";
         }
     }
 
