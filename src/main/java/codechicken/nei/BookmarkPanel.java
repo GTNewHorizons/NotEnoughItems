@@ -799,15 +799,15 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                     NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_RMB),
                     NEIClientUtils.translate("bookmark.group.toggle_crafting_chain"));
             hotkeys.put(
-                    NEIClientConfig.getKeyName("gui.remove_recipe"),
+                    KeyManager.getKeyName("bookmark.remove_recipe", NEIClientUtils.SHIFT_HASH),
                     NEIClientUtils.translate("bookmark.group.remove_recipe"));
 
             if (BookmarkContainerInfo.getBookmarkContainerHandler(NEIClientUtils.getGuiContainer()) != null) {
                 hotkeys.put(
-                        NEIClientConfig.getKeyName("gui.bookmark_pull_items"),
+                        KeyManager.getKeyName("bookmark.pull_items"),
                         NEIClientUtils.translate("bookmark.group.pull_items"));
                 hotkeys.put(
-                        NEIClientConfig.getKeyName("gui.bookmark_pull_items", NEIClientUtils.SHIFT_HASH),
+                        KeyManager.getKeyName("bookmark.pull_items", NEIClientUtils.SHIFT_HASH),
                         NEIClientUtils.translate("bookmark.group.pull_items_shift"));
             }
 

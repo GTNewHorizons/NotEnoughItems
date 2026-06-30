@@ -20,6 +20,7 @@ import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemQuantityField;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
+import codechicken.nei.KeyManager;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -75,8 +76,7 @@ public abstract class ShortcutInputHandler {
             return false;
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.overlay") && stackover == null
-                && LayoutManager.overlayRenderer != null) {
+        if (KeyManager.isKeyDown("gui.overlay") && stackover == null && LayoutManager.overlayRenderer != null) {
             LayoutManager.overlayRenderer = null;
             return true;
         }
@@ -86,16 +86,16 @@ public abstract class ShortcutInputHandler {
 
             if (groupId != -1) {
 
-                if (NEIClientConfig.isKeyHashDown("gui.remove_recipe")) {
+                if (KeyManager.isHashDown("bookmark.remove_recipe", NEIClientUtils.SHIFT_HASH)) {
                     ItemPanels.bookmarkPanel.removeGroup(groupId);
                     return true;
                 }
 
-                if (NEIClientConfig.isKeyHashDown("gui.bookmark_pull_items")) {
+                if (KeyManager.isKeyDown("bookmark.pull_items")) {
                     return ItemPanels.bookmarkPanel.pullBookmarkItems(groupId, NEIClientUtils.shiftKey());
                 }
 
-                if (NEIClientConfig.autocraftingEnabled() && NEIClientConfig.isKeyHashDown("gui.craft_items")
+                if (NEIClientConfig.autocraftingEnabled() && KeyManager.isKeyDown("gui.craft_items")
                         && NEIClientUtils.shiftKey()
                         && ItemPanels.bookmarkPanel.getGrid().isCraftingMode(groupId)) {
                     final RecipeChainMath math = ItemPanels.bookmarkPanel.getGrid().createRecipeChainMath(groupId);
@@ -118,46 +118,47 @@ public abstract class ShortcutInputHandler {
 
         stackover = stackover.copy();
 
-        if (NEIClientConfig.isKeyHashDown("gui.overlay")) {
+        if (KeyManager.isKeyDown("gui.overlay")) {
             return openOverlayRecipe(stackover);
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.copy_name")) {
+        if (KeyManager.isHashDown("copy.name", NEIClientUtils.CTRL_HASH)) {
             return copyItemStackName(stackover);
         }
-        if (NEIClientConfig.isKeyHashDown("gui.copy_id")) {
+
+        if (KeyManager.isHashDown("copy.identifier", NEIClientUtils.CTRL_HASH)) {
             return copyItemStackID(stackover);
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.copy_oredict")) {
+        if (KeyManager.isHashDown("copy.oredict", NEIClientUtils.CTRL_HASH)) {
             return copyItemStackOreDictionary(stackover);
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.chat_link_item")) {
+        if (KeyManager.isHashDown("copy.chat_link_item", NEIClientUtils.CTRL_HASH)) {
             return sendItemStackChatLink(stackover);
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.recipe")) {
+        if (KeyManager.isHashDown("recipe.recipe")) {
             return GuiCraftingRecipe.openRecipeGui("item", stackover);
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.usage")) {
+        if (KeyManager.isHashDown("recipe.usage")) {
             return GuiUsageRecipe.openRecipeGui("item", stackover);
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.favorite")) {
+        if (KeyManager.isHashDown("bookmark.favorite", NEIClientUtils.SHIFT_HASH)) {
             return saveFavoriteTree(stackover);
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.bookmark")) {
+        if (KeyManager.isKeyDown("bookmark.add")) {
             return saveRecipeInBookmark(stackover, NEIClientUtils.shiftKey(), NEIClientUtils.controlKey());
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.bookmark_pull_items")) {
+        if (KeyManager.isKeyDown("bookmark.pull_items")) {
             return pullRecipeItems(stackover, NEIClientUtils.shiftKey());
         }
 
-        if (NEIClientConfig.autocraftingEnabled() && NEIClientConfig.isKeyHashDown("gui.craft_items")
+        if (NEIClientConfig.autocraftingEnabled() && KeyManager.isKeyDown("gui.craft_items")
                 && NEIClientUtils.shiftKey()) {
             return runAutoCrafting(stackover, !NEIClientUtils.controlKey());
         }
@@ -445,15 +446,15 @@ public abstract class ShortcutInputHandler {
         if (groupId != -1) {
 
             hotkeys.put(
-                    NEIClientConfig.getKeyName("gui.remove_recipe"),
+                    KeyManager.getKeyName("bookmark.remove_recipe", NEIClientUtils.SHIFT_HASH),
                     NEIClientUtils.translate("bookmark.group.remove_recipe"));
 
             if (BookmarkContainerInfo.getBookmarkContainerHandler(gui) != null) {
                 hotkeys.put(
-                        NEIClientConfig.getKeyName("gui.bookmark_pull_items"),
+                        KeyManager.getKeyName("bookmark.pull_items"),
                         NEIClientUtils.translate("bookmark.group.pull_items"));
                 hotkeys.put(
-                        NEIClientConfig.getKeyName("gui.bookmark_pull_items", NEIClientUtils.SHIFT_HASH),
+                        KeyManager.getKeyName("bookmark.pull_items", NEIClientUtils.SHIFT_HASH),
                         NEIClientUtils.translate("bookmark.group.pull_items_shift"));
             }
 
@@ -463,7 +464,7 @@ public abstract class ShortcutInputHandler {
                                 .getKeyName("gui.craft_items", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
                         NEIClientUtils.translate("bookmark.group.craft_missing"));
                 hotkeys.put(
-                        NEIClientConfig.getKeyName("gui.craft_items", NEIClientUtils.SHIFT_HASH),
+                        KeyManager.getKeyName("gui.craft_items", NEIClientUtils.SHIFT_HASH),
                         NEIClientUtils.translate("bookmark.group.craft_all"));
             }
 
@@ -484,30 +485,28 @@ public abstract class ShortcutInputHandler {
 
             if (group.crafting != null && group.collapsed) {
                 hotkeys.put(
-                        NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                        KeyManager.getKeyName("bookmark.add", NEIClientUtils.SHIFT_HASH),
                         NEIClientUtils.translate("bookmark.group.remove_recipe"));
             } else if (slot.getRecipeId() == null || slot.getType() == BookmarkItemType.ITEM) {
-                hotkeys.put(
-                        NEIClientConfig.getKeyName("gui.bookmark"),
-                        NEIClientUtils.translate("bookmark.remove_item"));
+                hotkeys.put(KeyManager.getKeyName("bookmark.add"), NEIClientUtils.translate("bookmark.remove_item"));
             } else if (group.crafting != null && group.crafting.recipeRelations.entrySet().stream().anyMatch(
                     entry -> entry.getKey().equals(slot.getRecipeId())
                             || entry.getValue().contains(slot.getRecipeId()))) {
                                 hotkeys.put(
-                                        NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                                        KeyManager.getKeyName("bookmark.add", NEIClientUtils.SHIFT_HASH),
                                         NEIClientUtils.translate("bookmark.remove_recipe"));
                             } else {
                                 hotkeys.put(
-                                        NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                                        KeyManager.getKeyName("bookmark.add", NEIClientUtils.SHIFT_HASH),
                                         NEIClientUtils.translate("bookmark.remove_recipe"));
 
                                 if (slot.getType() == BookmarkItemType.INGREDIENT) {
                                     hotkeys.put(
-                                            NEIClientConfig.getKeyName("gui.bookmark"),
+                                            KeyManager.getKeyName("bookmark.add"),
                                             NEIClientUtils.translate("bookmark.remove_item"));
 
                                     hotkeys.put(
-                                            NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                                            KeyManager.getKeyName("bookmark.add", NEIClientUtils.SHIFT_HASH),
                                             NEIClientUtils.translate("bookmark.remove_recipe"));
                                 } else {
                                     final BookmarkItem item = slot.getBookmarkItem();
@@ -517,14 +516,14 @@ public abstract class ShortcutInputHandler {
                                                     m -> m.type == BookmarkItemType.RESULT && !m.equals(item)
                                                             && item.equalsRecipe(m))) {
                                         hotkeys.put(
-                                                NEIClientConfig.getKeyName("gui.bookmark"),
+                                                KeyManager.getKeyName("bookmark.add"),
                                                 NEIClientUtils.translate("bookmark.remove_recipe"));
                                     } else {
                                         hotkeys.put(
-                                                NEIClientConfig.getKeyName("gui.bookmark"),
+                                                KeyManager.getKeyName("bookmark.add"),
                                                 NEIClientUtils.translate("bookmark.remove_item"));
                                         hotkeys.put(
-                                                NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                                                KeyManager.getKeyName("bookmark.add", NEIClientUtils.SHIFT_HASH),
                                                 NEIClientUtils.translate("bookmark.remove_recipe"));
                                     }
 
@@ -534,60 +533,65 @@ public abstract class ShortcutInputHandler {
 
             if (BookmarkContainerInfo.getBookmarkContainerHandler(gui) != null) {
                 hotkeys.put(
-                        NEIClientConfig.getKeyName("gui.bookmark_pull_items"),
+                        KeyManager.getKeyName("bookmark.pull_items"),
                         NEIClientUtils.translate("bookmark.group.pull_items"));
                 hotkeys.put(
-                        NEIClientConfig.getKeyName("gui.bookmark_pull_items", NEIClientUtils.SHIFT_HASH),
+                        KeyManager.getKeyName("bookmark.pull_items", NEIClientUtils.SHIFT_HASH),
                         NEIClientUtils.translate("bookmark.group.pull_items_shift"));
             }
 
         } else {
-            hotkeys.put(NEIClientConfig.getKeyName("gui.bookmark"), NEIClientUtils.translate("bookmark.add_item"));
+            hotkeys.put(KeyManager.getKeyName("bookmark.add"), NEIClientUtils.translate("bookmark.add_item"));
 
             if (StackInfo.getAmount(stack) > 0) {
                 hotkeys.put(
-                        NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.CTRL_HASH),
+                        KeyManager.getKeyName("bookmark.add", NEIClientUtils.CTRL_HASH),
                         NEIClientUtils.translate("bookmark.add_item_with_count"));
             }
 
             if (recipeId != null) {
                 hotkeys.put(
-                        NEIClientConfig
-                                .getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
+                        KeyManager.getKeyName("bookmark.add", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
                         NEIClientUtils.translate("bookmark.add_item_with_recipe_and_count"));
                 hotkeys.put(
-                        NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                        KeyManager.getKeyName("bookmark.add", NEIClientUtils.SHIFT_HASH),
                         NEIClientUtils.translate("bookmark.add_item_with_recipe"));
             }
 
             if ((ItemPanels.itemPanel.contains(mousex, mousey)
                     || ItemPanels.itemPanel.historyPanel.contains(mousex, mousey)) && FavoriteRecipes.contains(stack)) {
                 hotkeys.put(
-                        NEIClientConfig.getKeyName("gui.favorite"),
+                        KeyManager.getKeyName("bookmark.favorite", NEIClientUtils.SHIFT_HASH),
                         NEIClientUtils.translate("recipe.favorite.bookmark_recipe"));
             }
 
         }
 
-        hotkeys.put(NEIClientConfig.getKeyName("gui.recipe"), NEIClientUtils.translate("itempanel.open_crafting"));
-        hotkeys.put(NEIClientConfig.getKeyName("gui.usage"), NEIClientUtils.translate("itempanel.open_usage"));
+        hotkeys.put(KeyManager.getKeyName("recipe.recipe"), NEIClientUtils.translate("itempanel.open_crafting"));
+        hotkeys.put(KeyManager.getKeyName("recipe.usage"), NEIClientUtils.translate("itempanel.open_usage"));
 
-        hotkeys.put(NEIClientConfig.getKeyName("gui.copy_name"), NEIClientUtils.translate("itempanel.copy_name"));
-        hotkeys.put(NEIClientConfig.getKeyName("gui.copy_oredict"), NEIClientUtils.translate("itempanel.copy_oredict"));
-        hotkeys.put(NEIClientConfig.getKeyName("gui.copy_id"), NEIClientUtils.translate("itempanel.copy_id"));
         hotkeys.put(
-                NEIClientConfig.getKeyName("gui.chat_link_item"),
+                KeyManager.getKeyName("copy.name", NEIClientUtils.CTRL_HASH),
+                NEIClientUtils.translate("itempanel.copy_name"));
+        hotkeys.put(
+                KeyManager.getKeyName("copy.oredict", NEIClientUtils.CTRL_HASH),
+                NEIClientUtils.translate("itempanel.copy_oredict"));
+        hotkeys.put(
+                KeyManager.getKeyName("copy.identifier", NEIClientUtils.CTRL_HASH),
+                NEIClientUtils.translate("itempanel.copy_id"));
+        hotkeys.put(
+                KeyManager.getKeyName("copy.chat_link_item", NEIClientUtils.CTRL_HASH),
                 NEIClientUtils.translate("itempanel.chat_link_item"));
 
         if (!(gui instanceof GuiRecipe) && NEIClientConfig.canCheatItem(stack)) {
             hotkeys.put(
-                    NEIClientUtils.getKeyName(NEIClientUtils.SHIFT_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
+                    KeyManager.getKeyName(NEIClientUtils.SHIFT_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
                     NEIClientUtils.translate("itempanel.open_crafting"));
             hotkeys.put(
-                    NEIClientUtils.getKeyName(NEIClientUtils.SHIFT_HASH, NEIMouseUtils.MOUSE_BTN_RMB),
+                    KeyManager.getKeyName(NEIClientUtils.SHIFT_HASH, NEIMouseUtils.MOUSE_BTN_RMB),
                     NEIClientUtils.translate("itempanel.open_usage"));
             hotkeys.put(
-                    NEIClientUtils.getKeyName(NEIClientUtils.CTRL_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
+                    KeyManager.getKeyName(NEIClientUtils.CTRL_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
                     NEIClientUtils.translate("itempanel.infinite_item"));
         } else {
             hotkeys.put(
@@ -605,18 +609,18 @@ public abstract class ShortcutInputHandler {
 
                 if (handlerRef.canUseOverlayRenderer(gui)) {
                     hotkeys.put(
-                            NEIClientConfig.getKeyName("gui.overlay"),
+                            KeyManager.getKeyName("gui.overlay"),
                             NEIClientUtils.translate("itempanel.overlay_recipe"));
                 }
 
                 if (handlerRef.canFillCraftingGrid(gui)) {
                     hotkeys.put(
-                            NEIClientConfig.getKeyName("gui.overlay", NEIClientUtils.SHIFT_HASH),
+                            KeyManager.getKeyName("gui.overlay", NEIClientUtils.SHIFT_HASH),
                             NEIClientUtils.translate("itempanel.fill_crafting_grid"));
 
                     if (handlerRef.allowedTransferAlghoritm(gui)) {
                         hotkeys.put(
-                                NEIClientConfig.getKeyName(
+                                KeyManager.getKeyName(
                                         "gui.overlay",
                                         NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
                                 NEIClientUtils.translate("itempanel.fill_crafting_grid_quantity"));
@@ -625,12 +629,12 @@ public abstract class ShortcutInputHandler {
 
                 if (NEIClientConfig.autocraftingEnabled()) {
                     hotkeys.put(
-                            NEIClientConfig.getKeyName(
+                            KeyManager.getKeyName(
                                     "gui.craft_items",
                                     NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
                             NEIClientUtils.translate("itempanel.craft_missing"));
                     hotkeys.put(
-                            NEIClientConfig.getKeyName("gui.craft_items", NEIClientUtils.SHIFT_HASH),
+                            KeyManager.getKeyName("gui.craft_items", NEIClientUtils.SHIFT_HASH),
                             NEIClientUtils.translate("itempanel.craft_all"));
                 }
             }

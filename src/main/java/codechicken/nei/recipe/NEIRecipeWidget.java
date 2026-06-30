@@ -23,6 +23,7 @@ import org.lwjgl.opengl.GL12;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.FavoriteRecipes;
+import codechicken.nei.KeyManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
@@ -297,8 +298,8 @@ public class NEIRecipeWidget extends Widget {
     @Override
     public boolean handleKeyPress(int keyID, char keyChar) {
 
-        if (NEIClientConfig.favoritesEnabled() && NEIClientUtils.shiftKey()
-                && NEIClientConfig.isKeyHashDown("gui.favorite_item")) {
+        if (NEIClientConfig.favoritesEnabled()
+                && KeyManager.isHashDown("bookmark.favorite_item", NEIClientUtils.SHIFT_HASH)) {
             final Point mouse = GuiDraw.getMousePosition();
             final int yShift = this.handlerInfo.getYShift();
             PositionedStack pStackOver = null;
@@ -457,7 +458,7 @@ public class NEIRecipeWidget extends Widget {
                 pStack -> this.permutations.getOrDefault(pStack, Collections.emptyList()).size() > 1
                         && pStack.contains(mouseX - this.x, mouseY - this.y - yShift))) {
             hotkeys.put(
-                    NEIClientConfig.getKeyName("gui.favorite_item", NEIClientUtils.SHIFT_HASH),
+                    KeyManager.getKeyName("bookmark.favorite_item", NEIClientUtils.SHIFT_HASH),
                     NEIClientUtils.translate("recipe.favorite.toggle"));
         }
 

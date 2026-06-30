@@ -26,6 +26,7 @@ import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.Button;
 import codechicken.nei.ColorUtils;
 import codechicken.nei.GuiNEIButton;
+import codechicken.nei.KeyManager;
 import codechicken.nei.NEICPH;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -599,15 +600,15 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         if (i == mc.gameSettings.keyBindInventory.getKeyCode()) {
             this.mc.displayGuiScreen(getFirstScreenGeneral());
             NEICPH.sendRequestContainer();
-        } else if (NEIClientConfig.isKeyHashDown("gui.back")) {
+        } else if (KeyManager.isKeyDown("recipe.back")) {
             this.mc.displayGuiScreen(this.prevGui);
-        } else if (NEIClientConfig.isKeyHashDown("gui.prev_machine")) {
+        } else if (KeyManager.isKeyDown("recipe.prev_machine")) {
             prevType();
-        } else if (NEIClientConfig.isKeyHashDown("gui.next_machine")) {
+        } else if (KeyManager.isKeyDown("recipe.next_machine")) {
             nextType();
-        } else if (NEIClientConfig.isKeyHashDown("gui.prev_recipe")) {
+        } else if (KeyManager.isKeyDown("recipe.prev_recipe")) {
             prevPage();
-        } else if (NEIClientConfig.isKeyHashDown("gui.next_recipe")) {
+        } else if (KeyManager.isKeyDown("recipe.next_recipe")) {
             nextPage();
         }
     }

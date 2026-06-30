@@ -21,7 +21,7 @@ import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.NegatedItemFilter;
 import codechicken.nei.ItemsGrid;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
-import codechicken.nei.NEIClientConfig;
+import codechicken.nei.KeyManager;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PresetsList;
 import codechicken.nei.PresetsList.Preset;
@@ -81,15 +81,15 @@ public class RightPanel extends GuiWidget {
         @Override
         public void lastKeyTyped(int keyID, char keyChar) {
 
-            if (!focused() && NEIClientConfig.isKeyHashDown("gui.search")) {
+            if (!focused() && KeyManager.isHashDown("gui.search")) {
                 setFocus(true);
             }
 
-            if (focused() && NEIClientConfig.isKeyHashDown("gui.getprevioussearch")) {
+            if (focused() && KeyManager.isHashDown("gui.getprevioussearch")) {
                 handleNavigateHistory(TextHistory.Direction.PREVIOUS);
             }
 
-            if (focused() && NEIClientConfig.isKeyHashDown("gui.getnextsearch")) {
+            if (focused() && KeyManager.isHashDown("gui.getnextsearch")) {
                 handleNavigateHistory(TextHistory.Direction.NEXT);
             }
         }

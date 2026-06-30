@@ -60,11 +60,11 @@ nei.options.wbutton.tip.1=Genel ayarların üstüne yazılıyor
 
 nei.options.keys=Tuşlar
 nei.options.keys.gui=Envanter
-nei.options.keys.gui.recipe=Tarifler
-nei.options.keys.gui.usage=Kullanım yeri
+nei.options.keys.recipe.recipe=Tarifler
+nei.options.keys.recipe.usage=Kullanım yeri
 nei.options.keys.gui.enchant=Büylüler
 nei.options.keys.gui.potion=İksirler
-nei.options.keys.gui.back=Önceki tarif
+nei.options.keys.recipe.back=Önceki tarif
 nei.options.keys.gui.prev=Önceki sayfa
 nei.options.keys.gui.next=Sonraki sayfa
 nei.options.keys.gui.hide=Nei görünürlük ayarı

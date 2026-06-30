@@ -59,11 +59,11 @@ nei.options.wbutton.tip.1=전역 설정
 
 nei.options.keys=키 바인딩
 nei.options.keys.gui=인벤토리
-nei.options.keys.gui.recipe=레시피
-nei.options.keys.gui.usage=사용법
-nei.options.keys.gui.nei.enchant=인첸트
+nei.options.keys.recipe.recipe=레시피
+nei.options.keys.recipe.usage=사용법
+nei.options.keys.gui.enchant=인첸트
 nei.options.keys.gui.potion=포션
-nei.options.keys.gui.back=이전 레시피
+nei.options.keys.recipe.back=이전 레시피
 nei.options.keys.gui.prev=이전 페이지
 nei.options.keys.gui.next=다음 페이지
 nei.options.keys.gui.hide=NEI 활성/비활성화

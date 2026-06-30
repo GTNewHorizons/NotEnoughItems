@@ -46,6 +46,7 @@ import org.lwjgl.opengl.GL12;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemList;
 import codechicken.nei.ItemStackSet;
+import codechicken.nei.KeyManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIModContainer;
@@ -762,7 +763,7 @@ public class GuiContainerManager {
                     "inventory.tooltip.page",
                     tooltipPage + 1,
                     maxTooltipPage,
-                    NEIClientConfig.getKeyName("gui.next_tooltip"));
+                    KeyManager.getKeyName("gui.next_tooltip"));
 
             if (lastLine.startsWith(GuiDraw.TOOLTIP_HANDLER)) {
                 currentTooltip.add(lastLine);
