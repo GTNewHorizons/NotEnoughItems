@@ -1,5 +1,9 @@
 package codechicken.nei;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.concurrent.Callable;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
@@ -26,12 +30,10 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     public static int mobOverlay = 0;
     private static byte[] mobSpawnCache;
     private static long mobOverlayUpdateTime;
-    private static String oregenPatternName;
 
     public static void reset() {
         mobOverlay = 0;
         chunkOverlay = 0;
-        oregenPatternName = null;
     }
 
     @Override
@@ -378,20 +380,43 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glDisable(GL11.GL_BLEND);
     }
 
+    private static Callable<String> oregenPatternReader;
+
     private static String getOregenPatternName() {
-
-        if (oregenPatternName == null) {
-            try {
-                final ClassLoader loader = WorldOverlayRenderer.class.getClassLoader();
-                final Class<?> gtWorldGenerator = ReflectionHelper
-                        .getClass(loader, "gregtech.common.GTWorldgenerator", "gregtech.common.GT_Worldgenerator");
-                oregenPatternName = ((Enum<?>) gtWorldGenerator.getDeclaredField("oregenPattern").get(null)).name();
-            } catch (Exception ignored) {
-                oregenPatternName = "AXISSYMMETRICAL";
-            }
+        if (oregenPatternReader == null) {
+            oregenPatternReader = resolveOregenPatternReader();
         }
+        try {
+            return oregenPatternReader.call();
+        } catch (Exception ignored) {
+            return "AXISSYMMETRICAL";
+        }
+    }
 
-        return oregenPatternName;
+    private static Callable<String> resolveOregenPatternReader() {
+        try {
+            final Class<?> gtWorldGenerator = ReflectionHelper.getClass(
+                    WorldOverlayRenderer.class.getClassLoader(),
+                    "gregtech.common.GTWorldgenerator",
+                    "gregtech.common.GT_Worldgenerator");
+
+            try {
+                // GT5-Unofficial >= 5.09.54.02 support
+                final Method server = gtWorldGenerator.getMethod("getServerOregenPattern");
+                final Method client = gtWorldGenerator.getMethod("getClientOregenPattern");
+                return () -> {
+                    final Method accessor = Minecraft.getMinecraft().isSingleplayer() ? server : client;
+                    return ((Enum<?>) accessor.invoke(null)).name();
+                };
+            } catch (NoSuchMethodException legacy) {
+                // Older GT
+                final Field oregenPattern = gtWorldGenerator.getDeclaredField("oregenPattern");
+                oregenPattern.setAccessible(true);
+                return () -> ((Enum<?>) oregenPattern.get(null)).name();
+            }
+        } catch (Exception ignored) {
+            return () -> "AXISSYMMETRICAL";
+        }
     }
 
     public static void load() {
