@@ -73,12 +73,12 @@ public class KeyManager {
 
     public static String getKeyName(String ident, int meta) {
         final int keyCode = getKeyCode(ident);
-        return keyCode == Keyboard.CHAR_NONE ? null : NEIKeyboardUtils.getKeyName(keyCode + meta);
+        return keyCode == Keyboard.KEY_NONE ? null : NEIKeyboardUtils.getKeyName(keyCode + meta);
     }
 
     public static String getKeyName(String ident, int meta, int mouseBind) {
         final int keyCode = getKeyCode(ident);
-        return keyCode == Keyboard.CHAR_NONE && mouseBind == NEIMouseUtils.MOUSE_BTN_NONE ? null
+        return keyCode == Keyboard.KEY_NONE && mouseBind == NEIMouseUtils.MOUSE_BTN_NONE ? null
                 : getKeyName(keyCode + meta, mouseBind);
     }
 
