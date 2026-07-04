@@ -6,7 +6,7 @@ configurations.create('gtnhlibEmbed') {
 
 dependencies {
     api('com.github.GTNewHorizons:CodeChickenCore:1.4.16:dev')
-    devOnlyNonPublishable('com.github.GTNewHorizons:GTNHLib:0.11.20:dev')
+    devOnlyNonPublishable('com.github.GTNewHorizons:GTNHLib:0.11.23:dev')
 
     shadowImplementation('org.apache.commons:commons-csv:1.10.0')
 
@@ -22,8 +22,8 @@ dependencies {
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
     testRuntimeOnly("org.lwjgl.lwjgl:lwjgl:2.9.3");
 
-    compileOnly("com.github.GTNewHorizons:GTNHLib:0.11.20") { transitive = false }
-    gtnhlibEmbed("com.github.GTNewHorizons:GTNHLib:0.11.20") { transitive = false }
+    compileOnly("com.github.GTNewHorizons:GTNHLib:0.11.23") { transitive = false }
+    gtnhlibEmbed("com.github.GTNewHorizons:GTNHLib:0.11.23") { transitive = false }
 }
 
 [tasks.jar, tasks.shadowJar].each {
