@@ -309,12 +309,12 @@ public abstract class PanelWidget<T extends ItemsGrid<? extends ItemsGridSlot, ?
         final Point mouse = GuiDraw.getMousePosition();
         if (!contains(mouse.x, mouse.y)) return false;
 
-        if (NEIClientConfig.isKeyHashDown("gui.next")) {
+        if (KeyManager.isKeyDown("gui.next")) {
             this.grid.shiftPage(1);
             return true;
         }
 
-        if (NEIClientConfig.isKeyHashDown("gui.prev")) {
+        if (KeyManager.isKeyDown("gui.prev")) {
             this.grid.shiftPage(-1);
             return true;
         }

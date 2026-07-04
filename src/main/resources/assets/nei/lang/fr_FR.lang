@@ -61,11 +61,11 @@ nei.options.wbutton.tip.1=Annuler l'utilisation des paramètres globaux
 
 nei.options.keys=Raccourcis clavier
 nei.options.keys.gui=Inventaire
-nei.options.keys.gui.recipe=Recette
-nei.options.keys.gui.usage=Usage
+nei.options.keys.recipe.recipe=Recette
+nei.options.keys.recipe.usage=Usage
 nei.options.keys.gui.enchant=Enchantements
 nei.options.keys.gui.potion=Potions
-nei.options.keys.gui.back=Recette précédente
+nei.options.keys.recipe.back=Recette précédente
 nei.options.keys.gui.prev=Recette suivante
 nei.options.keys.gui.next=Page suivante
 nei.options.keys.gui.hide=Afficher ou cacher NEI

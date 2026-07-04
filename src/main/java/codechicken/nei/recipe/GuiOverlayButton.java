@@ -15,6 +15,7 @@ import org.lwjgl.opengl.GL11;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemsTooltipLineHandler;
+import codechicken.nei.KeyManager;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -163,11 +164,11 @@ public class GuiOverlayButton extends GuiRecipeButton {
         }
 
         hotkeys.put(
-                NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH),
+                KeyManager.getKeyName("bookmark.add", NEIClientUtils.SHIFT_HASH),
                 NEIClientUtils.translate("recipe.overlay.bookmarkRecipe"));
 
         hotkeys.put(
-                NEIClientConfig.getKeyName("gui.bookmark", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
+                KeyManager.getKeyName("bookmark.add", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
                 NEIClientUtils.translate("recipe.overlay.bookmarkRecipeAndCount"));
 
         return hotkeys;
@@ -325,7 +326,7 @@ public class GuiOverlayButton extends GuiRecipeButton {
 
     @Override
     public void lastKeyTyped(char keyChar, int keyID) {
-        if (NEIClientConfig.isKeyHashDown("gui.bookmark") && NEIClientUtils.shiftKey()) {
+        if (KeyManager.isKeyDown("bookmark.add") && NEIClientUtils.shiftKey()) {
             saveRecipeInBookmark();
         }
     }

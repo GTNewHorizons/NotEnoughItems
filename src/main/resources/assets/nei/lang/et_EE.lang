@@ -63,11 +63,11 @@ nei.options.wbutton.tip.1=Globaalsete seadmete ületegemine
 
 nei.options.keys=Klahviseosed
 nei.options.keys.gui=Seljakott
-nei.options.keys.gui.recipe=Retsept
-nei.options.keys.gui.usage=Kasutus
+nei.options.keys.recipe.recipe=Retsept
+nei.options.keys.recipe.usage=Kasutus
 nei.options.keys.gui.enchant=Loitsud
 nei.options.keys.gui.potion=Joogid
-nei.options.keys.gui.back=Eel. Retsept
+nei.options.keys.recipe.back=Eel. Retsept
 nei.options.keys.gui.prev=Eel. Leht
 nei.options.keys.gui.next=Järg. Leht
 nei.options.keys.gui.hide=Lülita NEI nähtavust
