@@ -4,6 +4,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockSnow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
@@ -119,6 +121,15 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         }
     }
 
+    private static double getOverlayYOffset(World world, int x, int y, int z) {
+        Block block = world.getBlock(x, y, z);
+        if (block instanceof BlockSnow) {
+            int meta = world.getBlockMetadata(x, y, z) & 7;
+            return (1 + meta) / 8.0 + 0.02;
+        }
+        return 0.02;
+    }
+
     private static void renderMobSpawnOverlay(Entity entity, int intOffsetX, int intOffsetY, int intOffsetZ) {
         if (mobOverlay == 0) {
             if (mobSpawnCache != null) {
@@ -174,10 +185,12 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
                         curSpawnMode = spawnMode;
                     }
 
-                    tess.addVertex(x, y + 0.02, z);
-                    tess.addVertex(x + 1, y + 0.02, z + 1);
-                    tess.addVertex(x + 1, y + 0.02, z);
-                    tess.addVertex(x, y + 0.02, z + 1);
+                    double yOff = getOverlayYOffset(world, x + intOffsetX, y + intOffsetY, z + intOffsetZ);
+
+                    tess.addVertex(x, y + yOff, z);
+                    tess.addVertex(x + 1, y + yOff, z + 1);
+                    tess.addVertex(x + 1, y + yOff, z);
+                    tess.addVertex(x, y + yOff, z + 1);
                 }
             }
         }
