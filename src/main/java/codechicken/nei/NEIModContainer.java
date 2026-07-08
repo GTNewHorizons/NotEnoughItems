@@ -43,6 +43,7 @@ public class NEIModContainer extends DummyModContainer {
 
     private static boolean gregTech5Loaded;
     private static boolean gtnhLibLoaded;
+    private static boolean cubicChunksLoaded;
 
     private static ASMDataTable asmDataTable;
 
@@ -67,6 +68,10 @@ public class NEIModContainer extends DummyModContainer {
 
     public static boolean isGTNHLibLoaded() {
         return gtnhLibLoaded;
+    }
+
+    public static boolean isCCLoaded() {
+        return cubicChunksLoaded;
     }
 
     @Override
@@ -96,6 +101,7 @@ public class NEIModContainer extends DummyModContainer {
     public void preInit(FMLPreInitializationEvent event) {
         gregTech5Loaded = Loader.isModLoaded("gregtech") && !Loader.isModLoaded("gregapi_post");
         gtnhLibLoaded = Loader.isModLoaded("gtnhlib");
+        cubicChunksLoaded = Loader.isModLoaded("cubicchunks");
         if (CommonUtils.isClient()) ClientHandler.preInit();
         asmDataTable = event.getAsmData();
     }

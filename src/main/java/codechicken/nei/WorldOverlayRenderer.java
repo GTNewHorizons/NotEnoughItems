@@ -1,5 +1,7 @@
 package codechicken.nei;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
@@ -231,6 +233,9 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     private static void renderChunkBounds(Entity entity, int intOffsetX, int intOffsetY, int intOffsetZ) {
         if (chunkOverlay == 0) return;
 
+        int worldMinY = worldMinHeight(entity.worldObj);
+        int worldMaxY = worldMaxHeight(entity.worldObj);
+
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -249,14 +254,13 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
             double dy = 128;
             double y1 = Math.floor(entity.posY - dy / 2);
             double y2 = y1 + dy;
-            if (y1 < 0) {
-                y1 = 0;
-                y2 = dy;
+            if (y1 < worldMinY) {
+                y1 = worldMinY;
+                y2 = worldMinY + dy;
             }
-
-            if (y1 > entity.worldObj.getHeight()) {
-                y2 = entity.worldObj.getHeight();
-                y1 = y2 - dy;
+            if (y2 > worldMaxY) {
+                y2 = worldMaxY;
+                y1 = Math.max(worldMaxY - dy, worldMinY);
             }
 
             y1 -= intOffsetY;
@@ -282,19 +286,34 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
                 tess.addVertex(x1, y2, z1);
             }
 
+            if (NEIModContainer.isCCLoaded()) {
+                tess.setColorRGBA_F(0, 0.5F, 0.9F, (float) dist * 0.5F);
+                int cubeBase = (int) Math.floor((y1 + intOffsetY) / 16.0) * 16;
+                for (int cubeY = cubeBase; cubeY <= y2 + intOffsetY; cubeY += 16) {
+                    double ry = cubeY - intOffsetY;
+                    tess.addVertex(x1, ry, z1);
+                    tess.addVertex(x2, ry, z1);
+                    tess.addVertex(x1, ry, z2);
+                    tess.addVertex(x2, ry, z2);
+                    tess.addVertex(x1, ry, z1);
+                    tess.addVertex(x1, ry, z2);
+                    tess.addVertex(x2, ry, z1);
+                    tess.addVertex(x2, ry, z2);
+                }
+            }
+
             if (cx == 0 && cz == 0) {
                 if (chunkOverlay == 2) {
                     dy = 32;
                     y1 = Math.floor(entity.posY - dy / 2);
                     y2 = y1 + dy;
-                    if (y1 < 0) {
-                        y1 = 0;
-                        y2 = dy;
+                    if (y1 < worldMinY) {
+                        y1 = worldMinY;
+                        y2 = worldMinY + dy;
                     }
-
-                    if (y1 > entity.worldObj.getHeight()) {
-                        y2 = entity.worldObj.getHeight();
-                        y1 = y2 - dy;
+                    if (y2 > worldMaxY) {
+                        y2 = worldMaxY;
+                        y1 = Math.max(worldMaxY - dy, worldMinY);
                     }
 
                     y1 -= intOffsetY;
@@ -391,6 +410,42 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_BLEND);
+    }
+
+    /** Holder defers class loading until Cubic Chunks is confirmed present. */
+    private static final class CCWorldBounds {
+
+        static final MethodHandle GET_MIN_HEIGHT;
+        static final MethodHandle GET_MAX_HEIGHT;
+
+        static {
+            try {
+                MethodHandles.Lookup lookup = MethodHandles.lookup();
+                // Mixined into World by CC, use reflection + MethodHandles to call these
+                GET_MIN_HEIGHT = lookup.unreflect(World.class.getMethod("getMinHeight"));
+                GET_MAX_HEIGHT = lookup.unreflect(World.class.getMethod("getMaxHeight"));
+            } catch (ReflectiveOperationException e) {
+                throw new ExceptionInInitializerError(e);
+            }
+        }
+    }
+
+    private static int worldMinHeight(World world) {
+        if (!NEIModContainer.isCCLoaded()) return 0;
+        try {
+            return (int) CCWorldBounds.GET_MIN_HEIGHT.invoke(world);
+        } catch (Throwable ignored) {
+            return 0;
+        }
+    }
+
+    private static int worldMaxHeight(World world) {
+        if (!NEIModContainer.isCCLoaded()) return world.getHeight();
+        try {
+            return (int) CCWorldBounds.GET_MAX_HEIGHT.invoke(world);
+        } catch (Throwable ignored) {
+            return world.getHeight();
+        }
     }
 
     private static Callable<String> oregenPatternReader;
