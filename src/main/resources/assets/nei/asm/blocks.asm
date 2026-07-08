@@ -62,6 +62,17 @@ ICONST_0
 ICONST_1 #keep the destination alpha
 INVOKESTATIC net/minecraft/client/renderer/OpenGlHelper.func_148821_a (IIII)V
 
+list m_keyBindingOnTickAll
+ILOAD 0
+INVOKESTATIC codechicken/nei/asm/KeyBindingFixHooks.onTickAll (I)V
+RETURN
+
+list m_keyBindingSetStateAll
+ILOAD 0
+ILOAD 1
+INVOKESTATIC codechicken/nei/asm/KeyBindingFixHooks.setKeyBindStateAll (IZ)V
+RETURN
+
 
 #begin GuiContainer patches
 
@@ -383,4 +394,3 @@ INVOKEVIRTUAL codechicken/nei/guihook/GuiContainerManager.objectUnderMouse (II)Z
 IFEQ LCONT
 RETURN
 LCONT
-

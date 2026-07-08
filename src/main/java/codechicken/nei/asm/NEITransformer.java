@@ -56,7 +56,8 @@ public class NEITransformer implements IClassTransformer {
 
     public NEITransformer() {
         if (FMLLaunchHandler.side().isClient()) {
-            // Generates method to set the placed position of a mob spawner for the item callback. More portable than
+            // Generates method to set the placed position of a mob spawner for the item
+            // callback. More portable than
             // copying vanilla placement code
             transformer.add(
                     new MethodWriter(
@@ -82,7 +83,6 @@ public class NEITransformer implements IClassTransformer {
                         asmblocks.get("commaFix"),
                         true));
 
-        // fix workbench container losing items on shift click output without room for the full stack
         transformer.add(
                 new MethodTransformer(
                         new ObfMapping(
@@ -104,6 +104,20 @@ public class NEITransformer implements IClassTransformer {
                         new ObfMapping("net/minecraft/client/renderer/entity/RenderItem", "func_77018_a", "(IIIII)V"),
                         asmblocks.get("d_glintAlphaFix"),
                         asmblocks.get("glintAlphaFix")));
+
+        if (FMLLaunchHandler.side().isClient()) {
+            transformer.add(
+                    new MethodWriter(
+                            ACC_PUBLIC | ACC_STATIC,
+                            new ObfMapping("net/minecraft/client/settings/KeyBinding", "func_74507_a", "(I)V"),
+                            asmblocks.get("m_keyBindingOnTickAll")));
+
+            transformer.add(
+                    new MethodWriter(
+                            ACC_PUBLIC | ACC_STATIC,
+                            new ObfMapping("net/minecraft/client/settings/KeyBinding", "func_74510_a", "(IZ)V"),
+                            asmblocks.get("m_keyBindingSetStateAll")));
+        }
 
         String GuiContainer = "net/minecraft/client/gui/inventory/GuiContainer";
         // add manager field
