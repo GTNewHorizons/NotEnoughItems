@@ -230,7 +230,7 @@ public class GuiFavoriteButton extends GuiRecipeButton {
                             }
                         }
 
-                        if (recipeId != null && FavoriteRecipes.FAVORITE_ITEM.contains(recipeId.getHandleName())) {
+                        if (recipeId != null && FavoriteRecipes.FAVORITE_ITEM.contains(recipeId.getHandlerName())) {
                             items.add(stack);
                         } else {
                             Recipe recipe = Recipe.of(recipeId);

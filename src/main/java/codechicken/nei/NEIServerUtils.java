@@ -10,6 +10,7 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.zip.ZipException;
 
 import net.minecraft.command.ICommandSender;
@@ -28,6 +29,7 @@ import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -44,6 +46,7 @@ import codechicken.lib.inventory.InventoryRange;
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.packet.PacketCustom;
 import codechicken.nei.PacketIDs.S2C;
+import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.NBTHelper;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -86,16 +89,46 @@ public class NEIServerUtils {
         player.extinguish();
     }
 
-    public static void sendChatItemLink(EntityPlayerMP sender, ItemStack stackover) {
-        ServerUtils.sendChatToAll(
-                new ChatComponentTranslation(
-                        "nei.chat.item_link.text",
-                        sender.getDisplayName(),
-                        stackover.func_151000_E().setChatStyle(
-                                stackover.func_151000_E().getChatStyle().setChatClickEvent(
-                                        new ClickEvent(
-                                                ClickEvent.Action.RUN_COMMAND,
-                                                "/nei_bookmark " + stackover.writeToNBT(new NBTTagCompound()))))));
+    public static void sendChatItemLink(EntityPlayerMP sender, NBTTagCompound payload) {
+        if (payload == null) {
+            sender.addChatMessage(new ChatComponentText("Invalid bookmark payload"));
+            return;
+        }
+
+        final String linkType = payload.getString("linkType");
+        final String payloadId = UUID.randomUUID().toString().substring(0, 8);
+        final PacketCustom packet = new PacketCustom(NEISPH.channel, S2C.CACHE_BOOKMARK_DATA).writeString(payloadId)
+                .writeNBTTagCompound((NBTTagCompound) payload.copy());
+
+        for (EntityPlayer player : ServerUtils.getPlayers()) {
+            if (player instanceof EntityPlayerMP playerMP) {
+                packet.sendToPlayer(playerMP);
+            }
+        }
+
+        try {
+            final IChatComponent clickable;
+
+            if (payload.hasKey("item")) {
+                clickable = StackInfo.loadFromNBT(payload.getCompoundTag("item")).func_151000_E();
+            } else {
+                clickable = new ChatComponentText("[")
+                        .appendSibling(new ChatComponentTranslation("nei.chat.item_link." + linkType + ".text"))
+                        .appendText("]");
+            }
+
+            if (clickable == null) {
+                throw new Exception("Invalid ItemStack NBT");
+            }
+
+            clickable.getChatStyle()
+                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/nei_bookmark " + payloadId));
+            ServerUtils.sendChatToAll(
+                    new ChatComponentTranslation("nei.chat.item_link.text", sender.getDisplayName(), clickable));
+        } catch (Exception e) {
+            sender.addChatMessage(new ChatComponentText(e.toString()));
+        }
+
     }
 
     public static long getTime(World world) {

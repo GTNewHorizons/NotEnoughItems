@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 import org.apache.commons.io.IOUtils;
@@ -25,10 +24,7 @@ import com.google.gson.JsonSyntaxException;
 
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.NEIClientConfig;
-import codechicken.nei.PositionedStack;
-import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.recipe.Recipe.RecipeId;
-import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.NBTJson;
 
 public class BookmarkStorage {
@@ -199,7 +195,11 @@ public class BookmarkStorage {
                     continue;
                 }
 
-                if (!addItemToGrid(grid, parser.parse(itemStr).getAsJsonObject())) {
+                final BookmarkItem item = BookmarkItem.of(parser.parse(itemStr).getAsJsonObject());
+
+                if (item != null) {
+                    grid.addItem(item, false);
+                } else {
                     wasError = true;
                     NEIClientConfig.logger.warn(
                             "Failed to load bookmarked ItemStack from json string, the item no longer exists:\n{}",
@@ -236,53 +236,6 @@ public class BookmarkStorage {
         }
 
         this.bookmarkFile = bookmarkFile;
-    }
-
-    private boolean addItemToGrid(BookmarkGrid grid, JsonObject jsonObject) {
-        NBTTagCompound itemStackNBT;
-
-        if (jsonObject.get("item") != null) {
-            itemStackNBT = (NBTTagCompound) NBTJson.toNbt(jsonObject.get("item"));
-        } else { // old format
-            itemStackNBT = (NBTTagCompound) NBTJson.toNbt(jsonObject);
-        }
-
-        ItemStack itemStack = StackInfo.loadFromNBT(itemStackNBT);
-
-        if (itemStack != null) {
-            int groupId = jsonObject.has("groupId") && grid.groups.containsKey(jsonObject.get("groupId").getAsInt())
-                    ? jsonObject.get("groupId").getAsInt()
-                    : BookmarkGrid.DEFAULT_GROUP_ID;
-            final BookmarkItem.Builder builder = BookmarkItem.builder(groupId, itemStack);
-
-            if (jsonObject.has("type")) {
-                builder.type(BookmarkItemType.fromInt(jsonObject.get("type").getAsInt()));
-            } else if (jsonObject.has("ingredient") && jsonObject.get("ingredient").getAsBoolean()) {
-                builder.type(BookmarkItemType.INGREDIENT);
-            } else {
-                builder.type(BookmarkItemType.RESULT);
-            }
-
-            if (jsonObject.has("multiplier")) {
-                builder.multiplier(jsonObject.get("multiplier").getAsInt());
-            }
-
-            if (jsonObject.has("factor")) {
-                builder.factor(jsonObject.get("factor").getAsInt());
-            }
-
-            if (jsonObject.has("chance")) {
-                builder.chance(jsonObject.get("chance").getAsInt());
-            }
-
-            if (jsonObject.get("recipeId") instanceof JsonObject recipeJson) {
-                builder.recipeId(RecipeId.of(recipeJson));
-            }
-
-            grid.addItem(builder.build(), false);
-        }
-
-        return itemStack != null;
     }
 
     public void save() {
@@ -325,26 +278,7 @@ public class BookmarkStorage {
 
             for (BookmarkItem item : grid.bookmarkItems) {
                 try {
-                    JsonObject row = new JsonObject();
-
-                    row.add("item", NBTJson.toJsonObject(StackInfo.itemStackToNBT(item.getItemStack())));
-                    row.add("multiplier", new JsonPrimitive(item.multiplier));
-                    row.add("factor", new JsonPrimitive(item.factor));
-                    row.add("type", new JsonPrimitive(item.type.toInt()));
-
-                    if (item.groupId != BookmarkGrid.DEFAULT_GROUP_ID) {
-                        row.add("groupId", new JsonPrimitive(item.groupId));
-                    }
-
-                    if (item.recipeId != null) {
-                        row.add("recipeId", item.recipeId.toJsonObject());
-                    }
-
-                    if (item.chance != PositionedStack.CHANCE_FULL) {
-                        row.add("chance", new JsonPrimitive(item.chance));
-                    }
-
-                    strings.add(NBTJson.toJson(row));
+                    strings.add(NBTJson.toJson(item.toJsonObject()));
                 } catch (JsonSyntaxException e) {
                     NEIClientConfig.logger.error("Failed to stringify bookmarked ItemStack to json string");
                 }

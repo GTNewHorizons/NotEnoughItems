@@ -22,6 +22,7 @@ import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.IOverlayHandler;
 import codechicken.nei.bookmark.BookmarkGrid;
+import codechicken.nei.bookmark.BookmarkPayload;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.util.NEIMouseUtils;
@@ -170,6 +171,10 @@ public class GuiOverlayButton extends GuiRecipeButton {
         hotkeys.put(
                 KeyManager.getKeyName("bookmark.add", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
                 NEIClientUtils.translate("recipe.overlay.bookmarkRecipeAndCount"));
+
+        hotkeys.put(
+                KeyManager.getKeyName("bookmark.chat_link", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),
+                NEIClientUtils.translate("recipe.overlay.sendRecipeToChat"));
 
         return hotkeys;
     }
@@ -329,6 +334,10 @@ public class GuiOverlayButton extends GuiRecipeButton {
         if (KeyManager.isKeyDown("bookmark.add") && NEIClientUtils.shiftKey()) {
             saveRecipeInBookmark();
         }
+
+        if (KeyManager.isKeyDown("bookmark.chat_link") && NEIClientUtils.controlKey() && NEIClientUtils.shiftKey()) {
+            sendRecipeChatLink();
+        }
     }
 
     public void saveRecipeInBookmark() {
@@ -343,4 +352,7 @@ public class GuiOverlayButton extends GuiRecipeButton {
         }
     }
 
+    private void sendRecipeChatLink() {
+        NEIClientUtils.sendChatItemLink(BookmarkPayload.of(getRecipe()).toNBT());
+    }
 }

@@ -225,7 +225,7 @@ public class FavoriteRecipes {
                         continue;
                     }
 
-                    if (FAVORITE_ITEM.equals(recipeId.getHandleName()) || RecipeHandlerRef.of(recipeId) != null) {
+                    if (FAVORITE_ITEM.equals(recipeId.getHandlerName()) || RecipeHandlerRef.of(recipeId) != null) {
                         manualFavorites.add(stack, recipeId);
                     } else {
                         hasErrors = true;

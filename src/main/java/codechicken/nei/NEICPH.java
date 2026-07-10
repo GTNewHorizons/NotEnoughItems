@@ -6,6 +6,7 @@ import static codechicken.nei.PacketIDs.S2C;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.World;
@@ -14,6 +15,7 @@ import codechicken.core.ClientUtils;
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.packet.PacketCustom;
 import codechicken.lib.packet.PacketCustom.IClientPacketHandler;
+import codechicken.nei.commands.CommandBookmarkAdd;
 import cpw.mods.fml.relauncher.Side;
 
 public class NEICPH implements IClientPacketHandler {
@@ -56,6 +58,18 @@ public class NEICPH implements IClientPacketHandler {
             case S2C.OPEN_POTION_GUI:
                 ClientUtils.openSMPGui(packet.readUByte(), new GuiPotionCreator(mc.thePlayer.inventory));
                 break;
+            case S2C.CACHE_BOOKMARK_DATA:
+                handleCacheBookmarkData(packet);
+                break;
+        }
+    }
+
+    private void handleCacheBookmarkData(PacketCustom packet) {
+        final String payloadId = packet.readString();
+        final NBTTagCompound payloadTag = packet.readNBTTagCompound();
+
+        if (payloadTag != null) {
+            CommandBookmarkAdd.cachePayload(payloadId, payloadTag);
         }
     }
 
@@ -186,9 +200,9 @@ public class NEICPH implements IClientPacketHandler {
         packet.sendToServer();
     }
 
-    public static void sendChatLink(ItemStack stackover) {
+    public static void sendChatLink(NBTTagCompound payloadTag) {
         PacketCustom packet = new PacketCustom(channel, C2S.SEND_CHAT_ITEM_LINK);
-        packet.writeItemStack(stackover);
+        packet.writeNBTTagCompound(payloadTag);
         packet.sendToServer();
     }
 
