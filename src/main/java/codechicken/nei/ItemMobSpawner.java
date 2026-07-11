@@ -66,28 +66,35 @@ public class ItemMobSpawner extends ItemBlock {
     @Override
     public boolean onItemUse(ItemStack itemstack, EntityPlayer entityplayer, World world, int x, int y, int z, int side,
             float hitX, float hitY, float hitZ) {
-        placedX = x;
-        placedY = y;
-        placedZ = z;
+        int targetX = x;
+        int targetY = y;
+        int targetZ = z;
 
         if (!world.getBlock(x, y, z).isReplaceable(world, x, y, z)) {
             ForgeDirection direction = ForgeDirection.getOrientation(side);
-            placedX += direction.offsetX;
-            placedY += direction.offsetY;
-            placedZ += direction.offsetZ;
+            targetX += direction.offsetX;
+            targetY += direction.offsetY;
+            targetZ += direction.offsetZ;
         }
+
+        placedX = targetX;
+        placedY = targetY;
+        placedZ = targetZ;
 
         String mobType = getMobTypeFromItemStack(itemstack);
 
         boolean placed = super.onItemUse(itemstack, entityplayer, world, x, y, z, side, hitX, hitY, hitZ);
 
-        if (placed && !world.isRemote) {
-            TileEntity tileEntity = world.getTileEntity(placedX, placedY, placedZ);
+        if (placed) {
+            TileEntity tileEntity = world.getTileEntity(targetX, targetY, targetZ);
 
             if (tileEntity instanceof TileEntityMobSpawner spawner && mobType != null) {
                 spawner.func_145881_a().setEntityName(mobType);
-                world.markBlockForUpdate(placedX, placedY, placedZ);
-                NEICPH.sendMobSpawnerID(placedX, placedY, placedZ, mobType);
+
+                if (!world.isRemote) {
+                    world.markBlockForUpdate(targetX, targetY, targetZ);
+                    NEICPH.sendMobSpawnerID(targetX, targetY, targetZ, mobType);
+                }
             }
 
             return true;
