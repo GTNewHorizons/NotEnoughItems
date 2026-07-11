@@ -224,6 +224,7 @@ public class API {
         KeyManager.registerKeyBinding(ident, defaultKey);
     }
 
+    @Deprecated
     public static void addHashBind(String ident, int defaultKey) {
         KeyManager.registerKeyBinding(ident, defaultKey);
     }

@@ -987,6 +987,7 @@ public class NEIClientConfig {
                         }
                     });
 
+                    KeyManager.requestOptionsReload();
                     RecipeCatalysts.loadCatalystInfo();
                     SubsetWidget.loadCustomSubsets();
                     SubsetWidget.loadHidden();
