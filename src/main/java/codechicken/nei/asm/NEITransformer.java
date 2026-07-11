@@ -117,6 +117,19 @@ public class NEITransformer implements IClassTransformer {
                             ACC_PUBLIC | ACC_STATIC,
                             new ObfMapping("net/minecraft/client/settings/KeyBinding", "func_74510_a", "(IZ)V"),
                             asmblocks.get("m_keyBindingSetStateAll")));
+
+            transformer.add(
+                    new MethodInjector(
+                            new ObfMapping("net/minecraft/client/settings/GameSettings", "func_74303_b", "()V"),
+                            asmblocks.get("saveOptionsHook"),
+                            true));
+
+            transformer.add(
+                    new MethodInjector(
+                            new ObfMapping("net/minecraft/client/settings/GameSettings", "func_74303_b", "()V"),
+                            asmblocks.get("n_saveOptionsSendSettings"),
+                            asmblocks.get("saveOptionsRestoreHook"),
+                            false));
         }
 
         String GuiContainer = "net/minecraft/client/gui/inventory/GuiContainer";

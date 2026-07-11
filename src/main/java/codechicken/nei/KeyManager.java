@@ -52,6 +52,15 @@ public class KeyManager {
         return keyBindings.get(keyAliases.getOrDefault(ident, ident));
     }
 
+    public static boolean isRegistered(String description) {
+        for (KeyBinding binding : keyBindings.values()) {
+            if (binding.getKeyDescription().equals(description)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static int getKeyCode(String ident) {
         final KeyBinding binding = getKeyBinding(ident);
         return binding == null ? Keyboard.KEY_NONE : binding.getKeyCode();
