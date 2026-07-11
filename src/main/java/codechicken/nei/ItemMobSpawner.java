@@ -23,6 +23,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -62,29 +63,35 @@ public class ItemMobSpawner extends ItemBlock {
         return Blocks.mob_spawner.getBlockTextureFromSide(0);
     }
 
-    @Override
     public boolean onItemUse(ItemStack itemstack, EntityPlayer entityplayer, World world, int x, int y, int z, int side,
             float hitX, float hitY, float hitZ) {
-
         placedX = x;
         placedY = y;
         placedZ = z;
 
+        if (!world.getBlock(x, y, z).isReplaceable(world, x, y, z)) {
+            ForgeDirection direction = ForgeDirection.getOrientation(side);
+            placedX += direction.offsetX;
+            placedY += direction.offsetY;
+            placedZ += direction.offsetZ;
+        }
+
+        String mobType = getMobTypeFromItemStack(itemstack);
+
         boolean placed = super.onItemUse(itemstack, entityplayer, world, x, y, z, side, hitX, hitY, hitZ);
 
         if (placed && !world.isRemote) {
-            TileEntity tileEntity = world.getTileEntity(x, y, z);
-            if (tileEntity instanceof TileEntityMobSpawner) {
-                TileEntityMobSpawner spawner = (TileEntityMobSpawner) tileEntity;
-                String mobType = getMobTypeFromItemStack(itemstack);
-                if (mobType != null) {
-                    spawner.func_145881_a().setEntityName(mobType);
-                    world.markBlockForUpdate(x, y, z);
-                    NEICPH.sendMobSpawnerID(x, y, z, mobType);
-                }
+            TileEntity tileEntity = world.getTileEntity(placedX, placedY, placedZ);
+
+            if (tileEntity instanceof TileEntityMobSpawner spawner && mobType != null) {
+                spawner.func_145881_a().setEntityName(mobType);
+                world.markBlockForUpdate(placedX, placedY, placedZ);
+                NEICPH.sendMobSpawnerID(placedX, placedY, placedZ, mobType);
             }
+
             return true;
         }
+
         return placed;
     }
 
