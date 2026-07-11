@@ -73,6 +73,16 @@ ILOAD 1
 INVOKESTATIC codechicken/nei/asm/KeyBindingFixHooks.setKeyBindStateAll (IZ)V
 RETURN
 
+list saveOptionsHook
+INVOKESTATIC codechicken/nei/asm/SaveOptionsFixHooks.onBeforeSaveOptions ()V
+
+list n_saveOptionsSendSettings
+ALOAD 0
+INVOKEVIRTUAL net/minecraft/client/settings/GameSettings.func_82879_c ()V
+
+list saveOptionsRestoreHook
+INVOKESTATIC codechicken/nei/asm/SaveOptionsFixHooks.onAfterSaveOptions ()V
+
 
 #begin GuiContainer patches
 
