@@ -469,13 +469,9 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
                     "gregtech.common.GT_Worldgenerator");
 
             try {
-                // GT5-Unofficial >= 5.09.54.02 support
-                final Method server = gtWorldGenerator.getMethod("getServerOregenPattern");
-                final Method client = gtWorldGenerator.getMethod("getClientOregenPattern");
-                return () -> {
-                    final Method accessor = Minecraft.getMinecraft().isSingleplayer() ? server : client;
-                    return ((Enum<?>) accessor.invoke(null)).name();
-                };
+                // GT5-Unofficial >= 5.09.54.29 support
+                final Method accessor = gtWorldGenerator.getMethod("getOregenPattern");
+                return () -> ((Enum<?>) accessor.invoke(null)).name();
             } catch (NoSuchMethodException legacy) {
                 // Older GT
                 final Field oregenPattern = gtWorldGenerator.getDeclaredField("oregenPattern");
