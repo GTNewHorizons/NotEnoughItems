@@ -23,6 +23,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -65,26 +66,40 @@ public class ItemMobSpawner extends ItemBlock {
     @Override
     public boolean onItemUse(ItemStack itemstack, EntityPlayer entityplayer, World world, int x, int y, int z, int side,
             float hitX, float hitY, float hitZ) {
+        int targetX = x;
+        int targetY = y;
+        int targetZ = z;
 
-        placedX = x;
-        placedY = y;
-        placedZ = z;
+        if (!world.getBlock(x, y, z).isReplaceable(world, x, y, z)) {
+            ForgeDirection direction = ForgeDirection.getOrientation(side);
+            targetX += direction.offsetX;
+            targetY += direction.offsetY;
+            targetZ += direction.offsetZ;
+        }
+
+        placedX = targetX;
+        placedY = targetY;
+        placedZ = targetZ;
+
+        String mobType = getMobTypeFromItemStack(itemstack);
 
         boolean placed = super.onItemUse(itemstack, entityplayer, world, x, y, z, side, hitX, hitY, hitZ);
 
-        if (placed && !world.isRemote) {
-            TileEntity tileEntity = world.getTileEntity(x, y, z);
-            if (tileEntity instanceof TileEntityMobSpawner) {
-                TileEntityMobSpawner spawner = (TileEntityMobSpawner) tileEntity;
-                String mobType = getMobTypeFromItemStack(itemstack);
-                if (mobType != null) {
-                    spawner.func_145881_a().setEntityName(mobType);
-                    world.markBlockForUpdate(x, y, z);
-                    NEICPH.sendMobSpawnerID(x, y, z, mobType);
+        if (placed) {
+            TileEntity tileEntity = world.getTileEntity(targetX, targetY, targetZ);
+
+            if (tileEntity instanceof TileEntityMobSpawner spawner && mobType != null) {
+                spawner.func_145881_a().setEntityName(mobType);
+
+                if (!world.isRemote) {
+                    world.markBlockForUpdate(targetX, targetY, targetZ);
+                    NEICPH.sendMobSpawnerID(targetX, targetY, targetZ, mobType);
                 }
             }
+
             return true;
         }
+
         return placed;
     }
 
