@@ -38,6 +38,7 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
@@ -379,8 +380,8 @@ public class NEIClientUtils extends NEIServerUtils {
         else sendCommand(getStringSetting("command.heal"), mc().thePlayer.getCommandSenderName());
     }
 
-    public static void sendChatItemLink(ItemStack stackover) {
-        if (hasSMPCounterPart()) NEICPH.sendChatLink(stackover);
+    public static void sendChatItemLink(NBTTagCompound payload) {
+        if (hasSMPCounterPart()) NEICPH.sendChatLink(payload);
     }
 
     public static void toggleMagnetMode() {

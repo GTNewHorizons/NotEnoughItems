@@ -89,7 +89,7 @@ public class Recipe {
             return new RecipeId(result, handlerName, ingredients);
         }
 
-        public String getHandleName() {
+        public String getHandlerName() {
             return this.handlerName;
         }
 

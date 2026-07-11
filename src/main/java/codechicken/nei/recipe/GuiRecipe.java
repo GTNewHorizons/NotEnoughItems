@@ -476,7 +476,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 final H localHandler = this.currenthandlers.get(j);
                 final HandlerInfo localHandlerInfo = GuiRecipeTab.getHandlerInfo(localHandler);
 
-                if (localHandlerInfo.getHandlerName().equals(this.recipeId.getHandleName())) {
+                if (localHandlerInfo.getHandlerName().equals(this.recipeId.getHandlerName())) {
                     recipetype = j;
 
                     if (!this.recipeId.getIngredients().isEmpty()) {

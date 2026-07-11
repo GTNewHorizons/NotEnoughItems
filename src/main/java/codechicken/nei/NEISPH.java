@@ -11,6 +11,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.play.INetHandlerPlayServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityMobSpawner;
@@ -95,7 +96,8 @@ public class NEISPH implements IServerPacketHandler {
     }
 
     private void handleSendChatItemLink(EntityPlayerMP sender, PacketCustom packet) {
-        NEIServerUtils.sendChatItemLink(sender, packet.readItemStack());
+        final NBTTagCompound payloadTag = packet.readNBTTagCompound();
+        NEIServerUtils.sendChatItemLink(sender, payloadTag);
     }
 
     private void handleDummySlotSet(EntityPlayerMP sender, PacketCustom packet) {

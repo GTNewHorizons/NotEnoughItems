@@ -37,5 +37,6 @@ public final class PacketIDs {
         public static final int OPEN_ENCHANTMENT_GUI = 21;
         public static final int SET_CREATIVE_PLUS_MODE = 23;
         public static final int OPEN_POTION_GUI = 24;
+        public static final int CACHE_BOOKMARK_DATA = 25;
     }
 }

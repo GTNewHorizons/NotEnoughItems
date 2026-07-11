@@ -10,12 +10,16 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.Recipe.RecipeIngredient;
 import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.util.NBTJson;
 
 public class BookmarkItem {
 
@@ -245,6 +249,45 @@ public class BookmarkItem {
         return builder(groupId, stack).build();
     }
 
+    public static BookmarkItem of(JsonObject jsonObject) {
+        final NBTTagCompound itemStackNBT = (NBTTagCompound) NBTJson.toNbt(jsonObject.get("item"));
+        final ItemStack itemStack = StackInfo.loadFromNBT(itemStackNBT);
+
+        if (itemStack != null) {
+            final int groupId = jsonObject.has("groupId") ? jsonObject.get("groupId").getAsInt()
+                    : BookmarkGrid.DEFAULT_GROUP_ID;
+            final BookmarkItem.Builder builder = BookmarkItem.builder(groupId, itemStack);
+
+            if (jsonObject.has("type")) {
+                builder.type(BookmarkItemType.fromInt(jsonObject.get("type").getAsInt()));
+            } else if (jsonObject.has("ingredient") && jsonObject.get("ingredient").getAsBoolean()) {
+                builder.type(BookmarkItemType.INGREDIENT);
+            } else {
+                builder.type(BookmarkItemType.RESULT);
+            }
+
+            if (jsonObject.has("multiplier")) {
+                builder.multiplier(jsonObject.get("multiplier").getAsInt());
+            }
+
+            if (jsonObject.has("factor")) {
+                builder.factor(jsonObject.get("factor").getAsInt());
+            }
+
+            if (jsonObject.has("chance")) {
+                builder.chance(jsonObject.get("chance").getAsInt());
+            }
+
+            if (jsonObject.get("recipeId") instanceof JsonObject recipeJson) {
+                builder.recipeId(RecipeId.of(recipeJson));
+            }
+
+            return builder.build();
+        }
+
+        return null;
+    }
+
     public BookmarkItem copyWithMultiplier(long multiplier) {
         return new BookmarkItem(
                 this.groupId,
@@ -362,6 +405,29 @@ public class BookmarkItem {
         }
 
         return false;
+    }
+
+    public JsonObject toJsonObject() {
+        final JsonObject jsonObject = new JsonObject();
+
+        jsonObject.add("item", NBTJson.toJsonObject(StackInfo.itemStackToNBT(getItemStack())));
+        jsonObject.add("multiplier", new JsonPrimitive(this.multiplier));
+        jsonObject.add("factor", new JsonPrimitive(this.factor));
+        jsonObject.add("type", new JsonPrimitive(this.type.toInt()));
+
+        if (this.groupId != BookmarkGrid.DEFAULT_GROUP_ID) {
+            jsonObject.add("groupId", new JsonPrimitive(this.groupId));
+        }
+
+        if (this.recipeId != null) {
+            jsonObject.add("recipeId", this.recipeId.toJsonObject());
+        }
+
+        if (this.chance != PositionedStack.CHANCE_FULL) {
+            jsonObject.add("chance", new JsonPrimitive(this.chance));
+        }
+
+        return jsonObject;
     }
 
 }

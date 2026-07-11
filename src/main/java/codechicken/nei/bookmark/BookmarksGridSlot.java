@@ -193,7 +193,7 @@ public class BookmarksGridSlot extends ItemsGridSlot {
 
     protected HandlerInfo getHandlerInfo() {
         if (this.bookmarkItem.recipeId != null && this.handlerInfo == null) {
-            this.handlerInfo = GuiRecipeTab.getHandlerInfo(this.bookmarkItem.recipeId.getHandleName(), null);
+            this.handlerInfo = GuiRecipeTab.getHandlerInfo(this.bookmarkItem.recipeId.getHandlerName(), null);
         }
         return this.handlerInfo;
     }

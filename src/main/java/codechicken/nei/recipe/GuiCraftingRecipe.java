@@ -82,8 +82,8 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         } else if ("recipeId".equals(outputId)) {
             ItemStack stack = (ItemStack) results[0];
             RecipeId recipeId = (RecipeId) results[1];
-            craftinghandlers = filterByHandlerName(craftinghandlers, recipeId.getHandleName());
-            serialCraftingHandlers = filterByHandlerName(serialCraftingHandlers, recipeId.getHandleName());
+            craftinghandlers = filterByHandlerName(craftinghandlers, recipeId.getHandlerName());
+            serialCraftingHandlers = filterByHandlerName(serialCraftingHandlers, recipeId.getHandlerName());
             recipeHandlerFunction = h -> h.getRecipeHandler("item", stack);
         } else {
             recipeHandlerFunction = h -> h.getRecipeHandler(outputId, results);

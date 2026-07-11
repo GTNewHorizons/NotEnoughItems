@@ -839,6 +839,7 @@ public class NEIClientConfig {
         API.addKeyBind("bookmark.favorite_item", Keyboard.KEY_F);
         API.addKeyBind("bookmark.remove_recipe", Keyboard.KEY_A);
         API.addKeyBind("bookmark.pull_items", Keyboard.KEY_V);
+        API.addKeyBind("bookmark.chat_link", Keyboard.KEY_L);
         API.addKeyBind("bookmark.hide", Keyboard.KEY_B);
 
         API.addKeyBind("itemzoom.toggle", Keyboard.KEY_Z);
@@ -860,7 +861,6 @@ public class NEIClientConfig {
         API.addKeyBind("copy.name", Keyboard.KEY_C);
         API.addKeyBind("copy.oredict", Keyboard.KEY_D);
         API.addKeyBind("copy.identifier", Keyboard.KEY_X);
-        API.addKeyBind("copy.chat_link_item", Keyboard.KEY_L);
     }
 
     public static OptionList getOptionList() {

@@ -1294,7 +1294,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     public BookmarkRecipeId getBookmarkRecipeId(int itemIndex) {
         BookmarkItem item = this.grid.getCalculatedItem(itemIndex);
         return item == null || item.type == BookmarkItemType.INGREDIENT || item.recipeId == null ? null
-                : new BookmarkRecipeId(item.recipeId.getHandleName(), item.recipeId.getIngredients());
+                : new BookmarkRecipeId(item.recipeId.getHandlerName(), item.recipeId.getIngredients());
     }
 
     @Deprecated
