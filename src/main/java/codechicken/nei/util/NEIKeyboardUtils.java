@@ -23,13 +23,13 @@ public class NEIKeyboardUtils {
         keyHashMap.put(Keyboard.KEY_RSHIFT, SHIFT_HASH);
 
         keyHashMap.put(Keyboard.KEY_LCONTROL, CTRL_HASH);
-        keyHashMap.put(Keyboard.KEY_LCONTROL, CTRL_HASH);
+        keyHashMap.put(Keyboard.KEY_RCONTROL, CTRL_HASH);
 
         keyHashMap.put(Keyboard.KEY_LMETA, CTRL_HASH);
         keyHashMap.put(Keyboard.KEY_RMETA, CTRL_HASH);
 
         keyHashMap.put(Keyboard.KEY_LMENU, ALT_HASH);
-        keyHashMap.put(Keyboard.KEY_LMENU, ALT_HASH);
+        keyHashMap.put(Keyboard.KEY_RMENU, ALT_HASH);
     }
 
     private NEIKeyboardUtils() {}
@@ -67,7 +67,7 @@ public class NEIKeyboardUtils {
         }
 
         if (keyID != Keyboard.CHAR_NONE || hashText.isEmpty()) {
-            keyText.add(Keyboard.getKeyName(keyID));
+            keyText.add(keyID < 0 ? NEIMouseUtils.getKeyName(keyID + 100) : Keyboard.getKeyName(keyID));
         }
 
         return keyText.toString();
