@@ -63,6 +63,7 @@ public class ItemMobSpawner extends ItemBlock {
         return Blocks.mob_spawner.getBlockTextureFromSide(0);
     }
 
+    @Override
     public boolean onItemUse(ItemStack itemstack, EntityPlayer entityplayer, World world, int x, int y, int z, int side,
             float hitX, float hitY, float hitZ) {
         placedX = x;
