@@ -656,8 +656,9 @@ public class NEIRecipeWidget extends Widget {
     }
 
     protected List<PositionedStack> getOutputs() {
-        final PositionedStack pStackResult = this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex);
-        return pStackResult != null ? Arrays.asList(pStackResult)
+        final List<PositionedStack> pStackResults = this.handlerRef.handler
+                .getResultStacks(this.handlerRef.recipeIndex);
+        return pStackResults != null ? pStackResults
                 : this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex);
     }
 

@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -129,8 +128,8 @@ public class FavoriteRecipes {
         }
 
         protected List<PositionedStack> getOutputs(IRecipeHandler handler, int recipeIndex) {
-            final PositionedStack pStackResult = handler.getResultStack(recipeIndex);
-            return pStackResult != null ? Collections.singletonList(pStackResult) : handler.getOtherStacks(recipeIndex);
+            final List<PositionedStack> pStackResults = handler.getResultStacks(recipeIndex);
+            return pStackResults != null ? pStackResults : handler.getOtherStacks(recipeIndex);
         }
 
     };

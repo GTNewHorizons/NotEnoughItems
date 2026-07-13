@@ -85,11 +85,20 @@ public interface IRecipeHandler {
     List<PositionedStack> getOtherStacks(int recipe);
 
     /**
+     * Maintain this for backwards compatibility
      *
      * @param recipe The recipe index to get the result for.
      * @return The recipe result {@link PositionedStack} relative to the top left corner of your recipe drawing space.
      */
     PositionedStack getResultStack(int recipe);
+
+    /**
+     *
+     * @param recipe The recipe index to get the result for.
+     * @return A list of the result {@link PositionedStack}s relative to the top left corner of your recipe drawing
+     *         space.
+     */
+    List<PositionedStack> getResultStacks(int recipe);
 
     /**
      * A tick function called for updating progress bars and cycling damage items.
