@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,7 @@ import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.recipe.chain.RecipeChainMath;
 import codechicken.nei.recipe.chain.RecipeChainTooltipLineHandler;
 import codechicken.nei.util.NEIMouseUtils;
+import codechicken.nei.util.ReadableNumberConverter;
 
 public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
@@ -739,9 +741,10 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                     .contains(mousex, mousey)) {
                         currenttip.add(NEIClientUtils.translate("bookmark.group"));
                         currenttip = recipeChainTooltip(BookmarkGrid.DEFAULT_GROUP_ID, currenttip);
-                    } else {
-                        this.recipeChainTooltipLineHandler = null;
-                    }
+                    } else
+                if (getSlotMouseOver(mousex, mousey) == null) {
+                    this.recipeChainTooltipLineHandler = null;
+                }
 
         return super.handleTooltip(mousex, mousey, currenttip);
     }
@@ -940,6 +943,61 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         final BookmarksGridSlot slot = this.grid.getSlotMouseOver(mousex, mousey);
 
         if (slot != null) {
+
+            if (NEIClientUtils.shiftKey() && slot.getGroup().crafting != null) {
+                final int groupId = slot.getGroupId();
+                final boolean crafting = this.grid.getGroup(groupId).crafting != null;
+
+                if (this.recipeChainTooltipLineHandler == null || this.recipeChainTooltipLineHandler.groupId != groupId
+                        || this.recipeChainTooltipLineHandler.crafting != crafting) {
+                    this.recipeChainTooltipLineHandler = new RecipeChainTooltipLineHandler(
+                            groupId,
+                            crafting,
+                            this.grid.createRecipeChainMath(groupId));
+                }
+
+                this.recipeChainTooltipLineHandler.maybeUpdate();
+
+                final List<BookmarkItem> entries = this.recipeChainTooltipLineHandler.getDemand(slot.getItemStack());
+
+                if (entries != null && !entries.isEmpty()) {
+                    final RecipeId hoveredRecipe = slot.getRecipeId();
+                    final List<BookmarkItem> sorted = new ArrayList<>(entries);
+
+                    if (hoveredRecipe != null) {
+                        sorted.sort(Comparator.comparing(ingr -> !hoveredRecipe.equals(ingr.recipeId)));
+                    }
+
+                    final List<String> lines = new ArrayList<>();
+                    lines.add(
+                            EnumChatFormatting.GRAY
+                                    + NEIClientUtils.translate("bookmark.crafting_chain.needed.tooltip"));
+
+                    for (BookmarkItem ingr : sorted) {
+                        final ItemStack result = ingr.recipeId.getResult();
+                        final String consumer = result != null ? result.getDisplayName()
+                                : ingr.recipeId.getHandlerName();
+
+                        final long stackSize = ingr.getStackSize(ingr.getAmount());
+                        final boolean isFluid = StackInfo.itemStackToNBT(ingr.itemStack).hasKey("gtFluidName");
+                        final String amount = ReadableNumberConverter.INSTANCE.toWideReadableForm(stackSize)
+                                + (isFluid ? "L" : "");
+
+                        final boolean isHoveredRecipe = hoveredRecipe != null && hoveredRecipe.equals(ingr.recipeId);
+                        final EnumChatFormatting color = isHoveredRecipe ? EnumChatFormatting.WHITE
+                                : EnumChatFormatting.DARK_GRAY;
+
+                        lines.add(
+                                "  " + color
+                                        + NEIClientUtils.translate(
+                                                "bookmark.crafting_chain.needed.tooltip.entry",
+                                                consumer,
+                                                amount));
+                    }
+
+                    currenttip.addAll(lines);
+                }
+            }
 
             if (slot.getBookmarkItem().chance != PositionedStack.CHANCE_FULL) {
                 final String chanceText = NEIClientUtils
