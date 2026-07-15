@@ -2,11 +2,16 @@ package codechicken.nei.recipe.chain;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
+import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.RecipeHandlerRef;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
@@ -26,6 +31,8 @@ import codechicken.nei.recipe.StackInfo;
 
 public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
 
+
+    private static final Logger LOGGER = LogManager.getLogger("NEI-CraftingChain");
     public final int groupId;
     public final boolean crafting;
     protected final RecipeChainMath math;
@@ -36,8 +43,7 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
     protected ItemsTooltipLineHandler inputs;
     protected ItemsTooltipLineHandler outputs;
     protected ItemsTooltipLineHandler remainder;
-    protected ItemsTooltipLineHandler craftingNeededSelf;
-    protected ItemsTooltipLineHandler craftingNeededMachine;
+    protected Map<String, ItemsTooltipLineHandler> craftingNeeded;
     protected boolean lastShiftKey = false;
     protected boolean lastControlKey = false;
 
@@ -56,8 +62,7 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
         final List<ItemStack> inputs = new ArrayList<>();
         final List<ItemStack> outputs = new ArrayList<>();
         final List<ItemStack> remainder = new ArrayList<>();
-        final List<ItemStack> craftingNeededSelf = new ArrayList<>();
-        final List<ItemStack> craftingNeededMachine = new ArrayList<>();
+        final Map<String, List<ItemStack>> craftingNeeded = new LinkedHashMap<>();
         final ItemStackAmount inventory = new ItemStackAmount();
         final GuiContainer currentGui = NEIClientUtils.getGuiContainer();
 
@@ -176,17 +181,20 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
         }
         if (this.lastShiftKey) {
             for (Map.Entry<BookmarkItem, Long> item : this.math.requiredAmount.entrySet()) {
-                if (item.getKey().type == BookmarkItem.BookmarkItemType.RESULT && item.getValue() != 0
-                        && item.getKey().recipeId.isShapedRecipe())
-                    craftingNeededSelf.add(item.getKey().getItemStack(item.getValue()));
-            }
-        }
+                if (item.getKey().type == BookmarkItem.BookmarkItemType.RESULT && item.getValue() != 0) {
+                    final RecipeId recipeId = item.getKey().recipeId;
+                    final String label;
 
-        if (this.lastShiftKey) {
-            for (Map.Entry<BookmarkItem, Long> item : this.math.requiredAmount.entrySet()) {
-                if (item.getKey().type == BookmarkItem.BookmarkItemType.RESULT && item.getValue() != 0
-                        && !item.getKey().recipeId.isShapedRecipe())
-                    craftingNeededMachine.add(item.getKey().getItemStack(item.getValue()));
+                    if (recipeId.isShapedRecipe() || recipeId.isShapelessRecipe()) {
+                        label = NEIClientUtils.translate("bookmark.crafting_chain.needed");
+                    } else {
+                        final RecipeHandlerRef handlerRef = RecipeHandlerRef.of(recipeId);
+                        label = handlerRef != null ? handlerRef.handler.getRecipeName() : recipeId.getHandlerName();
+                    }
+
+                    craftingNeeded.computeIfAbsent(label, k -> new ArrayList<>())
+                            .add(item.getKey().getItemStack(item.getValue()));
+                }
             }
         }
 
@@ -199,6 +207,17 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
         remainder.sort(
                 Comparator.comparing((ItemStack stack) -> StackInfo.getFluid(stack) != null)
                         .thenComparingInt(stack -> -1 * stack.stackSize).thenComparing(ItemSorter.instance));
+        this.craftingNeeded = new LinkedHashMap<>();
+        final String craftingLabel = NEIClientUtils.translate("bookmark.crafting_chain.needed");
+        if (craftingNeeded.containsKey(craftingLabel)) {
+            this.craftingNeeded.put(craftingLabel, new ItemsTooltipLineHandler(
+                    craftingLabel, craftingNeeded.remove(craftingLabel), true, Integer.MAX_VALUE));
+        }
+
+        for (Map.Entry<String, List<ItemStack>> entry : craftingNeeded.entrySet()) {
+            this.craftingNeeded.put(entry.getKey(), new ItemsTooltipLineHandler(
+                    entry.getKey(), entry.getValue(), true, Integer.MAX_VALUE));
+        }
 
         this.inputs = new ItemsTooltipLineHandler(
                 this.lastShiftKey ? NEIClientUtils.translate("bookmark.crafting_chain.missing")
@@ -225,23 +244,10 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
                 true,
                 Integer.MAX_VALUE);
 
-        this.craftingNeededSelf = new ItemsTooltipLineHandler(
-                NEIClientUtils.translate("bookmark.crafting_chain.needed"),
-                craftingNeededSelf,
-                true,
-                Integer.MAX_VALUE);
-
-        this.craftingNeededMachine = new ItemsTooltipLineHandler(
-                "Required Machine Crafts",
-                craftingNeededMachine,
-                true,
-                Integer.MAX_VALUE);
-
         if (this.lastShiftKey) {
             this.inputs.setLabelColor(EnumChatFormatting.RED);
             this.available.setLabelColor(EnumChatFormatting.GREEN);
-            this.craftingNeededSelf.setLabelColor(EnumChatFormatting.BLUE);
-            this.craftingNeededMachine.setLabelColor(EnumChatFormatting.BLUE);
+            this.craftingNeeded.values().forEach(h -> h.setLabelColor(EnumChatFormatting.BLUE));
         }
 
         this.size.height = this.size.width = 0;
@@ -253,23 +259,19 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
             if (!this.math.outputRecipes.isEmpty()) {
                 this.size.height = 2 + GuiDraw.fontRenderer.FONT_HEIGHT;
             }
-            this.size.width = Math.max(
-                    this.inputs.getSize().width,
-                    Math.max(
-                            this.outputs.getSize().width,
-                            Math.max(
-                                    this.remainder.getSize().width,
-                                    Math.max(
-                                            this.available.getSize().width,
-                                            Math.max(
-                                                    this.craftingNeededSelf.getSize().width,
-                                                    this.craftingNeededMachine.getSize().width)))));
 
-            this.size.height += this.inputs.getSize().height + this.outputs.getSize().height
-                    + this.remainder.getSize().height
-                    + this.available.getSize().height
-                    + this.craftingNeededSelf.getSize().height
-                    + this.craftingNeededMachine.getSize().height;
+            this.size.width = Stream.concat(
+                            Arrays.asList(this.inputs, this.outputs, this.remainder, this.available).stream(),
+                            this.craftingNeeded.values().stream())
+                    .mapToInt(c -> c.getSize().width)
+                    .max()
+                    .getAsInt();
+
+            this.size.height += Stream.concat(
+                            Arrays.asList(this.inputs, this.outputs, this.remainder, this.available).stream(),
+                            this.craftingNeeded.values().stream())
+                    .mapToInt(c -> c.getSize().height)
+                    .sum();
         }
 
     }
@@ -311,13 +313,11 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
                 y += this.available.getSize().height;
             }
 
-            if (!this.craftingNeededSelf.isEmpty()) {
-                this.craftingNeededSelf.draw(x, y);
-                y += this.craftingNeededSelf.getSize().height;
-            }
-            if (!this.craftingNeededMachine.isEmpty()) {
-                this.craftingNeededMachine.draw(x, y);
-                y += this.craftingNeededMachine.getSize().height;
+            for (ItemsTooltipLineHandler handler : this.craftingNeeded.values()) {
+                if (!handler.isEmpty()) {
+                    handler.draw(x, y);
+                    y += handler.getSize().height;
+                }
             }
 
             if (!this.outputs.isEmpty()) {
@@ -336,15 +336,11 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
                 this.inputs.draw(x, y);
                 y += this.inputs.getSize().height;
             }
-
-            if (!this.craftingNeededSelf.isEmpty()) {
-                this.craftingNeededSelf.draw(x, y);
-                y += this.craftingNeededSelf.getSize().height;
-            }
-
-            if (!this.craftingNeededMachine.isEmpty()) {
-                this.craftingNeededMachine.draw(x, y);
-                y += this.craftingNeededMachine.getSize().height;
+            for (ItemsTooltipLineHandler handler : this.craftingNeeded.values()) {
+                if (!handler.isEmpty()) {
+                    handler.draw(x, y);
+                    y += handler.getSize().height;
+                }
             }
 
             if (!this.available.isEmpty()) {
