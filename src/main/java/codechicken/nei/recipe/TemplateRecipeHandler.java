@@ -54,6 +54,12 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
     protected static ReentrantLock lock = new ReentrantLock();
 
+    /**
+     * To be used when creating a recipe handler to maintain backwards compatibility for NEI addons, if true the handler
+     * must not use `getResultStacks`, falling back to using the `other slots` as extra outputs
+     */
+    private final boolean canUseNewSlotLayout;
+
     public static void findFuelsOnce() {
         // Ensure we only find fuels once, even if threaded
         lock.lock();
@@ -398,7 +404,9 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
      */
     public LinkedList<RecipeTransferRect> transferRects = new LinkedList<>();
 
-    public TemplateRecipeHandler() {
+    public TemplateRecipeHandler(boolean canUseNewSlotLayout) {
+        this.canUseNewSlotLayout = canUseNewSlotLayout;
+
         try {
             loadTransferRects();
             RecipeTransferRectHandler.registerRectsToGuis(getRecipeTransferRectGuis(), transferRects);
@@ -406,6 +414,10 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
             NEIClientConfig.logger
                     .error("NEI: Failed to load transfer rects for {}: {}", getClass().getName(), e.toString());
         }
+    }
+
+    public TemplateRecipeHandler() {
+        this(false);
     }
 
     /**
@@ -720,6 +732,14 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     @Override
     public boolean mouseScrolled(GuiRecipe<?> gui, int scroll, int recipe) {
         return false;
+    }
+
+    /**
+     *
+     * @return true if the recipe supports returning multiple results via `getResultStacks`
+     */
+    public boolean canUseNewSlotLayout() {
+        return canUseNewSlotLayout;
     }
 
     private boolean transferRect(GuiRecipe<?> gui, int recipe, boolean usage) {
