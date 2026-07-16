@@ -193,11 +193,6 @@ public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
     }
 
     @Override
-    public List<PositionedStack> getResultStacks(int recipe) {
-        return new ArrayList<>();
-    }
-
-    @Override
     public void onUpdate() {}
 
     @Override

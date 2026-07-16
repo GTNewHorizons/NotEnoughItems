@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -650,7 +651,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         try {
             return arecipes.get(recipe).getResults();
         } catch (ArrayIndexOutOfBoundsException ignored) {
-            return null;
+            return Collections.emptyList();
         }
     }
 

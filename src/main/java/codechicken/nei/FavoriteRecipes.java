@@ -129,7 +129,7 @@ public class FavoriteRecipes {
 
         protected List<PositionedStack> getOutputs(IRecipeHandler handler, int recipeIndex) {
             final List<PositionedStack> pStackResults = handler.getResultStacks(recipeIndex);
-            return pStackResults != null ? pStackResults : handler.getOtherStacks(recipeIndex);
+            return pStackResults.isEmpty() ? pStackResults : handler.getOtherStacks(recipeIndex);
         }
 
     };

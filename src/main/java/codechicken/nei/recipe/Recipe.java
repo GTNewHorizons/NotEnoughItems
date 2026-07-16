@@ -54,19 +54,19 @@ public class Recipe {
         public static RecipeId of(IRecipeHandler handler, int recipeIndex) {
             final List<PositionedStack> ingredients = handler.getIngredientStacks(recipeIndex);
             final String handlerName = GuiRecipeTab.getHandlerInfo(handler).getHandlerName();
-            PositionedStack pStackResult = handler.getResultStack(recipeIndex);
+            List<PositionedStack> pStackResults = handler.getResultStacks(recipeIndex);
 
-            if (pStackResult == null) {
+            if (pStackResults.isEmpty()) {
                 for (PositionedStack otherStack : handler.getOtherStacks(recipeIndex)) {
                     if (!FluidContainerRegistry.isContainer(otherStack.items[0])
                             || StackInfo.getFluid(otherStack.items[0]) != null) {
-                        pStackResult = otherStack;
+                        pStackResults.add(otherStack);
                         break;
                     }
                 }
             }
 
-            return new RecipeId(extractItem(pStackResult), handlerName, extractIngredients(ingredients));
+            return new RecipeId(extractItem(pStackResults), handlerName, extractIngredients(ingredients));
         }
 
         public static RecipeId of(JsonObject json) {
@@ -389,8 +389,12 @@ public class Recipe {
             ingredients.add(RecipeIngredient.of(positionedStack));
         }
 
-        if (handler.getResultStack(recipeIndex) != null) {
-            results.add(RecipeIngredient.of(handler.getResultStack(recipeIndex)));
+        final List<PositionedStack> resultStacks = handler.getResultStacks(recipeIndex);
+
+        if (!resultStacks.isEmpty()) {
+            for (PositionedStack positionedStack : resultStacks) {
+                results.add(RecipeIngredient.of(positionedStack));
+            }
         } else {
             for (PositionedStack positionedStack : handler.getOtherStacks(recipeIndex)) {
                 results.add(RecipeIngredient.of(positionedStack));
