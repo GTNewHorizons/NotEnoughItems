@@ -2,10 +2,13 @@ package codechicken.nei.recipe.chain;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
@@ -22,21 +25,23 @@ import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.recipe.AutoCraftingManager;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.recipe.RecipeHandlerRef;
 import codechicken.nei.recipe.StackInfo;
 
 public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
 
     public final int groupId;
     public final boolean crafting;
-    protected final RecipeChainMath math;
+    public final RecipeChainMath math;
     protected final List<BookmarkItem> initialItems;
     protected final Map<RecipeId, Long> outputRecipes;
+    protected final Map<String, List<BookmarkItem>> demand;
 
     protected ItemsTooltipLineHandler available;
     protected ItemsTooltipLineHandler inputs;
     protected ItemsTooltipLineHandler outputs;
     protected ItemsTooltipLineHandler remainder;
-    protected ItemsTooltipLineHandler craftingNeeded;
+    protected Map<String, ItemsTooltipLineHandler> craftingNeeded;
     protected boolean lastShiftKey = false;
     protected boolean lastControlKey = false;
 
@@ -48,6 +53,7 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
         this.math = math;
         this.initialItems = new ArrayList<>(this.math.initialItems);
         this.outputRecipes = new HashMap<>(this.math.outputRecipes);
+        this.demand = new HashMap<>();
     }
 
     private void onUpdate() {
@@ -55,7 +61,7 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
         final List<ItemStack> inputs = new ArrayList<>();
         final List<ItemStack> outputs = new ArrayList<>();
         final List<ItemStack> remainder = new ArrayList<>();
-        final List<ItemStack> craftingNeeded = new ArrayList<>();
+        final Map<String, List<ItemStack>> craftingNeeded = new LinkedHashMap<>();
         final ItemStackAmount inventory = new ItemStackAmount();
         final GuiContainer currentGui = NEIClientUtils.getGuiContainer();
 
@@ -109,6 +115,14 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
             }
 
             this.math.refresh();
+
+            this.demand.clear();
+            for (BookmarkItem ingr : this.math.recipeIngredients) {
+                if (ingr.recipeId != null && ingr.getAmount() > 0) {
+                    this.demand.computeIfAbsent(StackInfo.getItemStackGUID(ingr.itemStack), k -> new ArrayList<>())
+                            .add(ingr);
+                }
+            }
 
             for (BookmarkItem item : math.initialItems) {
                 final long amount = math.requiredAmount.getOrDefault(item, 0L);
@@ -174,8 +188,20 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
         }
         if (this.lastShiftKey) {
             for (Map.Entry<BookmarkItem, Long> item : this.math.requiredAmount.entrySet()) {
-                if (item.getKey().type == BookmarkItem.BookmarkItemType.RESULT && item.getValue() != 0)
-                    craftingNeeded.add(item.getKey().getItemStack(item.getValue()));
+                if (item.getKey().type == BookmarkItem.BookmarkItemType.RESULT && item.getValue() != 0) {
+                    final RecipeId recipeId = item.getKey().recipeId;
+                    final String label;
+
+                    if (recipeId.isShapedRecipe() || recipeId.isShapelessRecipe()) {
+                        label = NEIClientUtils.translate("bookmark.crafting_chain.needed");
+                    } else {
+                        final RecipeHandlerRef handlerRef = RecipeHandlerRef.of(recipeId);
+                        label = handlerRef != null ? handlerRef.handler.getRecipeName() : recipeId.getHandlerName();
+                    }
+
+                    craftingNeeded.computeIfAbsent(label, k -> new ArrayList<>())
+                            .add(item.getKey().getItemStack(item.getValue()));
+                }
             }
         }
 
@@ -188,6 +214,23 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
         remainder.sort(
                 Comparator.comparing((ItemStack stack) -> StackInfo.getFluid(stack) != null)
                         .thenComparingInt(stack -> -1 * stack.stackSize).thenComparing(ItemSorter.instance));
+        this.craftingNeeded = new LinkedHashMap<>();
+        final String craftingLabel = NEIClientUtils.translate("bookmark.crafting_chain.needed");
+        if (craftingNeeded.containsKey(craftingLabel)) {
+            this.craftingNeeded.put(
+                    craftingLabel,
+                    new ItemsTooltipLineHandler(
+                            craftingLabel,
+                            craftingNeeded.remove(craftingLabel),
+                            true,
+                            Integer.MAX_VALUE));
+        }
+
+        for (Map.Entry<String, List<ItemStack>> entry : craftingNeeded.entrySet()) {
+            this.craftingNeeded.put(
+                    entry.getKey(),
+                    new ItemsTooltipLineHandler(entry.getKey(), entry.getValue(), true, Integer.MAX_VALUE));
+        }
 
         this.inputs = new ItemsTooltipLineHandler(
                 this.lastShiftKey ? NEIClientUtils.translate("bookmark.crafting_chain.missing")
@@ -214,16 +257,10 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
                 true,
                 Integer.MAX_VALUE);
 
-        this.craftingNeeded = new ItemsTooltipLineHandler(
-                NEIClientUtils.translate("bookmark.crafting_chain.needed"),
-                craftingNeeded,
-                true,
-                Integer.MAX_VALUE);
-
         if (this.lastShiftKey) {
             this.inputs.setLabelColor(EnumChatFormatting.RED);
             this.available.setLabelColor(EnumChatFormatting.GREEN);
-            this.craftingNeeded.setLabelColor(EnumChatFormatting.BLUE);
+            this.craftingNeeded.values().forEach(h -> h.setLabelColor(EnumChatFormatting.BLUE));
         }
 
         this.size.height = this.size.width = 0;
@@ -235,24 +272,25 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
             if (!this.math.outputRecipes.isEmpty()) {
                 this.size.height = 2 + GuiDraw.fontRenderer.FONT_HEIGHT;
             }
-            this.size.width = Math.max(
-                    this.inputs.getSize().width,
-                    Math.max(
-                            this.outputs.getSize().width,
-                            Math.max(
-                                    this.remainder.getSize().width,
-                                    Math.max(this.available.getSize().width, this.craftingNeeded.getSize().width))));
 
-            this.size.height += this.inputs.getSize().height + this.outputs.getSize().height
-                    + this.remainder.getSize().height
-                    + this.available.getSize().height
-                    + this.craftingNeeded.getSize().height;
+            this.size.width = Stream.concat(
+                    Arrays.asList(this.inputs, this.outputs, this.remainder, this.available).stream(),
+                    this.craftingNeeded.values().stream()).mapToInt(c -> c.getSize().width).max().getAsInt();
+
+            this.size.height += Stream.concat(
+                    Arrays.asList(this.inputs, this.outputs, this.remainder, this.available).stream(),
+                    this.craftingNeeded.values().stream()).mapToInt(c -> c.getSize().height).sum();
         }
 
     }
 
     @Override
     public Dimension getSize() {
+        maybeUpdate();
+        return this.size;
+    }
+
+    public void maybeUpdate() {
         boolean update = this.outputs == null;
         update = this.lastShiftKey != (this.lastShiftKey = NEIClientUtils.shiftKey()) || update;
         update = this.lastControlKey != (this.lastControlKey = NEIClientUtils.controlKey()) || update;
@@ -260,7 +298,10 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
         if (update) {
             onUpdate();
         }
-        return this.size;
+    }
+
+    public List<BookmarkItem> getDemand(ItemStack stack) {
+        return this.demand.get(StackInfo.getItemStackGUID(stack));
     }
 
     @Override
@@ -288,9 +329,11 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
                 y += this.available.getSize().height;
             }
 
-            if (!this.craftingNeeded.isEmpty()) {
-                this.craftingNeeded.draw(x, y);
-                y += this.craftingNeeded.getSize().height;
+            for (ItemsTooltipLineHandler handler : this.craftingNeeded.values()) {
+                if (!handler.isEmpty()) {
+                    handler.draw(x, y);
+                    y += handler.getSize().height;
+                }
             }
 
             if (!this.outputs.isEmpty()) {
@@ -309,10 +352,11 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
                 this.inputs.draw(x, y);
                 y += this.inputs.getSize().height;
             }
-
-            if (!this.craftingNeeded.isEmpty()) {
-                this.craftingNeeded.draw(x, y);
-                y += this.craftingNeeded.getSize().height;
+            for (ItemsTooltipLineHandler handler : this.craftingNeeded.values()) {
+                if (!handler.isEmpty()) {
+                    handler.draw(x, y);
+                    y += handler.getSize().height;
+                }
             }
 
             if (!this.available.isEmpty()) {
