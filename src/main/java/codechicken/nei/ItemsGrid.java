@@ -458,11 +458,31 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
     }
 
     public T getSlotBySlotIndex(int slotIndex) {
-        return getMask().stream().filter(item -> item.slotIndex == slotIndex).findAny().orElse(null);
+        final List<T> mask = getMask();
+
+        for (int i = 0; i < mask.size(); i++) {
+            final T item = mask.get(i);
+
+            if (item.slotIndex == slotIndex) {
+                return item;
+            }
+        }
+
+        return null;
     }
 
     public T getSlotByItemIndex(int itemIndex) {
-        return getMask().stream().filter(item -> item.itemIndex == itemIndex).findAny().orElse(null);
+        final List<T> mask = getMask();
+
+        for (int i = 0; i < mask.size(); i++) {
+            final T item = mask.get(i);
+
+            if (item.itemIndex == itemIndex) {
+                return item;
+            }
+        }
+
+        return null;
     }
 
     public Rectangle4i getItemRect(int itemIndex) {
