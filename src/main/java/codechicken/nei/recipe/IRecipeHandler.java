@@ -1,5 +1,6 @@
 package codechicken.nei.recipe;
 
+import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -82,14 +83,37 @@ public interface IRecipeHandler {
      * @return A list of the other {@link PositionedStack}s in this recipe relative to the top left corner of your
      *         recipe drawing space. For example fuel in furnaces.
      */
+    default List<PositionedStack> getCatalystStacks(int recipe) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Legacy API, define either {@link #getCatalystStacks(int)} or {@link #getResultStacks(int)}
+     *
+     * @param recipe The recipe index to get items for.
+     * @return A list of the other {@link PositionedStack}s in this recipe relative to the top left corner of your
+     *         recipe drawing space. For example fuel in furnaces.
+     */
     List<PositionedStack> getOtherStacks(int recipe);
 
     /**
+     * Legacy API, use {@link #getResultStacks(int) getResultStacks.get(0)} if you want the primary result
      *
      * @param recipe The recipe index to get the result for.
      * @return The recipe result {@link PositionedStack} relative to the top left corner of your recipe drawing space.
      */
     PositionedStack getResultStack(int recipe);
+
+    /**
+     *
+     * @param recipe The recipe index to get the result for.
+     * @return A list of the result {@link PositionedStack}s relative to the top left corner of your recipe drawing
+     *         space.
+     */
+    default List<PositionedStack> getResultStacks(int recipe) {
+        final PositionedStack result = getResultStack(recipe);
+        return result != null ? Collections.singletonList(result) : Collections.emptyList();
+    }
 
     /**
      * A tick function called for updating progress bars and cycling damage items.

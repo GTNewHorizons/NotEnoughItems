@@ -656,13 +656,19 @@ public class NEIRecipeWidget extends Widget {
     }
 
     protected List<PositionedStack> getOutputs() {
-        final PositionedStack pStackResult = this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex);
-        return pStackResult != null ? Arrays.asList(pStackResult)
+        final List<PositionedStack> pStackResults = this.handlerRef.handler
+                .getResultStacks(this.handlerRef.recipeIndex);
+        return !pStackResults.isEmpty() ? pStackResults
                 : this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex);
     }
 
     protected List<PositionedStack> getCatalysts() {
-        if (this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex) == null) {
+        List<PositionedStack> catalysts = this.handlerRef.handler.getCatalystStacks(this.handlerRef.recipeIndex);
+        if (!catalysts.isEmpty()) {
+            return catalysts;
+        }
+
+        if (this.handlerRef.handler.getResultStacks(this.handlerRef.recipeIndex).isEmpty()) {
             return Collections.emptyList();
         }
         return this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex);
