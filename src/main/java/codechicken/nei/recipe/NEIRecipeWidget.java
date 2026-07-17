@@ -202,6 +202,15 @@ public class NEIRecipeWidget extends Widget {
             drawItem(pStack, mouseX, mouseY, yShift, true);
         }
 
+        for (PositionedStack pStack : getExtraInputs()) {
+
+            if (!this.permutations.containsKey(pStack)) {
+                updatePermutationsFor(pStack);
+            }
+
+            drawItem(pStack, mouseX, mouseY, yShift, true);
+        }
+
         for (PositionedStack pStack : getCatalysts()) {
 
             if (!this.permutations.containsKey(pStack)) {
@@ -491,7 +500,7 @@ public class NEIRecipeWidget extends Widget {
             final int stackIndex = indexOf(items, overStack.item);
             final ItemStack stack = items.get((items.size() - scroll + stackIndex) % items.size());
 
-            Stream.concat(getInputs().stream(), getCatalysts().stream()).filter(pStack -> pStack.containsWithNBT(stack))
+            Stream.concat(getInputs().stream(), Stream.concat(getExtraInputs().stream(), getCatalysts().stream())).filter(pStack -> pStack.containsWithNBT(stack))
                     .forEach(pStack -> pStack.setPermutationToRender(stack));
 
             if (this.acceptsFollowingTooltipLineHandler != null) {
@@ -554,6 +563,12 @@ public class NEIRecipeWidget extends Widget {
             }
         }
 
+        for (PositionedStack pStack : getExtraInputs()) {
+            if (pStack.contains(mx - this.x, my - this.y - yShift)) {
+                return pStack;
+            }
+        }
+
         for (PositionedStack pStack : getCatalysts()) {
             if (pStack.contains(mx - this.x, my - this.y - yShift)) {
                 return pStack;
@@ -610,6 +625,10 @@ public class NEIRecipeWidget extends Widget {
             updatePermutationsFor(pStack);
         }
 
+        for (PositionedStack pStack : getExtraInputs()) {
+            updatePermutationsFor(pStack);
+        }
+
         for (PositionedStack pStack : getCatalysts()) {
             updatePermutationsFor(pStack);
         }
@@ -655,10 +674,14 @@ public class NEIRecipeWidget extends Widget {
         return this.handlerRef.handler.getIngredientStacks(this.handlerRef.recipeIndex);
     }
 
+    protected List<PositionedStack> getExtraInputs() {
+        return this.handlerRef.handler.getExtraInputStacks(this.handlerRef.recipeIndex);
+    }
+
     protected List<PositionedStack> getOutputs() {
         final List<PositionedStack> pStackResults = this.handlerRef.handler
                 .getResultStacks(this.handlerRef.recipeIndex);
-        return pStackResults.isEmpty() ? pStackResults
+        return !pStackResults.isEmpty() ? pStackResults
                 : this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex);
     }
 

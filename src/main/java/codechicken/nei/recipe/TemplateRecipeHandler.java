@@ -54,12 +54,6 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
     protected static ReentrantLock lock = new ReentrantLock();
 
-    /**
-     * To be used when creating a recipe handler to maintain backwards compatibility for NEI addons, if true the handler
-     * must not use `getResultStacks`, falling back to using the `other slots` as extra outputs
-     */
-    private final boolean canUseNewSlotLayout;
-
     public static void findFuelsOnce() {
         // Ensure we only find fuels once, even if threaded
         lock.lock();
@@ -152,6 +146,15 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
                 NEIClientConfig.logger.error("Error in getOtherStacks: " + e);
             }
             return stacks;
+        }
+
+        /**
+         * The ingredients required to produce the result Use this if you have more than one ingredient
+         *
+         * @return A list of positioned ingredient items.
+         */
+        public List<PositionedStack> getExtraInputs() {
+            return Collections.emptyList();
         }
 
         /**
@@ -404,9 +407,7 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
      */
     public LinkedList<RecipeTransferRect> transferRects = new LinkedList<>();
 
-    public TemplateRecipeHandler(boolean canUseNewSlotLayout) {
-        this.canUseNewSlotLayout = canUseNewSlotLayout;
-
+    public TemplateRecipeHandler() {
         try {
             loadTransferRects();
             RecipeTransferRectHandler.registerRectsToGuis(getRecipeTransferRectGuis(), transferRects);
@@ -414,10 +415,6 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
             NEIClientConfig.logger
                     .error("NEI: Failed to load transfer rects for {}: {}", getClass().getName(), e.toString());
         }
-    }
-
-    public TemplateRecipeHandler() {
-        this(false);
     }
 
     /**
@@ -667,6 +664,14 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
     }
 
+    public List<PositionedStack> getExtraInputStacks(int recipe) {
+        try {
+            return arecipes.get(recipe).getExtraInputs();
+        } catch (ArrayIndexOutOfBoundsException ignored) {
+            return Collections.emptyList();
+        }
+    }
+
     public List<PositionedStack> getOtherStacks(int recipe) {
         return arecipes.get(recipe).getOtherStacks();
     }
@@ -732,14 +737,6 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     @Override
     public boolean mouseScrolled(GuiRecipe<?> gui, int scroll, int recipe) {
         return false;
-    }
-
-    /**
-     *
-     * @return true if the recipe supports returning multiple results via `getResultStacks`
-     */
-    public boolean canUseNewSlotLayout() {
-        return canUseNewSlotLayout;
     }
 
     private boolean transferRect(GuiRecipe<?> gui, int recipe, boolean usage) {

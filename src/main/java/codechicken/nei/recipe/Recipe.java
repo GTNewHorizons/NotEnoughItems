@@ -54,6 +54,10 @@ public class Recipe {
         public static RecipeId of(IRecipeHandler handler, int recipeIndex) {
             final List<PositionedStack> ingredients = handler.getIngredientStacks(recipeIndex);
             final String handlerName = GuiRecipeTab.getHandlerInfo(handler).getHandlerName();
+            // Use getResultStacks even though getResult could work because if a handler, like GT for example, doesn't
+            // return anything from getResult, but will define all the outputs in getResultStacks we can still pick up
+            // the results here. If a handler still doesn't define getResultStacks, then it will naturally fall back to
+            // getResult anyway
             List<PositionedStack> pStackResults = handler.getResultStacks(recipeIndex);
 
             if (pStackResults.isEmpty()) {
@@ -66,7 +70,7 @@ public class Recipe {
                 }
             }
 
-            return new RecipeId(extractItem(pStackResults), handlerName, extractIngredients(ingredients));
+            return new RecipeId(extractItem(pStackResults.get(0)), handlerName, extractIngredients(ingredients));
         }
 
         public static RecipeId of(JsonObject json) {

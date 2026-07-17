@@ -83,10 +83,21 @@ public interface IRecipeHandler {
      * @return A list of the other {@link PositionedStack}s in this recipe relative to the top left corner of your
      *         recipe drawing space. For example fuel in furnaces.
      */
+    default List<PositionedStack> getExtraInputStacks(int recipe) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Legacy API, define either {@link #getExtraInputStacks(int)} or {@link #getResultStacks(int)}
+     *
+     * @param recipe The recipe index to get items for.
+     * @return A list of the other {@link PositionedStack}s in this recipe relative to the top left corner of your
+     *         recipe drawing space. For example fuel in furnaces.
+     */
     List<PositionedStack> getOtherStacks(int recipe);
 
     /**
-     * Maintain this for backwards compatibility
+     * Legacy API, use {@link #getResultStacks(int) getResultStacks.get(0)} if you want the primary result
      *
      * @param recipe The recipe index to get the result for.
      * @return The recipe result {@link PositionedStack} relative to the top left corner of your recipe drawing space.
