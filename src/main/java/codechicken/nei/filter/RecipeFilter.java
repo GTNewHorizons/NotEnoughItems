@@ -56,7 +56,7 @@ public class RecipeFilter implements IRecipeFilter {
                 return this.anyMatch;
             }
 
-            if (matchPositionedStack(handler.getExtraInputStacks(recipeIndex), this.anyMatch)) {
+            if (matchPositionedStack(handler.getCatalystStacks(recipeIndex), this.anyMatch)) {
                 return this.anyMatch;
             }
 

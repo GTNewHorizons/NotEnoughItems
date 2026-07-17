@@ -101,7 +101,7 @@ public class PresetsList {
                 return true;
             }
 
-            final List<PositionedStack> extraInputs = handler.getExtraInputStacks(recipeIndex);
+            final List<PositionedStack> extraInputs = handler.getCatalystStacks(recipeIndex);
 
             if (!extraInputs.isEmpty() && matchPositionedStack(extraInputs, true)) {
                 return true;

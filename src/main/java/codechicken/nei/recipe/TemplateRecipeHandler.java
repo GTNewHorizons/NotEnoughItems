@@ -149,16 +149,32 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
 
         /**
-         * The ingredients required to produce the result Use this if you have more than one ingredient
+         * Return extra items that are not directly involved in the ingredient->result relationship. Eg fuels.
          *
          * @return A list of positioned ingredient items.
          */
-        public List<PositionedStack> getExtraInputs() {
-            return Collections.emptyList();
+        public List<PositionedStack> getCatalysts() {
+            ArrayList<PositionedStack> stacks = new ArrayList<>();
+            try {
+                PositionedStack stack = getCatalyst();
+                if (stack != null) stacks.add(stack);
+            } catch (ArithmeticException e) {
+                NEIClientConfig.logger.error("Error in getCatalysts: " + e);
+            }
+            return stacks;
         }
 
         /**
-         * The ingredients required to produce the result Use this if you have more than one ingredient
+         * Simple utility
+         *
+         * @return The another positioned stack
+         */
+        public PositionedStack getCatalyst() {
+            return null;
+        }
+
+        /**
+         * The ingredients required to produce the result. Use this if you have more than one ingredient
          *
          * @return A list of positioned ingredient items.
          */
@@ -177,6 +193,8 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
 
         /**
+         * Legacy API
+         *
          * Return extra items that are not directly involved in the ingredient->result relationship. Eg fuels. Use this
          * if you have more than one other stack
          *
@@ -664,12 +682,8 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
     }
 
-    public List<PositionedStack> getExtraInputStacks(int recipe) {
-        try {
-            return arecipes.get(recipe).getExtraInputs();
-        } catch (ArrayIndexOutOfBoundsException ignored) {
-            return Collections.emptyList();
-        }
+    public List<PositionedStack> getCatalystStacks(int recipe) {
+        return arecipes.get(recipe).getCatalysts();
     }
 
     public List<PositionedStack> getOtherStacks(int recipe) {

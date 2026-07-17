@@ -70,7 +70,10 @@ public class Recipe {
                 }
             }
 
-            return new RecipeId(extractItem(pStackResults.get(0)), handlerName, extractIngredients(ingredients));
+            return new RecipeId(
+                    extractItem(!pStackResults.isEmpty() ? pStackResults.get(0) : null),
+                    handlerName,
+                    extractIngredients(ingredients));
         }
 
         public static RecipeId of(JsonObject json) {
