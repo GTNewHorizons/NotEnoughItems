@@ -12,13 +12,13 @@ import codechicken.nei.recipe.Recipe.RecipeId;
 class CraftRampThrottleTest {
 
     @Test
-    @DisplayName("first craft of a recipe is instant and single")
-    void firstCraftInstant() {
+    @DisplayName("first craft of a recipe uses the start delay and is single")
+    void firstCraftUsesStartDelay() {
         CraftRampThrottle throttle = new CraftRampThrottle();
         RecipeId id = mock(RecipeId.class);
 
         Tick tick = throttle.next(id);
-        assertEquals(0L, tick.delayMs);
+        assertEquals(CraftRampThrottle.START_DELAY_MS, tick.delayMs);
         assertEquals(1, tick.crafts);
     }
 
@@ -28,8 +28,7 @@ class CraftRampThrottleTest {
         CraftRampThrottle throttle = new CraftRampThrottle();
         RecipeId id = mock(RecipeId.class);
 
-        assertEquals(0L, throttle.next(id).delayMs);                 // craft 1: instant
-        assertEquals(500L, throttle.next(id).delayMs);               // craft 2: START
+        assertEquals(500L, throttle.next(id).delayMs);               // craft 1: START
         assertEquals(425L, throttle.next(id).delayMs);               // 500 * 0.85
         assertEquals(361L, throttle.next(id).delayMs);               // round(425 * 0.85)
 
@@ -61,9 +60,9 @@ class CraftRampThrottleTest {
         CraftRampThrottle throttle = new CraftRampThrottle();
         RecipeId id = mock(RecipeId.class);
 
-        assertEquals(1, throttle.next(id).crafts);                   // instant
         assertEquals(1, throttle.next(id).crafts);                   // 500
         assertEquals(1, throttle.next(id).crafts);                   // 425
+        assertEquals(1, throttle.next(id).crafts);                   // 361
     }
 
     @Test
@@ -73,10 +72,10 @@ class CraftRampThrottleTest {
         RecipeId a = mock(RecipeId.class);
         RecipeId b = mock(RecipeId.class);
 
-        assertEquals(0L, throttle.next(a).delayMs);                  // a craft 1
-        assertEquals(500L, throttle.next(a).delayMs);                // a craft 2
-        assertEquals(0L, throttle.next(b).delayMs);                  // b starts fresh
-        assertEquals(425L, throttle.next(a).delayMs);                // a resumes where it left off
-        assertEquals(500L, throttle.next(b).delayMs);                // b resumes its own ramp
+        assertEquals(500L, throttle.next(a).delayMs);                // a craft 1
+        assertEquals(425L, throttle.next(a).delayMs);                // a craft 2
+        assertEquals(500L, throttle.next(b).delayMs);                // b starts fresh
+        assertEquals(361L, throttle.next(a).delayMs);                // a resumes where it left off
+        assertEquals(425L, throttle.next(b).delayMs);                // b resumes its own ramp
     }
 }
