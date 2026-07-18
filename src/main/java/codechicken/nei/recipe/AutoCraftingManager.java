@@ -50,9 +50,19 @@ public class AutoCraftingManager {
                             long multiplier = entry.getValue();
 
                             while (multiplier > 0 && !interrupted(guiContainer)) {
-                                sleepInterruptibly(throttle.nextDelayMs(entry.getKey()), guiContainer);
-                                if (interrupted(guiContainer) || !handler.craft(guiContainer, 1)) break;
-                                multiplier -= 1;
+                                final CraftRampThrottle.Tick tick = throttle.next(entry.getKey());
+                                sleepInterruptibly(tick.delayMs, guiContainer);
+                                if (interrupted(guiContainer)) break;
+
+                                boolean crafted = false;
+                                for (int i = 0; i < tick.crafts && multiplier > 0
+                                        && !interrupted(guiContainer); i++) {
+                                    if (!handler.craft(guiContainer, 1)) break;
+                                    multiplier -= 1;
+                                    crafted = true;
+                                }
+
+                                if (!crafted) break; // output couldn't be taken (e.g. inventory full)
                             }
 
                             craft = multiplier != entry.getValue();
