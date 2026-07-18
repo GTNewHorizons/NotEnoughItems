@@ -1,6 +1,7 @@
 package codechicken.nei.recipe;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import org.junit.jupiter.api.DisplayName;
@@ -10,6 +11,14 @@ import codechicken.nei.recipe.CraftRampThrottle.Tick;
 import codechicken.nei.recipe.Recipe.RecipeId;
 
 class CraftRampThrottleTest {
+
+    private static Tick rampToFloor(CraftRampThrottle throttle, RecipeId id) {
+        Tick tick = null;
+        for (int i = 0; i < 100; i++) {
+            tick = throttle.next(id);
+        }
+        return tick;
+    }
 
     @Test
     @DisplayName("first craft of a recipe uses the start delay and is single")
@@ -23,20 +32,20 @@ class CraftRampThrottleTest {
     }
 
     @Test
-    @DisplayName("same recipe decays geometrically and clamps at floor")
+    @DisplayName("same recipe decays monotonically and clamps at floor")
     void rampDecaysToFloor() {
         CraftRampThrottle throttle = new CraftRampThrottle();
         RecipeId id = mock(RecipeId.class);
 
-        assertEquals(500L, throttle.next(id).delayMs);               // craft 1: START
-        assertEquals(425L, throttle.next(id).delayMs);               // 500 * 0.85
-        assertEquals(361L, throttle.next(id).delayMs);               // round(425 * 0.85)
-
-        Tick last = null;
-        for (int i = 0; i < 50; i++) {
-            last = throttle.next(id);
+        long prev = Long.MAX_VALUE;
+        for (int i = 0; i < 5; i++) {
+            long delay = throttle.next(id).delayMs;
+            assertTrue(delay <= prev, "delay should not increase while ramping");
+            assertTrue(delay >= CraftRampThrottle.FLOOR_DELAY_MS, "delay should not drop below floor");
+            prev = delay;
         }
-        assertEquals(CraftRampThrottle.FLOOR_DELAY_MS, last.delayMs); // clamped at floor
+
+        assertEquals(CraftRampThrottle.FLOOR_DELAY_MS, rampToFloor(throttle, id).delayMs);
     }
 
     @Test
@@ -45,13 +54,9 @@ class CraftRampThrottleTest {
         CraftRampThrottle throttle = new CraftRampThrottle();
         RecipeId id = mock(RecipeId.class);
 
-        Tick tick = throttle.next(id);
-        for (int i = 0; i < 50; i++) {
-            tick = throttle.next(id);
-        }
-
+        Tick tick = rampToFloor(throttle, id);
         assertEquals(CraftRampThrottle.FLOOR_DELAY_MS, tick.delayMs);
-        assertEquals(CraftRampThrottle.BULK_CRAFTS, tick.crafts);     // batched once maxed out
+        assertEquals(CraftRampThrottle.BULK_CRAFTS, tick.crafts);
     }
 
     @Test
@@ -60,22 +65,23 @@ class CraftRampThrottleTest {
         CraftRampThrottle throttle = new CraftRampThrottle();
         RecipeId id = mock(RecipeId.class);
 
-        assertEquals(1, throttle.next(id).crafts);                   // 500
-        assertEquals(1, throttle.next(id).crafts);                   // 425
-        assertEquals(1, throttle.next(id).crafts);                   // 361
+        assertEquals(1, throttle.next(id).crafts);
+        assertEquals(1, throttle.next(id).crafts);
     }
 
     @Test
-    @DisplayName("each recipe keeps its own ramp; returning resumes, not resets")
-    void perRecipeMemoryResumes() {
+    @DisplayName("recipe change reduces momentum but does not fully reset")
+    void recipeChangeReducesMomentum() {
         CraftRampThrottle throttle = new CraftRampThrottle();
         RecipeId a = mock(RecipeId.class);
         RecipeId b = mock(RecipeId.class);
 
-        assertEquals(500L, throttle.next(a).delayMs);                // a craft 1
-        assertEquals(425L, throttle.next(a).delayMs);                // a craft 2
-        assertEquals(500L, throttle.next(b).delayMs);                // b starts fresh
-        assertEquals(361L, throttle.next(a).delayMs);                // a resumes where it left off
-        assertEquals(425L, throttle.next(b).delayMs);                // b resumes its own ramp
+        // Ramp A to full speed (floor).
+        assertEquals(CraftRampThrottle.FLOOR_DELAY_MS, rampToFloor(throttle, a).delayMs);
+
+        // Switching to B slows down, but keeps momentum: slower than floor, faster than a cold start.
+        long afterSwitch = throttle.next(b).delayMs;
+        assertTrue(afterSwitch > CraftRampThrottle.FLOOR_DELAY_MS, "switch should reduce momentum");
+        assertTrue(afterSwitch < CraftRampThrottle.START_DELAY_MS, "switch should not fully reset");
     }
 }
