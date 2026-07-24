@@ -144,11 +144,11 @@ public abstract class ShortcutInputHandler {
             return sendRecipeInChatLink(stackover, NEIClientUtils.shiftKey());
         }
 
-        if (KeyManager.isHashDown("recipe.recipe")) {
+        if (KeyManager.isKeyDown("recipe.recipe")) {
             return GuiCraftingRecipe.openRecipeGui("item", stackover);
         }
 
-        if (KeyManager.isHashDown("recipe.usage")) {
+        if (KeyManager.isKeyDown("recipe.usage")) {
             return GuiUsageRecipe.openRecipeGui("item", stackover);
         }
 
