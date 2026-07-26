@@ -60,6 +60,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     }
 
     public static void render(float frame) {
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_LINE_BIT);
         GL11.glPushMatrix();
         Entity entity = Minecraft.getMinecraft().renderViewEntity;
 
@@ -73,9 +74,12 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
 
         GL11.glTranslated(-interpPosX + intOffsetX, -interpPosY + intOffsetY, -interpPosZ + intOffsetZ);
 
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glDepthFunc(GL11.GL_LEQUAL);
         renderChunkBounds(entity, intOffsetX, intOffsetY, intOffsetZ);
         renderMobSpawnOverlay(entity, intOffsetX, intOffsetY, intOffsetZ);
         GL11.glPopMatrix();
+        GL11.glPopAttrib();
     }
 
     private static void buildMobSpawnOverlay(Entity entity) {
