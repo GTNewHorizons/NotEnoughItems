@@ -216,7 +216,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
 
             for (IngredientDistribution distrib : assignedIngredients) {
                 if (distrib.slots.length == 0 || !slot.getHasStack() || !canStack(distrib.permutation, stack)) continue;
-                int transferCap = Math.min(slotTransferCap, multiplier * distrib.permutation.stackSize);
+                int transferCap = Math.min(slotTransferCap, Math.max(multiplier * distrib.permutation.stackSize, 1));
                 int stackSize = slot.getStack().stackSize;
                 boolean pickup = false;
 

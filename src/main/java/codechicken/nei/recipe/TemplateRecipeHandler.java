@@ -289,9 +289,9 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyCode) {
             if (!canHandle(gui)) return false;
 
-            if (KeyManager.isHashDown("recipe.recipe")) {
+            if (KeyManager.isKeyDown("recipe.recipe")) {
                 return transferRect(gui, false);
-            } else if (KeyManager.isHashDown("recipe.usage")) {
+            } else if (KeyManager.isKeyDown("recipe.usage")) {
                 return transferRect(gui, true);
             }
 
@@ -673,9 +673,9 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     @Override
     public boolean keyTyped(GuiRecipe<?> gui, char keyChar, int keyCode, int recipe) {
 
-        if (KeyManager.isHashDown("recipe.recipe")) {
+        if (KeyManager.isKeyDown("recipe.recipe")) {
             return transferRect(gui, recipe, false);
-        } else if (KeyManager.isHashDown("recipe.usage")) {
+        } else if (KeyManager.isKeyDown("recipe.usage")) {
             return transferRect(gui, recipe, true);
         }
 

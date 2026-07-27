@@ -42,7 +42,7 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
 
         if (this.stack != null && this.availableAreaWidth >= SLOT_SIZE * 2
                 && (NEIClientConfig.getBooleanSetting("inventory.itemzoom.enabled")
-                        || KeyManager.isHashDown("itemzoom.hold"))
+                        || KeyManager.isKeyDown("itemzoom.hold"))
                 && GuiContainerManager.shouldShowTooltip(NEIClientUtils.getGuiContainer())) {
             final float inverseScaleFactor = 1.0f / this.scale;
             final float screenScale = getScreenScale();
@@ -204,18 +204,18 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
             return true;
         }
 
-        if (this.stack != null && KeyManager.isHashDown("itemzoom.hold")) {
+        if (this.stack != null && KeyManager.isKeyDown("itemzoom.hold")) {
             return true;
         }
 
-        if (this.stack != null && KeyManager.isHashDown("itemzoom.zoom_in")) {
+        if (this.stack != null && KeyManager.isKeyDown("itemzoom.zoom_in")) {
             increaseZoom(gui);
             previousKeyboardRepeatEnabled = Keyboard.areRepeatEventsEnabled();
             Keyboard.enableRepeatEvents(true);
             return true;
         }
 
-        if (this.stack != null && KeyManager.isHashDown("itemzoom.zoom_out")) {
+        if (this.stack != null && KeyManager.isKeyDown("itemzoom.zoom_out")) {
             decreaseZoom(gui);
             previousKeyboardRepeatEnabled = Keyboard.areRepeatEventsEnabled();
             Keyboard.enableRepeatEvents(true);
