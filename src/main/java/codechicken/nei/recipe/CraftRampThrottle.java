@@ -5,19 +5,18 @@ import java.util.Objects;
 import codechicken.nei.recipe.Recipe.RecipeId;
 
 /**
- * Per-craft delay ramp for auto-crafting. Crafting a recipe repeatedly speeds up
- * (delay decays geometrically toward a floor). Momentum is global: switching to
- * a different recipe reduces speed by a penalty but does not reset it, so going
- * back to a recipe resumes with most of its momentum. At floor (max) speed
- * crafts are batched. Pure logic; does not sleep.
+ * Per-craft delay ramp for auto-crafting. Crafting a recipe repeatedly speeds up (delay decays geometrically toward a
+ * floor). Momentum is global: switching to a different recipe reduces speed by a penalty but does not reset it, so
+ * going back to a recipe resumes with most of its momentum. At floor (max) speed crafts are batched. Pure logic; does
+ * not sleep.
  */
 public class CraftRampThrottle {
 
     public static final long START_DELAY_MS = 300L; // delay before the 1st craft
     public static final long FLOOR_DELAY_MS = 100L; // fastest allowed (cap)
-    public static final double DECAY = 0.88D;       // per-craft speedup
+    public static final double DECAY = 0.88D; // per-craft speedup
     public static final double SWITCH_PENALTY = 2.0D; // momentum lost on recipe change
-    public static final int BULK_CRAFTS = 4;        // crafts per tick once maxed out
+    public static final int BULK_CRAFTS = 4; // crafts per tick once maxed out
 
     /** Delay to wait before a craft, and how many crafts that tick covers. */
     public static final class Tick {

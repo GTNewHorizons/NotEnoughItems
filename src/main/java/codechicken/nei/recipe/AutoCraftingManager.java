@@ -55,8 +55,7 @@ public class AutoCraftingManager {
                                 if (interrupted(guiContainer)) break;
 
                                 boolean crafted = false;
-                                for (int i = 0; i < tick.crafts && multiplier > 0
-                                        && !interrupted(guiContainer); i++) {
+                                for (int i = 0; i < tick.crafts && multiplier > 0 && !interrupted(guiContainer); i++) {
                                     if (!handler.craft(guiContainer, 1)) break;
                                     multiplier -= 1;
                                     crafted = true;
