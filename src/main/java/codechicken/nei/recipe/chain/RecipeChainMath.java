@@ -411,8 +411,9 @@ public class RecipeChainMath {
                     final ContainerItemResult result = getToolsContainerItems(itemStack, steps);
 
                     if (result.stack == null) {
-                        multiplier = steps / (steps - result.leftSteps);
-                        steps = steps % (steps - result.leftSteps);
+                        final long stepsPerReplacement = steps - result.leftSteps;
+                        multiplier = Math.min(steps / stepsPerReplacement, maxAmount - shiftAmount);
+                        steps -= multiplier * stepsPerReplacement;
                     } else {
                         steps = result.leftSteps;
                     }
