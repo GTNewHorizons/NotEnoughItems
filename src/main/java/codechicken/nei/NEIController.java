@@ -27,7 +27,7 @@ import codechicken.nei.commands.CommandUntranslator;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerSlotClickHandler;
-import codechicken.nei.recipe.GuiRecipe;
+import codechicken.nei.util.EmptyContainer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -252,7 +252,7 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
 
         // slot in GuiRecipe does not contain actual stack
         // and scroll should be handled by GuiRecipe, not here
-        if (gui instanceof GuiRecipe) return false;
+        if (gui.inventorySlots instanceof EmptyContainer) return false;
 
         Point mousePos = getMousePosition();
         Slot mouseover = manager.window.getSlotAtPosition(mousePos.x, mousePos.y);
