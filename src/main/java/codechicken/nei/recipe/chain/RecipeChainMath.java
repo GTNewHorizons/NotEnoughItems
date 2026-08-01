@@ -40,20 +40,16 @@ public class RecipeChainMath {
     private static class EmptyChainVisitor implements ChainVisitor {
 
         @Override
-        public void enterRecipe(RecipeId recipeId, long multiplier) {
-        }
+        public void enterRecipe(RecipeId recipeId, long multiplier) {}
 
         @Override
-        public void addIngredient(BookmarkItem ingrItem, long requestedAmount) {
-        }
+        public void addIngredient(BookmarkItem ingrItem, long requestedAmount) {}
 
         @Override
-        public void addIngredientFresh(BookmarkItem ingrItem, long freshAmount) {
-        }
+        public void addIngredientFresh(BookmarkItem ingrItem, long freshAmount) {}
 
         @Override
-        public void leaveRecipe() {
-        }
+        public void leaveRecipe() {}
 
     }
 
@@ -376,7 +372,8 @@ public class RecipeChainMath {
         return this;
     }
 
-    private void calculateSuitableRecipe(BookmarkItem ingrItem, long ingrAmount, List<RecipeId> visited, ChainVisitor visitor) {
+    private void calculateSuitableRecipe(BookmarkItem ingrItem, long ingrAmount, List<RecipeId> visited,
+            ChainVisitor visitor) {
         final BookmarkItem prefItem = this.preferredItems.get(ingrItem);
 
         visitor.addIngredient(prefItem != null ? prefItem : ingrItem, ingrAmount);
