@@ -625,7 +625,7 @@ public class GuiContainerManager {
                 tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE);
             }
 
-        } else if (!tooltip.isEmpty()) {
+        } else if (!tooltip.isEmpty() && !tooltip.get(0).startsWith(GuiDraw.TOOLTIP_HANDLER)) {
             tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE);
         }
 

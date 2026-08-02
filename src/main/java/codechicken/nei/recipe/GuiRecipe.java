@@ -54,6 +54,7 @@ import codechicken.nei.scroll.ScrollBar;
 import codechicken.nei.scroll.ScrollBar.OverflowType;
 import codechicken.nei.scroll.ScrollBar.ScrollPlace;
 import codechicken.nei.scroll.ScrollContainer;
+import codechicken.nei.util.EmptyContainer;
 import codechicken.nei.util.SlotInaccessible;
 
 public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer implements IGuiContainerOverlay,
@@ -181,7 +182,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private boolean isHeightHackApplied = false;
 
     protected GuiRecipe(GuiScreen prevgui) {
-        super(new ContainerRecipe());
+        super(new EmptyContainer());
         this.recipeTabs = new GuiRecipeTabs() {
 
             @Override
@@ -191,7 +192,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         };
         this.recipeCatalyst = new GuiRecipeCatalyst();
-        this.slotcontainer = (ContainerRecipe) this.inventorySlots;
+        this.slotcontainer = (EmptyContainer) this.inventorySlots;
 
         this.prevGui = prevgui;
         this.firstGuiGeneral = prevgui;
@@ -526,7 +527,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     @Override
     public Slot getSlotAtPosition(int mousex, int mousey) {
         final Widget activeWidget = this.container.getWidgetUnderMouse(mousex, mousey);
-        final ContainerRecipe slotcontainer = (ContainerRecipe) inventorySlots;
+        final EmptyContainer slotcontainer = (EmptyContainer) inventorySlots;
         slotcontainer.setActiveStack(null);
 
         if (activeWidget instanceof NEIRecipeWidget recipeWidget) {
@@ -1033,7 +1034,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private GuiOverlayButton[] overlayButtons = new GuiOverlayButton[0];
 
     @Deprecated
-    public ContainerRecipe slotcontainer;
+    public EmptyContainer slotcontainer;
 
     @Deprecated
     public List<GuiButton> getOverlayButtons() {
