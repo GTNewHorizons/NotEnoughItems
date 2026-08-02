@@ -224,12 +224,12 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyID) {
 
-        if (KeyManager.isHashDown("gui.hide")) {
+        if (KeyManager.isKeyDown("gui.hide")) {
             toggleBooleanSetting("inventory.hidden");
             return true;
         }
 
-        if (KeyManager.isHashDown("bookmark.hide")) {
+        if (KeyManager.isKeyDown("bookmark.hide")) {
             toggleBooleanSetting("inventory.bookmarks.enabled");
             return true;
         }

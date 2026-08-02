@@ -67,17 +67,19 @@ public class KeyManager {
     }
 
     public static boolean isKeyDown(String ident) {
-        final int keyCode = getKeyCode(ident);
+        final KeyBinding binding = getKeyBinding(ident);
 
-        if (keyCode == Keyboard.KEY_NONE) {
-            return false;
+        if (binding != null) {
+            final int keyCode = binding.getKeyCode();
+
+            if (keyCode < 0) {
+                return Mouse.isButtonDown(keyCode + 100);
+            } else if (keyCode > Keyboard.KEY_NONE && keyCode < Keyboard.KEYBOARD_SIZE) {
+                return Keyboard.isKeyDown(keyCode);
+            }
         }
 
-        if (keyCode < 0) {
-            return Mouse.isButtonDown(keyCode + 100);
-        }
-
-        return keyCode < Keyboard.KEYBOARD_SIZE && Keyboard.isKeyDown(keyCode);
+        return false;
     }
 
     public static boolean isHashDown(String ident) {

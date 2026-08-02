@@ -1,4 +1,4 @@
-package codechicken.nei.recipe;
+package codechicken.nei.util;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.ShortcutInputHandler;
 
-public class ContainerRecipe extends Container {
+public class EmptyContainer extends Container {
 
     private ItemStack activeStack = null;
 
