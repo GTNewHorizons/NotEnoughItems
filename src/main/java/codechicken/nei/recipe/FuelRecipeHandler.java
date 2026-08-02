@@ -38,6 +38,11 @@ public class FuelRecipeHandler extends FurnaceRecipeHandler {
         public PositionedStack getOtherStack() {
             return fuel.stack;
         }
+
+        @Override
+        public PositionedStack getCatalyst() {
+            return fuel.stack;
+        }
     }
 
     private final ArrayList<SmeltingPair> mfurnace = new ArrayList<>();
