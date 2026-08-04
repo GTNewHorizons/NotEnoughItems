@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -36,6 +37,7 @@ import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.debug.DebugHandlerWidget;
 import codechicken.nei.util.NEIMouseUtils;
+import it.unimi.dsi.fastutil.longs.LongArraySet;
 
 public class NEIRecipeWidget extends Widget {
 
@@ -53,6 +55,9 @@ public class NEIRecipeWidget extends Widget {
 
     protected boolean showAsWidget = false;
     protected List<GuiRecipeButton> recipeButtons = null;
+
+    // Handles re-draws for catalysts-outputs duplication to preserve full backward compatibility for otherStacks
+    private final Set<Long> drawnSlots = new LongArraySet();
 
     public NEIRecipeWidget(RecipeHandlerRef handlerRef) {
         this.handlerRef = handlerRef;
@@ -193,26 +198,38 @@ public class NEIRecipeWidget extends Widget {
 
         GuiContainerManager.enableMatrixStackLogging();
 
-        for (PositionedStack pStack : getInputs()) {
+        final List<PositionedStack> inputs = getInputs();
+        final List<PositionedStack> catalysts = getCatalysts();
+        final List<PositionedStack> outputs = getOutputs();
 
-            if (!this.permutations.containsKey(pStack)) {
-                updatePermutationsFor(pStack);
-            }
-
-            drawItem(pStack, mouseX, mouseY, yShift, true);
-        }
-
-        for (PositionedStack pStack : getCatalysts()) {
-
-            if (!this.permutations.containsKey(pStack)) {
-                updatePermutationsFor(pStack);
-            }
-
-            drawItem(pStack, mouseX, mouseY, yShift, true);
-        }
-
-        for (PositionedStack pStack : getOutputs()) {
+        drawnSlots.clear();
+        for (PositionedStack pStack : inputs) {
+            drawnSlots.add(slotKey(pStack));
             drawItem(pStack, mouseX, mouseY, yShift, false);
+        }
+
+        for (PositionedStack pStack : catalysts) {
+            if (!drawnSlots.add(slotKey(pStack))) {
+                continue;
+            }
+
+            if (!this.permutations.containsKey(pStack)) {
+                updatePermutationsFor(pStack);
+            }
+
+            drawItem(pStack, mouseX, mouseY, yShift, true);
+        }
+
+        for (PositionedStack pStack : outputs) {
+            if (!drawnSlots.add(slotKey(pStack))) {
+                continue;
+            }
+
+            if (!this.permutations.containsKey(pStack)) {
+                updatePermutationsFor(pStack);
+            }
+
+            drawItem(pStack, mouseX, mouseY, yShift, true);
         }
 
         GuiContainerManager.disableMatrixStackLogging();
@@ -244,6 +261,10 @@ public class NEIRecipeWidget extends Widget {
         }
 
         DebugHandlerWidget.instance.drawGuiPlaceholder(this);
+    }
+
+    private static long slotKey(PositionedStack pStack) {
+        return ((long) pStack.relx << 32) ^ (pStack.rely & 0xFFFFFFFFL);
     }
 
     protected void drawItem(PositionedStack pStack, int mouseX, int mouseY, int yShift, boolean input) {
@@ -656,13 +677,19 @@ public class NEIRecipeWidget extends Widget {
     }
 
     protected List<PositionedStack> getOutputs() {
-        final PositionedStack pStackResult = this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex);
-        return pStackResult != null ? Arrays.asList(pStackResult)
+        final List<PositionedStack> pStackResults = this.handlerRef.handler
+                .getResultStacks(this.handlerRef.recipeIndex);
+        return !pStackResults.isEmpty() ? pStackResults
                 : this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex);
     }
 
     protected List<PositionedStack> getCatalysts() {
-        if (this.handlerRef.handler.getResultStack(this.handlerRef.recipeIndex) == null) {
+        List<PositionedStack> catalysts = this.handlerRef.handler.getCatalystStacks(this.handlerRef.recipeIndex);
+        if (!catalysts.isEmpty()) {
+            return catalysts;
+        }
+
+        if (this.handlerRef.handler.getResultStacks(this.handlerRef.recipeIndex).isEmpty()) {
             return Collections.emptyList();
         }
         return this.handlerRef.handler.getOtherStacks(this.handlerRef.recipeIndex);

@@ -54,19 +54,26 @@ public class Recipe {
         public static RecipeId of(IRecipeHandler handler, int recipeIndex) {
             final List<PositionedStack> ingredients = handler.getIngredientStacks(recipeIndex);
             final String handlerName = GuiRecipeTab.getHandlerInfo(handler).getHandlerName();
-            PositionedStack pStackResult = handler.getResultStack(recipeIndex);
+            // Use getResultStacks even though getResult could work because if a handler, like GT for example, doesn't
+            // return anything from getResult, but will define all the outputs in getResultStacks we can still pick up
+            // the results here. If a handler still doesn't define getResultStacks, then it will naturally fall back to
+            // getResult anyway
+            List<PositionedStack> pStackResults = handler.getResultStacks(recipeIndex);
 
-            if (pStackResult == null) {
+            if (pStackResults.isEmpty()) {
                 for (PositionedStack otherStack : handler.getOtherStacks(recipeIndex)) {
                     if (!FluidContainerRegistry.isContainer(otherStack.items[0])
                             || StackInfo.getFluid(otherStack.items[0]) != null) {
-                        pStackResult = otherStack;
+                        pStackResults.add(otherStack);
                         break;
                     }
                 }
             }
 
-            return new RecipeId(extractItem(pStackResult), handlerName, extractIngredients(ingredients));
+            return new RecipeId(
+                    extractItem(!pStackResults.isEmpty() ? pStackResults.get(0) : null),
+                    handlerName,
+                    extractIngredients(ingredients));
         }
 
         public static RecipeId of(JsonObject json) {
@@ -389,8 +396,12 @@ public class Recipe {
             ingredients.add(RecipeIngredient.of(positionedStack));
         }
 
-        if (handler.getResultStack(recipeIndex) != null) {
-            results.add(RecipeIngredient.of(handler.getResultStack(recipeIndex)));
+        final List<PositionedStack> resultStacks = handler.getResultStacks(recipeIndex);
+
+        if (!resultStacks.isEmpty()) {
+            for (PositionedStack positionedStack : resultStacks) {
+                results.add(RecipeIngredient.of(positionedStack));
+            }
         } else {
             for (PositionedStack positionedStack : handler.getOtherStacks(recipeIndex)) {
                 results.add(RecipeIngredient.of(positionedStack));
