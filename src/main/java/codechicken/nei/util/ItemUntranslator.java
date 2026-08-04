@@ -252,13 +252,20 @@ public class ItemUntranslator {
         return this.processedNames.computeIfAbsent(guidKey, stackKey -> {
             String displayName = this.secondNames.get(stackKey);
 
-            if (displayName == null) {
-                final String guid = findBestGUIDForLookup(stack);
-                displayName = this.secondNames
-                        .computeIfAbsent(guid == null ? stackKey : guid, g -> getFallbackDisplayName(stack));
+            try {
+
+                if (displayName == null) {
+                    final String guid = findBestGUIDForLookup(stack);
+                    displayName = this.secondNames
+                            .computeIfAbsent(guid == null ? stackKey : guid, g -> getFallbackDisplayName(stack));
+                }
+
+                return displayName.equals(stripFormatting(stack.getDisplayName())) ? "" : displayName;
+            } catch (Throwable e) {
+                NEIClientConfig.logger.warn("Failed to get display name for itemstack {}", stack, e);
             }
 
-            return displayName.equals(stripFormatting(stack.getDisplayName())) ? "" : displayName;
+            return displayName != null ? displayName : "";
         });
     }
 
