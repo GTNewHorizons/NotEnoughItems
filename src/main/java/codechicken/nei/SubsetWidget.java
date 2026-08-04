@@ -399,8 +399,8 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
         }
 
         @Override
-        public SearchMode getSearchMode() {
-            return SearchMode.fromInt(NEIClientConfig.getIntSetting("inventory.search.subsetsSearchMode"));
+        public String getName() {
+            return "subsets";
         }
 
         private boolean matches(String name, String searchText, Pattern pattern) {
