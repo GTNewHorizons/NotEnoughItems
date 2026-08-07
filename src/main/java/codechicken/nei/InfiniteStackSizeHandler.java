@@ -30,14 +30,7 @@ public class InfiniteStackSizeHandler implements IInfiniteItemHandler {
 
     @Override
     public void replenishInfiniteStack(InventoryPlayer inv, int slotNo) {
-        ItemStack stack = inv.getStackInSlot(slotNo);
-        stack.stackSize = 111;
-
-        for (int i = 0; i < inv.getSizeInventory(); i++) {
-            if (i == slotNo) continue;
-
-            if (NEIServerUtils.areStacksSameType(stack, inv.getStackInSlot(i))) inv.setInventorySlotContents(i, null);
-        }
+        inv.getStackInSlot(slotNo).stackSize = 111;
     }
 
     @Override
