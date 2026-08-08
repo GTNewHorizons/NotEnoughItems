@@ -85,8 +85,7 @@ public class ContainerCreativeInv extends Container {
             ItemStack stack = slot.getStack();
             transferredStack = stack.copy();
 
-            if (stack.getItem() instanceof ItemArmor) {
-                ItemArmor armor = (ItemArmor) stack.getItem();
+            if (stack.getItem() instanceof ItemArmor armor) {
                 if (!getSlot(90 + armor.armorType).getHasStack()) {
                     getSlot(90 + armor.armorType).putStack(transferredStack);
                     slot.putStack(null);

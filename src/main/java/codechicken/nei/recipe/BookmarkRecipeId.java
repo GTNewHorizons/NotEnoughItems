@@ -123,8 +123,7 @@ public class BookmarkRecipeId {
             return true;
         }
 
-        if (anObject instanceof BookmarkRecipeId) {
-            final BookmarkRecipeId anRecipeId = (BookmarkRecipeId) anObject;
+        if (anObject instanceof BookmarkRecipeId anRecipeId) {
 
             if (!handlerName.equals(anRecipeId.handlerName)) {
                 return false;

@@ -46,8 +46,7 @@ public class ItemStackMap<T> {
         }
 
         public boolean equals(Object o) {
-            if (!(o instanceof StackMetaKey)) return false;
-            StackMetaKey t = (StackMetaKey) o;
+            if (!(o instanceof StackMetaKey t)) return false;
             return damage == t.damage && Objects.equal(tag, t.tag);
         }
     }
