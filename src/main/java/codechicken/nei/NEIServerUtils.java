@@ -261,9 +261,6 @@ public class NEIServerUtils {
     /**
      * GT Items don't have any NBT set for the recipe, so if either of the stacks has a NULL nbt, and the other doesn't,
      * pretend they stack
-     *
-     * @param ItemStack stack
-     * @return
      */
     public static boolean isItemTool(ItemStack stack) {
         return GTMetaBaseItemHolder.gtMetaBaseItem != null
