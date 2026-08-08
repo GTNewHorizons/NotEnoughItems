@@ -96,7 +96,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
     @Override
     public void loadCraftingRecipes(String outputId, Object... results) {
         if (outputId.equals("crafting") && getClass() == ShapedRecipeHandler.class) {
-            for (IRecipe irecipe : (List<IRecipe>) CraftingManager.getInstance().getRecipeList()) {
+            for (IRecipe irecipe : CraftingManager.getInstance().getRecipeList()) {
                 CachedShapedRecipe recipe = null;
 
                 if (irecipe instanceof ShapedRecipes shaped) {
@@ -111,7 +111,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
                 }
             }
         } else if (outputId.equals("crafting2x2") && getClass() == ShapedRecipeHandler.class) {
-            for (IRecipe irecipe : (List<IRecipe>) CraftingManager.getInstance().getRecipeList()) {
+            for (IRecipe irecipe : CraftingManager.getInstance().getRecipeList()) {
 
                 if (irecipe instanceof ShapedRecipes shaped && shaped.recipeWidth <= 2 && shaped.recipeHeight <= 2) {
                     CachedShapedRecipe recipe = new CachedShapedRecipe(shaped);
@@ -127,7 +127,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
 
     @Override
     public void loadCraftingRecipes(ItemStack result) {
-        for (IRecipe irecipe : (List<IRecipe>) CraftingManager.getInstance().getRecipeList()) {
+        for (IRecipe irecipe : CraftingManager.getInstance().getRecipeList()) {
             if (NEIServerUtils.areStacksSameTypeCrafting(irecipe.getRecipeOutput(), result)) {
                 CachedShapedRecipe recipe = null;
                 if (irecipe instanceof ShapedRecipes) recipe = new CachedShapedRecipe((ShapedRecipes) irecipe);
@@ -143,7 +143,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
 
     @Override
     public void loadUsageRecipes(ItemStack ingredient) {
-        for (IRecipe irecipe : (List<IRecipe>) CraftingManager.getInstance().getRecipeList()) {
+        for (IRecipe irecipe : CraftingManager.getInstance().getRecipeList()) {
             CachedShapedRecipe recipe = null;
             if (irecipe instanceof ShapedRecipes) recipe = new CachedShapedRecipe((ShapedRecipes) irecipe);
             else if (irecipe instanceof ShapedOreRecipe) recipe = forgeShapedRecipe((ShapedOreRecipe) irecipe);

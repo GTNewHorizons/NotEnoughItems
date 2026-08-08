@@ -84,7 +84,7 @@ public class FurnaceRecipeHandler extends TemplateRecipeHandler {
     public void loadCraftingRecipes(String outputId, Object... results) {
         if (outputId.equals("smelting") && getClass() == FurnaceRecipeHandler.class) { // don't want subclasses getting
                                                                                        // a hold of this
-            Map<ItemStack, ItemStack> recipes = (Map<ItemStack, ItemStack>) FurnaceRecipes.smelting().getSmeltingList();
+            Map<ItemStack, ItemStack> recipes = FurnaceRecipes.smelting().getSmeltingList();
             for (Entry<ItemStack, ItemStack> recipe : recipes.entrySet())
                 arecipes.add(new SmeltingPair(recipe.getKey(), recipe.getValue()));
         } else super.loadCraftingRecipes(outputId, results);
@@ -92,7 +92,7 @@ public class FurnaceRecipeHandler extends TemplateRecipeHandler {
 
     @Override
     public void loadCraftingRecipes(ItemStack result) {
-        Map<ItemStack, ItemStack> recipes = (Map<ItemStack, ItemStack>) FurnaceRecipes.smelting().getSmeltingList();
+        Map<ItemStack, ItemStack> recipes = FurnaceRecipes.smelting().getSmeltingList();
         for (Entry<ItemStack, ItemStack> recipe : recipes.entrySet())
             if (NEIServerUtils.areStacksSameType(recipe.getValue(), result))
                 arecipes.add(new SmeltingPair(recipe.getKey(), recipe.getValue()));
@@ -108,7 +108,7 @@ public class FurnaceRecipeHandler extends TemplateRecipeHandler {
 
     @Override
     public void loadUsageRecipes(ItemStack ingredient) {
-        Map<ItemStack, ItemStack> recipes = (Map<ItemStack, ItemStack>) FurnaceRecipes.smelting().getSmeltingList();
+        Map<ItemStack, ItemStack> recipes = FurnaceRecipes.smelting().getSmeltingList();
         for (Entry<ItemStack, ItemStack> recipe : recipes.entrySet())
             if (NEIServerUtils.areStacksSameTypeCrafting(recipe.getKey(), ingredient)) {
                 SmeltingPair arecipe = new SmeltingPair(recipe.getKey(), recipe.getValue());

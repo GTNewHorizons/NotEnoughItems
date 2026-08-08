@@ -8,7 +8,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ContainerEnchantment;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagList;
@@ -164,14 +163,14 @@ public class ContainerEnchantmentModifier extends ContainerEnchantment {
 
     public boolean addEnchantment(int e, int level) {
         if (e < Enchantment.enchantmentsList.length && Enchantment.enchantmentsList[e] != null) {
-            ((Slot) inventorySlots.get(0)).getStack().addEnchantment(Enchantment.enchantmentsList[e], level);
+            inventorySlots.get(0).getStack().addEnchantment(Enchantment.enchantmentsList[e], level);
             return true;
         }
         return false;
     }
 
     public void removeEnchantment(int e) {
-        ItemStack stack = ((Slot) inventorySlots.get(0)).getStack();
+        ItemStack stack = inventorySlots.get(0).getStack();
         NBTTagList nbttaglist = stack.getEnchantmentTagList();
         if (nbttaglist != null) {
             for (int i = 0; i < nbttaglist.tagCount(); i++) {

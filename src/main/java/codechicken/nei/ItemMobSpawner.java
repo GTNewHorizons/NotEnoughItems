@@ -246,8 +246,7 @@ public class ItemMobSpawner extends ItemBlock {
 
         synchronized (ItemMobSpawner.class) {
             try {
-                for (Map.Entry<Class<? extends Entity>, String> entry : ((Map<Class<? extends Entity>, String>) EntityList.classToStringMapping)
-                        .entrySet()) {
+                for (Map.Entry<Class<? extends Entity>, String> entry : EntityList.classToStringMapping.entrySet()) {
 
                     Class<? extends Entity> clazz = entry.getKey();
                     String name = entry.getValue();
@@ -323,7 +322,7 @@ public class ItemMobSpawner extends ItemBlock {
 
         String name = ENTITY_CLASS_TO_NAME_CACHE.get(entityClass);
         if (name == null) {
-            name = (String) EntityList.classToStringMapping.get(entityClass);
+            name = EntityList.classToStringMapping.get(entityClass);
         }
 
         return name != null && shouldRegisterEntity(entityClass, name);

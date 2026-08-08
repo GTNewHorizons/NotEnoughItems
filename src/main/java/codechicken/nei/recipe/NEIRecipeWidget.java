@@ -223,7 +223,7 @@ public class NEIRecipeWidget extends Widget {
                 button -> (this.showAsWidget ? button instanceof GuiOverlayButton : button.contains(mouseX, mouseY))
                         ? button
                         : null,
-                (GuiRecipeButton) null);
+                null);
 
         if (overlayButton != null) {
             NEIClientUtils.gl2DRenderContext(() -> overlayButton.drawItemOverlay());
