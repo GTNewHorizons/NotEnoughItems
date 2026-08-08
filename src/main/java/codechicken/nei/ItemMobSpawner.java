@@ -238,7 +238,6 @@ public class ItemMobSpawner extends ItemBlock {
         NEIClientConfig.logger.debug("Cleared all entity references from cache");
     }
 
-    @SuppressWarnings("unchecked")
     public static void loadSpawners() {
         if (loaded) {
             return;

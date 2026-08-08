@@ -452,7 +452,7 @@ public class NEIServerUtils {
     }
 
     public static List<Integer> getRange(final int start, final int end) {
-        return new AbstractList<Integer>() {
+        return new AbstractList<>() {
 
             @Override
             public Integer get(int index) {

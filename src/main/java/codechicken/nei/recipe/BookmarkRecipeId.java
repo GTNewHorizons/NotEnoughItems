@@ -64,7 +64,7 @@ public class BookmarkRecipeId {
             return false;
         }
 
-        Short idx = 0;
+        short idx = 0;
 
         for (PositionedStack pStack : stacks) {
             final NBTTagCompound tagCompoundA = StackInfo

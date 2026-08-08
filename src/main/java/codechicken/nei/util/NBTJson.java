@@ -44,7 +44,7 @@ public class NBTJson {
             final Map<String, NBTBase> tagMap = (Map<String, NBTBase>) nbtTagCompound.tagMap;
             final JsonObject root = new JsonObject();
 
-            tagMap.entrySet().stream().sorted(Map.Entry.<String, NBTBase>comparingByKey())
+            tagMap.entrySet().stream().sorted(Map.Entry.comparingByKey())
                     .forEach(nbtEntry -> { root.add(nbtEntry.getKey(), toJsonObject(nbtEntry.getValue())); });
 
             return root;
