@@ -59,7 +59,13 @@ public class SearchTokenParser {
 
         public EnumChatFormatting getHighlightedColor();
 
-        public SearchMode getSearchMode();
+        default SearchMode getSearchMode() {
+            return SearchMode.fromInt(NEIClientConfig.getIntSetting("inventory.search." + getName() + "SearchMode"));
+        }
+
+        default String getName() {
+            return String.valueOf(getPrefix());
+        }
     }
 
     private static class ProvidersCache {

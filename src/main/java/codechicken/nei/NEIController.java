@@ -4,13 +4,13 @@ import static codechicken.lib.gui.GuiDraw.getMousePosition;
 import static codechicken.nei.NEIClientConfig.canCheatItem;
 
 import java.awt.Point;
-import java.util.LinkedList;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.inventory.SlotCrafting;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.ClientCommandHandler;
 
@@ -27,7 +27,7 @@ import codechicken.nei.commands.CommandUntranslator;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
 import codechicken.nei.guihook.IContainerSlotClickHandler;
-import codechicken.nei.recipe.GuiRecipe;
+import codechicken.nei.util.EmptyContainer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -77,27 +77,36 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
     public static void updateUnlimitedItems(InventoryPlayer inventory) {
         if (!NEIClientConfig.canPerformAction("item") || !NEIClientConfig.hasSMPCounterPart()) return;
 
-        LinkedList<ItemStack> beforeStacks = new LinkedList<>();
-        for (int i = 0; i < inventory.getSizeInventory(); i++)
-            beforeStacks.add(NEIServerUtils.copyStack(inventory.getStackInSlot(i)));
-
-        for (int i = 0; i < inventory.getSizeInventory(); i++) {
+        int size = inventory.getSizeInventory();
+        for (int i = 0; i < size; i++) {
             ItemStack stack = inventory.getStackInSlot(i);
             if (stack == null) continue;
 
-            for (IInfiniteItemHandler handler : ItemInfo.infiniteHandlers)
-                if (handler.canHandleItem(stack) && handler.isItemInfinite(stack))
-                    handler.replenishInfiniteStack(inventory, i);
-        }
+            for (IInfiniteItemHandler handler : ItemInfo.infiniteHandlers) {
+                if (!handler.canHandleItem(stack) || !handler.isItemInfinite(stack)) continue;
 
-        for (int i = 0; i < inventory.getSizeInventory(); i++) {
-            ItemStack newstack = inventory.getStackInSlot(i);
+                long beforeSize = packStackSize(stack.stackSize, stack.getItemDamage());
+                handler.replenishInfiniteStack(inventory, i);
 
-            if (!NEIServerUtils.areStacksIdentical(beforeStacks.get(i), newstack)) {
-                inventory.setInventorySlotContents(i, beforeStacks.get(i)); // restore in case of SMP fail
-                NEIClientUtils.setSlotContents(i, newstack, false); // sends via SMP handler ;)
+                ItemStack newstack = inventory.getStackInSlot(i);
+                if (!sameStack(stack, beforeSize, newstack)) {
+                    NEIClientUtils.setSlotContents(i, newstack, false); // sends via SMP handler ;)
+                    stack.stackSize = (int) (beforeSize >> 32);
+                    stack.setItemDamage((int) beforeSize);
+                    inventory.setInventorySlotContents(i, stack); // restore in case of SMP fail
+                }
             }
         }
+    }
+
+    private static long packStackSize(int stackSize, int itemDamage) {
+        return ((long) stackSize << 32) | (itemDamage & 0xFFFFFFFFL);
+    }
+
+    private static boolean sameStack(ItemStack before, long beforeSize, ItemStack stack) {
+        if (stack == null) return before == null;
+        return before != null && Item.getIdFromItem(before.getItem()) == Item.getIdFromItem(stack.getItem())
+                && beforeSize == packStackSize(stack.stackSize, stack.getItemDamage());
     }
 
     public static void processCreativeCycling(InventoryPlayer inventory) {
@@ -252,7 +261,7 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
 
         // slot in GuiRecipe does not contain actual stack
         // and scroll should be handled by GuiRecipe, not here
-        if (gui instanceof GuiRecipe) return false;
+        if (gui.inventorySlots instanceof EmptyContainer) return false;
 
         Point mousePos = getMousePosition();
         Slot mouseover = manager.window.getSlotAtPosition(mousePos.x, mousePos.y);

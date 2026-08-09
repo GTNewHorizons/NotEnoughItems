@@ -15,7 +15,6 @@ import net.minecraftforge.fluids.FluidStack;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemList.NothingItemFilter;
 import codechicken.nei.SearchTokenParser.ISearchParserProvider;
-import codechicken.nei.SearchTokenParser.SearchMode;
 import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.IRecipeFilter.IRecipeFilterProvider;
 import codechicken.nei.api.ItemFilter;
@@ -85,8 +84,8 @@ public class SearchField extends TextField implements ItemFilterProvider {
         }
 
         @Override
-        public SearchMode getSearchMode() {
-            return SearchMode.fromInt(NEIClientConfig.getIntSetting("inventory.search." + this.name + "SearchMode"));
+        public String getName() {
+            return this.name;
         }
     }
 

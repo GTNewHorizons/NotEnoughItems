@@ -571,6 +571,24 @@ nei.debug.RecipeHandler.reset=Reset
 nei.recipe.page=Page %s/%s
 nei.recipe.tooltip=Recipes
 nei.recipe.tab.view_all.tooltip=View all categories
+nei.recipe.search.tooltip.name=Filter Syntax
+nei.recipe.search.tooltip.shift=§7Hold §6Shift§7 for more info
+nei.recipe.search.tooltip.input=%s§ftext§8 - §7search in inputs
+nei.recipe.search.tooltip.output=%s§ftext§8 - §7search in outputs
+nei.recipe.search.tooltip.prefix=%stext§8 - §7%s
+
+nei.recipe.search.tooltip.prefix.modName=search by mod
+nei.recipe.search.tooltip.prefix.tooltip=search by tooltip
+nei.recipe.search.tooltip.prefix.oreDict=search by ore dict
+nei.recipe.search.tooltip.prefix.identifier=search by resource ID
+nei.recipe.search.tooltip.prefix.subsets=search by subsets
+nei.recipe.search.tooltip.prefix.chemicalFormula=search by chemical formula
+
+nei.recipe.search.tooltip.exclude=%s§ftext§8 - §7exclude items with text
+nei.recipe.search.tooltip.exclude_recipe=%s§ftext§8 - §7exclude recipes with text
+nei.recipe.search.tooltip.or=§fa%s§fb§8 - §7match a or b
+nei.recipe.search.tooltip.exact=%s§ftext%s§8 - §7match exact phrase
+
 nei.recipe.shaped=Shaped Crafting
 nei.recipe.shapeless=Shapeless Crafting
 nei.recipe.furnace=Smelting

@@ -34,6 +34,8 @@ import codechicken.nei.PositionedStack;
 import codechicken.nei.RecipeSearchField;
 import codechicken.nei.RestartableTask;
 import codechicken.nei.SearchField;
+import codechicken.nei.SearchTokenParser.ISearchParserProvider;
+import codechicken.nei.SearchTokenParser.SearchMode;
 import codechicken.nei.VisiblityData;
 import codechicken.nei.Widget;
 import codechicken.nei.api.IGuiContainerOverlay;
@@ -54,6 +56,8 @@ import codechicken.nei.scroll.ScrollBar;
 import codechicken.nei.scroll.ScrollBar.OverflowType;
 import codechicken.nei.scroll.ScrollBar.ScrollPlace;
 import codechicken.nei.scroll.ScrollContainer;
+import codechicken.nei.search.SearchExpressionUtils;
+import codechicken.nei.util.EmptyContainer;
 import codechicken.nei.util.SlotInaccessible;
 
 public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer implements IGuiContainerOverlay,
@@ -172,6 +176,59 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             return true;
         }
 
+        @Override
+        public void addTooltips(List<String> tooltip) {
+            tooltip.add(NEIClientUtils.translate("recipe.search.tooltip.name") + GuiDraw.TOOLTIP_LINESPACE);
+
+            if (NEIClientUtils.shiftKey()) {
+                tooltip.add(
+                        NEIClientUtils.translate(
+                                "recipe.search.tooltip.input",
+                                SearchExpressionUtils.HIGHLIGHTS.RECIPE + "<"));
+                tooltip.add(
+                        NEIClientUtils.translate(
+                                "recipe.search.tooltip.output",
+                                SearchExpressionUtils.HIGHLIGHTS.RECIPE + ">"));
+
+                for (ISearchParserProvider provider : SearchField.searchParser.getProviders()) {
+                    if (provider.getSearchMode() == SearchMode.PREFIX) {
+                        addPrefixTooltip(tooltip, provider);
+                    }
+                }
+
+                tooltip.add(
+                        NEIClientUtils.translate(
+                                "recipe.search.tooltip.exclude",
+                                SearchExpressionUtils.HIGHLIGHTS.NEGATE + "-"));
+                tooltip.add(
+                        NEIClientUtils.translate(
+                                "recipe.search.tooltip.exclude_recipe",
+                                SearchExpressionUtils.HIGHLIGHTS.NEGATE + "!"));
+                tooltip.add(
+                        NEIClientUtils
+                                .translate("recipe.search.tooltip.or", SearchExpressionUtils.HIGHLIGHTS.OR.f + "|"));
+                tooltip.add(
+                        NEIClientUtils.translate(
+                                "recipe.search.tooltip.exact",
+                                SearchExpressionUtils.HIGHLIGHTS.QUOTED + "\"",
+                                SearchExpressionUtils.HIGHLIGHTS.QUOTED + "\""));
+            } else {
+                tooltip.add(NEIClientUtils.translate("recipe.search.tooltip.shift"));
+            }
+
+        }
+
+        private void addPrefixTooltip(List<String> tooltip, ISearchParserProvider provider) {
+            final char prefix = SearchField.searchParser.getRedefinedPrefix(provider.getPrefix());
+            final String modeName = NEIClientUtils.translate("recipe.search.tooltip.prefix." + provider.getName());
+
+            tooltip.add(
+                    NEIClientUtils.translate(
+                            "recipe.search.tooltip.prefix",
+                            provider.getHighlightedColor() + String.valueOf(prefix),
+                            modeName));
+        }
+
     };
 
     /**
@@ -181,7 +238,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private boolean isHeightHackApplied = false;
 
     protected GuiRecipe(GuiScreen prevgui) {
-        super(new ContainerRecipe());
+        super(new EmptyContainer());
         this.recipeTabs = new GuiRecipeTabs() {
 
             @Override
@@ -191,7 +248,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         };
         this.recipeCatalyst = new GuiRecipeCatalyst();
-        this.slotcontainer = (ContainerRecipe) this.inventorySlots;
+        this.slotcontainer = (EmptyContainer) this.inventorySlots;
 
         this.prevGui = prevgui;
         this.firstGuiGeneral = prevgui;
@@ -526,7 +583,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     @Override
     public Slot getSlotAtPosition(int mousex, int mousey) {
         final Widget activeWidget = this.container.getWidgetUnderMouse(mousex, mousey);
-        final ContainerRecipe slotcontainer = (ContainerRecipe) inventorySlots;
+        final EmptyContainer slotcontainer = (EmptyContainer) inventorySlots;
         slotcontainer.setActiveStack(null);
 
         if (activeWidget instanceof NEIRecipeWidget recipeWidget) {
@@ -758,6 +815,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
 
         this.recipeTabs.handleTooltip(mousex, mousey, currenttip);
+
+        if (this.handler != null && this.handler.searchingAvailable()) {
+            currenttip = GuiRecipe.toggleSearch.handleTooltip(mousex, mousey, currenttip);
+        }
 
         if (currenttip.isEmpty() && isHandlerTitleHovered(mousex, mousey)) {
             currenttip.add(NEIClientUtils.translate("recipe.tab.view_all.tooltip"));
@@ -1033,7 +1094,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private GuiOverlayButton[] overlayButtons = new GuiOverlayButton[0];
 
     @Deprecated
-    public ContainerRecipe slotcontainer;
+    public EmptyContainer slotcontainer;
 
     @Deprecated
     public List<GuiButton> getOverlayButtons() {
