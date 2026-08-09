@@ -36,7 +36,7 @@ import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class ItemUntranslator {
 
-    private class LanguageRegistryPatch implements AutoCloseable {
+    private static class LanguageRegistryPatch implements AutoCloseable {
         // RAII-style helper that temporarily swaps language data in
         // LanguageRegistry / StringTranslate using reflection. This allows
         // reading translation entries for a different language (eg. en_US)
