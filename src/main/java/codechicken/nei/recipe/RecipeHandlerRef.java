@@ -59,7 +59,7 @@ public class RecipeHandlerRef {
 
     private GuiContainer prepareGui(GuiContainer firstGui) {
 
-        if (firstGui instanceof GuiRecipe gui) {
+        if (firstGui instanceof GuiRecipe<?>gui) {
             firstGui = gui.firstGui;
         }
 

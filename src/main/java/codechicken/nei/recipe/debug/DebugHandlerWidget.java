@@ -382,7 +382,7 @@ public class DebugHandlerWidget extends Widget {
     public void update() {
         final GuiContainer gui = NEIClientUtils.getGuiContainer();
 
-        if (this.showWidget && gui instanceof GuiRecipe recipe) {
+        if (this.showWidget && gui instanceof GuiRecipe<?>recipe) {
 
             if (this.record == null || !this.record.handlerKey.equals(getHandlerID(recipe.getHandler()))) {
                 final IRecipeHandler handler = recipe.getHandler();

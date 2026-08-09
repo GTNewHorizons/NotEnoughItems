@@ -441,7 +441,7 @@ public abstract class ShortcutInputHandler {
             }
         }
 
-        if (gui instanceof GuiRecipe guiRecipe) {
+        if (gui instanceof GuiRecipe<?>guiRecipe) {
             recipe = guiRecipe.getFocusedRecipe();
         }
 
@@ -736,7 +736,7 @@ public abstract class ShortcutInputHandler {
             return itemSlot.getRecipeId();
         }
 
-        if (gui instanceof GuiRecipe guiRecipe) {
+        if (gui instanceof GuiRecipe<?>guiRecipe) {
             final Recipe focusedRecipe = guiRecipe.getFocusedRecipe();
 
             if (focusedRecipe != null) {
