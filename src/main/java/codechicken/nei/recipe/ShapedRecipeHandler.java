@@ -29,9 +29,15 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
 
     static {
         try {
-            final var lookup = MethodHandles.privateLookupIn(ShapedOreRecipe.class, MethodHandles.lookup());
-            SHAPED_ORE_RECIPE_WIDTH = lookup.findGetter(ShapedOreRecipe.class, "width", int.class);
-            SHAPED_ORE_RECIPE_HEIGHT = lookup.findGetter(ShapedOreRecipe.class, "height", int.class);
+            final var lookup = MethodHandles.lookup();
+            final var widthField = ShapedOreRecipe.class.getDeclaredField("width");
+            final var heightField = ShapedOreRecipe.class.getDeclaredField("height");
+
+            widthField.setAccessible(true);
+            heightField.setAccessible(true);
+
+            SHAPED_ORE_RECIPE_WIDTH = lookup.unreflectGetter(widthField);
+            SHAPED_ORE_RECIPE_HEIGHT = lookup.unreflectGetter(heightField);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
