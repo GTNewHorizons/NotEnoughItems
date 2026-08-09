@@ -274,7 +274,7 @@ public abstract class ShortcutInputHandler {
                 if (slot.getGroup().crafting == null) {
                     final Recipe recipe = Recipe.of(slot.getRecipeId());
                     if (recipe != null) {
-                        math = RecipeChainMath.of(recipe, Math.max(1, slot != null ? slot.getMultiplier() : 1));
+                        math = RecipeChainMath.of(recipe, Math.max(1, slot.getMultiplier()));
                     }
                 } else {
                     math = ItemPanels.bookmarkPanel.getGrid()

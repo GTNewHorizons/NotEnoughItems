@@ -179,7 +179,7 @@ public class SearchTokenParser {
     public synchronized ItemFilter getFilter(String rawText, boolean skipRecipeTokens) {
         final String filterText = EnumChatFormatting.getTextWithoutFormattingCodes(rawText).toLowerCase();
 
-        if (filterText == null || filterText.isEmpty()) {
+        if (filterText.isEmpty()) {
             return new EverythingItemFilter();
         }
 
@@ -253,7 +253,7 @@ public class SearchTokenParser {
     public synchronized IRecipeFilter getRecipeFilter(String filterText) {
         filterText = EnumChatFormatting.getTextWithoutFormattingCodes(filterText).toLowerCase();
 
-        if (filterText == null || filterText.isEmpty()) {
+        if (filterText.isEmpty()) {
             return new RecipeFilter(FilterContext.ANY, true, new EverythingItemFilter());
         }
 

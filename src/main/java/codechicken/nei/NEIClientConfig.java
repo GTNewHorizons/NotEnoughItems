@@ -921,9 +921,7 @@ public class NEIClientConfig {
             return;
         }
 
-        if (ItemPanels.bookmarkPanel != null) {
-            ItemPanels.bookmarkPanel.save();
-        }
+        ItemPanels.bookmarkPanel.save();
 
         SubsetWidget.saveHidden();
         FavoriteRecipes.save();

@@ -100,7 +100,7 @@ public class ItemMobSpawner extends ItemBlock {
             return true;
         }
 
-        return placed;
+        return false;
     }
 
     private String getMobTypeFromItemStack(ItemStack stack) {

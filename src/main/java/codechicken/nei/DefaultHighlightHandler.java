@@ -20,7 +20,7 @@ public class DefaultHighlightHandler implements IHighlightHandler {
         String name = null;
         try {
             String s = GuiContainerManager.itemDisplayNameShort(stack);
-            if (s != null && !s.endsWith("Unnamed")) name = s;
+            if (!s.endsWith("Unnamed")) name = s;
 
             if (name != null) currenttip.add(name);
         } catch (Exception ignored) {}

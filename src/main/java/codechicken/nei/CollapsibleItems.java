@@ -112,7 +112,7 @@ public class CollapsibleItems {
                     group.setFilter(itemStr);
                 }
 
-                if (group != null && group.filter != null) {
+                if (group.filter != null) {
                     addGroup(group);
                     group = new GroupItem();
                 }
