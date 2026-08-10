@@ -77,10 +77,12 @@ import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
  */
 public class ItemInfo {
 
-    public static enum Layout {
+    public enum Layout {
         HEADER,
         BODY,
-        FOOTER
+        FOOTER;
+
+        public static final Layout[] VALUES = values();
     }
 
     public static final ArrayListMultimap<Layout, IHighlightHandler> highlightHandlers = ArrayListMultimap.create();
@@ -472,7 +474,7 @@ public class ItemInfo {
             MovingObjectPosition mop) {
         List<String> retString = new ArrayList<>();
 
-        for (ItemInfo.Layout layout : ItemInfo.Layout.values())
+        for (ItemInfo.Layout layout : Layout.VALUES)
             for (IHighlightHandler handler : ItemInfo.highlightHandlers.get(layout))
                 retString = handler.handleTextData(itemStack, world, player, mop, retString, layout);
 
