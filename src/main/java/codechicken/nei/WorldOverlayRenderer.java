@@ -1,7 +1,5 @@
 package codechicken.nei;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
@@ -22,6 +20,8 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 
 import org.lwjgl.opengl.GL11;
+
+import com.cardinalstar.cubicchunks.world.api.IMinMaxHeight;
 
 import codechicken.lib.math.MathHelper;
 import codechicken.nei.KeyManager.IKeyStateTracker;
@@ -416,38 +416,18 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glDisable(GL11.GL_BLEND);
     }
 
-    /** Holder defers class loading until Cubic Chunks is confirmed present. */
-    private static final class CCWorldBounds {
-
-        static final MethodHandle GET_MIN_HEIGHT;
-        static final MethodHandle GET_MAX_HEIGHT;
-
-        static {
-            try {
-                MethodHandles.Lookup lookup = MethodHandles.lookup();
-                // Mixined into World by CC, use reflection + MethodHandles to call these
-                GET_MIN_HEIGHT = lookup.unreflect(World.class.getMethod("getMinHeight"));
-                GET_MAX_HEIGHT = lookup.unreflect(World.class.getMethod("getMaxHeight"));
-            } catch (ReflectiveOperationException e) {
-                throw new ExceptionInInitializerError(e);
-            }
-        }
-    }
-
     private static int worldMinHeight(World world) {
-        if (!NEIModContainer.isCCLoaded()) return 0;
-        try {
-            return (int) CCWorldBounds.GET_MIN_HEIGHT.invoke(world);
-        } catch (Throwable ignored) {
+        if (NEIModContainer.isCCLoaded() && world instanceof IMinMaxHeight worldHeights) {
+            return worldHeights.getMinHeight();
+        } else {
             return 0;
         }
     }
 
     private static int worldMaxHeight(World world) {
-        if (!NEIModContainer.isCCLoaded()) return world.getHeight();
-        try {
-            return (int) CCWorldBounds.GET_MAX_HEIGHT.invoke(world);
-        } catch (Throwable ignored) {
+        if (NEIModContainer.isCCLoaded() && world instanceof IMinMaxHeight worldHeights) {
+            return worldHeights.getMaxHeight();
+        } else {
             return world.getHeight();
         }
     }

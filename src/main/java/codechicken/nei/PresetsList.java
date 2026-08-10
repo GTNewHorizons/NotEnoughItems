@@ -163,9 +163,7 @@ public class PresetsList {
     public static void load() {
         final File presetsFile = new File(CommonUtils.getMinecraftDir(), "saves/NEI/global/presets.ini");
 
-        if (presetsFile == null || !presetsFile.exists()) {
-            return;
-        }
+        if (!presetsFile.exists()) return;
 
         List<String> itemStrings;
         try (FileInputStream reader = new FileInputStream(presetsFile)) {

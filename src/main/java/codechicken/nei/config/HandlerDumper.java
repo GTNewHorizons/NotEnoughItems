@@ -17,7 +17,6 @@ import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.GuiUsageRecipe;
 import codechicken.nei.recipe.HandlerInfo;
 import codechicken.nei.recipe.IRecipeHandler;
-import codechicken.nei.recipe.TemplateRecipeHandler;
 import codechicken.nei.util.NBTJson;
 
 public class HandlerDumper extends DataDumper {
@@ -37,10 +36,7 @@ public class HandlerDumper extends DataDumper {
         LinkedList<String[]> list = new LinkedList<>();
         for (IRecipeHandler handler : GuiUsageRecipe.usagehandlers) {
             final String handlerName = handler.getHandlerId();
-            final String handlerId = Objects.firstNonNull(
-                    handler instanceof TemplateRecipeHandler ? ((TemplateRecipeHandler) handler).getOverlayIdentifier()
-                            : null,
-                    "null");
+            final String handlerId = Objects.firstNonNull(handler.getOverlayIdentifier(), "null");
             HandlerInfo info = GuiRecipeTab.getHandlerInfo(handlerName, handlerId);
 
             list.add(

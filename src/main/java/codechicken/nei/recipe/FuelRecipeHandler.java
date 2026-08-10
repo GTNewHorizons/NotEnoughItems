@@ -53,8 +53,7 @@ public class FuelRecipeHandler extends FurnaceRecipeHandler {
 
     private void loadAllSmelting() {
         // Note: Not safe as written for parallelStream
-        final Map<ItemStack, ItemStack> smeltingRecipes = (Map<ItemStack, ItemStack>) FurnaceRecipes.smelting()
-                .getSmeltingList();
+        final Map<ItemStack, ItemStack> smeltingRecipes = FurnaceRecipes.smelting().getSmeltingList();
         smeltingRecipes.entrySet().stream().map(recipe -> new SmeltingPair(recipe.getKey(), recipe.getValue()))
                 .collect(Collectors.toCollection(() -> mfurnace));
     }

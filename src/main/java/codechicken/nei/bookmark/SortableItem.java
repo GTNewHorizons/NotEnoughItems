@@ -1,5 +1,7 @@
 package codechicken.nei.bookmark;
 
+import static codechicken.nei.bookmark.BookmarkGrid.DEFAULT_GROUP_ID;
+
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -139,13 +141,11 @@ public class SortableItem {
                         return;
                     }
 
-                    if (overGroupId != BookmarkGrid.DEFAULT_GROUP_ID
-                            && beforeGroupId != BookmarkGrid.DEFAULT_GROUP_ID) {
-                        beforeGroupId = BookmarkGrid.DEFAULT_GROUP_ID;
+                    if (overGroupId != DEFAULT_GROUP_ID && beforeGroupId != DEFAULT_GROUP_ID) {
+                        beforeGroupId = DEFAULT_GROUP_ID;
                     }
 
-                    if (overGroupId == BookmarkGrid.DEFAULT_GROUP_ID && beforeGroupId != BookmarkGrid.DEFAULT_GROUP_ID
-                            && afterGroupId != BookmarkGrid.DEFAULT_GROUP_ID) {
+                    if (overGroupId == DEFAULT_GROUP_ID && afterGroupId != DEFAULT_GROUP_ID) {
                         return;
                     }
 
@@ -160,12 +160,11 @@ public class SortableItem {
                         return;
                     }
 
-                    if (overGroupId != BookmarkGrid.DEFAULT_GROUP_ID && afterGroupId != BookmarkGrid.DEFAULT_GROUP_ID) {
-                        afterGroupId = BookmarkGrid.DEFAULT_GROUP_ID;
+                    if (overGroupId != DEFAULT_GROUP_ID && afterGroupId != DEFAULT_GROUP_ID) {
+                        afterGroupId = DEFAULT_GROUP_ID;
                     }
 
-                    if (overGroupId == BookmarkGrid.DEFAULT_GROUP_ID && beforeGroupId != BookmarkGrid.DEFAULT_GROUP_ID
-                            && afterGroupId != BookmarkGrid.DEFAULT_GROUP_ID) {
+                    if (overGroupId == DEFAULT_GROUP_ID && beforeGroupId != DEFAULT_GROUP_ID) {
                         return;
                     }
 

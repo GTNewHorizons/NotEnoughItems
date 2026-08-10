@@ -34,7 +34,6 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
 import net.minecraft.world.WorldSettings.GameType;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -76,7 +75,7 @@ public class NEIServerUtils {
     public static void toggleRaining(World world, boolean notify) {
         boolean raining = !world.isRaining();
         if (!raining) // turn off
-            ((WorldServer) world).provider.resetRainAndThunder();
+            world.provider.resetRainAndThunder();
         else world.getWorldInfo().setRaining(!isRaining(world));
 
         if (notify)
@@ -262,9 +261,6 @@ public class NEIServerUtils {
     /**
      * GT Items don't have any NBT set for the recipe, so if either of the stacks has a NULL nbt, and the other doesn't,
      * pretend they stack
-     *
-     * @param ItemStack stack
-     * @return
      */
     public static boolean isItemTool(ItemStack stack) {
         return GTMetaBaseItemHolder.gtMetaBaseItem != null
@@ -456,7 +452,7 @@ public class NEIServerUtils {
     }
 
     public static List<Integer> getRange(final int start, final int end) {
-        return new AbstractList<Integer>() {
+        return new AbstractList<>() {
 
             @Override
             public Integer get(int index) {

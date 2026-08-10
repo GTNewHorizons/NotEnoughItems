@@ -85,8 +85,7 @@ public class SearchExpressionFormatVisitor extends AbstractSearchExpressionVisit
     }
 
     private String formatChild(ParseTree child, Character prefix) {
-        if (child instanceof TerminalNode) {
-            final TerminalNode node = (TerminalNode) child;
+        if (child instanceof TerminalNode node) {
             final int type = node.getSymbol().getType();
             final String format = Optional.ofNullable(
                     // check if highlight is defined for the token

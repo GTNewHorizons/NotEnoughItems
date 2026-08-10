@@ -50,8 +50,7 @@ public class RecipeInfo {
     public static void registerGuiOverlay(Class<? extends GuiContainer> classz, String ident,
             IStackPositioner positioner) {
         positionerMap.put(new OverlayKey(classz, ident), positioner);
-        if (positioner instanceof OffsetPositioner && !offsets.containsKey(classz)) {
-            OffsetPositioner p = (OffsetPositioner) positioner;
+        if (positioner instanceof OffsetPositioner p && !offsets.containsKey(classz)) {
             setGuiOffset(classz, p.offsetx, p.offsety);
         }
     }

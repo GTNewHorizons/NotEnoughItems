@@ -64,7 +64,7 @@ public class BookmarkRecipeId {
             return false;
         }
 
-        Short idx = 0;
+        short idx = 0;
 
         for (PositionedStack pStack : stacks) {
             final NBTTagCompound tagCompoundA = StackInfo
@@ -123,8 +123,7 @@ public class BookmarkRecipeId {
             return true;
         }
 
-        if (anObject instanceof BookmarkRecipeId) {
-            final BookmarkRecipeId anRecipeId = (BookmarkRecipeId) anObject;
+        if (anObject instanceof BookmarkRecipeId anRecipeId) {
 
             if (!handlerName.equals(anRecipeId.handlerName)) {
                 return false;

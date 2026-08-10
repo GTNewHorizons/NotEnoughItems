@@ -241,7 +241,7 @@ public class ItemCraftablesPanel
 
     private GuiContainer getGuiContainer() {
         final GuiContainer firstGui = NEIClientUtils.getGuiContainer();
-        return (firstGui instanceof GuiRecipe gui) ? gui.firstGui : firstGui;
+        return (firstGui instanceof GuiRecipe<?>gui) ? gui.firstGui : firstGui;
     }
 
     private Map<ItemStack, RecipeId> generateCraftables(GuiContainer firstGui) {

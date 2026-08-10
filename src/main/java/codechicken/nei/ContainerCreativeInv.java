@@ -79,14 +79,13 @@ public class ContainerCreativeInv extends Container {
     @Override
     public ItemStack transferStackInSlot(EntityPlayer par1EntityPlayer, int slotIndex) {
         ItemStack transferredStack = null;
-        Slot slot = (Slot) inventorySlots.get(slotIndex);
+        Slot slot = inventorySlots.get(slotIndex);
 
         if (slot != null && slot.getHasStack()) {
             ItemStack stack = slot.getStack();
             transferredStack = stack.copy();
 
-            if (stack.getItem() instanceof ItemArmor) {
-                ItemArmor armor = (ItemArmor) stack.getItem();
+            if (stack.getItem() instanceof ItemArmor armor) {
                 if (!getSlot(90 + armor.armorType).getHasStack()) {
                     getSlot(90 + armor.armorType).putStack(transferredStack);
                     slot.putStack(null);

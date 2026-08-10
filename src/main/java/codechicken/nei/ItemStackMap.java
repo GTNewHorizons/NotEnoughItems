@@ -46,8 +46,7 @@ public class ItemStackMap<T> {
         }
 
         public boolean equals(Object o) {
-            if (!(o instanceof StackMetaKey)) return false;
-            StackMetaKey t = (StackMetaKey) o;
+            if (!(o instanceof StackMetaKey t)) return false;
             return damage == t.damage && Objects.equal(tag, t.tag);
         }
     }
@@ -218,8 +217,7 @@ public class ItemStackMap<T> {
     public void put(ItemStack key, T value) {
         if (key == null || key.getItem() == null) return;
 
-        DetailMap map = itemMap.get(key.getItem());
-        if (map == null) itemMap.put(key.getItem(), map = new DetailMap());
+        DetailMap map = itemMap.computeIfAbsent(key.getItem(), k -> new DetailMap());
         map.put(key, value);
     }
 

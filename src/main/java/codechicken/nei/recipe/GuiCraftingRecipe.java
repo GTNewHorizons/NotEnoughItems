@@ -119,7 +119,7 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
 
     public static RecipeId getRecipeId(GuiScreen gui, ItemStack stackover) {
 
-        if (gui instanceof GuiRecipe guiRecipe) {
+        if (gui instanceof GuiRecipe<?>guiRecipe) {
             final Recipe focusedRecipe = guiRecipe.getFocusedRecipe();
 
             if (focusedRecipe != null) {

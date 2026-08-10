@@ -168,7 +168,7 @@ public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
     private boolean isHandlerTitleHovered(int recipe, Point mouse) {
         final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
 
-        if (guiContainer instanceof GuiRecipe guiRecipe) {
+        if (guiContainer instanceof GuiRecipe<?>guiRecipe) {
             final Point recipePosition = guiRecipe.getRecipePosition(recipe);
             return new Rectangle(recipePosition.x, recipePosition.y, WIDTH, 16)
                     .contains(mouse.x - guiContainer.guiLeft, mouse.y - guiContainer.guiTop);
@@ -250,7 +250,7 @@ public class ProfilerRecipeHandler implements ICraftingHandler, IUsageHandler {
         if (r.handler != null) {
             final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
 
-            if (guiContainer instanceof GuiRecipe guiRecipe) {
+            if (guiContainer instanceof GuiRecipe<?>guiRecipe) {
                 int index = guiRecipe.currenthandlers.indexOf(r.handler);
 
                 if (index != -1) {
