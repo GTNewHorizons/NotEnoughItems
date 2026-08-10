@@ -78,6 +78,7 @@ import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 public class ItemInfo {
 
     public enum Layout {
+
         HEADER,
         BODY,
         FOOTER;
