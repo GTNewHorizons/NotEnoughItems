@@ -174,8 +174,10 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
         }
 
         Object[] items = recipe.getInput();
-        for (Object item : items) if (item instanceof List && ((List<?>) item).isEmpty()) // ore handler, no ores
-            return null;
+        for (Object item : items) {
+            if (item instanceof List<?>ores && ores.isEmpty()) // ore handler, no ores
+                return null;
+        }
 
         return new CachedShapedRecipe(width, height, items, recipe.getRecipeOutput());
     }
