@@ -91,7 +91,7 @@ public class FastTransferManager {
 
     public static void clearSlots(Container container) {
         for (int slotNo = 0; slotNo < container.inventorySlots.size(); slotNo++)
-            ((Slot) container.inventorySlots.get(slotNo)).putStack(null);
+            container.inventorySlots.get(slotNo).putStack(null);
     }
 
     public void performMassTransfer(GuiContainer window, int fromSlot, int toSlot, ItemStack heldStack) {
@@ -289,7 +289,7 @@ public class FastTransferManager {
 
         if (held == null) return -1;
 
-        for (int i = 0; held != null && i < window.inventorySlots.inventorySlots.size(); i++) {
+        for (int i = 0; i < window.inventorySlots.inventorySlots.size(); i++) {
             final Slot slot = window.inventorySlots.inventorySlots.get(i);
 
             if (slot.inventory instanceof InventoryPlayer && !slot.getHasStack() && slot.isItemValid(held)) {

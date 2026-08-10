@@ -82,8 +82,8 @@ public class GuiEnchantmentModifier extends GuiContainer {
 
     private void changeLevel(int i) {
         container.level += i;
-        ((GuiButton) buttonList.get(0)).enabled = container.level != 1;
-        ((GuiButton) buttonList.get(1)).enabled = container.level != 10;
+        buttonList.get(0).enabled = container.level != 1;
+        buttonList.get(1).enabled = container.level != 10;
     }
 
     protected void mouseClicked(int i, int j, int k) {

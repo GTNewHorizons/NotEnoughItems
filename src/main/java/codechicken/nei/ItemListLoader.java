@@ -150,8 +150,7 @@ public class ItemListLoader {
         if (item == null) {
             return;
         }
-        if (item instanceof IFluidContainerItem) {
-            IFluidContainerItem fluidItem = (IFluidContainerItem) item;
+        if (item instanceof IFluidContainerItem fluidItem) {
             runChecked(stack, () -> fluidItem.getFluid(stack), "getFluid");
         }
         runChecked(stack, () -> item.isDamaged(stack), "isDamaged");

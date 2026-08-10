@@ -1,6 +1,8 @@
 package codechicken.nei.recipe;
 
 import java.awt.Rectangle;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,8 +15,6 @@ import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.ShapedRecipes;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 
-import codechicken.core.ReflectionManager;
-import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
@@ -24,6 +24,24 @@ import codechicken.nei.api.IRecipeOverlayRenderer;
 import codechicken.nei.api.IStackPositioner;
 
 public class ShapedRecipeHandler extends TemplateRecipeHandler {
+
+    private static final MethodHandle SHAPED_ORE_RECIPE_WIDTH, SHAPED_ORE_RECIPE_HEIGHT;
+
+    static {
+        try {
+            final var lookup = MethodHandles.lookup();
+            final var widthField = ShapedOreRecipe.class.getDeclaredField("width");
+            final var heightField = ShapedOreRecipe.class.getDeclaredField("height");
+
+            widthField.setAccessible(true);
+            heightField.setAccessible(true);
+
+            SHAPED_ORE_RECIPE_WIDTH = lookup.unreflectGetter(widthField);
+            SHAPED_ORE_RECIPE_HEIGHT = lookup.unreflectGetter(heightField);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public class CachedShapedRecipe extends CachedRecipe {
 
@@ -84,7 +102,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
     @Override
     public void loadCraftingRecipes(String outputId, Object... results) {
         if (outputId.equals("crafting") && getClass() == ShapedRecipeHandler.class) {
-            for (IRecipe irecipe : (List<IRecipe>) CraftingManager.getInstance().getRecipeList()) {
+            for (IRecipe irecipe : CraftingManager.getInstance().getRecipeList()) {
                 CachedShapedRecipe recipe = null;
 
                 if (irecipe instanceof ShapedRecipes shaped) {
@@ -99,7 +117,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
                 }
             }
         } else if (outputId.equals("crafting2x2") && getClass() == ShapedRecipeHandler.class) {
-            for (IRecipe irecipe : (List<IRecipe>) CraftingManager.getInstance().getRecipeList()) {
+            for (IRecipe irecipe : CraftingManager.getInstance().getRecipeList()) {
 
                 if (irecipe instanceof ShapedRecipes shaped && shaped.recipeWidth <= 2 && shaped.recipeHeight <= 2) {
                     CachedShapedRecipe recipe = new CachedShapedRecipe(shaped);
@@ -115,7 +133,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
 
     @Override
     public void loadCraftingRecipes(ItemStack result) {
-        for (IRecipe irecipe : (List<IRecipe>) CraftingManager.getInstance().getRecipeList()) {
+        for (IRecipe irecipe : CraftingManager.getInstance().getRecipeList()) {
             if (NEIServerUtils.areStacksSameTypeCrafting(irecipe.getRecipeOutput(), result)) {
                 CachedShapedRecipe recipe = null;
                 if (irecipe instanceof ShapedRecipes) recipe = new CachedShapedRecipe((ShapedRecipes) irecipe);
@@ -131,7 +149,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
 
     @Override
     public void loadUsageRecipes(ItemStack ingredient) {
-        for (IRecipe irecipe : (List<IRecipe>) CraftingManager.getInstance().getRecipeList()) {
+        for (IRecipe irecipe : CraftingManager.getInstance().getRecipeList()) {
             CachedShapedRecipe recipe = null;
             if (irecipe instanceof ShapedRecipes) recipe = new CachedShapedRecipe((ShapedRecipes) irecipe);
             else if (irecipe instanceof ShapedOreRecipe) recipe = forgeShapedRecipe((ShapedOreRecipe) irecipe);
@@ -147,19 +165,21 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
     }
 
     public CachedShapedRecipe forgeShapedRecipe(ShapedOreRecipe recipe) {
+        int width, height;
         try {
-            int width = ReflectionManager.getField(ShapedOreRecipe.class, Integer.class, recipe, 4);
-            int height = ReflectionManager.getField(ShapedOreRecipe.class, Integer.class, recipe, 5);
-
-            Object[] items = recipe.getInput();
-            for (Object item : items) if (item instanceof List && ((List<?>) item).isEmpty()) // ore handler, no ores
-                return null;
-
-            return new CachedShapedRecipe(width, height, items, recipe.getRecipeOutput());
-        } catch (Exception e) {
-            NEIClientConfig.logger.error("Error loading recipe: ", e);
-            return null;
+            width = (int) SHAPED_ORE_RECIPE_WIDTH.invokeExact(recipe);
+            height = (int) SHAPED_ORE_RECIPE_HEIGHT.invokeExact(recipe);
+        } catch (Throwable e) {
+            throw new IllegalStateException("Unreachable");
         }
+
+        Object[] items = recipe.getInput();
+        for (Object item : items) {
+            if (item instanceof List<?>ores && ores.isEmpty()) // ore handler, no ores
+                return null;
+        }
+
+        return new CachedShapedRecipe(width, height, items, recipe.getRecipeOutput());
     }
 
     @Override

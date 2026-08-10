@@ -46,8 +46,7 @@ public class ServerHandler {
 
     @SubscribeEvent
     public void tickEvent(TickEvent.PlayerTickEvent event) {
-        if (event.phase == Phase.START && event.player instanceof EntityPlayerMP) {
-            EntityPlayerMP player = (EntityPlayerMP) event.player;
+        if (event.phase == Phase.START && event.player instanceof EntityPlayerMP player) {
             PlayerSave save = NEIServerConfig.forPlayer(player.getCommandSenderName());
             if (save == null) return;
             updateMagneticPlayer(player, save);

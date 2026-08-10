@@ -913,9 +913,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                     this.grid.createRecipeChainMath(groupId));
         }
 
-        if (this.recipeChainTooltipLineHandler != null) {
-            currenttip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(this.recipeChainTooltipLineHandler));
-        }
+        currenttip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(this.recipeChainTooltipLineHandler));
 
         return currenttip;
     }

@@ -1083,7 +1083,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             final int curRecipe = indices.isEmpty() ? 0 : indices.get(0);
             final Recipe recipe = Recipe.of(gRecipe.handler.original, curRecipe);
 
-            return recipe != null ? recipe.getRecipeId() : null;
+            return recipe.getRecipeId();
         }
 
         return null;
