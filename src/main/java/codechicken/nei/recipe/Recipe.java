@@ -346,19 +346,6 @@ public class Recipe {
             return Arrays.asList(this.items);
         }
 
-        public RecipeIngredient setAmount(int amount) {
-
-            for (int index = 0; index < this.items.length; index++) {
-                this.items[index] = StackInfo.withAmount(this.items[index], amount);
-            }
-
-            return this;
-        }
-
-        public void setChance(int chance) {
-            this.chance = chance;
-        }
-
         public RecipeIngredient copy() {
             return new RecipeIngredient(
                     this.relx,

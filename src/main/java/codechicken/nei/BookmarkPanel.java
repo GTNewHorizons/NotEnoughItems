@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -1082,7 +1083,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             final BookmarkItem item = this.grid.getCalculatedItem(itemIndex);
 
             if (item.permutations.size() > 1) {
-                final List<ItemStack> items = acceptsFollowingTooltipLineHandler.items;
+                final List<ItemStack> items = item.permutations.values().stream().collect(Collectors.toList());
                 ItemStack activeStack = this.acceptsFollowingTooltipLineHandler.getActiveStack();
                 int stackIndex = 0;
 
@@ -1094,10 +1095,13 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                 }
 
                 activeStack = items.get((items.size() - shift + stackIndex) % items.size());
-
                 this.acceptsFollowingTooltipLineHandler.setActiveStack(activeStack);
-                this.grid.getBookmarkItem(Math.abs(itemIndex)).itemStack = activeStack;
-                this.grid.onItemsChanged();
+
+                final int targetItemIndex = Math.abs(itemIndex);
+                final BookmarkItem oldItem = this.grid.getBookmarkItem(targetItemIndex);
+                final BookmarkItem newItem = oldItem.copyWithPerm(activeStack);
+
+                this.grid.replaceBookmarkItem(targetItemIndex, newItem);
             }
 
             return true;

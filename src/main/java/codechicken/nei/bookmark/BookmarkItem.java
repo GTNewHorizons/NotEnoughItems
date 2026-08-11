@@ -84,6 +84,7 @@ public class BookmarkItem {
 
         public BookmarkItem build() {
             final Map<String, ItemStack> perms;
+            final ItemStack stack = this.factor > 0 ? StackInfo.withAmount(this.stack, this.factor) : this.stack;
             long multiplier = 0;
 
             if (this.permutations != null) {
@@ -91,15 +92,15 @@ public class BookmarkItem {
             } else if (this.type == BookmarkItemType.INGREDIENT) {
 
                 if (this.recipe != null) {
-                    perms = Builder.generatePermutations(this.stack, this.recipe);
+                    perms = Builder.generatePermutations(stack, this.recipe);
                 } else if (this.recipeId != null) {
-                    perms = Builder.generatePermutations(this.stack, Recipe.of(this.recipeId));
+                    perms = Builder.generatePermutations(stack, Recipe.of(this.recipeId));
                 } else {
-                    perms = Builder.generatePermutations(this.stack);
+                    perms = Builder.generatePermutations(stack);
                 }
 
             } else {
-                perms = Builder.generatePermutations(this.stack);
+                perms = Builder.generatePermutations(stack);
             }
 
             if (this.multiplier >= 0) {
@@ -113,7 +114,7 @@ public class BookmarkItem {
                     multiplier,
                     this.factor,
                     this.chance,
-                    this.stack,
+                    stack,
                     perms,
                     this.recipeId != null ? this.recipeId : this.recipe != null ? this.recipe.getRecipeId() : null,
                     this.type);
@@ -308,6 +309,19 @@ public class BookmarkItem {
         return copyWithMultiplier(this.multiplier);
     }
 
+    public BookmarkItem copyWithPerm(ItemStack stack) {
+
+        for (ItemStack itemStack : this.permutations.values()) {
+            if (StackInfo.equalItemAndNBT(stack, itemStack, true)) {
+                return BookmarkItem.builder(this.groupId, itemStack).recipeId(this.recipeId)
+                        .factor(StackInfo.getAmount(itemStack)).chance(this.chance).type(this.type)
+                        .multiplier(this.multiplier).permutations(this.permutations).build();
+            }
+        }
+
+        return copy();
+    }
+
     public boolean containsItems(BookmarkItem item) {
         return this.permutations.keySet().stream().anyMatch(item.permutations::containsKey);
     }
@@ -316,21 +330,36 @@ public class BookmarkItem {
         return getAmount(this.multiplier);
     }
 
+    public long getAmount(long multiplier, ItemStack perm) {
+
+        for (ItemStack itemStack : this.permutations.values()) {
+            if (StackInfo.equalItemAndNBT(perm, itemStack, true)) {
+                return getAmount(multiplier, StackInfo.getAmount(itemStack), this.chance);
+            }
+        }
+
+        return getAmount(multiplier);
+    }
+
     public long getAmount(long multiplier) {
-        long amount = this.factor * multiplier;
+        return getAmount(multiplier, this.factor, this.chance);
+    }
+
+    protected long getAmount(long multiplier, long factor, long chance) {
+        long amount = factor * multiplier;
 
         if (this.fluidCellAmount > 1) {
             amount = amount * this.fluidCellAmount;
         }
 
-        if (this.chance != PositionedStack.CHANCE_FULL) {
+        if (chance != PositionedStack.CHANCE_FULL) {
 
             if (this.type == BookmarkItemType.INGREDIENT) {
                 // For ingredients, round up the expected amount to be conservative.
-                amount = (amount * this.chance + PositionedStack.CHANCE_FULL - 1) / PositionedStack.CHANCE_FULL;
+                return (amount * chance + PositionedStack.CHANCE_FULL - 1) / PositionedStack.CHANCE_FULL;
             } else {
                 // For results, round down the expected amount to be conservative.
-                amount = (amount * this.chance) / PositionedStack.CHANCE_FULL;
+                return (amount * chance) / PositionedStack.CHANCE_FULL;
             }
 
         }
