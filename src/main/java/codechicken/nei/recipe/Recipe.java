@@ -335,11 +335,13 @@ public class Recipe {
 
         public void setActiveIndex(int activeIndex) {
             this.activeIndex = Math.max(0, Math.min(activeIndex, this.items.length - 1));
+            this.amount = StackInfo.getAmount(this.items[this.activeIndex]);
         }
 
         public boolean contains(ItemStack stackA) {
-            return getPermutations().stream()
-                    .anyMatch(stackB -> NEIClientUtils.areStacksSameTypeWithNBT(stackB, stackA));
+            final ItemStack stack = StackInfo.withAmount(stackA, 0);
+            return getPermutations().stream().anyMatch(
+                    stackB -> NEIClientUtils.areStacksSameTypeWithNBT(StackInfo.withAmount(stackB, 0), stack));
         }
 
         public List<ItemStack> getPermutations() {

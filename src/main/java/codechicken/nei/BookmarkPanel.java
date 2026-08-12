@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -1083,7 +1082,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             final BookmarkItem item = this.grid.getCalculatedItem(itemIndex);
 
             if (item.permutations.size() > 1) {
-                final List<ItemStack> items = item.permutations.values().stream().collect(Collectors.toList());
+                final List<ItemStack> items = acceptsFollowingTooltipLineHandler.items;
                 ItemStack activeStack = this.acceptsFollowingTooltipLineHandler.getActiveStack();
                 int stackIndex = 0;
 

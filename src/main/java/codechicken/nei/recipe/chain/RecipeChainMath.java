@@ -233,7 +233,7 @@ public class RecipeChainMath {
                 final long amount = item.getAmount(multiplier);
                 rootIngredients.add(
                         BookmarkItem.builder(-1, item.getItemStack(amount)).factor(item.getStackSize(amount))
-                                .permutations(BookmarkItem.Builder.generatePermutations(item.itemStack))
+                                .permutations(BookmarkItem.Builder.generatePermutations(item.getItemStack(amount)))
                                 .recipeId(ROOT_RECIPE_ID).type(BookmarkItemType.INGREDIENT).build());
 
             }
