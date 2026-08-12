@@ -233,7 +233,7 @@ public class RecipeChainMath {
                 final long amount = item.getAmount(multiplier);
                 rootIngredients.add(
                         BookmarkItem.builder(-1, item.getItemStack(amount)).factor(item.getStackSize(amount))
-                                .permutations(BookmarkItem.Builder.generatePermutations(item.itemStack))
+                                .permutations(BookmarkItem.Builder.generatePermutations(item.getItemStack(amount)))
                                 .recipeId(ROOT_RECIPE_ID).type(BookmarkItemType.INGREDIENT).build());
 
             }
@@ -348,14 +348,14 @@ public class RecipeChainMath {
 
         for (BookmarkItem prefItem : this.recipeResults) {
             if (!prefItem.emptyFactor() && this.outputRecipes.containsKey(prefItem.recipeId)) {
-                final long prefAmount = prefItem.getAmount(this.outputRecipes.get(prefItem.recipeId));
+                final long prefMultiplier = this.outputRecipes.get(prefItem.recipeId);
 
                 if (prefItem.itemStack.getItem().hasContainerItem(prefItem.itemStack)) {
                     this.containerItemsBlacklist.add(prefItem.itemStack);
                 }
 
                 this.preferredItems.put(prefItem, prefItem);
-                calculateSuitableRecipe(prefItem, prefAmount, new ArrayList<>(), visitor);
+                calculateSuitableRecipe(prefItem, prefMultiplier, new ArrayList<>(), visitor);
                 this.preferredItems.remove(prefItem);
             }
         }
@@ -372,9 +372,11 @@ public class RecipeChainMath {
         return this;
     }
 
-    private void calculateSuitableRecipe(BookmarkItem ingrItem, long ingrAmount, List<RecipeId> visited,
+    private void calculateSuitableRecipe(BookmarkItem ingrItem, long ingrMultiplier, List<RecipeId> visited,
             ChainVisitor visitor) {
         final BookmarkItem prefItem = this.preferredItems.get(ingrItem);
+        long ingrAmount = ingrItem
+                .getAmount(ingrMultiplier, prefItem != null ? prefItem.itemStack : ingrItem.itemStack);
 
         visitor.addIngredient(prefItem != null ? prefItem : ingrItem, ingrAmount);
 
@@ -426,7 +428,7 @@ public class RecipeChainMath {
 
         for (BookmarkItem item : this.recipeIngredients) {
             if (!item.emptyFactor() && recipeId.equals(item.recipeId)) {
-                calculateSuitableRecipe(item, item.getAmount(multiplier), visited, visitor);
+                calculateSuitableRecipe(item, multiplier, visited, visitor);
             }
         }
 

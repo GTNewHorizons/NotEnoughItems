@@ -228,11 +228,15 @@ public class BookmarkItem {
         final List<RecipeIngredient> items = type == BookmarkItemType.RESULT ? recipe.getResults()
                 : recipe.getIngredients();
         final Builder builder = builder(groupId, stack).type(type).recipe(recipe);
+        final ItemStack emptyStack = StackInfo.withAmount(stack, 0);
         long amount = 0;
 
         for (RecipeIngredient res : items) {
-            if (res.contains(stack)) {
-                amount += 1L * res.getAmount() * res.getChance();
+            for (ItemStack perm : res.getPermutations()) {
+                if (NEIClientUtils.areStacksSameTypeWithNBT(emptyStack, StackInfo.withAmount(perm, 0))) {
+                    amount += 1L * StackInfo.getAmount(perm) * res.getChance();
+                    break;
+                }
             }
         }
 
@@ -308,6 +312,47 @@ public class BookmarkItem {
         return copyWithMultiplier(this.multiplier);
     }
 
+    public BookmarkItem copyWithPerm(ItemStack stack) {
+
+        if (this.recipeId != null
+                && !NEIClientUtils.areStacksSameTypeWithNBT(StackInfo.withAmount(stack, 0), this.getItemStack(0))) {
+            final ItemStack oldPerm = findPermutation(this.itemStack);
+            final ItemStack newPerm = findPermutation(stack);
+
+            if (oldPerm != null && newPerm != null) {
+                final long oldAmount = StackInfo.getAmount(oldPerm);
+                final long amount = oldAmount > 0 ? this.factor * this.chance * StackInfo.getAmount(newPerm) / oldAmount
+                        : 0;
+                final long factor = (amount % PositionedStack.CHANCE_FULL) == 0 ? amount / PositionedStack.CHANCE_FULL
+                        : 1;
+                final long chance = factor == 1 ? amount : PositionedStack.CHANCE_FULL;
+
+                return new BookmarkItem(
+                        this.groupId,
+                        this.multiplier,
+                        factor,
+                        chance,
+                        newPerm,
+                        this.permutations,
+                        this.recipeId,
+                        this.type);
+            }
+        }
+
+        return copy();
+    }
+
+    private ItemStack findPermutation(ItemStack stack) {
+
+        for (ItemStack itemStack : this.permutations.values()) {
+            if (StackInfo.equalItemAndNBT(stack, itemStack, true)) {
+                return itemStack;
+            }
+        }
+
+        return null;
+    }
+
     public boolean containsItems(BookmarkItem item) {
         return this.permutations.keySet().stream().anyMatch(item.permutations::containsKey);
     }
@@ -316,21 +361,47 @@ public class BookmarkItem {
         return getAmount(this.multiplier);
     }
 
+    public long getAmount(long multiplier, ItemStack perm) {
+
+        if (this.recipeId != null && perm != null
+                && !NEIClientUtils.areStacksSameTypeWithNBT(StackInfo.withAmount(perm, 0), this.getItemStack(0))) {
+            final ItemStack oldPerm = findPermutation(this.itemStack);
+            final ItemStack newPerm = findPermutation(perm);
+
+            if (oldPerm != null && newPerm != null) {
+                final long oldAmount = StackInfo.getAmount(oldPerm);
+                final long amount = oldAmount > 0 ? this.factor * this.chance * StackInfo.getAmount(newPerm) / oldAmount
+                        : 0;
+                final long factor = (amount % PositionedStack.CHANCE_FULL) == 0 ? amount / PositionedStack.CHANCE_FULL
+                        : 1;
+                final long chance = factor == 1 ? amount : PositionedStack.CHANCE_FULL;
+
+                return getAmount(multiplier, factor, chance);
+            }
+        }
+
+        return getAmount(multiplier);
+    }
+
     public long getAmount(long multiplier) {
-        long amount = this.factor * multiplier;
+        return getAmount(multiplier, this.factor, this.chance);
+    }
+
+    protected long getAmount(long multiplier, long factor, long chance) {
+        long amount = factor * multiplier;
 
         if (this.fluidCellAmount > 1) {
             amount = amount * this.fluidCellAmount;
         }
 
-        if (this.chance != PositionedStack.CHANCE_FULL) {
+        if (chance != PositionedStack.CHANCE_FULL) {
 
             if (this.type == BookmarkItemType.INGREDIENT) {
                 // For ingredients, round up the expected amount to be conservative.
-                amount = (amount * this.chance + PositionedStack.CHANCE_FULL - 1) / PositionedStack.CHANCE_FULL;
+                return (amount * chance + PositionedStack.CHANCE_FULL - 1) / PositionedStack.CHANCE_FULL;
             } else {
                 // For results, round down the expected amount to be conservative.
-                amount = (amount * this.chance) / PositionedStack.CHANCE_FULL;
+                return (amount * chance) / PositionedStack.CHANCE_FULL;
             }
 
         }
