@@ -94,6 +94,10 @@ public class PositionedStack {
         return null;
     }
 
+    public List<String> getTooltip() {
+        return null;
+    }
+
     public int getChance() {
         return this.chance;
     }

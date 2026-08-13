@@ -410,13 +410,21 @@ public class NEIRecipeWidget extends Widget {
         if (itemstack != null) {
             final PositionedStack hovered = getPositionedStackMouseOver(mousex, mousey);
 
-            if (hovered != null && this.handlerInfo.getShowBadge()) {
-                final List<Badge> badges = getBadges(hovered, getOutputs().indexOf(hovered) == -1);
+            if (hovered != null) {
+                if (this.handlerInfo.getShowBadge()) {
+                    final List<Badge> badges = getBadges(hovered, getOutputs().indexOf(hovered) == -1);
 
-                for (Badge badge : badges) {
-                    if (badge.getTooltip() != null && !badge.getTooltip().isEmpty()) {
-                        tooltip.addAll(badge.getTooltip());
+                    for (Badge badge : badges) {
+                        if (badge.getTooltip() != null && !badge.getTooltip().isEmpty()) {
+                            tooltip.addAll(badge.getTooltip());
+                        }
                     }
+                }
+
+                final List<String> customTooltip = hovered.getTooltip();
+
+                if (customTooltip != null && !customTooltip.isEmpty()) {
+                    tooltip.addAll(customTooltip);
                 }
             }
 
