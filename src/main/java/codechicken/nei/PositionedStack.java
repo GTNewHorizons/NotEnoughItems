@@ -35,7 +35,7 @@ public class PositionedStack {
     public ItemStack item;
 
     protected int chance = CHANCE_FULL;
-    private boolean permutated = false;
+    protected boolean permutated = false;
 
     public PositionedStack(Object object, int x, int y, boolean genPerms) {
         items = NEIServerUtils.extractRecipeItems(object);
@@ -208,5 +208,37 @@ public class PositionedStack {
     @Override
     public String toString() {
         return "PositionedStack(output='" + item.toString() + "')";
+    }
+
+    /**
+     * A {@link PositionedStack} that keeps its items but never draws them.
+     */
+    public static class Placeholder extends PositionedStack {
+
+        public Placeholder(Object object, int x, int y, boolean genPerms) {
+            super(object, x, y, genPerms);
+        }
+
+        public Placeholder(Object object, int x, int y) {
+            this(object, x, y, true);
+        }
+
+        @Override
+        public void draw(int mousex, int mousey) {}
+
+        @Override
+        public PositionedStack copy() {
+            Placeholder pStack = new Placeholder(
+                    Arrays.stream(this.items).map(ItemStack::copy).toArray(ItemStack[]::new),
+                    relx,
+                    rely,
+                    false);
+
+            pStack.permutated = this.permutated;
+            pStack.chance = this.chance;
+            pStack.width = this.width;
+            pStack.height = this.height;
+            return pStack;
+        }
     }
 }
