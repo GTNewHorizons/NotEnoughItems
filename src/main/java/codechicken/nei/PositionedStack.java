@@ -13,6 +13,7 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.Badge;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.StackInfo;
@@ -27,6 +28,8 @@ public class PositionedStack {
 
     public int relx;
     public int rely;
+    public int width = 16;
+    public int height = 16;
     public ItemStack[] items;
     // compatibility dummy
     public ItemStack item;
@@ -107,7 +110,15 @@ public class PositionedStack {
                 false);
         pStack.permutated = this.permutated;
         pStack.chance = this.chance;
+        pStack.width = this.width;
+        pStack.height = this.height;
         return pStack;
+    }
+
+    public void draw(int mousex, int mousey) {
+        final int x = this.relx + (this.width - 16) / 2;
+        final int y = this.rely + (this.height - 16) / 2;
+        GuiContainerManager.drawItem(x, y, this.item);
     }
 
     public List<ItemStack> getFilteredPermutations() {
@@ -164,7 +175,9 @@ public class PositionedStack {
     }
 
     public boolean contains(int mx, int my) {
-        return mx >= this.relx - 1 && mx < this.relx + 17 && my >= this.rely - 1 && my < this.rely + 17;
+        return mx >= this.relx - 1 && mx < this.relx + this.width + 1
+                && my >= this.rely - 1
+                && my < this.rely + this.height + 1;
     }
 
     public boolean contains(ItemStack ingredient) {

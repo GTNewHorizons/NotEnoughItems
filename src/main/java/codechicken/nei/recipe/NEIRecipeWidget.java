@@ -247,14 +247,15 @@ public class NEIRecipeWidget extends Widget {
     }
 
     protected void drawItem(PositionedStack pStack, int mouseX, int mouseY, int yShift, boolean input) {
-        GuiContainerManager.drawItem(pStack.relx, pStack.rely, pStack.item);
+        pStack.draw(mouseX - this.x, mouseY - this.y - yShift);
 
         if (this.handlerInfo.getShowBadge()) {
             drawBadge(pStack, input);
         }
 
         if (pStack.contains(mouseX - this.x, mouseY - this.y - yShift)) {
-            NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(pStack.relx, pStack.rely, 16, 16, 0x80FFFFFF));
+            NEIClientUtils.gl2DRenderContext(
+                    () -> GuiDraw.drawRect(pStack.relx, pStack.rely, pStack.width, pStack.height, 0x80FFFFFF));
         }
     }
 
@@ -291,7 +292,7 @@ public class NEIRecipeWidget extends Widget {
         final List<Badge> badges = getBadges(pStack, input);
 
         for (Badge badge : badges) {
-            badge.draw(new Rectangle4i(pStack.relx, pStack.rely, 16, 16));
+            badge.draw(new Rectangle4i(pStack.relx, pStack.rely, pStack.width, pStack.height));
         }
     }
 
