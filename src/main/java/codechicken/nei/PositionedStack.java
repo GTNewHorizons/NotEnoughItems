@@ -21,7 +21,7 @@ import codechicken.nei.recipe.StackInfo;
 /**
  * Simply an {@link ItemStack} with position. Mainly used in the recipe handlers.
  */
-public class PositionedStack {
+public class PositionedStack implements Cloneable {
 
     /** Maximum chance value representing 100% probability (1 unit = 0.01%). */
     public static final int CHANCE_FULL = 10_000;
@@ -107,16 +107,14 @@ public class PositionedStack {
     }
 
     public PositionedStack copy() {
-        PositionedStack pStack = new PositionedStack(
-                Arrays.stream(this.items).map(ItemStack::copy).toArray(ItemStack[]::new),
-                relx,
-                rely,
-                false);
-        pStack.permutated = this.permutated;
-        pStack.chance = this.chance;
-        pStack.width = this.width;
-        pStack.height = this.height;
-        return pStack;
+        try {
+            PositionedStack pStack = (PositionedStack) super.clone();
+            pStack.items = Arrays.stream(this.items).map(ItemStack::copy).toArray(ItemStack[]::new);
+            pStack.item = this.item == null ? null : this.item.copy();
+            return pStack;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void draw(int mousex, int mousey) {
@@ -225,20 +223,5 @@ public class PositionedStack {
 
         @Override
         public void draw(int mousex, int mousey) {}
-
-        @Override
-        public PositionedStack copy() {
-            Placeholder pStack = new Placeholder(
-                    Arrays.stream(this.items).map(ItemStack::copy).toArray(ItemStack[]::new),
-                    relx,
-                    rely,
-                    false);
-
-            pStack.permutated = this.permutated;
-            pStack.chance = this.chance;
-            pStack.width = this.width;
-            pStack.height = this.height;
-            return pStack;
-        }
     }
 }
