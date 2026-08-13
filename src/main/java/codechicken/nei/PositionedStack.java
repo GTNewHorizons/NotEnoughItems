@@ -13,6 +13,7 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.Badge;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.StackInfo;
@@ -20,19 +21,21 @@ import codechicken.nei.recipe.StackInfo;
 /**
  * Simply an {@link ItemStack} with position. Mainly used in the recipe handlers.
  */
-public class PositionedStack {
+public class PositionedStack implements Cloneable {
 
     /** Maximum chance value representing 100% probability (1 unit = 0.01%). */
     public static final int CHANCE_FULL = 10_000;
 
     public int relx;
     public int rely;
+    public int width = 16;
+    public int height = 16;
     public ItemStack[] items;
     // compatibility dummy
     public ItemStack item;
 
     protected int chance = CHANCE_FULL;
-    private boolean permutated = false;
+    protected boolean permutated = false;
 
     public PositionedStack(Object object, int x, int y, boolean genPerms) {
         items = NEIServerUtils.extractRecipeItems(object);
@@ -91,6 +94,10 @@ public class PositionedStack {
         return null;
     }
 
+    public List<String> getTooltip() {
+        return null;
+    }
+
     public int getChance() {
         return this.chance;
     }
@@ -100,14 +107,20 @@ public class PositionedStack {
     }
 
     public PositionedStack copy() {
-        PositionedStack pStack = new PositionedStack(
-                Arrays.stream(this.items).map(ItemStack::copy).toArray(ItemStack[]::new),
-                relx,
-                rely,
-                false);
-        pStack.permutated = this.permutated;
-        pStack.chance = this.chance;
-        return pStack;
+        try {
+            PositionedStack pStack = (PositionedStack) super.clone();
+            pStack.items = Arrays.stream(this.items).map(ItemStack::copy).toArray(ItemStack[]::new);
+            pStack.item = this.item == null ? null : this.item.copy();
+            return pStack;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void draw(int mousex, int mousey) {
+        final int x = this.relx + (this.width - 16) / 2;
+        final int y = this.rely + (this.height - 16) / 2;
+        GuiContainerManager.drawItem(x, y, this.item);
     }
 
     public List<ItemStack> getFilteredPermutations() {
@@ -164,7 +177,9 @@ public class PositionedStack {
     }
 
     public boolean contains(int mx, int my) {
-        return mx >= this.relx - 1 && mx < this.relx + 17 && my >= this.rely - 1 && my < this.rely + 17;
+        return mx >= this.relx - 1 && mx < this.relx + this.width + 1
+                && my >= this.rely - 1
+                && my < this.rely + this.height + 1;
     }
 
     public boolean contains(ItemStack ingredient) {
@@ -191,5 +206,22 @@ public class PositionedStack {
     @Override
     public String toString() {
         return "PositionedStack(output='" + item.toString() + "')";
+    }
+
+    /**
+     * A {@link PositionedStack} that keeps its items but never draws them.
+     */
+    public static class Placeholder extends PositionedStack {
+
+        public Placeholder(Object object, int x, int y, boolean genPerms) {
+            super(object, x, y, genPerms);
+        }
+
+        public Placeholder(Object object, int x, int y) {
+            this(object, x, y, true);
+        }
+
+        @Override
+        public void draw(int mousex, int mousey) {}
     }
 }
