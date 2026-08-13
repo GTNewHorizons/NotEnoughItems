@@ -155,11 +155,16 @@ public class GuiFavoriteButton extends GuiRecipeButton {
         if (this.selectedResult == null) return;
 
         NEIClientUtils.gl2DRenderContext(
-                () -> GuiDraw.drawRect(this.selectedResult.relx, this.selectedResult.rely, 16, 16, 0x66333333));
+                () -> GuiDraw.drawRect(
+                        this.selectedResult.relx,
+                        this.selectedResult.rely,
+                        this.selectedResult.width,
+                        this.selectedResult.height,
+                        0x66333333));
 
         final Image icon = isFavorite() ? ICON_STATE_ON : ICON_STATE_OFF;
-        final int iconX = this.selectedResult.relx + (16 - icon.width) / 2;
-        final int iconY = this.selectedResult.rely + (18 - icon.height) / 2;
+        final int iconX = this.selectedResult.relx + (this.selectedResult.width - icon.width) / 2;
+        final int iconY = this.selectedResult.rely + (this.selectedResult.height + 2 - icon.height) / 2;
 
         LayoutManager.drawIcon(iconX, iconY, icon);
     }
