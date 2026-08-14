@@ -14,8 +14,9 @@ public class NEIInfo {
 
     public static void load(World world) {
         OptionCycled modeOption = (OptionCycled) NEIClientConfig.getOptionList().getOption("inventory.cheatmode");
+        final boolean worldConfig = NEIClientConfig.isWorldSpecific("inventory.cheatmode");
         // kept alive so the WeakReference in Option.slotRef isn't GC'd before copyGlobals/cycle use it
-        GuiOptionList env = modeOption.parent.synthesizeEnvironment(false);
+        GuiOptionList env = modeOption.parent.synthesizeEnvironment(worldConfig);
         if (!modeOption.optionValid(modeOption.value())) {
             modeOption.copyGlobals();
             modeOption.cycle();

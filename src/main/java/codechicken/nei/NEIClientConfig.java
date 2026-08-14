@@ -882,9 +882,14 @@ public class NEIClientConfig {
 
             world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
 
-            if (newWorld && Minecraft.getMinecraft().isSingleplayer()) {
-                world.config.getTag("inventory.cheatmode")
-                        .setIntValue(NEIClientUtils.mc().playerController.isInCreativeMode() ? 2 : 0);
+            if (newWorld && Minecraft.getMinecraft().isSingleplayer() && getLockedMode() == -1) {
+                final int globalMode = global.config.getTag("inventory.cheatmode").getIntValue();
+                final int worldMode = Math
+                        .min(globalMode, NEIClientUtils.mc().playerController.isInCreativeMode() ? 2 : 0);
+
+                if (worldMode != globalMode) {
+                    world.config.getTag("inventory.cheatmode").setIntValue(worldMode);
+                }
             }
 
             bootNEI();
