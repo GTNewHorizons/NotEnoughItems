@@ -288,13 +288,18 @@ public class Recipe {
 
         protected int relx;
         protected int rely;
+        protected int width;
+        protected int height;
 
-        public RecipeIngredient(int relx, int rely, List<ItemStack> items, int chance, int activeIndex) {
+        public RecipeIngredient(int relx, int rely, int width, int height, List<ItemStack> items, int chance,
+                int activeIndex) {
             this.items = items.stream().map(ItemStack::copy).toArray(size -> new ItemStack[size]);
             this.amount = StackInfo.getAmount(this.items[activeIndex]);
             this.activeIndex = activeIndex;
             this.relx = relx;
             this.rely = rely;
+            this.width = width;
+            this.height = height;
             this.chance = chance;
         }
 
@@ -314,11 +319,19 @@ public class Recipe {
                 }
             }
 
-            return of(positionedStack.relx, positionedStack.rely, stacks, positionedStack.getChance(), activeIndex);
+            return of(
+                    positionedStack.relx,
+                    positionedStack.rely,
+                    positionedStack.width,
+                    positionedStack.height,
+                    stacks,
+                    positionedStack.getChance(),
+                    activeIndex);
         }
 
-        public static RecipeIngredient of(int relx, int rely, List<ItemStack> stacks, int chance, int activeIndex) {
-            return new RecipeIngredient(relx, rely, stacks, chance, activeIndex);
+        public static RecipeIngredient of(int relx, int rely, int width, int height, List<ItemStack> stacks, int chance,
+                int activeIndex) {
+            return new RecipeIngredient(relx, rely, width, height, stacks, chance, activeIndex);
         }
 
         public int getAmount() {
@@ -335,34 +348,25 @@ public class Recipe {
 
         public void setActiveIndex(int activeIndex) {
             this.activeIndex = Math.max(0, Math.min(activeIndex, this.items.length - 1));
+            this.amount = StackInfo.getAmount(this.items[this.activeIndex]);
         }
 
         public boolean contains(ItemStack stackA) {
-            return getPermutations().stream()
-                    .anyMatch(stackB -> NEIClientUtils.areStacksSameTypeWithNBT(stackB, stackA));
+            final ItemStack stack = StackInfo.withAmount(stackA, 0);
+            return getPermutations().stream().anyMatch(
+                    stackB -> NEIClientUtils.areStacksSameTypeWithNBT(StackInfo.withAmount(stackB, 0), stack));
         }
 
         public List<ItemStack> getPermutations() {
             return Arrays.asList(this.items);
         }
 
-        public RecipeIngredient setAmount(int amount) {
-
-            for (int index = 0; index < this.items.length; index++) {
-                this.items[index] = StackInfo.withAmount(this.items[index], amount);
-            }
-
-            return this;
-        }
-
-        public void setChance(int chance) {
-            this.chance = chance;
-        }
-
         public RecipeIngredient copy() {
             return new RecipeIngredient(
                     this.relx,
                     this.rely,
+                    this.width,
+                    this.height,
                     getPermutations().stream().map(ItemStack::copy).collect(Collectors.toList()),
                     this.chance,
                     this.activeIndex);
@@ -447,7 +451,7 @@ public class Recipe {
         }
 
         if (item instanceof ItemStack stack) {
-            return RecipeIngredient.of(0, 0, Arrays.asList(stack), PositionedStack.CHANCE_FULL, 0);
+            return RecipeIngredient.of(0, 0, 16, 16, Arrays.asList(stack), PositionedStack.CHANCE_FULL, 0);
         }
 
         if (item instanceof RecipeIngredient ingr) {

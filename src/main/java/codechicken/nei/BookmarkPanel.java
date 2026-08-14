@@ -1094,10 +1094,13 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                 }
 
                 activeStack = items.get((items.size() - shift + stackIndex) % items.size());
-
                 this.acceptsFollowingTooltipLineHandler.setActiveStack(activeStack);
-                this.grid.getBookmarkItem(Math.abs(itemIndex)).itemStack = activeStack;
-                this.grid.onItemsChanged();
+
+                final int targetItemIndex = Math.abs(itemIndex);
+                final BookmarkItem oldItem = this.grid.getBookmarkItem(targetItemIndex);
+                final BookmarkItem newItem = oldItem.copyWithPerm(activeStack);
+
+                this.grid.replaceBookmarkItem(targetItemIndex, newItem);
             }
 
             return true;

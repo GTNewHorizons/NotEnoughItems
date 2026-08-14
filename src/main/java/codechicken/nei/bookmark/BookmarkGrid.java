@@ -879,6 +879,16 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         return this.bookmarkItems.get(itemIndex);
     }
 
+    public void replaceBookmarkItem(int itemIndex, BookmarkItem newItem) {
+
+        if (itemIndex < 0 || itemIndex >= this.bookmarkItems.size()) {
+            return;
+        }
+
+        this.bookmarkItems.set(itemIndex, newItem);
+        onItemsChanged();
+    }
+
     public int getAbsoluteSlotIndex(int itemIndex) {
         return this.gridGenerator.itemToSlot.getOrDefault(itemIndex, -1);
     }
