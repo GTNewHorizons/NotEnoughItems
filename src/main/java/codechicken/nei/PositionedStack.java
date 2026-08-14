@@ -37,6 +37,10 @@ public class PositionedStack implements Cloneable {
     protected int chance = CHANCE_FULL;
     protected boolean permutated = false;
 
+    protected String acceptsLabel;
+    protected List<String> tooltip;
+    protected List<Badge> badges;
+
     public PositionedStack(Object object, int x, int y, boolean genPerms) {
         items = NEIServerUtils.extractRecipeItems(object);
         relx = x;
@@ -90,12 +94,28 @@ public class PositionedStack implements Cloneable {
         for (ItemStack item : items) if (item.stackSize > i) item.stackSize = i;
     }
 
+    public void setAcceptsLabel(String acceptsLabel) {
+        this.acceptsLabel = acceptsLabel;
+    }
+
+    public String getAcceptsLabel() {
+        return this.acceptsLabel;
+    }
+
+    public void setBadges(List<Badge> badges) {
+        this.badges = badges;
+    }
+
     public List<Badge> getBadges() {
-        return null;
+        return this.badges;
+    }
+
+    public void setTooltip(List<String> tooltip) {
+        this.tooltip = tooltip;
     }
 
     public List<String> getTooltip() {
-        return null;
+        return this.tooltip;
     }
 
     public int getChance() {
@@ -111,6 +131,8 @@ public class PositionedStack implements Cloneable {
             PositionedStack pStack = (PositionedStack) super.clone();
             pStack.items = Arrays.stream(this.items).map(ItemStack::copy).toArray(ItemStack[]::new);
             pStack.item = this.item == null ? null : this.item.copy();
+            pStack.tooltip = this.tooltip == null ? null : new ArrayList<>(this.tooltip);
+            pStack.badges = this.badges == null ? null : new ArrayList<>(this.badges);
             return pStack;
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
