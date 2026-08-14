@@ -29,6 +29,7 @@ public class AutoCraftingManager {
             final List<BookmarkItem> initialItems = prepareInitialItems(math, getInventoryItems(guiContainer));
             boolean processed = false;
             boolean changed = false;
+            final CraftRampThrottle throttle = new CraftRampThrottle();
 
             StackInfo.pauseItemDamageSound(true);
 
@@ -48,9 +49,19 @@ public class AutoCraftingManager {
                         if (handler != null && handler.canCraft(guiContainer)) {
                             long multiplier = entry.getValue();
 
-                            while (multiplier > 0 && !interrupted(guiContainer)
-                                    && handler.craft(guiContainer, (int) Math.min(64, multiplier))) {
-                                multiplier -= 64;
+                            while (multiplier > 0 && !interrupted(guiContainer)) {
+                                final CraftRampThrottle.Tick tick = throttle.next(entry.getKey());
+                                sleepInterruptibly(tick.delayMs, guiContainer);
+                                if (interrupted(guiContainer)) break;
+
+                                boolean crafted = false;
+                                for (int i = 0; i < tick.crafts && multiplier > 0 && !interrupted(guiContainer); i++) {
+                                    if (!handler.craft(guiContainer, 1)) break;
+                                    multiplier -= 1;
+                                    crafted = true;
+                                }
+
+                                if (!crafted) break; // output couldn't be taken (e.g. inventory full)
                             }
 
                             craft = multiplier != entry.getValue();
@@ -84,6 +95,19 @@ public class AutoCraftingManager {
 
         private boolean interrupted(GuiContainer guiContainer) {
             return interrupted() || guiContainer != NEIClientUtils.getGuiContainer();
+        }
+
+        private void sleepInterruptibly(long delayMs, GuiContainer guiContainer) {
+            long remaining = delayMs;
+            while (remaining > 0 && !interrupted(guiContainer)) {
+                final long chunk = Math.min(20L, remaining);
+                try {
+                    Thread.sleep(chunk);
+                } catch (InterruptedException ignored) {
+                    return;
+                }
+                remaining -= chunk;
+            }
         }
 
         private List<BookmarkItem> prepareInitialItems(RecipeChainMath math, ItemStackAmount inventory) {
