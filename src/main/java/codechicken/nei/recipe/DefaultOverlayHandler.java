@@ -123,6 +123,11 @@ public class DefaultOverlayHandler implements IOverlayHandler {
 
             if (craftingSlot.getHasStack() && craftingSlot.canTakeStack(firstGui.mc.thePlayer)) {
                 FastTransferManager.clickSlot(firstGui, craftingSlot.slotNumber, 0, 1);
+
+                if (craftingSlot.getHasStack()) {
+                    break;
+                }
+
                 craft = true;
             }
 
