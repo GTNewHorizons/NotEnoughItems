@@ -335,40 +335,43 @@ public class RecipeChainMath {
         final boolean isPausedItemDamageSound = StackInfo.isPausedItemDamageSound();
         StackInfo.pauseItemDamageSound(true);
 
-        resetCalculation();
+        try {
+            resetCalculation();
 
-        if (this.outputRecipes.containsKey(ROOT_RECIPE_ID)) {
-            for (BookmarkItem ingrItem : this.recipeIngredients) {
-                if (ROOT_RECIPE_ID.equals(ingrItem.recipeId)
-                        && ingrItem.itemStack.getItem().hasContainerItem(ingrItem.itemStack)) {
-                    this.containerItemsBlacklist.add(ingrItem.itemStack);
+            if (this.outputRecipes.containsKey(ROOT_RECIPE_ID)) {
+                for (BookmarkItem ingrItem : this.recipeIngredients) {
+                    if (ROOT_RECIPE_ID.equals(ingrItem.recipeId)
+                            && ingrItem.itemStack.getItem().hasContainerItem(ingrItem.itemStack)) {
+                        this.containerItemsBlacklist.add(ingrItem.itemStack);
+                    }
                 }
             }
-        }
 
-        for (BookmarkItem prefItem : this.recipeResults) {
-            if (!prefItem.emptyFactor() && this.outputRecipes.containsKey(prefItem.recipeId)) {
-                final long prefMultiplier = this.outputRecipes.get(prefItem.recipeId);
+            for (BookmarkItem prefItem : this.recipeResults) {
+                if (!prefItem.emptyFactor() && this.outputRecipes.containsKey(prefItem.recipeId)) {
+                    final long prefMultiplier = this.outputRecipes.get(prefItem.recipeId);
 
-                if (prefItem.itemStack.getItem().hasContainerItem(prefItem.itemStack)) {
-                    this.containerItemsBlacklist.add(prefItem.itemStack);
+                    if (prefItem.itemStack.getItem().hasContainerItem(prefItem.itemStack)) {
+                        this.containerItemsBlacklist.add(prefItem.itemStack);
+                    }
+
+                    this.preferredItems.put(prefItem, prefItem);
+                    calculateSuitableRecipe(prefItem, prefMultiplier, new ArrayList<>(), visitor);
+                    this.preferredItems.remove(prefItem);
                 }
-
-                this.preferredItems.put(prefItem, prefItem);
-                calculateSuitableRecipe(prefItem, prefMultiplier, new ArrayList<>(), visitor);
-                this.preferredItems.remove(prefItem);
             }
+
+            for (BookmarkItem prefItem : this.recipeResults) {
+                if (!prefItem.emptyFactor() && this.outputRecipes.containsKey(prefItem.recipeId)
+                        && this.requiredAmount.containsKey(prefItem)) {
+                    final long prefAmount = prefItem.getAmount(this.outputRecipes.get(prefItem.recipeId));
+                    this.requiredAmount.put(prefItem, this.requiredAmount.get(prefItem) - prefAmount);
+                }
+            }
+        } finally {
+            StackInfo.pauseItemDamageSound(isPausedItemDamageSound);
         }
 
-        for (BookmarkItem prefItem : this.recipeResults) {
-            if (!prefItem.emptyFactor() && this.outputRecipes.containsKey(prefItem.recipeId)
-                    && this.requiredAmount.containsKey(prefItem)) {
-                final long prefAmount = prefItem.getAmount(this.outputRecipes.get(prefItem.recipeId));
-                this.requiredAmount.put(prefItem, this.requiredAmount.get(prefItem) - prefAmount);
-            }
-        }
-
-        StackInfo.pauseItemDamageSound(isPausedItemDamageSound);
         return this;
     }
 

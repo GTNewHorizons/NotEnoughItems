@@ -32,43 +32,46 @@ public class AutoCraftingManager {
 
             StackInfo.pauseItemDamageSound(true);
 
-            do {
-                changed = false;
+            try {
+                do {
+                    changed = false;
 
-                RecipeChainIterator iterator = new RecipeChainIterator(math, initialItems);
-                iterator.updateInventory(getInventoryItems(guiContainer));
+                    RecipeChainIterator iterator = new RecipeChainIterator(math, initialItems);
+                    iterator.updateInventory(getInventoryItems(guiContainer));
 
-                while (iterator.hasNext() && !interrupted(guiContainer)) {
-                    final Map<RecipeId, Long> recipes = iterator.next();
-                    boolean craft = false;
+                    while (iterator.hasNext() && !interrupted(guiContainer)) {
+                        final Map<RecipeId, Long> recipes = iterator.next();
+                        boolean craft = false;
 
-                    for (Map.Entry<RecipeId, Long> entry : recipes.entrySet()) {
-                        final RecipeHandlerRef handler = RecipeHandlerRef.of(entry.getKey());
+                        for (Map.Entry<RecipeId, Long> entry : recipes.entrySet()) {
+                            final RecipeHandlerRef handler = RecipeHandlerRef.of(entry.getKey());
 
-                        if (handler != null && handler.canCraft(guiContainer)) {
-                            long multiplier = entry.getValue();
+                            if (handler != null && handler.canCraft(guiContainer)) {
+                                long multiplier = entry.getValue();
 
-                            while (multiplier > 0 && !interrupted(guiContainer)
-                                    && handler.craft(guiContainer, (int) Math.min(64, multiplier))) {
-                                multiplier -= 64;
+                                while (multiplier > 0 && !interrupted(guiContainer)
+                                        && handler.craft(guiContainer, (int) Math.min(64, multiplier))) {
+                                    multiplier -= 64;
+                                }
+
+                                craft = craft || multiplier != entry.getValue();
                             }
 
-                            craft = multiplier != entry.getValue();
+                            if (interrupted(guiContainer)) break;
                         }
 
-                        if (interrupted(guiContainer)) break;
+                        if (craft) {
+                            changed = true;
+                            processed = true;
+                            iterator.updateInventory(getInventoryItems(guiContainer));
+                        }
                     }
 
-                    if (craft) {
-                        changed = true;
-                        processed = true;
-                        iterator.updateInventory(getInventoryItems(guiContainer));
-                    }
-                }
+                } while (changed && !interrupted(guiContainer));
 
-            } while (changed && !interrupted(guiContainer));
-
-            StackInfo.pauseItemDamageSound(false);
+            } finally {
+                StackInfo.pauseItemDamageSound(false);
+            }
 
             if (processed && !changed && !interrupted(guiContainer)) {
                 NEIClientUtils.playClickSound();
