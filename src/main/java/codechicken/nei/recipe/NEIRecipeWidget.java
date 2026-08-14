@@ -436,6 +436,10 @@ public class NEIRecipeWidget extends Widget {
                     || this.acceptsFollowingTooltipLineHandler.tooltipGUID != hovered) {
                         this.acceptsFollowingTooltipLineHandler = AcceptsFollowingTooltipLineHandler
                                 .of(hovered, this.permutations.get(hovered), hovered.item);
+
+                        if (this.acceptsFollowingTooltipLineHandler != null && hovered.getAcceptsLabel() != null) {
+                            this.acceptsFollowingTooltipLineHandler.setLabel(hovered.getAcceptsLabel());
+                        }
                     }
         } else if (this.acceptsFollowingTooltipLineHandler != null) {
             this.acceptsFollowingTooltipLineHandler = null;

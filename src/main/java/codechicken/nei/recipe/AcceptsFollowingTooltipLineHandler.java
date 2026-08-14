@@ -15,7 +15,7 @@ public class AcceptsFollowingTooltipLineHandler extends ItemsTooltipLineHandler 
 
     public Object tooltipGUID;
 
-    public AcceptsFollowingTooltipLineHandler(Object tooltipGUID, List<ItemStack> items, ItemStack activeStack,
+    protected AcceptsFollowingTooltipLineHandler(Object tooltipGUID, List<ItemStack> items, ItemStack activeStack,
             int maxRows) {
         super(NEIClientUtils.translate("recipe.accepts"), items, false, maxRows);
         this.tooltipGUID = tooltipGUID;
