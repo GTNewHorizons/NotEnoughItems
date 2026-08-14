@@ -36,6 +36,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         public int numSlots;
         public int recipeAmount;
         public boolean isContainerItem = false;
+        public long damagePerContainerCraft;
     }
 
     public static class IngredientDistribution {
@@ -264,6 +265,11 @@ public class DefaultOverlayHandler implements IOverlayHandler {
 
             final int maxStackSize = istack.stack.getMaxStackSize();
             if (maxStackSize == 1 && istack.isContainerItem) {
+
+                if (istack.damagePerContainerCraft > 0) {
+                    quantity = (int) Math.min(quantity, istack.damagePerContainerCraft);
+                }
+
                 // If non-stackable, fill up as much as possible of the other ingredients
                 continue;
             }
@@ -377,7 +383,14 @@ public class DefaultOverlayHandler implements IOverlayHandler {
                         final NBTTagCompound tagCompound = pstack.getTagCompound();
 
                         if (tagCompound != null && tagCompound.hasKey("GT.ToolStats")) {
+                            final NBTTagCompound toolStats = tagCompound.getCompoundTag("GT.ToolStats");
+                            final long damagePerContainerCraft = getGTToolDamagePerContainerCraft(pstack);
+                            final long maxDamage = toolStats.getLong("MaxDamage");
+                            final long damage = toolStats.getLong("Damage");
+
                             istack.isContainerItem = true;
+                            istack.damagePerContainerCraft = (maxDamage - damage + damagePerContainerCraft - 1)
+                                    / damagePerContainerCraft;
                         } else {
                             final boolean isPausedItemDamageSound = StackInfo.isPausedItemDamageSound();
                             StackInfo.pauseItemDamageSound(true);
@@ -393,6 +406,19 @@ public class DefaultOverlayHandler implements IOverlayHandler {
                 }
             }
         }
+    }
+
+    private int getGTToolDamagePerContainerCraft(ItemStack aStack) {
+
+        try {
+            final Object toolStats = aStack.getItem().getClass().getMethod("getToolStats", ItemStack.class)
+                    .invoke(aStack.getItem(), aStack);
+            return (int) toolStats.getClass().getMethod("getToolDamagePerContainerCraft").invoke(toolStats);
+        } catch (Throwable th) {
+            th.printStackTrace();
+        }
+
+        return 0;
     }
 
     protected List<DistributedIngred> getPermutationIngredients(List<PositionedStack> ingredients) {
