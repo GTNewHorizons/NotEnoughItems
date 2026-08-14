@@ -68,7 +68,7 @@ public class AutoCraftingManager {
                     }
 
                 } while (changed && !interrupted(guiContainer));
-                
+
             } finally {
                 StackInfo.pauseItemDamageSound(false);
             }
