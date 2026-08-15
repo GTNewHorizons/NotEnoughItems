@@ -92,6 +92,11 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
         this.labelColor = color;
     }
 
+    public void setLabel(String label) {
+        this.label = label;
+        this.size.width = Math.max(this.columns * SLOT_SIZE, fontRenderer.getStringWidth(this.label) + 15);
+    }
+
     @Override
     public void draw(int x, int y) {
         if (this.length == 0) return;
