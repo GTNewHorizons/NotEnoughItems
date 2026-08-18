@@ -17,7 +17,7 @@ nei.showHotkeys=Утримуйте %s для відображення гаряч
 
 nei.bookmark.toggle=Закладки
 nei.bookmark.toggle.tip=Перемикнути видимість панелі закладок
-nei.bookmark.pullBookmarkedItems.tip=Перемістити всі предмети із закладок зі сховища в інвентар
+nei.bookmark.pullBookmarkedItems.tip=Перемістити всі предмети із закладок зі сховища до інвентарю
 
 nei.bookmark.group=Група закладок
 nei.bookmark.group.include_group=Створити групу/Додати до групи
@@ -292,7 +292,7 @@ nei.options.inventory.guirecipe=Інтерфейс рецептів
 nei.options.inventory.guirecipe.jeiStyleTabs=Вкладки у стилі JEI
 nei.options.inventory.guirecipe.jeiStyleTabs.true=Так
 nei.options.inventory.guirecipe.jeiStyleTabs.false=Ні [Дивак]
-nei.options.inventory.guirecipe.itemPresenceOverlay=Індикатор наявності предметів при наведенні на «?»
+nei.options.inventory.guirecipe.itemPresenceOverlay=Індикатор наявності предметів під час наведення на «?»
 nei.options.inventory.guirecipe.itemPresenceOverlay.0=Немає
 nei.options.inventory.guirecipe.itemPresenceOverlay.1=Іконка
 nei.options.inventory.guirecipe.itemPresenceOverlay.2=Тло
@@ -493,7 +493,7 @@ nei.options.command.heal=Зцілення
 nei.options.command.heal.tip={0} = гравець
 
 nei.options.world.highlight_tips=Контекстні підказки
-nei.options.world.highlight_tips.hide=Приховано
+nei.options.world.highlight_tips.hide=Приховані
 nei.options.world.highlight_tips.show=Відображаються
 nei.options.world.highlight_tips.sample=Зразок
 
@@ -513,7 +513,7 @@ nei.options.tools.catalyst_load_from_config=Завантажувати ката�
 nei.options.tools.catalyst_load_from_config.true=Конфігурація
 nei.options.tools.catalyst_load_from_config.false=JAR
 nei.options.tools.dump=Дампи даних
-nei.options.tools.dump.dump=Зробити дамп
+nei.options.tools.dump.dump=Створити дамп
 nei.options.tools.dump.dumped=ID %s збережено в %s
 nei.options.tools.dump.mode.0=Використані
 nei.options.tools.dump.mode.1=Вільні
@@ -572,7 +572,7 @@ nei.recipe.page=Сторінка %s/%s
 nei.recipe.tooltip=Рецепти
 nei.recipe.tab.view_all.tooltip=Переглянути всі категорії
 nei.recipe.search.tooltip.name=Синтаксис фільтрів
-nei.recipe.search.tooltip.shift=§7Затисніть §6Shift§7 для детальнішої інформації
+nei.recipe.search.tooltip.shift=§7Утримуйте §6Shift§7 для детальнішої інформації
 nei.recipe.search.tooltip.input=%s§fтекст§8 - §7пошук в інгредієнтах
 nei.recipe.search.tooltip.output=%s§fтекст§8 - §7пошук у результатах
 nei.recipe.search.tooltip.prefix=%sтекст§8 - §7%s
@@ -581,19 +581,19 @@ nei.recipe.search.tooltip.prefix.modName=пошук за модом
 nei.recipe.search.tooltip.prefix.tooltip=пошук за підказкою
 nei.recipe.search.tooltip.prefix.oreDict=пошук за OreDict
 nei.recipe.search.tooltip.prefix.identifier=пошук за ID ресурсу
-nei.recipe.search.tooltip.prefix.subsets=пошук за підгрупою
+nei.recipe.search.tooltip.prefix.subsets=пошук за підгрупами
 nei.recipe.search.tooltip.prefix.chemicalFormula=пошук за хімічною формулою
 
-nei.recipe.search.tooltip.exclude=%s§fтекст§8 - §7виключити предмети з текстом
-nei.recipe.search.tooltip.exclude_recipe=%s§fтекст§8 - §7виключити рецепти з текстом
-nei.recipe.search.tooltip.or=§fa%s§fb§8 - §7відповідність a або b
-nei.recipe.search.tooltip.exact=%s§fтекст%s§8 - §7збіг точної фрази
+nei.recipe.search.tooltip.exclude=%s§fтекст§8 - §7виключити предмети, що містять текст
+nei.recipe.search.tooltip.exclude_recipe=%s§fтекст§8 - §7виключити рецепти, що містять текст
+nei.recipe.search.tooltip.or=§fa%s§fb§8 - §7пошук «a» або «b»
+nei.recipe.search.tooltip.exact=%s§fтекст%s§8 - §7збіг із точною фразою
 
 nei.recipe.shaped=Формований крафт
 nei.recipe.shapeless=Безформний крафт
 nei.recipe.furnace=Витоплення
 nei.recipe.fuel=Паливо
-nei.recipe.fuel.smeltCount=Витоплює %s предметів
+nei.recipe.fuel.smeltCount=Витоплює предметів: %s
 
 nei.recipe.badge.nc=NC
 nei.recipe.badge.nc.tooltip=Не витрачається у процесі
@@ -684,7 +684,7 @@ nei.subsets.Items.Tools.Shovels=Лопати
 nei.subsets.Items.Weapons=Зброя
 nei.subsets.Items.Weapons.Ranged=Дальнього бою
 nei.subsets.Items.Weapons.Swords=Мечі
-nei.subsets.Untranslated=Неперекладене
+nei.subsets.Untranslated=Неперекладені
 nei.subsets.Mod=Мод
 
 nei.presets.new=Новий пресет
