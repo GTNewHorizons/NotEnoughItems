@@ -537,14 +537,22 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
             return;
         }
 
+        final int[] resolved = new int[1];
+        final int[] invalid = new int[1];
+
         Stream.of(dir.listFiles()).filter(file -> !file.isDirectory()).forEach(file -> {
             ClientHandler.loadSettingsFile(
                     "subsets/" + file.getName(),
-                    lines -> parseFile(file.getName(), lines.collect(Collectors.toList())));
+                    lines -> parseFile(file.getName(), lines.collect(Collectors.toList()), resolved, invalid));
         });
+
+        if (resolved[0] + invalid[0] > 0) {
+            NEIClientConfig.logger
+                    .info("NotEnoughItems: resolved {} MaterialLib entries ({} invalid)", resolved[0], invalid[0]);
+        }
     }
 
-    private static void parseFile(String resource, List<String> itemStrings) {
+    private static void parseFile(String resource, List<String> itemStrings, int[] resolved, int[] invalid) {
         final JsonParser parser = new JsonParser();
         final int dotIndex = resource.lastIndexOf('.');
         final String subsetNamespace = dotIndex > 0 ? resource.substring(0, dotIndex) : resource;
@@ -574,7 +582,17 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
                     final NBTBase nbt = NBTJson.toNbt(parser.parse(itemStr));
 
                     if (nbt instanceof NBTTagCompound tag) {
-                        ((ItemStackSet) processedTag.filter).add(StackInfo.loadFromNBT(tag));
+                        final ItemStack stack = StackInfo.loadFromNBT(tag);
+
+                        if (tag.getString("strId").startsWith(StackInfo.MATERIALLIB_PREFIX)) {
+                            if (stack != null) {
+                                resolved[0]++;
+                            } else {
+                                invalid[0]++;
+                            }
+                        }
+
+                        ((ItemStackSet) processedTag.filter).add(stack);
                     } else {
                         throw new IllegalArgumentException(
                                 "Expected NBTTagCompound but got " + nbt.getClass().getSimpleName());

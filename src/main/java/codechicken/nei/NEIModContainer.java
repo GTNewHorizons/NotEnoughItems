@@ -14,11 +14,13 @@ import com.google.common.eventbus.Subscribe;
 
 import codechicken.core.CommonUtils;
 import codechicken.core.launch.CodeChickenCorePlugin;
+import codechicken.nei.api.API;
 import codechicken.nei.api.IConfigureNEI;
 import codechicken.nei.asm.NEICorePlugin;
 import codechicken.nei.config.IMCHandler;
 import codechicken.nei.guihook.HideousLinkedList;
 import codechicken.nei.recipe.GuiRecipeTab;
+import codechicken.nei.recipe.stackinfo.MaterialLibStackStringifyHandler;
 import cpw.mods.fml.client.FMLFileResourcePack;
 import cpw.mods.fml.client.FMLFolderResourcePack;
 import cpw.mods.fml.common.DummyModContainer;
@@ -113,6 +115,10 @@ public class NEIModContainer extends DummyModContainer {
             IMCForNEI.IMCSender();
         }
         ServerHandler.load();
+
+        if (Loader.isModLoaded("materiallib")) {
+            API.registerStackStringifyHandler(new MaterialLibStackStringifyHandler());
+        }
     }
 
     @Subscribe
