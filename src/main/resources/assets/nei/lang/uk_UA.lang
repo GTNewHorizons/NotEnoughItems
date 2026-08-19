@@ -593,7 +593,7 @@ nei.recipe.shaped=Формований крафт
 nei.recipe.shapeless=Безформний крафт
 nei.recipe.furnace=Витоплення
 nei.recipe.fuel=Паливо
-nei.recipe.fuel.smeltCount=Витоплює предметів: %s
+nei.recipe.fuel.smeltCount=Витоплює: %s
 
 nei.recipe.badge.nc=NC
 nei.recipe.badge.nc.tooltip=Не витрачається у процесі
