@@ -145,7 +145,7 @@ public class ItemUntranslator {
         for (Fluid fluid : FluidRegistry.getRegisteredFluids().values()) {
             items.put(
                     fluid.getUnlocalizedName().toLowerCase(),
-                    stripFormatting(StatCollector.translateToLocal(fluid.getUnlocalizedName())));
+                    stripFormatting(fluid.getLocalizedName(new FluidStack(fluid, 1))));
         }
 
         for (CreativeTabs tab : CreativeTabs.creativeTabArray) {
