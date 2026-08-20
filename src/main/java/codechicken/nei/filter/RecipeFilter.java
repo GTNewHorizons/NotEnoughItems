@@ -48,13 +48,15 @@ public class RecipeFilter implements IRecipeFilter {
         }
 
         if (this.context == FilterContext.ANY || this.context == FilterContext.OUTPUT) {
-            final PositionedStack result = handler.getResultStack(recipeIndex);
-
-            if (result != null && matchPositionedStack(result) == this.anyMatch) {
+            if (matchPositionedStack(handler.getResultStacks(recipeIndex), this.anyMatch)) {
                 return this.anyMatch;
             }
 
             if (matchPositionedStack(handler.getOtherStacks(recipeIndex), this.anyMatch)) {
+                return this.anyMatch;
+            }
+
+            if (matchPositionedStack(handler.getCatalystStacks(recipeIndex), this.anyMatch)) {
                 return this.anyMatch;
             }
 
