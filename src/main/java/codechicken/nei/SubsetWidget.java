@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -537,8 +538,8 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
             return;
         }
 
-        final int[] resolved = new int[1];
-        final int[] invalid = new int[1];
+        final AtomicInteger resolved = new AtomicInteger();
+        final AtomicInteger invalid = new AtomicInteger();
 
         Stream.of(dir.listFiles()).filter(file -> !file.isDirectory()).forEach(file -> {
             ClientHandler.loadSettingsFile(
@@ -546,13 +547,13 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
                     lines -> parseFile(file.getName(), lines.collect(Collectors.toList()), resolved, invalid));
         });
 
-        if (resolved[0] + invalid[0] > 0) {
-            NEIClientConfig.logger
-                    .info("NotEnoughItems: resolved {} MaterialLib entries ({} invalid)", resolved[0], invalid[0]);
+        if (resolved.get() + invalid.get() > 0) {
+            NEIClientConfig.logger.info("Resolved {} MaterialLib entries ({} invalid)", resolved.get(), invalid.get());
         }
     }
 
-    private static void parseFile(String resource, List<String> itemStrings, int[] resolved, int[] invalid) {
+    private static void parseFile(String resource, List<String> itemStrings, AtomicInteger resolved,
+            AtomicInteger invalid) {
         final JsonParser parser = new JsonParser();
         final int dotIndex = resource.lastIndexOf('.');
         final String subsetNamespace = dotIndex > 0 ? resource.substring(0, dotIndex) : resource;
@@ -585,11 +586,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
                         final ItemStack stack = StackInfo.loadFromNBT(tag);
 
                         if (tag.getString("strId").startsWith(StackInfo.MATERIALLIB_PREFIX)) {
-                            if (stack != null) {
-                                resolved[0]++;
-                            } else {
-                                invalid[0]++;
-                            }
+                            (stack != null ? resolved : invalid).incrementAndGet();
                         }
 
                         ((ItemStackSet) processedTag.filter).add(stack);

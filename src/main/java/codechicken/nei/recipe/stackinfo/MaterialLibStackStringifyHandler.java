@@ -8,15 +8,13 @@ import com.ruling_0.materiallib.api.StackResolver;
 import codechicken.nei.api.IStackStringifyHandler;
 import codechicken.nei.recipe.StackInfo;
 
-/// Reads config entries written in the stable MaterialLib reference form
-/// `ml:<MaterialName>:<shapeToken>` (see [StackInfo#MATERIALLIB_PREFIX]) and resolves them against the registries,
-/// so an entry keeps naming the same item across sessions that hand out different metadata.
+/// Resolves config entries written in the MaterialLib reference form `ml:<MaterialName>:<shapeToken>` (see
+/// [StackInfo#MATERIALLIB_PREFIX]) through [StackResolver], so an entry keeps naming the same item across sessions
+/// that renumber item metadata. The resolved stack carries the metadata MaterialLib currently assigns, ignoring any
+/// `Damage` on the entry. Entries in any other form are left to the other handlers.
 ///
-/// The resolved stack carries the metadata MaterialLib currently assigns, overriding any `Damage` the entry
-/// carries alongside the id.
-///
-/// This is the only class in NotEnoughItems that references the MaterialLib API, and every reference to it is
-/// gated on `Loader.isModLoaded("materiallib")` so it never classloads without MaterialLib present.
+/// Registered only behind a `Loader.isModLoaded("materiallib")` gate, so this class never classloads without
+/// MaterialLib present.
 public class MaterialLibStackStringifyHandler implements IStackStringifyHandler {
 
     @Override
