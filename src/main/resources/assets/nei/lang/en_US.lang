@@ -710,3 +710,7 @@ nei.presets.mode.group.tip=Create custom collapsible items group
 nei.presets.mode.group.char=G
 
 nei.itemzoom.toggle=Use %s to toggle Item Zoom
+
+nei.subsets.Favorites=Favorites
+nei.subsets.Favorites.Manual=Manual
+nei.subsets.Favorites.Generated=Generated
