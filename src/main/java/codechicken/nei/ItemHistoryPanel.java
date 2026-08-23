@@ -1,16 +1,33 @@
 package codechicken.nei;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 
+import org.apache.commons.io.IOUtils;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+
+import codechicken.core.CommonUtils;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.ItemsGrid.MouseContext;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.util.NBTJson;
 
 public class ItemHistoryPanel extends AbstractSubpanel<ItemsGrid<ItemHistoryPanel.HistoryGridSlot, MouseContext>> {
+
+    protected File historyFile = null;
 
     public static class HistoryGridSlot extends ItemsGridSlot {
 
@@ -112,6 +129,101 @@ public class ItemHistoryPanel extends AbstractSubpanel<ItemsGrid<ItemHistoryPane
             }
 
             this.grid.onItemsChanged();
+        }
+    }
+
+    public void load() {
+
+        String worldPath = "global";
+
+        if (NEIClientConfig.getBooleanSetting("inventory.history.worldSpecific")) {
+            worldPath = NEIClientConfig.getWorldPath();
+        }
+
+        final File dir = new File(CommonUtils.getMinecraftDir(), "saves/NEI/" + worldPath);
+
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        final File historyFile = new File(dir, "history.ini");
+
+        if (historyFile.equals(this.historyFile)) {
+            return;
+        }
+
+        List<String> itemStrings = Collections.emptyList();
+
+        if (historyFile.exists()) {
+            try (FileInputStream reader = new FileInputStream(historyFile)) {
+                NEIClientConfig.logger.info("Loading history from file {}", historyFile);
+                itemStrings = IOUtils.readLines(reader, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                NEIClientConfig.logger.error("Failed to load history from file {}", historyFile, e);
+                return;
+            }
+        }
+
+        final JsonParser parser = new JsonParser();
+        final int maxSize = Math.max(50, this.grid.rows * this.grid.columns);
+
+        this.grid.realItems.clear();
+
+        for (String itemStr : itemStrings) {
+
+            if (itemStr.isEmpty()) {
+                continue;
+            }
+
+            if (this.grid.realItems.size() >= maxSize) {
+                break;
+            }
+
+            try {
+                JsonObject row = parser.parse(itemStr).getAsJsonObject();
+                NBTTagCompound itemStackNBT = (NBTTagCompound) NBTJson.toNbt(row.get("item"));
+                ItemStack itemStack = StackInfo.loadFromNBT(itemStackNBT);
+
+                if (itemStack != null) {
+                    this.grid.realItems.add(itemStack);
+                } else {
+                    NEIClientConfig.logger.warn(
+                            "Failed to load history ItemStack from json string, the item no longer exists:\n{}",
+                            itemStr);
+                }
+            } catch (Exception e) {
+                NEIClientConfig.logger.error("Failed to load history ItemStack from json string:\n{}", itemStr);
+            }
+        }
+
+        this.grid.onItemsChanged();
+
+        this.historyFile = historyFile;
+    }
+
+    public void save() {
+
+        if (this.historyFile == null) {
+            return;
+        }
+
+        final List<String> strings = new ArrayList<>();
+
+        for (ItemStack stack : this.grid.realItems) {
+
+            try {
+                final JsonObject row = new JsonObject();
+                row.add("item", NBTJson.toJsonObject(StackInfo.itemStackToNBT(stack)));
+                strings.add(NBTJson.toJson(row));
+            } catch (JsonSyntaxException e) {
+                NEIClientConfig.logger.error("Failed to stringify history ItemStack to json string");
+            }
+        }
+
+        try (FileOutputStream output = new FileOutputStream(this.historyFile)) {
+            IOUtils.writeLines(strings, "\n", output, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            NEIClientConfig.logger.error("Failed to save history list to file {}", this.historyFile, e);
         }
     }
 
