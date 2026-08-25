@@ -53,9 +53,8 @@ public class GuiInfo {
     public static boolean hideItemPanelSlot(GuiContainer gui, Rectangle4i rect) {
         try {
             readLock.lock();
-            if (guiHandlers.stream()
-                    .anyMatch(handler -> handler.hideItemPanelSlot(gui, rect.x, rect.y, rect.w, rect.h))) {
-                return true;
+            for (INEIGuiHandler handler : guiHandlers) {
+                if (handler.hideItemPanelSlot(gui, rect.x, rect.y, rect.w, rect.h)) return true;
             }
         } finally {
             readLock.unlock();
