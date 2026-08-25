@@ -97,6 +97,22 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
         this.searchRecipes = searchRecipes;
     }
 
+    public List<Integer> getFilteredRecipes() {
+
+        if (this.searchRecipes == null) {
+            return this.filteredRecipes;
+        }
+
+        final List<Integer> search = this.searchRecipes;
+        final List<Integer> resolved = new ArrayList<>(search.size());
+
+        for (int idx : search) {
+            resolved.add(this.filteredRecipes.get(idx));
+        }
+
+        return resolved;
+    }
+
     public int ref(int index) {
 
         if (searchRecipes != null) {

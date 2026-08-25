@@ -50,12 +50,13 @@ public class RecipePageManager {
 
         final int heightAvailable = this.container.getVisibleHeight();
         final int width = Math.max(166, this.handlerInfo.getWidth());
-        final int numRecipes = getNumRecipes();
+        final List<Integer> searchRecipes = this.handler.getFilteredRecipes();
+        final int numRecipes = searchRecipes.size();
         List<Widget> widgets = new ArrayList<>();
         int shiftY = 0;
 
         for (int i = 0; i < numRecipes; i++) {
-            final int recipeIndex = this.handler.ref(i);
+            final int recipeIndex = searchRecipes.get(i);
             final NEIRecipeWidget widget = RecipeHandlerRef.of(this.handler.original, recipeIndex).getRecipeWidget();
             widget.w = width;
 
