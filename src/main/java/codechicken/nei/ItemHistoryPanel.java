@@ -134,6 +134,10 @@ public class ItemHistoryPanel extends AbstractSubpanel<ItemsGrid<ItemHistoryPane
 
     public void load() {
 
+        if (!NEIClientConfig.getBooleanSetting("inventory.history.save")) {
+            return;
+        }
+
         String worldPath = "global";
 
         if (NEIClientConfig.getBooleanSetting("inventory.history.worldSpecific")) {
@@ -202,6 +206,10 @@ public class ItemHistoryPanel extends AbstractSubpanel<ItemsGrid<ItemHistoryPane
     }
 
     public void save() {
+
+        if (!NEIClientConfig.getBooleanSetting("inventory.history.save")) {
+            return;
+        }
 
         if (this.historyFile == null) {
             return;
