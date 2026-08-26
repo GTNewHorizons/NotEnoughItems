@@ -600,6 +600,11 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
 
     public RecipeChainMath createRecipeChainMath(int groupId, RecipeId recipeId) {
         final BookmarkGroup group = getGroup(groupId);
+
+        if (group == null) {
+            return null;
+        }
+
         final List<BookmarkItem> chainItems = new ArrayList<>();
         final Set<RecipeId> collapsedRecipes = group.crafting != null && recipeId == null ? group.collapsedRecipes
                 : Collections.emptySet();

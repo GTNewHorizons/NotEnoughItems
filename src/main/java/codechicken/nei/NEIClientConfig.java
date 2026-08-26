@@ -302,7 +302,17 @@ public class NEIClientConfig {
         });
 
         tag.getTag("inventory.history.save").setComment("Enable/disable History save").getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.history.save", true));
+        API.addOption(new OptionToggleButton("inventory.history.save", true) {
+
+            @Override
+            public boolean onClick(int button) {
+                super.onClick(button);
+                ItemPanels.itemPanel.historyPanel.save();
+                ItemPanels.itemPanel.historyPanel.load();
+                return true;
+            }
+
+        });
 
         tag.getTag("inventory.craftables.enabled").setComment("Enable/disable Craftables Panel").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.craftables.enabled", true));
