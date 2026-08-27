@@ -51,13 +51,21 @@ public class GuiInfo {
     }
 
     public static boolean hideItemPanelSlot(GuiContainer gui, Rectangle4i rect) {
+        return hideItemPanelSlot(gui, rect, getGuiHandlersSnapshot());
+    }
+
+    public static INEIGuiHandler[] getGuiHandlersSnapshot() {
         try {
             readLock.lock();
-            for (INEIGuiHandler handler : guiHandlers) {
-                if (handler.hideItemPanelSlot(gui, rect.x, rect.y, rect.w, rect.h)) return true;
-            }
+            return guiHandlers.toArray(new INEIGuiHandler[0]);
         } finally {
             readLock.unlock();
+        }
+    }
+
+    public static boolean hideItemPanelSlot(GuiContainer gui, Rectangle4i rect, INEIGuiHandler[] handlers) {
+        for (INEIGuiHandler handler : handlers) {
+            if (handler.hideItemPanelSlot(gui, rect.x, rect.y, rect.w, rect.h)) return true;
         }
 
         for (Object item : gui.buttonList) {

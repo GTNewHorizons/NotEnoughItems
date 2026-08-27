@@ -19,6 +19,7 @@ import org.lwjgl.opengl.GL30;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.GuiInfo;
+import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.StackInfo;
@@ -409,11 +410,12 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
         perPage = columns * rows;
 
         if (gui != null) {
+            final INEIGuiHandler[] handlers = GuiInfo.getGuiHandlersSnapshot();
             if (NEIClientConfig.optimizeGuiOverlapComputation()) {
-                checkGuiOverlap(gui, 0, columns - 2, 1);
-                checkGuiOverlap(gui, columns - 1, 1, -1);
+                checkGuiOverlap(gui, handlers, 0, columns - 2, 1);
+                checkGuiOverlap(gui, handlers, columns - 1, 1, -1);
             } else {
-                checkGuiOverlap(gui, 0, columns, 1);
+                checkGuiOverlap(gui, handlers, 0, columns, 1);
             }
         }
 
@@ -422,7 +424,7 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
         }
     }
 
-    private void checkGuiOverlap(GuiContainer gui, int start, int end, int dir) {
+    private void checkGuiOverlap(GuiContainer gui, INEIGuiHandler[] handlers, int start, int end, int dir) {
         boolean validColumn = false;
 
         for (int c = start; c != end && (!NEIClientConfig.optimizeGuiOverlapComputation() || !validColumn); c += dir) {
@@ -432,7 +434,7 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
                 final int idx = columns * r + c;
                 if (idx >= 0 && idx < invalidSlotMap.length
                         && !invalidSlotMap[idx]
-                        && GuiInfo.hideItemPanelSlot(gui, getSlotRect(r, c))) {
+                        && GuiInfo.hideItemPanelSlot(gui, getSlotRect(r, c), handlers)) {
                     invalidSlotMap[idx] = true;
                     validColumn = false;
                     perPage--;
