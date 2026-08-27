@@ -14,39 +14,37 @@ public class NEIPotionGuiHandler extends INEIGuiAdapter {
 
     @Override
     public boolean hideItemPanelSlot(GuiContainer guiContainer, int slotX, int slotY, int slotW, int slotH) {
-        if (NEIClientConfig.ignorePotionOverlap()) {
+        if (!(guiContainer instanceof InventoryEffectRenderer)) {
             return false;
         }
 
-        if (guiContainer instanceof InventoryEffectRenderer) {
-            int x = guiContainer.guiLeft - 124;
-            int y = guiContainer.guiTop;
-            Minecraft minecraft = guiContainer.mc;
-            if (minecraft == null) {
-                return false;
-            }
-            EntityPlayerSP player = minecraft.thePlayer;
-            if (player == null) {
-                return false;
-            }
-            int potionCount = player.getActivePotionEffects().size();
-            if (potionCount == 0) {
-                return false;
-            }
-            int height = 33;
-            if (potionCount > 5) {
-                height = 132 / (potionCount - 1);
-            }
-            return intersectsPotionEffects(slotX, slotY, slotW, slotH, x, y, potionCount, height);
+        int x = guiContainer.guiLeft - 124;
+        if (slotX + slotW <= x || slotX >= x + 140) {
+            return false;
         }
-        return false;
+
+        Minecraft minecraft = guiContainer.mc;
+        if (minecraft == null) {
+            return false;
+        }
+        EntityPlayerSP player = minecraft.thePlayer;
+        if (player == null) {
+            return false;
+        }
+        int potionCount = player.getActivePotionEffects().size();
+        if (potionCount == 0 || NEIClientConfig.ignorePotionOverlap()) {
+            return false;
+        }
+        int height = 33;
+        if (potionCount > 5) {
+            height = 132 / (potionCount - 1);
+        }
+        return intersectsPotionEffects(slotY, slotH, guiContainer.guiTop, potionCount, height);
     }
 
-    static boolean intersectsPotionEffects(int slotX, int slotY, int slotW, int slotH, int effectX, int effectY,
-            int potionCount, int height) {
+    static boolean intersectsPotionEffects(int slotY, int slotH, int effectY, int potionCount, int height) {
         for (int i = 0; i < potionCount; i++, effectY += height) {
-            if (slotX + slotW > effectX && slotX < effectX + 140 && slotY + slotH > effectY && slotY < effectY + 32)
-                return true;
+            if (slotY + slotH > effectY && slotY < effectY + 32) return true;
         }
         return false;
     }
