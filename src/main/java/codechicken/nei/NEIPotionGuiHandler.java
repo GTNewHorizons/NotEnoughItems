@@ -1,14 +1,10 @@
 package codechicken.nei;
 
-import java.util.Collection;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
-import net.minecraft.potion.PotionEffect;
 
-import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.INEIGuiAdapter;
 
 /**
@@ -33,20 +29,24 @@ public class NEIPotionGuiHandler extends INEIGuiAdapter {
             if (player == null) {
                 return false;
             }
-            Collection<PotionEffect> activePotionEffects = player.getActivePotionEffects();
-            if (activePotionEffects.isEmpty()) {
+            int potionCount = player.getActivePotionEffects().size();
+            if (potionCount == 0) {
                 return false;
             }
             int height = 33;
-            if (activePotionEffects.size() > 5) {
-                height = 132 / (activePotionEffects.size() - 1);
+            if (potionCount > 5) {
+                height = 132 / (potionCount - 1);
             }
-            Rectangle4i slotRect = new Rectangle4i(slotX, slotY, slotW, slotH);
-            for (PotionEffect potioneffect : activePotionEffects) {
-                Rectangle4i box = new Rectangle4i(x, y, 140, 32);
-                if (box.intersects(slotRect)) return true;
-                y += height;
-            }
+            return intersectsPotionEffects(slotX, slotY, slotW, slotH, x, y, potionCount, height);
+        }
+        return false;
+    }
+
+    static boolean intersectsPotionEffects(int slotX, int slotY, int slotW, int slotH, int effectX, int effectY,
+            int potionCount, int height) {
+        for (int i = 0; i < potionCount; i++, effectY += height) {
+            if (slotX + slotW > effectX && slotX < effectX + 140 && slotY + slotH > effectY && slotY < effectY + 32)
+                return true;
         }
         return false;
     }
