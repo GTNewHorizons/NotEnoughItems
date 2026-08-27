@@ -71,7 +71,9 @@ public class GuiInfo {
         for (Object item : gui.buttonList) {
             GuiButton button = (GuiButton) item;
 
-            if ((new Rectangle4i(button.xPosition, button.yPosition, button.width, button.height)).intersects(rect)) {
+            if (button.xPosition + button.width > rect.x && button.xPosition < rect.x + rect.w
+                    && button.yPosition + button.height > rect.y
+                    && button.yPosition < rect.y + rect.h) {
                 return true;
             }
         }
