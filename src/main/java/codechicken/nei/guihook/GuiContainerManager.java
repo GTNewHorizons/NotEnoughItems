@@ -314,7 +314,7 @@ public class GuiContainerManager {
     }
 
     private static int modelviewDepth = -1;
-    private static boolean contextEnabled = false;
+    private static int contextDepth = 0;
     private static final ItemStackSet renderingErrorItems = new ItemStackSet();
 
     public static void drawItem(int offsetX, int offsetY, ItemStack itemstack, FontRenderer fontRenderer,
@@ -411,16 +411,15 @@ public class GuiContainerManager {
     }
 
     public static void enableMatrixStackLogging() {
-        if (!contextEnabled) {
+        if (contextDepth == 0) {
             GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
             modelviewDepth = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
-            contextEnabled = true;
         }
+        contextDepth++;
     }
 
     public static void disableMatrixStackLogging() {
-        if (contextEnabled) {
-            contextEnabled = false;
+        if (contextDepth > 0 && --contextDepth == 0) {
             modelviewDepth = -1;
             GL11.glPopAttrib();
         }
