@@ -349,16 +349,24 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
     }
 
     public void setGridSize(int mleft, int mtop, int w, int h) {
+        final int newWidth = Math.max(0, w);
+        final int newHeight = Math.max(0, h);
+        final boolean changed = marginLeft != mleft || marginTop != mtop || width != newWidth || height != newHeight;
+
         marginLeft = mleft;
         marginTop = mtop;
 
-        width = Math.max(0, w);
-        height = Math.max(0, h);
+        width = newWidth;
+        height = newHeight;
 
         columns = width / SLOT_SIZE;
         rows = height / SLOT_SIZE;
 
         paddingLeft = (width % SLOT_SIZE) / 2;
+
+        if (changed) {
+            onGridChanged();
+        }
     }
 
     public void shiftPage(int shift) {
@@ -397,7 +405,10 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
     }
 
     public void refresh(GuiContainer gui) {
-        updateGuiOverlapSlots(gui);
+        final int gridRenderingCacheMode = getGridRenderingCacheMode();
+        if (gridRenderingCacheMode <= 0 || screenCapture == null || screenCapture.needRefresh(gridRenderingCacheMode)) {
+            updateGuiOverlapSlots(gui);
+        }
         shiftPage(0);
     }
 
