@@ -307,6 +307,13 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
             }
 
             if (cx == 0 && cz == 0) {
+                double centerX = (x1 + x2) / 2;
+                double centerZ = (z1 + z2) / 2;
+
+                tess.setColorRGBA_F(0.9F, 0.9F, 0, (float) dist);
+                tess.addVertex(centerX, y1, centerZ);
+                tess.addVertex(centerX, y2, centerZ);
+
                 if (chunkOverlay == 2) {
                     dy = 32;
                     y1 = Math.floor(entity.posY - dy / 2);
