@@ -25,34 +25,6 @@ import codechicken.nei.recipe.StackInfo;
 
 public class RecipeChainMath {
 
-    public interface ChainVisitor {
-
-        void enterRecipe(RecipeId recipeId, long multiplier);
-
-        void addIngredient(BookmarkItem ingrItem, long requestedAmount);
-
-        void addIngredientFresh(BookmarkItem ingrItem, long freshAmount);
-
-        void leaveRecipe();
-
-    }
-
-    private static class EmptyChainVisitor implements ChainVisitor {
-
-        @Override
-        public void enterRecipe(RecipeId recipeId, long multiplier) {}
-
-        @Override
-        public void addIngredient(BookmarkItem ingrItem, long requestedAmount) {}
-
-        @Override
-        public void addIngredientFresh(BookmarkItem ingrItem, long freshAmount) {}
-
-        @Override
-        public void leaveRecipe() {}
-
-    }
-
     private static class ContainerItemResult {
 
         public ItemStack stack;
@@ -65,8 +37,6 @@ public class RecipeChainMath {
             this.containerItem = containerItem;
         }
     }
-
-    private static final ChainVisitor EMPTY_CHAIN_VISITOR = new EmptyChainVisitor();
 
     private static final ItemStack ROOT_ITEM = new ItemStack(Blocks.fire);
     private static final RecipeId ROOT_RECIPE_ID = RecipeId
@@ -328,10 +298,6 @@ public class RecipeChainMath {
     }
 
     public RecipeChainMath refresh() {
-        return refresh(EMPTY_CHAIN_VISITOR);
-    }
-
-    public RecipeChainMath refresh(ChainVisitor visitor) {
         final boolean isPausedItemDamageSound = StackInfo.isPausedItemDamageSound();
         StackInfo.pauseItemDamageSound(true);
 
@@ -356,7 +322,7 @@ public class RecipeChainMath {
                     }
 
                     this.preferredItems.put(prefItem, prefItem);
-                    calculateSuitableRecipe(prefItem, prefMultiplier, new ArrayList<>(), visitor);
+                    calculateSuitableRecipe(prefItem, prefMultiplier, new ArrayList<>());
                     this.preferredItems.remove(prefItem);
                 }
             }
@@ -375,13 +341,10 @@ public class RecipeChainMath {
         return this;
     }
 
-    private void calculateSuitableRecipe(BookmarkItem ingrItem, long ingrMultiplier, List<RecipeId> visited,
-            ChainVisitor visitor) {
+    private void calculateSuitableRecipe(BookmarkItem ingrItem, long ingrMultiplier, List<RecipeId> visited) {
         final BookmarkItem prefItem = this.preferredItems.get(ingrItem);
         long ingrAmount = ingrItem
                 .getAmount(ingrMultiplier, prefItem != null ? prefItem.itemStack : ingrItem.itemStack);
-
-        visitor.addIngredient(prefItem != null ? prefItem : ingrItem, ingrAmount);
 
         // calculate existing containers
         if (ingrAmount > 0) {
@@ -400,7 +363,7 @@ public class RecipeChainMath {
         if (ingrAmount > 0) {
             for (BookmarkItem item : this.initialItems) {
                 if (item.containsItems(ingrItem)
-                        && (ingrAmount = addRequiredAmount(item, ingrAmount, item.getAmount(), visitor)) == 0) {
+                        && (ingrAmount = addRequiredAmount(item, ingrAmount, item.getAmount())) == 0) {
                     break;
                 }
             }
@@ -408,37 +371,35 @@ public class RecipeChainMath {
 
         // shift amount
         if (prefItem == null) {
-            addRequiredAmount(ingrItem, ingrAmount, Long.MAX_VALUE, visitor);
+            addRequiredAmount(ingrItem, ingrAmount, Long.MAX_VALUE);
         } else if (visited.contains(prefItem.recipeId)) {
-            addRequiredAmount(prefItem, ingrAmount, Long.MAX_VALUE, visitor);
+            addRequiredAmount(prefItem, ingrAmount, Long.MAX_VALUE);
         } else {
-            addRequiredAmount(prefItem, ingrAmount, Long.MAX_VALUE, visitor);
+            addRequiredAmount(prefItem, ingrAmount, Long.MAX_VALUE);
             final long multiplier = Math
                     .max(0, prefItem.getMultiplierFromAmount(this.requiredAmount.get(prefItem)) - prefItem.multiplier);
 
             if (multiplier > 0) {
                 addShift(prefItem.recipeId, multiplier);
                 visited.add(prefItem.recipeId);
-                prepareIngredients(prefItem.recipeId, multiplier, visited, visitor);
+                prepareIngredients(prefItem.recipeId, multiplier, visited);
                 visited.remove(prefItem.recipeId);
             }
         }
 
     }
 
-    private void prepareIngredients(RecipeId recipeId, long multiplier, List<RecipeId> visited, ChainVisitor visitor) {
-        visitor.enterRecipe(recipeId, multiplier);
+    private void prepareIngredients(RecipeId recipeId, long multiplier, List<RecipeId> visited) {
 
         for (BookmarkItem item : this.recipeIngredients) {
             if (!item.emptyFactor() && recipeId.equals(item.recipeId)) {
-                calculateSuitableRecipe(item, multiplier, visited, visitor);
+                calculateSuitableRecipe(item, multiplier, visited);
             }
         }
 
-        visitor.leaveRecipe();
     }
 
-    private long addRequiredAmount(BookmarkItem prefItem, long ingrAmount, long maxAmount, ChainVisitor visitor) {
+    private long addRequiredAmount(BookmarkItem prefItem, long ingrAmount, long maxAmount) {
         long shiftAmount = this.requiredAmount.getOrDefault(prefItem, 0L);
 
         if (hasContainerItem(prefItem.itemStack)) {
@@ -495,7 +456,6 @@ public class RecipeChainMath {
             ingrAmount -= initAmount;
         }
 
-        visitor.addIngredientFresh(prefItem, shiftAmount - this.requiredAmount.getOrDefault(prefItem, 0L));
         this.requiredAmount.put(prefItem, shiftAmount);
 
         return ingrAmount;
