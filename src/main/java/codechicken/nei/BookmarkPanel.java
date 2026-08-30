@@ -903,14 +903,18 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     }
 
     private List<String> recipeChainTooltip(int groupId, List<String> currenttip) {
-        boolean crafting = this.grid.getGroup(groupId).crafting != null;
+        boolean crafting = this.grid.isCraftingMode(groupId);
 
         if (this.recipeChainTooltipLineHandler == null || this.recipeChainTooltipLineHandler.groupId != groupId
                 || this.recipeChainTooltipLineHandler.crafting != crafting) {
-            this.recipeChainTooltipLineHandler = new RecipeChainTooltipLineHandler(
-                    groupId,
-                    crafting,
-                    this.grid.createRecipeChainMath(groupId));
+            final RecipeChainMath recipeChainMath = this.grid.createRecipeChainMath(groupId);
+
+            if (recipeChainMath != null) {
+                this.recipeChainTooltipLineHandler = new RecipeChainTooltipLineHandler(
+                        groupId,
+                        crafting,
+                        recipeChainMath);
+            }
         }
 
         currenttip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(this.recipeChainTooltipLineHandler));

@@ -293,6 +293,7 @@ public class ItemListLoader {
             updateFilter.restart();
             warmTooltips.restart();
             loadBookmarks.restart();
+            loadHistory.restart();
         }
     };
 
@@ -319,6 +320,14 @@ public class ItemListLoader {
         }
     };
 
+    public static final RestartableTask loadHistory = new RestartableTask("NEI History Loading") {
+
+        @Override
+        public void execute() {
+            ItemPanels.itemPanel.historyPanel.load();
+        }
+    };
+
     public static final RestartableTask refreshItems = new RestartableTask("NEI Item Reordering") {
 
         @Override
@@ -340,6 +349,7 @@ public class ItemListLoader {
             SubsetWidget.updateHiddenItems();
             updateFilter.restart();
             loadBookmarks.restart();
+            loadHistory.restart();
         }
     };
 
