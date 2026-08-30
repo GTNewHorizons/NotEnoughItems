@@ -12,7 +12,7 @@ dependencies {
 
     compileOnly('maven.modrinth:forge-essentials:7.5.1')
     compileOnly('com.cardinalstar.cubicchunks:CubicChunks1710:v0.1.14-alpha:dev')
-    compileOnly('com.ruling_0:MaterialLib:0.9.0-mu:dev')
+    compileOnly('com.ruling_0:MaterialLib:0.10.0-mu:dev')
 
     antlr('org.antlr:antlr4:4.13.2')
     shadowImplementation('org.antlr:antlr4-runtime:4.13.2')
