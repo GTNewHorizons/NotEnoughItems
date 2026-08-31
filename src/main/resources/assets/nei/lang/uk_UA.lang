@@ -439,6 +439,12 @@ nei.options.inventory.history.enabled.true=Увімкнено
 nei.options.inventory.history.enabled.false=Вимкнено
 nei.options.inventory.history.color=Колір
 nei.options.inventory.history.useRows=Рядки
+nei.options.inventory.history.worldSpecific=Прив’язка до світу
+nei.options.inventory.history.worldSpecific.true=Так
+nei.options.inventory.history.worldSpecific.false=Ні
+nei.options.inventory.history.save=Збереження історії
+nei.options.inventory.history.save.true=Увімкнено
+nei.options.inventory.history.save.false=Вимкнено
 nei.options.inventory.craftables=Панель доступних крафтів
 nei.options.inventory.craftables.enabled=Видимість панелі доступних крафтів
 nei.options.inventory.craftables.enabled.true=Увімкнено
@@ -685,6 +691,9 @@ nei.subsets.Items.Weapons=Зброя
 nei.subsets.Items.Weapons.Ranged=Дальнього бою
 nei.subsets.Items.Weapons.Swords=Мечі
 nei.subsets.Untranslated=Неперекладені
+nei.subsets.Favorites=Обрані
+nei.subsets.Favorites.Manual=Додані вручну
+nei.subsets.Favorites.Generated=Автоматично
 nei.subsets.Mod=Мод
 
 nei.presets.new=Новий пресет
@@ -710,7 +719,3 @@ nei.presets.mode.group.tip=Створити власну групу предме
 nei.presets.mode.group.char=G
 
 nei.itemzoom.toggle=Використовуйте %s для перемикання наближення предметів
-
-nei.subsets.Favorites=Обрані
-nei.subsets.Favorites.Manual=Додані вручну
-nei.subsets.Favorites.Generated=Автоматично

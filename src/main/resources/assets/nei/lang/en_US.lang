@@ -691,6 +691,9 @@ nei.subsets.Items.Weapons=Weapons
 nei.subsets.Items.Weapons.Ranged=Ranged
 nei.subsets.Items.Weapons.Swords=Swords
 nei.subsets.Untranslated=Untranslated
+nei.subsets.Favorites=Favorites
+nei.subsets.Favorites.Manual=Manual
+nei.subsets.Favorites.Generated=Generated
 nei.subsets.Mod=Mod
 
 nei.presets.new=New Preset
@@ -716,7 +719,3 @@ nei.presets.mode.group.tip=Create custom collapsible items group
 nei.presets.mode.group.char=G
 
 nei.itemzoom.toggle=Use %s to toggle Item Zoom
-
-nei.subsets.Favorites=Favorites
-nei.subsets.Favorites.Manual=Manual
-nei.subsets.Favorites.Generated=Generated
