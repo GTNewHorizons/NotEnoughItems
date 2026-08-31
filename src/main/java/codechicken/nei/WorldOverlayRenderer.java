@@ -307,7 +307,6 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
             }
 
             if (cx == 0 && cz == 0) {
-
                 if (chunkOverlay == 2) {
                     dy = 32;
                     y1 = Math.floor(entity.posY - dy / 2);
