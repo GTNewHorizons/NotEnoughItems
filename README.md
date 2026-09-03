@@ -89,3 +89,5 @@ Licensed under LGPL-3.0 or later - use this however you want, but please give ba
 Parts inspired/borrowed/backported from [JEI](https://github.com/mezz/JustEnoughItems/tree/1.12) under the MIT License.
 
 Originial code Copyright (c) 2014-2015 mezz and was licensed under the MIT License.
+
+SPOILER: DreamMasterXXL IS the MergeMaster. 
