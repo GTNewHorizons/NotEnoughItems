@@ -866,6 +866,7 @@ public class NEIClientConfig {
         API.addKeyBind("bookmark.remove_recipe", Keyboard.KEY_A);
         API.addKeyBind("bookmark.pull_items", Keyboard.KEY_V);
         API.addKeyBind("bookmark.chat_link", Keyboard.KEY_L);
+        API.addKeyBind("bookmark.open_crafting_tree", Keyboard.KEY_T);
         API.addKeyBind("bookmark.hide", Keyboard.KEY_B);
 
         API.addKeyBind("itemzoom.toggle", Keyboard.KEY_Z);

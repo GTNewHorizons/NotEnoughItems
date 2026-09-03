@@ -48,6 +48,7 @@ import codechicken.nei.api.API;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.IConfigureNEI;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.bookmark.tree.GuiCraftingTree;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.StackInfo;
@@ -279,6 +280,7 @@ public class ClientHandler {
         PacketCustom.assignHandler(NEICPH.channel, new NEICPH());
         FMLCommonHandler.instance().bus().register(instance);
         MinecraftForge.EVENT_BUS.register(instance);
+        MinecraftForge.EVENT_BUS.register(new GuiCraftingTree.EventHandler());
 
         API.registerHighlightHandler(new DefaultHighlightHandler(), ItemInfo.Layout.HEADER);
         HUDRenderer.load();

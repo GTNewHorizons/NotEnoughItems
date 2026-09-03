@@ -179,9 +179,13 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
     }
 
     public int addGroup(BookmarkGroup group) {
-        int groupId = this.bookmarkItems.stream().mapToInt(item -> item.groupId).max().orElse(DEFAULT_GROUP_ID) + 1;
+        final int groupId = getNextGroupId();
         this.groups.put(groupId, group);
         return groupId;
+    }
+
+    public int getNextGroupId() {
+        return this.bookmarkItems.stream().mapToInt(item -> item.groupId).max().orElse(DEFAULT_GROUP_ID) + 1;
     }
 
     @Override
@@ -950,7 +954,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
     }
 
     public void removeRecipe(int itemIndex, boolean removeFullRecipe) {
-        final BookmarkItem item = getCalculatedItem(itemIndex);
+        final BookmarkItem item = getBookmarkItem(itemIndex);
 
         if (item == null) {
             return;
@@ -1214,28 +1218,10 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         if (group.collapsed) {
             shiftGroupAmount(targetItem.groupId, shift);
         } else if (targetItem.recipeId != null && targetItem.type != BookmarkItemType.ITEM) {
-            final RecipeId recipeId = this.gridGenerator.itemToRecipe
-                    .getOrDefault(targetItemIndex, targetItem.recipeId);
-            final boolean recipeInMiddle = group.crafting != null && group.crafting.recipeInMiddle.contains(recipeId);
-            long multiplier = Integer.MAX_VALUE;
-
-            for (BookmarkItem item : this.bookmarkItems) {
-                if (item.equalsRecipe(recipeId, targetItem.groupId) && !item.emptyFactor()) {
-                    multiplier = Math.min(
-                            shiftMultiplier(
-                                    Math.max(recipeInMiddle ? 1 : 0, item.multiplier),
-                                    shift,
-                                    recipeInMiddle ? 1 : 0),
-                            multiplier);
-                }
-            }
-
-            for (BookmarkItem item : this.bookmarkItems) {
-                if (item.equalsRecipe(recipeId, targetItem.groupId) && !item.emptyFactor()) {
-                    item.multiplier = multiplier;
-                }
-            }
-
+            shiftRecipeAmount(
+                    targetItem.groupId,
+                    this.gridGenerator.itemToRecipe.getOrDefault(targetItemIndex, targetItem.recipeId),
+                    shift);
         } else {
 
             for (BookmarkItem item : this.bookmarkItems) {
@@ -1245,6 +1231,32 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
                 }
             }
 
+            this.onItemsChanged();
+        }
+
+    }
+
+    public void shiftRecipeAmount(int targetGroupId, RecipeId recipeId, long shift) {
+        final BookmarkGroup group = getGroup(targetGroupId);
+        final boolean recipeInMiddle = group != null && group.crafting != null
+                && group.crafting.recipeInMiddle.contains(recipeId);
+        long multiplier = Integer.MAX_VALUE;
+
+        for (BookmarkItem item : this.bookmarkItems) {
+            if (item.equalsRecipe(recipeId, targetGroupId) && !item.emptyFactor()) {
+                multiplier = Math.min(
+                        shiftMultiplier(
+                                Math.max(recipeInMiddle ? 1 : 0, item.multiplier),
+                                shift,
+                                recipeInMiddle ? 1 : 0),
+                        multiplier);
+            }
+        }
+
+        for (BookmarkItem item : this.bookmarkItems) {
+            if (item.equalsRecipe(recipeId, targetGroupId) && !item.emptyFactor()) {
+                item.multiplier = multiplier;
+            }
         }
 
         this.onItemsChanged();
