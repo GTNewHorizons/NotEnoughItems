@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -132,7 +133,48 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         public abstract PositionedStack getResult();
 
         /**
-         * The ingredients required to produce the result Use this if you have more than one ingredient
+         * The multiple items produced by this recipe, with position
+         *
+         * @return A list of positioned ingredient items.
+         */
+        public List<PositionedStack> getResults() {
+            ArrayList<PositionedStack> stacks = new ArrayList<>();
+            try {
+                PositionedStack stack = getResult();
+                if (stack != null) stacks.add(stack);
+            } catch (ArithmeticException e) {
+                NEIClientConfig.logger.error("Error in getOtherStacks: " + e);
+            }
+            return stacks;
+        }
+
+        /**
+         * Return extra items that are not directly involved in the ingredient->result relationship. Eg fuels.
+         *
+         * @return A list of positioned ingredient items.
+         */
+        public List<PositionedStack> getCatalysts() {
+            ArrayList<PositionedStack> stacks = new ArrayList<>();
+            try {
+                PositionedStack stack = getCatalyst();
+                if (stack != null) stacks.add(stack);
+            } catch (ArithmeticException e) {
+                NEIClientConfig.logger.error("Error in getCatalysts: " + e);
+            }
+            return stacks;
+        }
+
+        /**
+         * Simple utility
+         *
+         * @return The another positioned stack
+         */
+        public PositionedStack getCatalyst() {
+            return null;
+        }
+
+        /**
+         * The ingredients required to produce the result. Use this if you have more than one ingredient
          *
          * @return A list of positioned ingredient items.
          */
@@ -151,6 +193,8 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
 
         /**
+         * Legacy API
+         *
          * Return extra items that are not directly involved in the ingredient->result relationship. Eg fuels. Use this
          * if you have more than one other stack
          *
@@ -625,11 +669,21 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
     }
 
     public PositionedStack getResultStack(int recipe) {
+        List<PositionedStack> results = getResultStacks(recipe);
+        if (results == null || results.isEmpty()) return null;
+        return results.get(0);
+    }
+
+    public List<PositionedStack> getResultStacks(int recipe) {
         try {
-            return arecipes.get(recipe).getResult();
+            return arecipes.get(recipe).getResults();
         } catch (ArrayIndexOutOfBoundsException ignored) {
-            return null;
+            return Collections.emptyList();
         }
+    }
+
+    public List<PositionedStack> getCatalystStacks(int recipe) {
+        return arecipes.get(recipe).getCatalysts();
     }
 
     public List<PositionedStack> getOtherStacks(int recipe) {
