@@ -83,11 +83,7 @@ public class ItemQuantityField extends TextField {
         }
 
         if (amount == 0) {
-            amount = NEIClientConfig.showItemQuantityWidget() ? NEIClientConfig.getItemQuantity() : 0;
-
-            if (amount == 0) {
-                amount = StackInfo.itemStackToNBT(stack).hasKey("gtFluidName") ? 144 : stack.getMaxStackSize();
-            }
+            amount = NEIClientUtils.getScrollMultiplier(stack);
         }
 
         return StackInfo.withAmount(stack, amount);
