@@ -691,6 +691,9 @@ nei.subsets.Items.Weapons=Weapons
 nei.subsets.Items.Weapons.Ranged=Ranged
 nei.subsets.Items.Weapons.Swords=Swords
 nei.subsets.Untranslated=Untranslated
+nei.subsets.Favorites=Favorites
+nei.subsets.Favorites.Manual=Manual
+nei.subsets.Favorites.Generated=Generated
 nei.subsets.Mod=Mod
 
 nei.presets.new=New Preset
