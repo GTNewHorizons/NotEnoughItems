@@ -51,20 +51,29 @@ public class GuiInfo {
     }
 
     public static boolean hideItemPanelSlot(GuiContainer gui, Rectangle4i rect) {
+        return hideItemPanelSlot(gui, rect, getGuiHandlersSnapshot());
+    }
+
+    public static INEIGuiHandler[] getGuiHandlersSnapshot() {
         try {
             readLock.lock();
-            if (guiHandlers.stream()
-                    .anyMatch(handler -> handler.hideItemPanelSlot(gui, rect.x, rect.y, rect.w, rect.h))) {
-                return true;
-            }
+            return guiHandlers.toArray(new INEIGuiHandler[0]);
         } finally {
             readLock.unlock();
+        }
+    }
+
+    public static boolean hideItemPanelSlot(GuiContainer gui, Rectangle4i rect, INEIGuiHandler[] handlers) {
+        for (INEIGuiHandler handler : handlers) {
+            if (handler.hideItemPanelSlot(gui, rect.x, rect.y, rect.w, rect.h)) return true;
         }
 
         for (Object item : gui.buttonList) {
             GuiButton button = (GuiButton) item;
 
-            if ((new Rectangle4i(button.xPosition, button.yPosition, button.width, button.height)).intersects(rect)) {
+            if (button.xPosition + button.width > rect.x && button.xPosition < rect.x + rect.w
+                    && button.yPosition + button.height > rect.y
+                    && button.yPosition < rect.y + rect.h) {
                 return true;
             }
         }
