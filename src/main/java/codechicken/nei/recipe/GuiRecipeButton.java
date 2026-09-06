@@ -65,6 +65,10 @@ public abstract class GuiRecipeButton extends GuiNEIButton {
 
     }
 
+    public void onPermutationsChanged() {
+
+    }
+
     public boolean mouseScrolled(int scroll) {
         return false;
     }

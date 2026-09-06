@@ -1053,7 +1053,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                 if (NEIClientUtils.altKey()) {
                     multiplier = NEIClientConfig.showItemQuantityWidget() ? NEIClientConfig.getItemQuantity() : 0;
                     if (multiplier == 0) {
-                        multiplier = StackInfo.itemStackToNBT(slot.getItemStack()).hasKey("gtFluidName") ? 144
+                        multiplier = StackInfo.isFluidDisplayItem(slot.getItemStack()) ? 144
                                 : slot.getItemStack().getMaxStackSize();
                     }
                 }

@@ -86,7 +86,7 @@ public class ItemQuantityField extends TextField {
             amount = NEIClientConfig.showItemQuantityWidget() ? NEIClientConfig.getItemQuantity() : 0;
 
             if (amount == 0) {
-                amount = StackInfo.itemStackToNBT(stack).hasKey("gtFluidName") ? 144 : stack.getMaxStackSize();
+                amount = StackInfo.isFluidDisplayItem(stack) ? 144 : stack.getMaxStackSize();
             }
         }
 

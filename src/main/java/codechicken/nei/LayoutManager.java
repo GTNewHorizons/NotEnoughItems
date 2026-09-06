@@ -119,11 +119,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
      */
     public static boolean itemsLoaded = false;
 
-    /**
-     * Not present, Present
-     */
-    public static Image[] itemPresenceOverlays = new Image[2];
-
     public static void load() {
         API.addLayoutStyle(0, new LayoutStyleMinecraft());
 
@@ -937,17 +932,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         tessellator.addVertexWithUV(x + width, y + height, z, maxU, maxV);
         tessellator.addVertexWithUV(x + width, y, z, maxU, v);
         tessellator.addVertexWithUV(x, y, z, u, v);
-    }
-
-    public static void drawItemPresenceOverlay(int slotX, int slotY, boolean isPresent, boolean slotHighlight) {
-
-        if (slotHighlight) {
-            NEIClientUtils.gl2DRenderContext(() -> drawRect(slotX, slotY, 16, 16, isPresent ? 0x8000AA00 : 0x80AA0000));
-        } else {
-            Image icon = itemPresenceOverlays[isPresent ? 1 : 0];
-            drawIcon(slotX + 16 - icon.width, slotY + 16 - icon.height, icon);
-        }
-
     }
 
     public static LayoutManager instance() {

@@ -387,6 +387,13 @@ public class NEIClientConfig {
 
         setFavoriteDefaults(tag);
 
+        tag.getTag("inventory.tooltip.showFluidTemperature").setComment("Enabled show Fluid Temperature")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.tooltip.showFluidTemperature", true));
+
+        tag.getTag("inventory.tooltip.showFluidState").setComment("Enabled show Fluid State").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.tooltip.showFluidState", true));
+
         tag.getTag("inventory.itemIDs").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemIDs", 3, true));
 
