@@ -333,6 +333,8 @@ public class PositionedStack implements Cloneable {
 
             Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
             GL11.glColor4f(red, green, blue, 1F);
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GL11.glDisable(GL11.GL_LIGHTING);
 
             final Tessellator tessellator = Tessellator.instance;
@@ -356,6 +358,7 @@ public class PositionedStack implements Cloneable {
             }
             tessellator.draw();
 
+            GL11.glDisable(GL11.GL_BLEND);
             GL11.glEnable(GL11.GL_LIGHTING);
             GL11.glColor4f(1F, 1F, 1F, 1F);
         }

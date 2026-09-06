@@ -48,6 +48,8 @@ public class FluidDisplayRenderer implements IItemRenderer {
 
         Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
         GL11.glColor4f(red, green, blue, 1F);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         final Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
@@ -58,6 +60,7 @@ public class FluidDisplayRenderer implements IItemRenderer {
         tessellator.draw();
 
         GL11.glColor4f(1F, 1F, 1F, 1F);
+        GL11.glDisable(GL11.GL_BLEND);
     }
 
     private void renderAmountOverlay(ItemStack item, ItemFluidDisplay fluidDisplay) {
