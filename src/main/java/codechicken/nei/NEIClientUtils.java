@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -41,6 +42,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fluids.FluidStack;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -56,6 +58,7 @@ import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.IInfiniteItemHandler;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.recipe.GuiOverlayButton.ItemOverlayState;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.NEIKeyboardUtils;
 
@@ -292,6 +295,83 @@ public class NEIClientUtils extends NEIServerUtils {
 
     public static boolean canItemFitInInventory(EntityPlayer player, ItemStack itemstack) {
         return InventoryUtils.getInsertibleQuantity(new InventoryRange(player.inventory, 0, 36), itemstack) > 0;
+    }
+
+    public static List<ItemOverlayState> presenceOverlay(List<PositionedStack> ingredients, List<ItemStack> invStacks) {
+        final List<ItemOverlayState> states = new ArrayList<>();
+        final Map<ItemStack, Long> remainingFluid = new IdentityHashMap<>();
+
+        for (PositionedStack stack : ingredients) {
+            boolean found;
+
+            if (StackInfo.isFluidDisplayItem(stack.item)) {
+                final FluidStack requiredFluid = StackInfo.getFluid(stack.item);
+                found = requiredFluid != null && consumeFluid(invStacks, remainingFluid, requiredFluid);
+            } else {
+                found = false;
+
+                for (ItemStack is : invStacks) {
+                    if (is.stackSize > 0 && stack.contains(is)) {
+                        is.stackSize--;
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            states.add(new ItemOverlayState(stack, found));
+        }
+
+        return states;
+    }
+
+    private static boolean consumeFluid(List<ItemStack> invStacks, Map<ItemStack, Long> remainingFluid,
+            FluidStack requiredFluid) {
+        long need = requiredFluid.amount;
+        final List<ItemStack> matched = new ArrayList<>();
+
+        for (ItemStack is : invStacks) {
+            if (need <= 0) {
+                break;
+            }
+
+            if (is.stackSize <= 0) {
+                continue;
+            }
+
+            final FluidStack invFluid = StackInfo.getFluid(is);
+
+            if (invFluid == null || !invFluid.isFluidEqual(requiredFluid)) {
+                continue;
+            }
+
+            final long available = remainingFluid.computeIfAbsent(is, k -> (long) invFluid.amount * is.stackSize);
+            if (available <= 0) {
+                continue;
+            }
+
+            matched.add(is);
+            need -= available;
+        }
+
+        if (need > 0) {
+            return false;
+        }
+
+        long remainingNeed = requiredFluid.amount;
+        for (ItemStack is : matched) {
+            final long available = remainingFluid.get(is);
+            final long consumed = Math.min(available, remainingNeed);
+
+            remainingFluid.put(is, available - consumed);
+            remainingNeed -= consumed;
+
+            if (remainingNeed <= 0) {
+                break;
+            }
+        }
+
+        return true;
     }
 
     public static boolean shiftKey() {
