@@ -35,6 +35,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldSettings.GameType;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 
 import org.apache.logging.log4j.Level;
@@ -45,6 +46,7 @@ import codechicken.lib.inventory.InventoryRange;
 import codechicken.lib.inventory.InventoryUtils;
 import codechicken.lib.packet.PacketCustom;
 import codechicken.nei.PacketIDs.S2C;
+import codechicken.nei.item.ItemFluidDisplay;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.NBTHelper;
 import cpw.mods.fml.common.FMLLog;
@@ -442,13 +444,49 @@ public class NEIServerUtils {
         throw new RuntimeException(msg);
     }
 
-    @SuppressWarnings("unchecked")
     public static ItemStack[] extractRecipeItems(Object obj) {
-        if (obj instanceof ItemStack) return new ItemStack[] { (ItemStack) obj };
-        if (obj instanceof ItemStack[]) return (ItemStack[]) obj;
-        if (obj instanceof List) return ((List<ItemStack>) obj).toArray(new ItemStack[0]);
 
-        throw new ClassCastException(obj + " not an ItemStack, ItemStack[] or List<ItemStack?");
+        if (obj instanceof ItemStack item) {
+            return new ItemStack[] { item };
+        }
+
+        if (obj instanceof ItemStack[]arr) {
+            return arr;
+        }
+
+        if (obj instanceof FluidStack fluid) {
+            return new ItemStack[] { ItemFluidDisplay.createStack(fluid) };
+        }
+
+        if (obj instanceof FluidStack[]arr) {
+            final ItemStack[] items = new ItemStack[arr.length];
+
+            for (int i = 0; i < items.length; i++) {
+                items[i] = ItemFluidDisplay.createStack(arr[i]);
+            }
+
+            return items;
+        }
+
+        if (obj instanceof List list) {
+            final ItemStack[] items = new ItemStack[list.size()];
+
+            for (int i = 0; i < items.length; i++) {
+                items[i] = extractRecipeItem(list.get(i));
+            }
+
+            return items;
+        }
+
+        throw new ClassCastException(
+                obj + " not an ItemStack, ItemStack[], FluidStack, FluidStack[] or a List of them");
+    }
+
+    private static ItemStack extractRecipeItem(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof ItemStack item) return item;
+        if (obj instanceof FluidStack fluid) return ItemFluidDisplay.createStack(fluid);
+        throw new ClassCastException(obj + " not an ItemStack or FluidStack");
     }
 
     public static List<Integer> getRange(final int start, final int end) {

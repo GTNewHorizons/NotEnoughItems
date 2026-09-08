@@ -23,6 +23,7 @@ import codechicken.nei.KeyManager;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.bookmark.tree.GuiCraftingTree;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.recipe.Recipe.RecipeId;
@@ -127,6 +128,12 @@ public class GuiFavoriteButton extends GuiRecipeButton {
             saveRecipeInBookmark();
         }
 
+        if (KeyManager.isKeyDown("bookmark.open_crafting_tree") && NEIClientUtils.shiftKey()
+                && saveRecipeInBookmark()) {
+            final int groupId = ItemPanels.bookmarkPanel.getGrid().getNextGroupId() - 1;
+            GuiCraftingTree.openCraftingTreeGui(ItemPanels.bookmarkPanel.getGrid(), groupId);
+        }
+
     }
 
     @Override
@@ -134,6 +141,10 @@ public class GuiFavoriteButton extends GuiRecipeButton {
         hotkeys.put(
                 KeyManager.getKeyName("bookmark.add", NEIClientUtils.SHIFT_HASH),
                 translate("recipe.favorite.bookmark_recipe"));
+
+        hotkeys.put(
+                KeyManager.getKeyName("bookmark.open_crafting_tree", NEIClientUtils.SHIFT_HASH),
+                NEIClientUtils.translate("bookmark.group.open_crafting_tree"));
 
         if (this.recipe.getResults().size() > 1) {
             hotkeys.put(
@@ -189,8 +200,8 @@ public class GuiFavoriteButton extends GuiRecipeButton {
         return true;
     }
 
-    public void saveRecipeInBookmark() {
-        ItemPanels.bookmarkPanel.addGroup(getRecipesTree(getRecipe()), BookmarkViewMode.TODO_LIST, true);
+    public boolean saveRecipeInBookmark() {
+        return ItemPanels.bookmarkPanel.addGroup(getRecipesTree(getRecipe()), BookmarkViewMode.TODO_LIST, true);
     }
 
     private List<Recipe> getRecipesTree(Recipe mainRecipe) {

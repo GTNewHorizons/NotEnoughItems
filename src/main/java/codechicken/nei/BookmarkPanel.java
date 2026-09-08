@@ -1048,15 +1048,9 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             final BookmarksGridSlot slot = this.grid.getSlotMouseOver(mousex, mousey);
 
             if (slot != null) {
-                int multiplier = 1;
-
-                if (NEIClientUtils.altKey()) {
-                    multiplier = NEIClientConfig.showItemQuantityWidget() ? NEIClientConfig.getItemQuantity() : 0;
-                    if (multiplier == 0) {
-                        multiplier = StackInfo.itemStackToNBT(slot.getItemStack()).hasKey("gtFluidName") ? 144
-                                : slot.getItemStack().getMaxStackSize();
-                    }
-                }
+                final long multiplier = NEIClientUtils.altKey()
+                        ? NEIClientUtils.getScrollMultiplier(slot.getItemStack())
+                        : 1;
 
                 this.grid.shiftItemAmount(slot.itemIndex, multiplier * shift);
                 return true;

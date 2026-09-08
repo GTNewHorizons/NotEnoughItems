@@ -13,6 +13,7 @@ import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.scroll.GuiHelper;
+import codechicken.nei.util.ReadableNumberConverter;
 
 public class RecipeTooltipLineHandler implements ITooltipLineHandler {
 
@@ -32,9 +33,15 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
     protected NEIRecipeWidget widget = null;
     protected RecipeId recipeId = null;
     protected boolean createdGui = false;
+    protected long multiplier = 0;
+
+    public RecipeTooltipLineHandler(RecipeId recipeId, long multiplier) {
+        this.recipeId = recipeId;
+        this.multiplier = multiplier;
+    }
 
     public RecipeTooltipLineHandler(RecipeId recipeId) {
-        this.recipeId = recipeId;
+        this(recipeId, 0);
     }
 
     public ItemStack getItemStack() {
@@ -43,6 +50,10 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
 
     public RecipeId getRecipeId() {
         return this.recipeId;
+    }
+
+    public long getMultiplier() {
+        return this.multiplier;
     }
 
     @Override
@@ -103,6 +114,14 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
 
         GuiDraw.drawRect(BG_PADDING, BG_PADDING, size.width - BG_PADDING * 2, 12, 0x30000000);
         GuiDraw.drawStringC(this.recipeName, this.widget.w / 2, BG_PADDING + 2, 0xffffff);
+
+        if (this.multiplier > 0) {
+            GuiDraw.drawString(
+                    "x" + ReadableNumberConverter.INSTANCE.toWideReadableForm(this.multiplier),
+                    BG_PADDING + 2,
+                    BG_PADDING + 2,
+                    0xffffff);
+        }
 
         GuiHelper.useScissor(
                 this.widget.x,

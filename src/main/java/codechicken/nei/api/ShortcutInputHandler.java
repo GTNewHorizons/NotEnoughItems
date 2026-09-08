@@ -32,6 +32,7 @@ import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.BookmarkPayload;
 import codechicken.nei.bookmark.BookmarksGridSlot;
+import codechicken.nei.bookmark.tree.GuiCraftingTree;
 import codechicken.nei.recipe.AutoCraftingManager;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiFavoriteButton;
@@ -98,6 +99,12 @@ public abstract class ShortcutInputHandler {
 
                 if (KeyManager.isKeyDown("bookmark.chat_link") && NEIClientUtils.controlKey()) {
                     NEIClientUtils.sendChatItemLink(BookmarkPayload.of(groupId).toNBT());
+                    return true;
+                }
+
+                if (ItemPanels.bookmarkPanel.getGrid().isCraftingMode(groupId)
+                        && KeyManager.isKeyDown("bookmark.open_crafting_tree")) {
+                    GuiCraftingTree.openCraftingTreeGui(ItemPanels.bookmarkPanel.getGrid(), groupId);
                     return true;
                 }
 
@@ -477,6 +484,7 @@ public abstract class ShortcutInputHandler {
         final Map<String, String> hotkeys = new HashMap<>();
 
         if (groupId != -1) {
+            final boolean isCraftingMode = ItemPanels.bookmarkPanel.getGrid().isCraftingMode(groupId);
 
             hotkeys.put(
                     KeyManager.getKeyName("bookmark.remove_recipe", NEIClientUtils.SHIFT_HASH),
@@ -485,6 +493,12 @@ public abstract class ShortcutInputHandler {
             hotkeys.put(
                     KeyManager.getKeyName("bookmark.chat_link", NEIClientUtils.CTRL_HASH),
                     NEIClientUtils.translate("bookmark.group.chat_link"));
+
+            if (isCraftingMode) {
+                hotkeys.put(
+                        KeyManager.getKeyName("bookmark.open_crafting_tree"),
+                        NEIClientUtils.translate("bookmark.group.open_crafting_tree"));
+            }
 
             if (BookmarkContainerInfo.getBookmarkContainerHandler(gui) != null) {
                 hotkeys.put(
@@ -495,7 +509,7 @@ public abstract class ShortcutInputHandler {
                         NEIClientUtils.translate("bookmark.group.pull_items_shift"));
             }
 
-            if (NEIClientConfig.autocraftingEnabled() && ItemPanels.bookmarkPanel.getGrid().isCraftingMode(groupId)) {
+            if (NEIClientConfig.autocraftingEnabled() && isCraftingMode) {
                 hotkeys.put(
                         NEIClientConfig
                                 .getKeyName("gui.craft_items", NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH),

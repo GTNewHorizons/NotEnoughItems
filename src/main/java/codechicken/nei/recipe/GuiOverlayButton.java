@@ -29,6 +29,15 @@ import codechicken.nei.util.NEIMouseUtils;
 
 public class GuiOverlayButton extends GuiRecipeButton {
 
+    protected static DrawableResource notPresent = new DrawableBuilder(
+            "nei:textures/nei_tabbed_sprites.png",
+            0,
+            40,
+            8,
+            8).build();
+    protected static DrawableResource present = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 8, 40, 8, 8)
+            .build();
+
     public enum ItemOverlayFormat {
 
         BACKGROUND,
@@ -58,11 +67,23 @@ public class GuiOverlayButton extends GuiRecipeButton {
         }
 
         public void draw(ItemOverlayFormat format) {
-            LayoutManager.drawItemPresenceOverlay(
-                    this.slot.relx,
-                    this.slot.rely,
-                    this.isPresent,
-                    format == ItemOverlayFormat.BACKGROUND);
+
+            if (format == ItemOverlayFormat.BACKGROUND) {
+                NEIClientUtils.gl2DRenderContext(
+                        () -> drawRect(
+                                this.slot.relx,
+                                this.slot.rely,
+                                this.slot.width,
+                                this.slot.height,
+                                isPresent ? 0x8000AA00 : 0x80AA0000));
+            } else {
+                final DrawableResource icon = isPresent ? present : notPresent;
+                LayoutManager.drawIcon(
+                        this.slot.relx + this.slot.width - icon.width,
+                        this.slot.rely + this.slot.height - icon.height,
+                        icon);
+            }
+
         }
     }
 
@@ -256,6 +277,11 @@ public class GuiOverlayButton extends GuiRecipeButton {
         return this.itemPresenceCache;
     }
 
+    @Override
+    public void onPermutationsChanged() {
+        this.itemPresenceCache.clear();
+    }
+
     public void setRequireShiftForOverlayRecipe(boolean require) {
         this.requireShiftForOverlayRecipe = require;
         updateEnabled();
@@ -291,30 +317,15 @@ public class GuiOverlayButton extends GuiRecipeButton {
     }
 
     protected List<ItemOverlayState> presenceOverlay(List<PositionedStack> ingredients) {
-        final List<ItemOverlayState> states = new ArrayList<>();
-        final List<ItemStack> invStacks = this.firstGui.inventorySlots.inventorySlots.stream()
-                .filter(
-                        s -> s != null && s.getStack() != null
-                                && s.getStack().stackSize > 0
-                                && s.isItemValid(s.getStack())
-                                && s.canTakeStack(this.firstGui.mc.thePlayer))
-                .map(s -> s.getStack().copy()).collect(Collectors.toCollection(ArrayList::new));
-
-        for (PositionedStack stack : ingredients) {
-            boolean found = false;
-
-            for (ItemStack is : invStacks) {
-                if (is.stackSize > 0 && stack.contains(is)) {
-                    is.stackSize--;
-                    found = true;
-                    break;
-                }
-            }
-
-            states.add(new ItemOverlayState(stack, found));
-        }
-
-        return states;
+        return NEIClientUtils.presenceOverlay(
+                ingredients,
+                this.firstGui.inventorySlots.inventorySlots.stream()
+                        .filter(
+                                s -> s != null && s.getStack() != null
+                                        && s.getStack().stackSize > 0
+                                        && s.isItemValid(s.getStack())
+                                        && s.canTakeStack(this.firstGui.mc.thePlayer))
+                        .map(s -> s.getStack().copy()).collect(Collectors.toList()));
     }
 
     public void overlayRecipe(boolean shift) {

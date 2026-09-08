@@ -21,6 +21,7 @@ import codechicken.nei.LRUCache;
 import codechicken.nei.api.IStackStringifyHandler;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.stackinfo.DefaultStackStringifyHandler;
+import codechicken.nei.recipe.stackinfo.FluidDisplayStackStringifyHandler;
 import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 import codechicken.nei.util.ItemStackKey;
 import codechicken.nei.util.NBTHelper;
@@ -36,6 +37,7 @@ public class StackInfo {
 
     static {
         stackStringifyHandlers.add(new DefaultStackStringifyHandler());
+        stackStringifyHandlers.add(new FluidDisplayStackStringifyHandler());
         stackStringifyHandlers.add(new GTFluidStackStringifyHandler());
     }
 
@@ -84,6 +86,19 @@ public class StackInfo {
         }
 
         return result == null ? stack : result;
+    }
+
+    public static boolean isFluidDisplayItem(ItemStack stack) {
+        if (stack == null) {
+            return false;
+        }
+
+        for (int i = stackStringifyHandlers.size() - 1; i >= 0; i--) {
+            if (stackStringifyHandlers.get(i).isFluidDisplayItem(stack)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void pauseItemDamageSound(boolean pause) {
