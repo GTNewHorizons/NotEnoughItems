@@ -24,4 +24,8 @@ public interface IStackStringifyHandler {
 
     default void pauseItemDamageSound(boolean pause) {}
 
+    default boolean isFluidDisplayItem(ItemStack stack) {
+        return false;
+    }
+
 }

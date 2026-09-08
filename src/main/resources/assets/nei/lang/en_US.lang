@@ -123,7 +123,14 @@ nei.inventory.current.gamemode.2=Current gamemode: creative+
 nei.inventory.current.gamemode.3=Current gamemode: adventure
 nei.inventory.tooltip.page=Page: %s / %s [Press %s to see next page]
 nei.inventory.tooltip.count.item=Count: %s
+
+itemGroup.neiFluids=Fluids
+
 nei.inventory.tooltip.count.fluid=Amount: %s
+nei.inventory.tooltip.temperature.fluid=Temperature: %sK
+nei.inventory.tooltip.state.fluid=State: %s
+nei.inventory.tooltip.state.fluid.gas=Gas
+nei.inventory.tooltip.state.fluid.liquid=Liquid
 
 nei.inventory.gamemode.0=Click: Set gamemode to survival
 nei.inventory.gamemode.1=Click: Set gamemode to creative
@@ -486,6 +493,14 @@ nei.options.inventory.itemUntranslator=Item Untranslator
 nei.options.inventory.itemUntranslator.true=Enabled
 nei.options.inventory.itemUntranslator.false=Disabled
 
+nei.options.inventory.tooltip=Tooltips
+nei.options.inventory.tooltip.showFluidTemperature=Show Fluid Temperature
+nei.options.inventory.tooltip.showFluidTemperature.true=Yes
+nei.options.inventory.tooltip.showFluidTemperature.false=No
+nei.options.inventory.tooltip.showFluidState=Show Fluid State
+nei.options.inventory.tooltip.showFluidState.true=Yes
+nei.options.inventory.tooltip.showFluidState.false=No
+
 nei.options.command=Commands
 nei.options.command.creative=Gamemode
 nei.options.command.creative.tip={0} = 1 for creative, 0 for survival, {1} = player
@@ -576,6 +591,7 @@ nei.debug.RecipeHandler.reset=Reset
 
 nei.recipe.page=Page %s/%s
 nei.recipe.tooltip=Recipes
+nei.recipe.fluid.tank.amount=Amount: %s
 nei.recipe.tab.view_all.tooltip=View all categories
 nei.recipe.search.tooltip.name=Filter Syntax
 nei.recipe.search.tooltip.shift=§7Hold §6Shift§7 for more info
@@ -674,6 +690,7 @@ nei.subsets.Items.Armor.Boots=Boots
 nei.subsets.Items.Armor.Chestplates=Chestplates
 nei.subsets.Items.Armor.Helmets=Helmets
 nei.subsets.Items.Armor.Leggings=Leggings
+nei.subsets.Items.Fluids=Fluids
 nei.subsets.Items.Food=Food
 nei.subsets.Items.Potions=Potions
 nei.subsets.Items.Potions.Ingredients=Ingredients

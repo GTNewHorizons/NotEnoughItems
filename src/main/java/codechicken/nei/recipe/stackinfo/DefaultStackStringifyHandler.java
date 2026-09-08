@@ -1,9 +1,14 @@
 package codechicken.nei.recipe.stackinfo;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
@@ -49,8 +54,24 @@ public class DefaultStackStringifyHandler implements IStackStringifyHandler {
     public FluidStack getFluid(ItemStack stack) {
         FluidStack fluidStack = FluidContainerRegistry.getFluidForFilledItem(stack);
 
-        if (fluidStack == null && stack.getItem() instanceof IFluidContainerItem) {
-            fluidStack = ((IFluidContainerItem) stack.getItem()).getFluid(stack);
+        if (fluidStack == null && stack.getItem() instanceof IFluidContainerItem container) {
+            fluidStack = container.getFluid(stack);
+        }
+
+        if (fluidStack == null && Block.getBlockFromItem(stack.getItem()) instanceof BlockLiquid liquidBlock) {
+            Fluid fluid = FluidRegistry.lookupFluidForBlock(liquidBlock);
+
+            if (fluid == null) {
+                if (liquidBlock.getMaterial() == Material.water) {
+                    fluid = FluidRegistry.WATER;
+                } else if (liquidBlock.getMaterial() == Material.lava) {
+                    fluid = FluidRegistry.LAVA;
+                }
+            }
+
+            if (fluid != null) {
+                fluidStack = new FluidStack(fluid, FluidContainerRegistry.BUCKET_VOLUME);
+            }
         }
 
         return fluidStack;

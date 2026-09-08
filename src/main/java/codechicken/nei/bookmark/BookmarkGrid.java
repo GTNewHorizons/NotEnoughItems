@@ -24,7 +24,7 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.ItemPanels;
-import codechicken.nei.ItemStackSet;
+import codechicken.nei.ItemStackAmount;
 import codechicken.nei.ItemsGrid;
 import codechicken.nei.ItemsGrid.MouseContext;
 import codechicken.nei.LayoutManager;
@@ -913,8 +913,8 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
     }
 
     public void addRecipe(Recipe recipe, int multiplier, int groupId) {
-        final ItemStackSet seenResults = new ItemStackSet();
-        final ItemStackSet seenIngredients = new ItemStackSet();
+        final ItemStackAmount seenResults = new ItemStackAmount();
+        final ItemStackAmount seenIngredients = new ItemStackAmount();
         final List<ItemStack> results = new ArrayList<>();
         final List<ItemStack> ingredients = new ArrayList<>();
 

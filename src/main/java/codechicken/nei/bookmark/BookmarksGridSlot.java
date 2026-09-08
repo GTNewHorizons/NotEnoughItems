@@ -82,7 +82,7 @@ public class BookmarksGridSlot extends ItemsGridSlot {
         this.bookmarkItem = bookmarkItem;
 
         this.isOutputRecipe = group.crafting != null && group.crafting.outputRecipes.contains(bookmarkItem.recipeId);
-        this.isFluidDisplay = StackInfo.itemStackToNBT(bookmarkItem.itemStack).hasKey("gtFluidName");
+        this.isFluidDisplay = StackInfo.isFluidDisplayItem(bookmarkItem.itemStack);
 
         this.realMultiplier = realMultiplier;
         this.calculatedMultiplier = calculatedMultiplier;
