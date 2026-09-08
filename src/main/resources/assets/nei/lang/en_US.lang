@@ -591,7 +591,7 @@ nei.debug.RecipeHandler.reset=Reset
 
 nei.recipe.page=Page %s/%s
 nei.recipe.tooltip=Recipes
-nei.recipe.fluid.tank.amount=§7Amount: %s
+nei.recipe.fluid.tank.amount=Amount: %s
 nei.recipe.tab.view_all.tooltip=View all categories
 nei.recipe.search.tooltip.name=Filter Syntax
 nei.recipe.search.tooltip.shift=§7Hold §6Shift§7 for more info

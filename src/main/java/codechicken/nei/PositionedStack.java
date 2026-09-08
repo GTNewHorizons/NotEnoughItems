@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
@@ -267,6 +268,13 @@ public class PositionedStack implements Cloneable {
             this(object, x, y, true);
         }
 
+        public Fluid(Object object, int x, int y, int width, int height, int capacity) {
+            super(object, x, y, false);
+            this.width = width;
+            this.height = height;
+            this.capacity = capacity;
+        }
+
         protected FluidStack getFluidStack() {
 
             if (this.item != this.cachedFluidItem) {
@@ -285,7 +293,7 @@ public class PositionedStack implements Cloneable {
 
             if (fluidStack != null) {
                 tooltip.add(
-                        NEIClientUtils
+                        EnumChatFormatting.GRAY + NEIClientUtils
                                 .translate("recipe.fluid.tank.amount", NEIClientUtils.formatFluid(fluidStack.amount)));
             }
 
