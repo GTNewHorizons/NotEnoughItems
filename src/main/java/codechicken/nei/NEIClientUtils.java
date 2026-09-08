@@ -564,6 +564,16 @@ public class NEIClientUtils extends NEIServerUtils {
         }
     }
 
+    public static long getScrollMultiplier(ItemStack stack) {
+        final long multiplier = NEIClientConfig.showItemQuantityWidget() ? NEIClientConfig.getItemQuantity() : 0;
+
+        if (multiplier != 0) {
+            return multiplier;
+        }
+
+        return StackInfo.itemStackToNBT(stack).hasKey("gtFluidName") ? 144 : stack.getMaxStackSize();
+    }
+
     public static void drawRect(double left, double top, double width, double height, Color color) {
         final boolean is2DTexture = GL11.glGetBoolean(GL11.GL_TEXTURE_2D);
         final boolean isBlend = GL11.glGetBoolean(GL11.GL_BLEND);
@@ -606,6 +616,7 @@ public class NEIClientUtils extends NEIServerUtils {
             GuiDraw.fontRenderer.drawString(text, 0, 0, color, shadow);
             GL11.glScaled(1 / smallTextScale, 1 / smallTextScale, 1);
             GL11.glTranslated(-1 * offsetX, -1 * offsetY, 0);
+            GL11.glColor4f(1, 1, 1, 1);
         });
     }
 

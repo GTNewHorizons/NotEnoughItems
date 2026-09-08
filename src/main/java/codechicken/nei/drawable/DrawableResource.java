@@ -40,6 +40,10 @@ public class DrawableResource extends Image {
         return height + paddingTop + paddingBottom;
     }
 
+    public void bindTexture() {
+        Minecraft.getMinecraft().getTextureManager().bindTexture(this.resourceLocation);
+    }
+
     public void draw(int xOffset, int yOffset) {
         draw(xOffset, yOffset, 0, 0, 0, 0);
     }
@@ -50,7 +54,7 @@ public class DrawableResource extends Image {
         final int height = this.height - maskBottom - maskTop;
 
         GL11.glEnable(GL11.GL_TEXTURE_2D);
-        Minecraft.getMinecraft().getTextureManager().bindTexture(this.resourceLocation);
+        bindTexture();
         drawModalRectWithCustomSizedTexture(xOffset + maskLeft, yOffset + maskTop, maskLeft, maskTop, width, height);
         if (!is2DTexture) GL11.glDisable(GL11.GL_TEXTURE_2D);
     }
@@ -72,7 +76,7 @@ public class DrawableResource extends Image {
             final int remainderHeight = tileHeight - (tileHeightCount * middleHeight);
 
             GL11.glEnable(GL11.GL_TEXTURE_2D);
-            Minecraft.getMinecraft().getTextureManager().bindTexture(this.resourceLocation);
+            bindTexture();
 
             // middle parts
             for (int tileW = 0; tileW <= tileWidthCount; tileW++) {

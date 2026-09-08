@@ -79,6 +79,10 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
         return this.activeStackIndex == -1 ? null : this.items.get(this.activeStackIndex);
     }
 
+    public List<ItemStack> getItems() {
+        return this.items;
+    }
+
     public boolean isEmpty() {
         return this.items.isEmpty();
     }

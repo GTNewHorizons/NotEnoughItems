@@ -620,7 +620,7 @@ public class GuiContainerManager {
 
             if (!secondDisplayName.isEmpty()) {
                 tooltip.add(1, EnumChatFormatting.DARK_GRAY + secondDisplayName + GuiDraw.TOOLTIP_LINESPACE);
-            } else {
+            } else if (!tooltip.get(0).startsWith(GuiDraw.TOOLTIP_HANDLER)) {
                 tooltip.set(0, tooltip.get(0) + GuiDraw.TOOLTIP_LINESPACE);
             }
 

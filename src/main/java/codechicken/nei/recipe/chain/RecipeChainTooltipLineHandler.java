@@ -145,7 +145,12 @@ public class RecipeChainTooltipLineHandler implements ITooltipLineHandler {
             }
 
             if (this.lastShiftKey) {
-                for (ItemStack stack : math.containerItems) {
+                for (ItemStack stack : math.containerItemsInventory) {
+                    if (stack != null) {
+                        remainder.add(stack.copy());
+                    }
+                }
+                for (ItemStack stack : math.containerItemsCrafting) {
                     if (stack != null) {
                         remainder.add(stack.copy());
                     }
