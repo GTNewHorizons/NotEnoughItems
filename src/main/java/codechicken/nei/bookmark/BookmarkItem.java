@@ -42,7 +42,7 @@ public class BookmarkItem {
 
             this.groupId = groupId;
             this.stack = stack;
-            this.factor = StackInfo.isFluidDisplayItem(stack) ? Math.min(144, nbTag.getInteger("Count")) : 1;
+            this.factor = StackInfo.isFluidDisplayItem(stack) ? Math.max(nbTag.getInteger("Count"), 1) : 1;
         }
 
         public Builder factor(long factor) {
