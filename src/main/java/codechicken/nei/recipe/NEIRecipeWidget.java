@@ -175,6 +175,10 @@ public class NEIRecipeWidget extends Widget {
             if (!NEIClientUtils.shiftKey() && ((this.cycleticks++) / 20) != this.lastcycle || this.lastcycle == -1) {
                 this.lastcycle = this.cycleticks / 20;
                 updatePermutations();
+
+                for (GuiRecipeButton button : getRecipeButtonsIfInit()) {
+                    button.onPermutationsChanged();
+                }
             }
 
             for (GuiRecipeButton button : getRecipeButtons()) {

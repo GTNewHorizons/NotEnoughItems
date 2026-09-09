@@ -387,6 +387,13 @@ public class NEIClientConfig {
 
         setFavoriteDefaults(tag);
 
+        tag.getTag("inventory.tooltip.showFluidTemperature").setComment("Enabled show Fluid Temperature")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.tooltip.showFluidTemperature", true));
+
+        tag.getTag("inventory.tooltip.showFluidState").setComment("Enabled show Fluid State").getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.tooltip.showFluidState", true));
+
         tag.getTag("inventory.itemIDs").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemIDs", 3, true));
 
@@ -866,6 +873,7 @@ public class NEIClientConfig {
         API.addKeyBind("bookmark.remove_recipe", Keyboard.KEY_A);
         API.addKeyBind("bookmark.pull_items", Keyboard.KEY_V);
         API.addKeyBind("bookmark.chat_link", Keyboard.KEY_L);
+        API.addKeyBind("bookmark.open_crafting_tree", Keyboard.KEY_T);
         API.addKeyBind("bookmark.hide", Keyboard.KEY_B);
 
         API.addKeyBind("itemzoom.toggle", Keyboard.KEY_Z);

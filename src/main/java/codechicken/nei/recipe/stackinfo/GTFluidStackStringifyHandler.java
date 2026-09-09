@@ -11,13 +11,13 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 import codechicken.nei.api.IStackStringifyHandler;
+import codechicken.nei.item.ItemFluidDisplay;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
 
     protected static Class<?> itemFluidDisplay = null;
-    protected static Method getFluidDisplayStack = null;
     protected static Method getFluidFromDisplayStack = null;
     protected static Class<?> gtMetaGeneratedTool = null;
     protected static Field playSound = null;
@@ -33,7 +33,6 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
                     "gregtech.common.items.ItemFluidDisplay",
                     "gregtech.common.items.GT_FluidDisplayItem");
             getFluidFromDisplayStack = gtUtility.getMethod("getFluidFromDisplayStack", ItemStack.class);
-            getFluidDisplayStack = gtUtility.getMethod("getFluidDisplayStack", FluidStack.class, boolean.class);
 
             gtMetaGeneratedTool = ReflectionHelper.getClass(
                     loader,
@@ -45,14 +44,15 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
         }
     }
 
+    @Override
     public NBTTagCompound convertItemStackToNBT(ItemStack stack, boolean saveStackSize) {
 
-        if (stack.getItem() != GameRegistry.findItem("ae2fc", "fluid_drop")) {
+        if (stack != null && isFluidDisplayItem(stack)) {
             final FluidStack fluidStack = getFluid(stack);
 
             if (fluidStack != null) {
                 final NBTTagCompound nbTag = new NBTTagCompound();
-                nbTag.setString("gtFluidName", fluidStack.getFluid().getName());
+                nbTag.setString(FluidDisplayStackStringifyHandler.NBT_FLUID_NAME, fluidStack.getFluid().getName());
                 nbTag.setInteger("Count", saveStackSize ? fluidStack.amount : 144);
                 return nbTag;
             }
@@ -61,23 +61,23 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
         return null;
     }
 
+    @Override
     public ItemStack convertNBTToItemStack(NBTTagCompound nbtTag) {
 
-        if (getFluidDisplayStack != null && nbtTag.hasKey("gtFluidName")) {
+        if (nbtTag.hasKey("gtFluidName")) {
             final String fluidName = nbtTag.getString("gtFluidName");
             final Fluid fluid = FluidRegistry.getFluid(fluidName);
             final int amount = nbtTag.getInteger("Count");
 
             if (fluid != null) {
-                try {
-                    return (ItemStack) getFluidDisplayStack.invoke(null, new FluidStack(fluid, amount), true);
-                } catch (Exception e) {}
+                return ItemFluidDisplay.createStack(new FluidStack(fluid, amount));
             }
         }
 
         return null;
     }
 
+    @Override
     public FluidStack getFluid(ItemStack stack) {
         final Item item = stack.getItem();
 
@@ -110,6 +110,7 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
         return null;
     }
 
+    @Override
     public ItemStack normalizeRecipeQueryStack(ItemStack stack) {
 
         if (stack.getItem() == GameRegistry.findItem("ae2fc", "fluid_drop")
@@ -117,9 +118,7 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
             final FluidStack fluidStack = getFluid(stack);
 
             if (fluidStack != null) {
-                try {
-                    return (ItemStack) getFluidDisplayStack.invoke(null, fluidStack, true);
-                } catch (Exception e) {}
+                return ItemFluidDisplay.createStack(fluidStack);
             }
         }
 
@@ -134,6 +133,13 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
             } catch (Exception e) {}
         }
 
+    }
+
+    @Override
+    public boolean isFluidDisplayItem(ItemStack stack) {
+        final Item item = stack.getItem();
+        return (itemFluidDisplay != null && itemFluidDisplay.isInstance(item))
+                || item == GameRegistry.findItem("ae2fc", "fluid_packet");
     }
 
 }

@@ -40,7 +40,7 @@ public class LabelWidget extends Widget implements IUpdatableWidget {
     @Override
     public List<String> handleTooltip(int mx, int my, List<String> tooltip) {
 
-        if (contains(mx, my)) {
+        if (contains(mx, my) && this.value != null) {
             tooltip.add(this.value);
         }
 

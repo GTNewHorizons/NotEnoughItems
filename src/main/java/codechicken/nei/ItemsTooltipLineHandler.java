@@ -79,6 +79,10 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
         return this.activeStackIndex == -1 ? null : this.items.get(this.activeStackIndex);
     }
 
+    public List<ItemStack> getItems() {
+        return this.items;
+    }
+
     public boolean isEmpty() {
         return this.items.isEmpty();
     }
@@ -163,9 +167,10 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
         for (Map.Entry<NBTTagCompound, Long> entry : ItemStackAmount.of(items).entrySet()) {
             final ItemStack stack = StackInfo.loadFromNBT(entry.getKey(), Math.max(0, entry.getValue()));
 
-            if (entry.getKey().hasKey("gtFluidName")) {
+            if (stack != null && StackInfo.isFluidDisplayItem(stack)) {
                 stack.stackSize = 0;
             }
+
             result.add(stack);
         }
 

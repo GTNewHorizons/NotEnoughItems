@@ -43,6 +43,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -117,11 +118,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
      * instead.
      */
     public static boolean itemsLoaded = false;
-
-    /**
-     * Not present, Present
-     */
-    public static Image[] itemPresenceOverlays = new Image[2];
 
     public static void load() {
         API.addLayoutStyle(0, new LayoutStyleMinecraft());
@@ -907,30 +903,35 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         changeTexture("textures/gui/widgets.png");
-        drawTexturedModalRect(x, y, tx1, ty1, w1, h1); // top left
-        drawTexturedModalRect(x, y2, tx1, ty2, w1, h2); // bottom left
+        final Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        addTexturedModalRect(tessellator, x, y, tx1, ty1, w1, h1); // top left
+        addTexturedModalRect(tessellator, x, y2, tx1, ty2, w1, h2); // bottom left
 
         for (int tile = 0; tile < wTiles; tile++) {
             final int tileX = x + w1 + 50 * tile;
-            drawTexturedModalRect(tileX, y, tx3, ty1, 50, h1); // top
-            drawTexturedModalRect(tileX, y2, tx3, ty2, 50, h2); // bottom
+            addTexturedModalRect(tessellator, tileX, y, tx3, ty1, 50, h1); // top
+            addTexturedModalRect(tessellator, tileX, y2, tx3, ty2, 50, h2); // bottom
         }
 
-        drawTexturedModalRect(x2, y, tx2, ty1, w2, h1); // top right
-        drawTexturedModalRect(x2, y2, tx2, ty2, w2, h2); // bottom right
+        addTexturedModalRect(tessellator, x2, y, tx2, ty1, w2, h1); // top right
+        addTexturedModalRect(tessellator, x2, y2, tx2, ty2, w2, h2); // bottom right
+        tessellator.draw();
 
         if (!is2DTexture) GL11.glDisable(GL11.GL_TEXTURE_2D);
     }
 
-    public static void drawItemPresenceOverlay(int slotX, int slotY, boolean isPresent, boolean slotHighlight) {
-
-        if (slotHighlight) {
-            NEIClientUtils.gl2DRenderContext(() -> drawRect(slotX, slotY, 16, 16, isPresent ? 0x8000AA00 : 0x80AA0000));
-        } else {
-            Image icon = itemPresenceOverlays[isPresent ? 1 : 0];
-            drawIcon(slotX + 16 - icon.width, slotY + 16 - icon.height, icon);
-        }
-
+    private static void addTexturedModalRect(Tessellator tessellator, int x, int y, int textureX, int textureY,
+            int width, int height) {
+        final double z = GuiDraw.gui.getZLevel();
+        final double u = textureX / 256D;
+        final double v = textureY / 256D;
+        final double maxU = (textureX + width) / 256D;
+        final double maxV = (textureY + height) / 256D;
+        tessellator.addVertexWithUV(x, y + height, z, u, maxV);
+        tessellator.addVertexWithUV(x + width, y + height, z, maxU, maxV);
+        tessellator.addVertexWithUV(x + width, y, z, maxU, v);
+        tessellator.addVertexWithUV(x, y, z, u, v);
     }
 
     public static LayoutManager instance() {

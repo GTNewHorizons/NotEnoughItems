@@ -17,6 +17,8 @@ public class ColorUtils {
         buttonLabelNormal   = color.rgb("buttonLabelNormal",    "0xE0E0E0"),
         buttonLabelHover    = color.rgb("buttonLabelHover",     "0xFFFFA0"),
         buttonLabelDisabled = color.rgb("buttonLabelDisabled",  "0x601010"),
-        buttonLabelInactive = color.rgb("buttonLabelInactive",  "0xA0A0A0");
+        buttonLabelInactive = color.rgb("buttonLabelInactive",  "0xA0A0A0"),
+
+        craftingTreeLine    = color.argb("craftingTreeLine",    "0xFF888888");
     // spotless:on
 }

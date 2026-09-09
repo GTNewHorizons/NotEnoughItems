@@ -322,6 +322,12 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
 
                     y1 -= intOffsetY;
                     y2 -= intOffsetY;
+                    double centerX = (x1 + x2) / 2;
+                    double centerZ = (z1 + z2) / 2;
+
+                    tess.setColorRGBA_F(0.9F, 0.9F, 0, (float) dist);
+                    tess.addVertex(centerX, y1, centerZ);
+                    tess.addVertex(centerX, y2, centerZ);
 
                     tess.setColorRGBA_F(0, 0.9F, 0, 0.4F);
                     for (double y = (int) y1; y <= y2; y++) {

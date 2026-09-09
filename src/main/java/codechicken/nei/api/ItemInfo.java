@@ -60,6 +60,7 @@ import codechicken.nei.config.HandlerDumper;
 import codechicken.nei.config.ItemPanelDumper;
 import codechicken.nei.config.RegistryDumper;
 import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.item.ItemFluidDisplay;
 import codechicken.nei.recipe.BrewingRecipeHandler;
 import codechicken.nei.recipe.RecipeItemInputHandler;
 import codechicken.nei.search.IdentifierFilter;
@@ -133,6 +134,7 @@ public class ItemInfo {
 
     public static void preInit() {
         addMobSpawnerItem();
+        addFluidDisplayItem();
     }
 
     public static void load() {
@@ -318,6 +320,10 @@ public class ItemInfo {
         GameDataManipulator.replaceItem(Block.getIdFromBlock(Blocks.mob_spawner), new ItemMobSpawner());
     }
 
+    private static void addFluidDisplayItem() {
+        GameRegistry.registerItem(new ItemFluidDisplay(), "neiFluidDisplay");
+    }
+
     private static void addInfiniteHandlers() {
         API.addInfiniteItemHandler(new InfiniteStackSizeHandler());
         API.addInfiniteItemHandler(new InfiniteToolHandler());
@@ -402,6 +408,7 @@ public class ItemInfo {
                 item -> item.getItem() instanceof ItemArmor armor && armor.armorType == 2);
         API.addSubset("Items.Armor.Boots", item -> item.getItem() instanceof ItemArmor armor && armor.armorType == 3);
         API.addSubset("Items.Food", item -> item.getItem() instanceof ItemFood);
+        API.addSubset("Items.Fluids", item -> item.getItem() instanceof ItemFluidDisplay);
         API.addSubset("Items.Potions.Ingredients", BrewingRecipeHandler.ingredients);
 
         for (CreativeTabs tab : CreativeTabs.creativeTabArray) {

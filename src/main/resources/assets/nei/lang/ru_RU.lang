@@ -84,6 +84,13 @@ nei.inventory.current.gamemode.2=Текущий режим игры: творч�
 nei.inventory.current.gamemode.3=Текущий режим игры: приключение
 nei.inventory.tooltip.page=Страница: %s / %s [Нажмите %s для перехода на следующую страницу]
 
+itemGroup.neiFluids=Жидкости
+
+nei.inventory.tooltip.temperature.fluid=Температура: %sK
+nei.inventory.tooltip.state.fluid=Состояние: %s
+nei.inventory.tooltip.state.fluid.gas=Газ
+nei.inventory.tooltip.state.fluid.liquid=Жидкость
+
 nei.inventory.gamemode.0=Клик: Установить режим игры на выживание
 nei.inventory.gamemode.1=Клик: Установить режим игры на творческий
 nei.inventory.gamemode.2=Клик: Установить режим игры на творческий+
@@ -444,6 +451,7 @@ nei.subsets.Items.Armor.Boots=Ботинки
 nei.subsets.Items.Armor.Chestplates=Нагрудники
 nei.subsets.Items.Armor.Helmets=Шлемы
 nei.subsets.Items.Armor.Leggings=Поножи
+nei.subsets.Items.Fluids=Жидкости
 nei.subsets.Items.Food=Еда
 nei.subsets.Items.Potions=Зелья
 nei.subsets.Items.Potions.Ingredients=Ингредиенты

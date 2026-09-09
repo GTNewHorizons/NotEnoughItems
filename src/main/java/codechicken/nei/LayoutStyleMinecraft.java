@@ -8,7 +8,6 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.LayoutStyle;
-import codechicken.nei.drawable.DrawableBuilder;
 
 public class LayoutStyleMinecraft extends LayoutStyle {
 
@@ -38,10 +37,6 @@ public class LayoutStyleMinecraft extends LayoutStyle {
         LayoutManager.timeButtons[2].icon = new Image(144, 24, 12, 12);
         LayoutManager.timeButtons[3].icon = new Image(156, 24, 12, 12);
         LayoutManager.heal.icon = new Image(168, 24, 12, 12);
-        LayoutManager.itemPresenceOverlays[0] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 0, 40, 8, 8)
-                .build();
-        LayoutManager.itemPresenceOverlays[1] = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 8, 40, 8, 8)
-                .build();
     }
 
     @Override

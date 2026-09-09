@@ -39,7 +39,7 @@ public class ItemCraftablesPanel
         public CraftablesGridSlot(int slotIndex, int itemIndex, ItemStack itemStack, RecipeId recipeId) {
             super(slotIndex, itemIndex, itemStack);
             this.realAmount = StackInfo.getAmount(itemStack);
-            this.isFluidDisplay = StackInfo.itemStackToNBT(itemStack).hasKey("gtFluidName");
+            this.isFluidDisplay = StackInfo.isFluidDisplayItem(itemStack);
             this.recipeId = recipeId;
         }
 

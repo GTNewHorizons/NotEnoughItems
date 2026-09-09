@@ -1,14 +1,10 @@
 package codechicken.nei;
 
-import java.util.Collection;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
-import net.minecraft.potion.PotionEffect;
 
-import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.INEIGuiAdapter;
 
 /**
@@ -18,35 +14,37 @@ public class NEIPotionGuiHandler extends INEIGuiAdapter {
 
     @Override
     public boolean hideItemPanelSlot(GuiContainer guiContainer, int slotX, int slotY, int slotW, int slotH) {
-        if (NEIClientConfig.ignorePotionOverlap()) {
+        if (!(guiContainer instanceof InventoryEffectRenderer)) {
             return false;
         }
 
-        if (guiContainer instanceof InventoryEffectRenderer) {
-            int x = guiContainer.guiLeft - 124;
-            int y = guiContainer.guiTop;
-            Minecraft minecraft = guiContainer.mc;
-            if (minecraft == null) {
-                return false;
-            }
-            EntityPlayerSP player = minecraft.thePlayer;
-            if (player == null) {
-                return false;
-            }
-            Collection<PotionEffect> activePotionEffects = player.getActivePotionEffects();
-            if (activePotionEffects.isEmpty()) {
-                return false;
-            }
-            int height = 33;
-            if (activePotionEffects.size() > 5) {
-                height = 132 / (activePotionEffects.size() - 1);
-            }
-            Rectangle4i slotRect = new Rectangle4i(slotX, slotY, slotW, slotH);
-            for (PotionEffect potioneffect : activePotionEffects) {
-                Rectangle4i box = new Rectangle4i(x, y, 140, 32);
-                if (box.intersects(slotRect)) return true;
-                y += height;
-            }
+        int x = guiContainer.guiLeft - 124;
+        if (slotX + slotW <= x || slotX >= x + 140) {
+            return false;
+        }
+
+        Minecraft minecraft = guiContainer.mc;
+        if (minecraft == null) {
+            return false;
+        }
+        EntityPlayerSP player = minecraft.thePlayer;
+        if (player == null) {
+            return false;
+        }
+        int potionCount = player.getActivePotionEffects().size();
+        if (potionCount == 0 || NEIClientConfig.ignorePotionOverlap()) {
+            return false;
+        }
+        int height = 33;
+        if (potionCount > 5) {
+            height = 132 / (potionCount - 1);
+        }
+        return intersectsPotionEffects(slotY, slotH, guiContainer.guiTop, potionCount, height);
+    }
+
+    static boolean intersectsPotionEffects(int slotY, int slotH, int effectY, int potionCount, int height) {
+        for (int i = 0; i < potionCount; i++, effectY += height) {
+            if (slotY + slotH > effectY && slotY < effectY + 32) return true;
         }
         return false;
     }
