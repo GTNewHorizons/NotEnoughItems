@@ -19,6 +19,7 @@ import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
+import codechicken.nei.ColorUtils;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIClientUtils.Alignment;
 import codechicken.nei.PositionedStack;
@@ -123,7 +124,7 @@ class CraftingTreeCanvas {
             18,
             18).build();
 
-    private static final Color LINE_COLOR = new Color(0xFF888888, true);
+    private static final Color LINE_COLOR = new Color(ColorUtils.craftingTreeLine.getColor(), true);
     private static final int HOVER_COLOR = 0x66888888;
     private static final float BADGE_SCALE = 0.6f;
 
