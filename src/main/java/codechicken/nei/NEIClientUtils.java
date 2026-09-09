@@ -571,7 +571,7 @@ public class NEIClientUtils extends NEIServerUtils {
             return multiplier;
         }
 
-        return StackInfo.itemStackToNBT(stack).hasKey("gtFluidName") ? 144 : stack.getMaxStackSize();
+        return StackInfo.isFluidDisplayItem(stack) ? 144 : stack.getMaxStackSize();
     }
 
     public static void drawRect(double left, double top, double width, double height, Color color) {

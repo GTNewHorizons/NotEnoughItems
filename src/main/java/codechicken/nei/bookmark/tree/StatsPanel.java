@@ -78,7 +78,7 @@ class StatsPanel extends ScrollContainer {
             this.icon = icon;
             this.recipeId = recipeId;
             this.multiplier = multiplier;
-            this.isFluidDisplay = StackInfo.itemStackToNBT(stack).hasKey("gtFluidName");
+            this.isFluidDisplay = StackInfo.isFluidDisplayItem(stack);
             this.info = this.recipeId != null ? handlerInfo(this.recipeId.getHandlerName()) : null;
             this.w = SLOT_SIZE;
             this.h = SLOT_SIZE;

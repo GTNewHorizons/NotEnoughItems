@@ -54,7 +54,7 @@ class ItemTreeSlot {
             this.emptyStack = ingrItem.getItemStack(0);
         }
 
-        this.isFluidDisplay = StackInfo.itemStackToNBT(this.emptyStack).hasKey("gtFluidName");
+        this.isFluidDisplay = StackInfo.isFluidDisplayItem(this.emptyStack);
         this.isContainerItem = isContainerItem(this.emptyStack);
     }
 
