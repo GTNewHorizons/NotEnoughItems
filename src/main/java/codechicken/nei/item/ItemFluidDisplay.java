@@ -49,27 +49,26 @@ public class ItemFluidDisplay extends Item implements IFluidContainerItem {
     }
 
     public static ItemStack createStack(FluidStack fluidStack) {
-        if (fluidStack == null || fluidStack.getFluid() == null) {
+        return fluidStack == null ? null : createStack(fluidStack.getFluid(), fluidStack.amount);
+    }
+
+    public static ItemStack createStack(Fluid fluid, long amount) {
+        if (fluid == null) {
             return null;
         }
 
         int fluidId;
 
         try {
-            fluidId = FluidRegistry.getFluidID(fluidStack.getFluid());
+            fluidId = FluidRegistry.getFluidID(fluid);
         } catch (Exception e) {
-            NEIClientConfig.logger.error("Failed to get fluid id for: " + fluidStack.getFluid().getName(), e);
+            NEIClientConfig.logger.error("Failed to get fluid id for: " + fluid.getName(), e);
             return null;
         }
 
         final ItemStack stack = new ItemStack(INSTANCE, 1, fluidId);
         final NBTTagCompound nbtTag = new NBTTagCompound();
-
-        if (fluidStack.tag != null) {
-            nbtTag.setTag("FluidTag", fluidStack.tag.copy());
-        }
-
-        nbtTag.setInteger("neiFluidDisplayAmount", fluidStack.amount);
+        nbtTag.setLong("neiFluidDisplayAmount", amount);
         stack.setTagCompound(nbtTag);
         return stack;
     }
@@ -88,23 +87,25 @@ public class ItemFluidDisplay extends Item implements IFluidContainerItem {
         }
 
         final NBTTagCompound nbTag = stack.getTagCompound();
-        final FluidStack fluidStack = new FluidStack(fluid, nbTag.getInteger("neiFluidDisplayAmount"));
-
-        if (nbTag.hasKey("FluidTag")) {
-            fluidStack.tag = nbTag.getCompoundTag("FluidTag");
-        }
+        final FluidStack fluidStack = new FluidStack(
+                fluid,
+                (int) Math.min(nbTag.getLong("neiFluidDisplayAmount"), Integer.MAX_VALUE));
 
         return fluidStack;
     }
 
-    @Override
-    public int getCapacity(ItemStack stack) {
+    public long getAmountLong(ItemStack stack) {
 
         if (stack == null || !(stack.getItem() instanceof ItemFluidDisplay) || !stack.hasTagCompound()) {
             return 0;
         }
 
-        return stack.getTagCompound().getInteger("neiFluidDisplayAmount");
+        return stack.getTagCompound().getLong("neiFluidDisplayAmount");
+    }
+
+    @Override
+    public int getCapacity(ItemStack stack) {
+        return (int) Math.min(getAmountLong(stack), Integer.MAX_VALUE);
     }
 
     @Override
