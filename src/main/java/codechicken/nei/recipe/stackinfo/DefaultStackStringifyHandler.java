@@ -45,7 +45,7 @@ public class DefaultStackStringifyHandler implements IStackStringifyHandler {
         final ItemStack stack = ItemStack.loadItemStackFromNBT(nbtTag);
 
         if (stack != null) {
-            stack.stackSize = nbtTag.getInteger("Count");
+            stack.stackSize = (int) Math.min(nbtTag.getLong("Count"), Integer.MAX_VALUE);
         }
 
         return stack;

@@ -2,12 +2,12 @@ package codechicken.nei.item;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.client.IItemRenderer;
-import net.minecraftforge.fluids.FluidStack;
 
 import org.lwjgl.opengl.GL11;
 
@@ -49,7 +49,8 @@ public class FluidDisplayRenderer implements IItemRenderer {
         Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
         GL11.glColor4f(red, green, blue, 1F);
         GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        OpenGlHelper
+                .glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         final Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
@@ -64,17 +65,17 @@ public class FluidDisplayRenderer implements IItemRenderer {
     }
 
     private void renderAmountOverlay(ItemStack item, ItemFluidDisplay fluidDisplay) {
-        final FluidStack fluidStack = fluidDisplay.getFluid(item);
-        if (fluidStack == null || fluidStack.amount <= 0) {
+        final long amount = fluidDisplay.getAmountLong(item);
+        if (amount <= 0) {
             return;
         }
 
         String amountString = "";
 
-        if (fluidStack.amount < 10_000) {
-            amountString = String.valueOf(fluidStack.amount) + "L";
+        if (amount < 10_000) {
+            amountString = String.valueOf(amount) + "L";
         } else {
-            amountString = ReadableNumberConverter.INSTANCE.toWideReadableForm(fluidStack.amount) + "L";
+            amountString = ReadableNumberConverter.INSTANCE.toWideReadableForm(amount) + "L";
         }
 
         final FontRenderer fontRender = Minecraft.getMinecraft().fontRenderer;
