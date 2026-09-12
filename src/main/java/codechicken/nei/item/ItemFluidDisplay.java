@@ -181,7 +181,7 @@ public class ItemFluidDisplay extends Item implements IFluidContainerItem {
     @Override
     @SideOnly(Side.CLIENT)
     public void getSubItems(Item aItem, CreativeTabs aTab, List<ItemStack> aList) {
-        for (int i = 0, j = FluidRegistry.getMaxID(); i < j; i++) {
+        for (int i = 0, j = FluidRegistry.getMaxID(); i <= j; i++) {
             final Fluid fluid = FluidRegistry.getFluid(i);
             if (fluid == null) {
                 continue;
