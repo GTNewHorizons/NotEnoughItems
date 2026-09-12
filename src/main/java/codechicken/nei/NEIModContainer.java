@@ -102,6 +102,7 @@ public class NEIModContainer extends DummyModContainer {
         gregTech5Loaded = Loader.isModLoaded("gregtech") && !Loader.isModLoaded("gregapi_post");
         gtnhLibLoaded = Loader.isModLoaded("gtnhlib");
         cubicChunksLoaded = Loader.isModLoaded("cubicchunks");
+        ServerHandler.preInit();
         if (CommonUtils.isClient()) ClientHandler.preInit();
         asmDataTable = event.getAsmData();
     }

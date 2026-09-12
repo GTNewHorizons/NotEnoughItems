@@ -10,7 +10,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
-import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
@@ -40,12 +39,9 @@ public class ItemFluidDisplay extends Item implements IFluidContainerItem {
     };
 
     public ItemFluidDisplay() {
-        setMaxStackSize(1);
         setUnlocalizedName("nei.fluidDisplay");
+        setMaxStackSize(1);
         INSTANCE = this;
-
-        setCreativeTab(tabFluids);
-        MinecraftForgeClient.registerItemRenderer(this, new FluidDisplayRenderer());
     }
 
     public static ItemStack createStack(FluidStack fluidStack) {

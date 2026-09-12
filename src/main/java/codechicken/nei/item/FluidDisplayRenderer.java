@@ -12,7 +12,10 @@ import net.minecraftforge.client.IItemRenderer;
 import org.lwjgl.opengl.GL11;
 
 import codechicken.nei.util.ReadableNumberConverter;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
+@SideOnly(Side.CLIENT)
 public class FluidDisplayRenderer implements IItemRenderer {
 
     @Override

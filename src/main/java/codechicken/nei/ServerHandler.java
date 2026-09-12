@@ -10,6 +10,7 @@ import net.minecraftforge.event.world.WorldEvent;
 
 import codechicken.core.CommonUtils;
 import codechicken.lib.packet.PacketCustom;
+import codechicken.nei.item.ItemFluidDisplay;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerChangedDimensionEvent;
@@ -18,6 +19,7 @@ import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
+import cpw.mods.fml.common.registry.GameRegistry;
 
 public class ServerHandler {
 
@@ -29,6 +31,14 @@ public class ServerHandler {
         MinecraftForge.EVENT_BUS.register(instance);
 
         NEIActions.init();
+    }
+
+    public static void preInit() {
+        registerFluidDisplayItem();
+    }
+
+    private static void registerFluidDisplayItem() {
+        GameRegistry.registerItem(new ItemFluidDisplay(), "neiFluidDisplay");
     }
 
     @SubscribeEvent
