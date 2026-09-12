@@ -192,6 +192,10 @@ public class Recipe {
                     || this.handlerName.equals("fox.spiteful.avaritia.compat.nei.ExtremeShapedRecipeHandler");
         }
 
+        public boolean isShapelessRecipe() {
+            return this.handlerName.equals("codechicken.nei.recipe.ShapelessRecipeHandler");
+        }
+
         public JsonObject toJsonObject() {
             final JsonObject json = new JsonObject();
 
