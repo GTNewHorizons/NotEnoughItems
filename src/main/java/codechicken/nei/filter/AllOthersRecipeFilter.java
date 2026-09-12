@@ -24,6 +24,12 @@ public class AllOthersRecipeFilter implements IRecipeFilter {
             }
         }
 
+        for (PositionedStack pStack : handler.getCatalystStacks(recipeIndex)) {
+            if (!match(pStack)) {
+                return false;
+            }
+        }
+
         return true;
     }
 
