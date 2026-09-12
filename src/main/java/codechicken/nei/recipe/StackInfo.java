@@ -150,6 +150,10 @@ public class StackInfo {
     }
 
     public static synchronized FluidStack getFluid(ItemStack stack) {
+        if (stack == null) {
+            return null;
+        }
+
         ItemStackKey key = new ItemStackKey(stack);
         FluidStack fluid = fluidcache.get(key);
 
