@@ -866,6 +866,13 @@ public class GuiContainerManager {
             handler.afterSlotClick(window, slotIndex, button, slot, modifier);
     }
 
+    public boolean handleMouseKeybind() {
+        return KeyManager.handleMouseKeybind(
+                Mouse.getEventButton(),
+                Mouse.getEventButtonState(),
+                keyCode -> keyTyped('\0', keyCode));
+    }
+
     // Support inputting Chinese characters
     public void handleKeyboardInput() {
         // Support for LWGJL 2.9.0 or later

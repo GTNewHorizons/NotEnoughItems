@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.function.IntConsumer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -29,6 +30,7 @@ public class KeyManager {
     private static final Map<String, KeyBinding> keyBindings = new HashMap<>();
     private static final Map<String, String> keyAliases = new HashMap<>();
     private static volatile boolean pendingOptionsReload = false;
+    private static int mouseEventKeyCode = Keyboard.KEY_NONE;
 
     static {
         // Aliases for legacy keybinds
@@ -72,6 +74,10 @@ public class KeyManager {
         if (binding != null) {
             final int keyCode = binding.getKeyCode();
 
+            if (mouseEventKeyCode != Keyboard.KEY_NONE) {
+                return keyCode == mouseEventKeyCode;
+            }
+
             if (keyCode < 0) {
                 return Mouse.isButtonDown(keyCode + 100);
             } else if (keyCode > Keyboard.KEY_NONE && keyCode < Keyboard.KEYBOARD_SIZE) {
@@ -80,6 +86,31 @@ public class KeyManager {
         }
 
         return false;
+    }
+
+    /**
+     * Dispatch a bound side button through the GUI's key handlers. Primary buttons keep their normal click behavior.
+     * During dispatch, only bindings for this press are active; other held keys must not trigger unrelated actions.
+     */
+    public static boolean handleMouseKeybind(int button, boolean pressed, IntConsumer handler) {
+        final int keyCode = button - 100;
+        if (button < 3 || button >= 100
+                || keyBindings.values().stream().noneMatch(binding -> binding.getKeyCode() == keyCode)) {
+            return false;
+        }
+
+        if (pressed) {
+            final int previousKeyCode = mouseEventKeyCode;
+            mouseEventKeyCode = keyCode;
+            try {
+                handler.accept(keyCode);
+            } finally {
+                mouseEventKeyCode = previousKeyCode;
+            }
+        }
+
+        // Consume releases too, without running the binding a second time.
+        return true;
     }
 
     public static boolean isHashDown(String ident) {
