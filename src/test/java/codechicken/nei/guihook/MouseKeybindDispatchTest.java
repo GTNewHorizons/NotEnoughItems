@@ -92,7 +92,8 @@ public class MouseKeybindDispatchTest {
     }
 
     private static InsnList readMouseInputBlock() throws Exception {
-        // ASMReader normally runs after Forge initializes its mappings and launch class loader.
+        // This class runs in the dedicated mouseKeybindAsmTest JVM: ObfMapping caches this fake
+        // environment permanently, even after the Forge fields below have been restored.
         Field fields = FMLDeobfuscatingRemapper.class.getDeclaredField("rawFieldMaps");
         Field methods = FMLDeobfuscatingRemapper.class.getDeclaredField("rawMethodMaps");
         fields.setAccessible(true);
