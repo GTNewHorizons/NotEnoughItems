@@ -129,4 +129,22 @@ class KeyManagerTest {
     private static IntConsumer unexpectedInput() {
         return keyCode -> { throw new AssertionError("Unexpected key event: " + keyCode); };
     }
+
+    @Test
+    void nestedDispatchRestoresTheOuterBinding() {
+        KeyManager.getKeyBinding("test.mouse").setKeyCode(-97);
+        KeyManager.getKeyBinding("test.other_mouse").setKeyCode(-96);
+        try (MockedStatic<Mouse> mouse = mockStatic(Mouse.class)) {
+            assertTrue(KeyManager.handleMouseKeybind(3, true, outer -> {
+                assertTrue(KeyManager.isKeyDown("test.mouse"));
+                assertTrue(KeyManager.handleMouseKeybind(4, true, inner -> {
+                    assertTrue(KeyManager.isKeyDown("test.other_mouse"));
+                    assertFalse(KeyManager.isKeyDown("test.mouse"));
+                }));
+                assertTrue(KeyManager.isKeyDown("test.mouse"));
+                assertFalse(KeyManager.isKeyDown("test.other_mouse"));
+            }));
+            assertFalse(KeyManager.isKeyDown("test.mouse"));
+        }
+    }
 }

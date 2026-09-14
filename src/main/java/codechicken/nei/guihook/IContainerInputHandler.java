@@ -7,6 +7,14 @@ import org.lwjgl.input.Keyboard;
 public interface IContainerInputHandler {
 
     /**
+     * Opt in to side-button bindings delivered with a negative vanilla key code and a null character. Opted-in key
+     * handlers must use the supplied event or KeyManager, never Keyboard.getEvent*().
+     */
+    default boolean supportsMouseKeybinds() {
+        return false;
+    }
+
+    /**
      * Only use this for things like input boxes that have to be 'focused' first and will not conflict with others
      * 
      * @param gui     An instance of the currentscreen

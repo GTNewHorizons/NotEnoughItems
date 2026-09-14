@@ -89,8 +89,9 @@ public class KeyManager {
     }
 
     /**
-     * Dispatch a bound side button through the GUI's key handlers. Primary buttons keep their normal click behavior.
-     * During dispatch, only bindings for this press are active; other held keys must not trigger unrelated actions.
+     * Dispatch a bound side button through the GUI's mouse-aware key handlers. Primary buttons keep their click
+     * behavior. During dispatch, only bindings for this press are active; other held keys must not trigger unrelated
+     * actions.
      */
     public static boolean handleMouseKeybind(int button, boolean pressed, IntConsumer handler) {
         final int keyCode = button - 100;
