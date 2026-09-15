@@ -10,7 +10,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
-import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
@@ -40,36 +39,32 @@ public class ItemFluidDisplay extends Item implements IFluidContainerItem {
     };
 
     public ItemFluidDisplay() {
-        setMaxStackSize(1);
         setUnlocalizedName("nei.fluidDisplay");
+        setMaxStackSize(1);
         INSTANCE = this;
-
-        setCreativeTab(tabFluids);
-        MinecraftForgeClient.registerItemRenderer(this, new FluidDisplayRenderer());
     }
 
     public static ItemStack createStack(FluidStack fluidStack) {
-        if (fluidStack == null || fluidStack.getFluid() == null) {
+        return fluidStack == null ? null : createStack(fluidStack.getFluid(), fluidStack.amount);
+    }
+
+    public static ItemStack createStack(Fluid fluid, long amount) {
+        if (fluid == null) {
             return null;
         }
 
         int fluidId;
 
         try {
-            fluidId = FluidRegistry.getFluidID(fluidStack.getFluid());
+            fluidId = FluidRegistry.getFluidID(fluid);
         } catch (Exception e) {
-            NEIClientConfig.logger.error("Failed to get fluid id for: " + fluidStack.getFluid().getName(), e);
+            NEIClientConfig.logger.error("Failed to get fluid id for: " + fluid.getName(), e);
             return null;
         }
 
         final ItemStack stack = new ItemStack(INSTANCE, 1, fluidId);
         final NBTTagCompound nbtTag = new NBTTagCompound();
-
-        if (fluidStack.tag != null) {
-            nbtTag.setTag("FluidTag", fluidStack.tag.copy());
-        }
-
-        nbtTag.setInteger("neiFluidDisplayAmount", fluidStack.amount);
+        nbtTag.setLong("neiFluidDisplayAmount", amount);
         stack.setTagCompound(nbtTag);
         return stack;
     }
@@ -88,23 +83,25 @@ public class ItemFluidDisplay extends Item implements IFluidContainerItem {
         }
 
         final NBTTagCompound nbTag = stack.getTagCompound();
-        final FluidStack fluidStack = new FluidStack(fluid, nbTag.getInteger("neiFluidDisplayAmount"));
-
-        if (nbTag.hasKey("FluidTag")) {
-            fluidStack.tag = nbTag.getCompoundTag("FluidTag");
-        }
+        final FluidStack fluidStack = new FluidStack(
+                fluid,
+                (int) Math.min(nbTag.getLong("neiFluidDisplayAmount"), Integer.MAX_VALUE));
 
         return fluidStack;
     }
 
-    @Override
-    public int getCapacity(ItemStack stack) {
+    public long getAmountLong(ItemStack stack) {
 
         if (stack == null || !(stack.getItem() instanceof ItemFluidDisplay) || !stack.hasTagCompound()) {
             return 0;
         }
 
-        return stack.getTagCompound().getInteger("neiFluidDisplayAmount");
+        return stack.getTagCompound().getLong("neiFluidDisplayAmount");
+    }
+
+    @Override
+    public int getCapacity(ItemStack stack) {
+        return (int) Math.min(getAmountLong(stack), Integer.MAX_VALUE);
     }
 
     @Override
@@ -180,7 +177,7 @@ public class ItemFluidDisplay extends Item implements IFluidContainerItem {
     @Override
     @SideOnly(Side.CLIENT)
     public void getSubItems(Item aItem, CreativeTabs aTab, List<ItemStack> aList) {
-        for (int i = 0, j = FluidRegistry.getMaxID(); i < j; i++) {
+        for (int i = 0, j = FluidRegistry.getMaxID(); i <= j; i++) {
             final Fluid fluid = FluidRegistry.getFluid(i);
             if (fluid == null) {
                 continue;

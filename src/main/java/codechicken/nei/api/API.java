@@ -146,14 +146,14 @@ public class API {
      * Hide an item from the item panel Damage values of OreDictionary.WILDCARD_VALUE and ItemStackMap.WILDCARD_TAG tags
      * function as wildcards for their respective variables
      */
-    public static void hideItem(ItemStack item) {
+    public static synchronized void hideItem(ItemStack item) {
         if (!ItemInfo.hiddenItems.contains(item)) {
             ItemInfo.hiddenItems.add(item);
             LayoutManager.markItemsDirty();
         }
     }
 
-    public static void hideItem(String rule) {
+    public static synchronized void hideItem(String rule) {
         ItemFilter filter = ItemStackFilterParser.parse(rule);
         if (filter != null) {
             ItemInfo.hiddenItemsRules.filters.add(filter);

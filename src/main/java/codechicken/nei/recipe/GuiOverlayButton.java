@@ -70,7 +70,7 @@ public class GuiOverlayButton extends GuiRecipeButton {
 
             if (format == ItemOverlayFormat.BACKGROUND) {
                 NEIClientUtils.gl2DRenderContext(
-                        () -> drawRect(
+                        () -> GuiDraw.drawRect(
                                 this.slot.relx,
                                 this.slot.rely,
                                 this.slot.width,

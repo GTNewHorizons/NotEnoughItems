@@ -74,20 +74,18 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
         }
 
         List<Integer> filtered = null;
-        final List<Integer> recipes = IntStream.range(0, filteredRecipes.size()).boxed()
-                .collect(Collectors.toCollection(ArrayList::new));
+        final List<Integer> recipes = IntStream.range(0, filteredRecipes.size()).boxed().collect(Collectors.toList());
 
         try {
             filtered = ItemList.forkJoinPool.submit(
                     () -> recipes.parallelStream()
                             .filter(recipe -> mathRecipe(this.original, filteredRecipes.get(recipe), filter))
-                            .collect(Collectors.toCollection(ArrayList::new)))
+                            .collect(Collectors.toList()))
                     .get();
 
             filtered.sort((a, b) -> a - b);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-
         }
 
         return filtered;

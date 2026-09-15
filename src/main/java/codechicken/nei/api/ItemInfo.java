@@ -36,6 +36,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.RegistryNamespaced;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.IShearable;
 import net.minecraftforge.oredict.OreDictionary;
@@ -60,6 +61,7 @@ import codechicken.nei.config.HandlerDumper;
 import codechicken.nei.config.ItemPanelDumper;
 import codechicken.nei.config.RegistryDumper;
 import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.item.FluidDisplayRenderer;
 import codechicken.nei.item.ItemFluidDisplay;
 import codechicken.nei.recipe.BrewingRecipeHandler;
 import codechicken.nei.recipe.RecipeItemInputHandler;
@@ -134,7 +136,7 @@ public class ItemInfo {
 
     public static void preInit() {
         addMobSpawnerItem();
-        addFluidDisplayItem();
+        setupFluidDisplayItemClient();
     }
 
     public static void load() {
@@ -320,8 +322,9 @@ public class ItemInfo {
         GameDataManipulator.replaceItem(Block.getIdFromBlock(Blocks.mob_spawner), new ItemMobSpawner());
     }
 
-    private static void addFluidDisplayItem() {
-        GameRegistry.registerItem(new ItemFluidDisplay(), "neiFluidDisplay");
+    private static void setupFluidDisplayItemClient() {
+        ItemFluidDisplay.INSTANCE.setCreativeTab(ItemFluidDisplay.tabFluids);
+        MinecraftForgeClient.registerItemRenderer(ItemFluidDisplay.INSTANCE, new FluidDisplayRenderer());
     }
 
     private static void addInfiniteHandlers() {

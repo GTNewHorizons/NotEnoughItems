@@ -67,10 +67,9 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
         if (nbtTag.hasKey("gtFluidName")) {
             final String fluidName = nbtTag.getString("gtFluidName");
             final Fluid fluid = FluidRegistry.getFluid(fluidName);
-            final int amount = nbtTag.getInteger("Count");
 
             if (fluid != null) {
-                return ItemFluidDisplay.createStack(new FluidStack(fluid, amount));
+                return ItemFluidDisplay.createStack(fluid, nbtTag.getLong("Count"));
             }
         }
 
@@ -98,11 +97,7 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
                 Fluid fluid = FluidRegistry.getFluid(nbtTag.getString("Fluid").toLowerCase());
 
                 if (fluid != null) {
-                    FluidStack fluidStack = new FluidStack(fluid, stack.stackSize);
-                    if (nbtTag.hasKey("FluidTag")) {
-                        fluidStack.tag = nbtTag.getCompoundTag("FluidTag");
-                    }
-                    return fluidStack;
+                    return new FluidStack(fluid, stack.stackSize);
                 }
             }
         } catch (Exception e) {}

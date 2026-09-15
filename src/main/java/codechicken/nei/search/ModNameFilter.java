@@ -7,11 +7,12 @@ import java.util.regex.Pattern;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
-import codechicken.nei.item.ItemFluidDisplay;
+import codechicken.nei.recipe.StackInfo;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -41,9 +42,10 @@ public class ModNameFilter implements ItemFilter {
     }
 
     protected static String getModId(ItemStack itemStack) {
+        final FluidStack fluidStack = StackInfo.isFluidDisplayItem(itemStack) ? StackInfo.getFluid(itemStack) : null;
 
-        if (itemStack.getItem() instanceof ItemFluidDisplay fluidDisplay) {
-            return getFluidModId(fluidDisplay, itemStack);
+        if (fluidStack != null) {
+            return getFluidModId(fluidStack.getFluid());
         }
 
         if (!ItemInfo.itemOwners.containsKey(itemStack.getItem())) {
@@ -59,8 +61,7 @@ public class ModNameFilter implements ItemFilter {
         return ItemInfo.itemOwners.get(itemStack.getItem());
     }
 
-    private static String getFluidModId(ItemFluidDisplay fluidDisplay, ItemStack itemStack) {
-        final Fluid fluid = FluidRegistry.getFluid(itemStack.getItemDamage());
+    private static String getFluidModId(Fluid fluid) {
         final String fluidName = FluidRegistry.getDefaultFluidName(fluid);
 
         if (!fluidOwners.containsKey(fluidName)) {

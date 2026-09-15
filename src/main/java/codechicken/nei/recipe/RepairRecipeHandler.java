@@ -2,13 +2,17 @@ package codechicken.nei.recipe;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.gui.GuiRepair;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import codechicken.nei.ItemList;
@@ -35,14 +39,17 @@ public class RepairRecipeHandler extends TemplateRecipeHandler {
     private static class ItemStackKey {
 
         private final ItemStack stack;
+        private final int hashCode;
 
         public ItemStackKey(ItemStack stack) {
             this.stack = stack;
+            this.hashCode = stack.isItemStackDamageable() ? stack.getItem().hashCode()
+                    : 31 * stack.getItem().hashCode() + stack.getItemDamage();
         }
 
         @Override
         public int hashCode() {
-            return stack.getItem().hashCode();
+            return this.hashCode;
         }
 
         @Override
@@ -104,22 +111,48 @@ public class RepairRecipeHandler extends TemplateRecipeHandler {
         reloadRepairRecipesTask.restart();
     }
 
-    private void buildCache() {
-        final Map<ItemStackKey, RepairPair> recipes = new HashMap<>();
+    private static final Set<Integer> knownBrokenItemTypes = ConcurrentHashMap.newKeySet();
+    private static volatile List<ItemStack> uniqueMaterials;
 
-        for (ItemStack itemstack1 : ItemList.items) {
-            recipes.computeIfAbsent(new ItemStackKey(itemstack1), key -> this.getRepairRecipe(key.stack));
+    private void buildCache() {
+        if (cachedRecipes != null) return;
+
+        uniqueMaterials = collectUniqueMaterials();
+
+        final Map<ItemStackKey, RepairPair> recipes = new ConcurrentHashMap<>();
+
+        try {
+            ItemList.forkJoinPool.submit(
+                    () -> ItemList.items.parallelStream().forEach(
+                            itemstack1 -> recipes
+                                    .computeIfAbsent(new ItemStackKey(itemstack1), key -> getRepairRecipe(key.stack))))
+                    .get();
+        } catch (InterruptedException | ExecutionException e) {
+            NEIClientConfig.logger.error("Failed to build repair recipe cache", e);
         }
 
         cachedRecipes = recipes.values().stream().filter(recipe -> recipe != null).collect(Collectors.toList());
     }
 
+    private static List<ItemStack> collectUniqueMaterials() {
+        final Map<Long, ItemStack> unique = new LinkedHashMap<>();
+        for (ItemStack stack : ItemList.items) {
+            final long key = ((long) Item.getIdFromItem(stack.getItem()) << 32) | (stack.getItemDamage() & 0xFFFFFFFFL);
+            unique.putIfAbsent(key, stack);
+        }
+        return new ArrayList<>(unique.values());
+    }
+
     private RepairPair getRepairRecipe(ItemStack itemstack1) {
         if (!itemstack1.isItemStackDamageable()) return null;
 
-        final List<ItemStack> permutations = new ArrayList<>();
+        final int itemId = Item.getIdFromItem(itemstack1.getItem());
+        if (knownBrokenItemTypes.contains(itemId)) return null;
 
-        for (ItemStack itemstack2 : ItemList.items) {
+        final List<ItemStack> permutations = new ArrayList<>();
+        final List<ItemStack> candidates = uniqueMaterials != null ? uniqueMaterials : collectUniqueMaterials();
+
+        for (ItemStack itemstack2 : candidates) {
             try {
                 if (itemstack1.getItem().getIsRepairable(itemstack1, itemstack2)) {
                     final ItemStack right = itemstack2.copy();
@@ -127,7 +160,8 @@ public class RepairRecipeHandler extends TemplateRecipeHandler {
                     permutations.add(right);
                 }
             } catch (Exception e) {
-                // Catch exceptions from mods that don't properly implement getIsRepairable
+                knownBrokenItemTypes.add(itemId);
+                break;
             }
         }
 

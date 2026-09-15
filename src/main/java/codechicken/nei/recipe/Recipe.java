@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import net.minecraft.item.Item;
@@ -43,7 +45,13 @@ public class Recipe {
 
             if (!isShapedRecipe()) {
                 // sort to ignore ingredients position in shapeless recipes
-                this.ingredients.sort(Comparator.comparing(StackInfo::getItemStackGUID));
+                final Map<ItemStack, String> guids = new IdentityHashMap<>();
+
+                for (ItemStack ingredient : this.ingredients) {
+                    guids.put(ingredient, StackInfo.getItemStackGUID(ingredient));
+                }
+
+                this.ingredients.sort(Comparator.comparing(guids::get));
             }
         }
 
@@ -52,7 +60,10 @@ public class Recipe {
         }
 
         public static RecipeId of(IRecipeHandler handler, int recipeIndex) {
-            final List<PositionedStack> ingredients = handler.getIngredientStacks(recipeIndex);
+            return of(handler, recipeIndex, handler.getIngredientStacks(recipeIndex));
+        }
+
+        public static RecipeId of(IRecipeHandler handler, int recipeIndex, List<PositionedStack> ingredients) {
             final String handlerName = GuiRecipeTab.getHandlerInfo(handler).getHandlerName();
             PositionedStack pStackResult = handler.getResultStack(recipeIndex);
 

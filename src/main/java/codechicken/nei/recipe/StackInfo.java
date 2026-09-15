@@ -63,7 +63,7 @@ public class StackInfo {
 
         if (nbtTag != null) {
             nbtTag = (NBTTagCompound) nbtTag.copy();
-            nbtTag.setInteger("Count", (int) Math.max(Math.min(customCount, Integer.MAX_VALUE), 0));
+            nbtTag.setLong("Count", Math.max(customCount, 0));
             return loadFromNBT(nbtTag);
         }
 
@@ -130,7 +130,15 @@ public class StackInfo {
     }
 
     public static boolean equalItemAndNBT(ItemStack stackA, ItemStack stackB, boolean useNBT) {
-        if (stackA == null || stackB == null || stackA.getItem() != stackB.getItem()) {
+        if (stackA == null || stackB == null) {
+            return false;
+        }
+
+        if (isFluidDisplayItem(stackA)) {
+            return isFluidDisplayItem(stackB) && getFluid(stackA).isFluidEqual(getFluid(stackB));
+        }
+
+        if (stackA.getItem() != stackB.getItem()) {
             return false;
         }
 
@@ -146,6 +154,10 @@ public class StackInfo {
     }
 
     public static synchronized FluidStack getFluid(ItemStack stack) {
+        if (stack == null) {
+            return null;
+        }
+
         ItemStackKey key = new ItemStackKey(stack);
         FluidStack fluid = fluidcache.get(key);
 
@@ -162,7 +174,8 @@ public class StackInfo {
     }
 
     public static boolean isFluidContainer(ItemStack stack) {
-        return stack.getItem() instanceof IFluidContainerItem || FluidContainerRegistry.isContainer(stack);
+        return stack.getItem() instanceof IFluidContainerItem && !isFluidDisplayItem(stack)
+                || FluidContainerRegistry.isContainer(stack);
     }
 
     public static String getItemStackGUID(ItemStack stack) {

@@ -31,13 +31,10 @@ public class FluidDisplayStackStringifyHandler implements IStackStringifyHandler
             return null;
         }
 
+        final long amount = ((ItemFluidDisplay) stack.getItem()).getAmountLong(stack);
         final NBTTagCompound nbTag = new NBTTagCompound();
         nbTag.setString(NBT_FLUID_NAME, fluidStack.getFluid().getName());
-        nbTag.setInteger("Count", saveStackSize ? fluidStack.amount : 1);
-
-        if (fluidStack.tag != null) {
-            nbTag.setTag("FluidTag", fluidStack.tag.copy());
-        }
+        nbTag.setLong("Count", saveStackSize ? amount : 1);
 
         return nbTag;
     }
@@ -55,13 +52,7 @@ public class FluidDisplayStackStringifyHandler implements IStackStringifyHandler
             return null;
         }
 
-        final FluidStack fluidStack = new FluidStack(fluid, nbtTag.getInteger("Count"));
-
-        if (nbtTag.hasKey("FluidTag")) {
-            fluidStack.tag = nbtTag.getCompoundTag("FluidTag");
-        }
-
-        return ItemFluidDisplay.createStack(fluidStack);
+        return ItemFluidDisplay.createStack(fluid, nbtTag.getLong("Count"));
     }
 
     @Override

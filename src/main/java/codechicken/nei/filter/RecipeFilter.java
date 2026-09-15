@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
+import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.IRecipeHandler;
 
 public class RecipeFilter implements IRecipeFilter {
@@ -78,7 +79,7 @@ public class RecipeFilter implements IRecipeFilter {
         if (pStack == null) return false;
 
         for (ItemStack stack : pStack.items) {
-            if (this.filter.matches(stack)) {
+            if (!ItemInfo.isHidden(stack) && this.filter.matches(stack)) {
                 return true;
             }
         }
