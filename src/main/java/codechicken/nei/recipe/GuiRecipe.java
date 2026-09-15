@@ -619,6 +619,15 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
     @Override
     public void keyTyped(char c, int i) {
+        handleKeyTyped(c, i);
+    }
+
+    /** Dispatch a mouse binding without invoking a subclass's keyboard-event handler. */
+    public final void handleMouseKeybind(int keyCode) {
+        handleKeyTyped('\0', keyCode);
+    }
+
+    private void handleKeyTyped(char c, int i) {
 
         if (GuiRecipe.searchField.isVisible() && GuiRecipe.searchField.focused()
                 && GuiRecipe.searchField.handleKeyPress(i, c)) {

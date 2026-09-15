@@ -39,6 +39,7 @@ public class NEIKeyboardUtils {
     }
 
     public static String getHashName(int keyBind) {
+        keyBind -= unhash(keyBind);
         StringJoiner keyText = new StringJoiner(" + ");
 
         if ((keyBind & CTRL_HASH) != 0) {
@@ -74,7 +75,8 @@ public class NEIKeyboardUtils {
     }
 
     public static int unhash(int keyBind) {
-        return keyBind & ~(CTRL_HASH | SHIFT_HASH | ALT_HASH);
+        // Sign-extend the 25 bits below the modifier flags: vanilla mouse bindings use button - 100.
+        return keyBind << 7 >> 7;
     }
 
 }
