@@ -169,7 +169,7 @@ public class NEIController implements IContainerSlotClickHandler, IContainerInpu
 
         if (GuiInfo.hasCustomSlots(gui)) return false;
 
-        if (NEIClientUtils.shiftKey()) {
+        if (NEIClientUtils.shiftKey() && button != 2) { // MMB is used by other mods when an itemstack is picked.
             // fix small mouse movement while clicking causing slotIndex to be -999
             if (slotIndex == -999) {
                 final Point mouse = GuiDraw.getMousePosition();
