@@ -50,6 +50,7 @@ import codechicken.nei.KeyManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIModContainer;
+import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.ItemUntranslator;
 import codechicken.nei.util.ReadableNumberConverter;
@@ -500,16 +501,19 @@ public class GuiContainerManager {
         if (keyID == 1) return false;
 
         for (IContainerInputHandler inputhander : inputHandlers)
-            if (inputhander.lastKeyTyped(window, keyChar, keyID)) return true;
+            if ((keyID >= 0 || inputhander.supportsMouseKeybinds()) && inputhander.lastKeyTyped(window, keyChar, keyID))
+                return true;
 
         return false;
     }
 
     public boolean firstKeyTyped(char keyChar, int keyID) {
-        for (IContainerInputHandler inputhander : inputHandlers) inputhander.onKeyTyped(window, keyChar, keyID);
+        for (IContainerInputHandler inputhander : inputHandlers)
+            if (keyID >= 0 || inputhander.supportsMouseKeybinds()) inputhander.onKeyTyped(window, keyChar, keyID);
 
         for (IContainerInputHandler inputhander : inputHandlers)
-            if (inputhander.keyTyped(window, keyChar, keyID)) return true;
+            if ((keyID >= 0 || inputhander.supportsMouseKeybinds()) && inputhander.keyTyped(window, keyChar, keyID))
+                return true;
 
         return false;
     }
@@ -864,6 +868,17 @@ public class GuiContainerManager {
 
         for (IContainerSlotClickHandler handler : slotClickHandlers)
             handler.afterSlotClick(window, slotIndex, button, slot, modifier);
+    }
+
+    public boolean handleMouseKeybind() {
+        return KeyManager.handleMouseKeybind(Mouse.getEventButton(), Mouse.getEventButtonState(), keyCode -> {
+            if (firstKeyTyped('\0', keyCode)) return;
+            if (window instanceof GuiRecipe<?>recipe) {
+                recipe.handleMouseKeybind(keyCode);
+            } else {
+                lastKeyTyped(keyCode, '\0');
+            }
+        });
     }
 
     // Support inputting Chinese characters
