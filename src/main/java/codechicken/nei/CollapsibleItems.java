@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
@@ -227,17 +228,17 @@ public class CollapsibleItems {
 
             if (NEIClientConfig.world.nbt.hasKey(STATE_KEY)) {
                 NBTTagCompound states = NEIClientConfig.world.nbt.getCompoundTag(STATE_KEY);
-                @SuppressWarnings("unchecked")
-                final Map<String, NBTPrimitive> list = (Map<String, NBTPrimitive>) states.tagMap;
+                final Map<String, NBTBase> list = states.tagMap;
                 final Map<String, GroupItem> mapping = new HashMap<>();
 
                 for (GroupItem group : CollapsibleItems.groups) {
                     mapping.put(group.guid, group);
                 }
 
-                for (Map.Entry<String, NBTPrimitive> nbtEntry : list.entrySet()) {
+                for (Map.Entry<String, NBTBase> nbtEntry : list.entrySet()) {
                     if (mapping.containsKey(nbtEntry.getKey())) {
-                        mapping.get(nbtEntry.getKey()).expanded = nbtEntry.getValue().func_150290_f() == 1;
+                        mapping.get(nbtEntry.getKey()).expanded = ((NBTPrimitive) nbtEntry.getValue()).func_150290_f()
+                                == 1;
                     }
                 }
             }
