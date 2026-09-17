@@ -28,6 +28,7 @@ whitelist.json
 *.iws
 src/main/resources/mixins.*([!.]).json
 *.bat
+*.sh
 *.DS_Store
 !gradlew.bat
 .factorypath
@@ -36,3 +37,4 @@ addon.local.gradle.kts
 addon.late.local.gradle
 addon.late.local.gradle.kts
 layout.json
+
