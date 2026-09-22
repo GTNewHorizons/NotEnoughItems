@@ -667,6 +667,10 @@ nei.recipe.badge.ncp.tooltip=Considered in parallel calculation, but not get con
 nei.recipe.badge.chance.consume=Consume Chance: %s
 nei.recipe.badge.chance.output=Output Chance: %s
 
+nei.recipe.items.results=Results
+nei.recipe.items.ingredients=Ingredients
+nei.recipe.items.ingredients_needed=Ingredients Needed
+
 # Deprecated
 nei.recipe.fuel.required=%s required
 # Deprecated
