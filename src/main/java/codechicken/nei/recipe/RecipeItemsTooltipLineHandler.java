@@ -3,6 +3,7 @@ package codechicken.nei.recipe;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -163,6 +164,8 @@ public class RecipeItemsTooltipLineHandler implements ITooltipLineHandler {
         final List<ItemStack> results = multiplyItems(recipe.getResults(), false, approximateResults);
         final List<ItemStack> ingredients = multiplyItems(recipe.getIngredients(), true, approximateIngredients);
         final ItemStackAmount ingredientsAmount = ItemStackAmount.of(ingredients);
+
+        ingredients.sort(Comparator.comparingInt(stack -> stack.stackSize == 0 ? 0 : 1));
 
         this.title = handlerRef.handler.getRecipeName().trim() + " (x"
                 + ReadableNumberConverter.INSTANCE.toWideReadableForm(this.multiplier)
