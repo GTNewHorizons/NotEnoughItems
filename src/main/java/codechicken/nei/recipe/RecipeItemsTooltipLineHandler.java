@@ -148,6 +148,10 @@ public class RecipeItemsTooltipLineHandler implements ITooltipLineHandler {
         }
     }
 
+    protected static int getIngredientOrder(ItemStack stack) {
+        return StackInfo.isFluidDisplayItem(stack) ? 2 : stack.stackSize == 0 ? 0 : 1;
+    }
+
     protected void createLines() {
         this.lines.clear();
         this.size.setSize(0, 0);
@@ -165,7 +169,7 @@ public class RecipeItemsTooltipLineHandler implements ITooltipLineHandler {
         final List<ItemStack> ingredients = multiplyItems(recipe.getIngredients(), true, approximateIngredients);
         final ItemStackAmount ingredientsAmount = ItemStackAmount.of(ingredients);
 
-        ingredients.sort(Comparator.comparingInt(stack -> stack.stackSize == 0 ? 0 : 1));
+        ingredients.sort(Comparator.comparingInt(RecipeItemsTooltipLineHandler::getIngredientOrder));
 
         this.title = handlerRef.handler.getRecipeName().trim() + " (x"
                 + ReadableNumberConverter.INSTANCE.toWideReadableForm(this.multiplier)
