@@ -88,6 +88,10 @@ class StatsPanel extends ScrollContainer {
             this(stack, stackSize, icon, null, 1);
         }
 
+        public ItemStack getStack() {
+            return StackInfo.withAmount(this.stack, stackSize);
+        }
+
         @Override
         public void draw(int mx, int my) {
 
@@ -519,7 +523,7 @@ class StatsPanel extends ScrollContainer {
 
     public ItemStack getStackMouseOver(int mouseX, int mouseY) {
         final Widget widget = getWidgetUnderMouse(mouseX, mouseY);
-        return widget instanceof ItemStatsSlot slot ? slot.stack : null;
+        return widget instanceof ItemStatsSlot slot && slot.recipeId == null ? slot.getStack() : null;
     }
 
     public void setHighlight(SearchResult searchResult) {

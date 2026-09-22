@@ -67,6 +67,7 @@ import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.recipe.RecipeItemsTooltipLineHandler;
 import codechicken.nei.recipe.RecipeTooltipLineHandler;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.EmptyContainer;
@@ -134,6 +135,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
     private RecipeTooltipLineHandler recipeTooltipLineHandler;
     private AcceptsFollowingTooltipLineHandler acceptsFollowingTooltipLineHandler;
+    private RecipeItemsTooltipLineHandler recipeItemsTooltipLineHandler;
 
     private final CraftingTreeState uiState = new CraftingTreeState();
     private final CraftingTreeToolbar toolbar;
@@ -939,12 +941,15 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
         if (toolbarTooltip != null) {
             currenttip.add(toolbarTooltip);
         } else if (this.hoveredBadgeHandler != null) {
-            final RecipeId recipeId = this.hoveredBadgeHandler.prefItem != null
-                    ? this.hoveredBadgeHandler.prefItem.recipeId
-                    : null;
-            final long multiplier = this.hoveredBadgeHandler.multiplier;
+            final ItemTreeSlot node = this.hoveredBadgeHandler;
+            final RecipeId recipeId = node.prefItem != null ? node.prefItem.recipeId : null;
 
-            addRecipeTooltipLine(recipeId, multiplier, currenttip);
+            if (recipeId != null && NEIClientUtils.shiftKey()) {
+                addRecipeItemsTooltipLine(recipeId, node.multiplier, currenttip);
+            } else {
+                addRecipeTooltipLine(recipeId, node.multiplier, currenttip);
+            }
+
         } else {
 
             if (this.statsPanelVisible) {
@@ -960,12 +965,33 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
                             EnumChatFormatting.GRAY + NEIClientUtils.translate(
                                     "bookmark.tree.stats.handler_iterations",
                                     handlerStatsSlot.stats.iterations));
+                } else if (widget instanceof StatsPanel.ItemStatsSlot itemStatsSlot && itemStatsSlot.recipeId != null) {
+                    if (NEIClientUtils.shiftKey()) {
+                        addRecipeItemsTooltipLine(itemStatsSlot.recipeId, itemStatsSlot.multiplier, currenttip);
+                    } else {
+                        currenttip.add(itemStatsSlot.stack.getDisplayName() + GuiDraw.TOOLTIP_LINESPACE);
+
+                        addRecipeTooltipLine(itemStatsSlot.recipeId, itemStatsSlot.multiplier, currenttip);
+                    }
                 }
             }
 
         }
 
         return currenttip;
+    }
+
+    private void addRecipeItemsTooltipLine(RecipeId recipeId, long multiplier, List<String> currenttip) {
+
+        if (this.recipeItemsTooltipLineHandler == null
+                || this.recipeItemsTooltipLineHandler.getMultiplier() != multiplier
+                || !this.recipeItemsTooltipLineHandler.getRecipeId().equals(recipeId)) {
+            this.recipeItemsTooltipLineHandler = new RecipeItemsTooltipLineHandler(recipeId, multiplier)
+                    .setUseInventory(true);
+        }
+
+        currenttip.add(this.recipeItemsTooltipLineHandler.getTitle() + GuiDraw.TOOLTIP_LINESPACE);
+        currenttip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(this.recipeItemsTooltipLineHandler));
     }
 
     private void addRecipeTooltipLine(RecipeId recipeId, long multiplier, List<String> currenttip) {
@@ -1078,14 +1104,6 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
         } else {
             this.acceptsFollowingTooltipLineHandler = null;
-
-            if (this.statsPanelVisible) {
-                final Widget widget = this.statsPanel.getWidgetUnderMouse(mousex, mousey);
-                if (widget instanceof StatsPanel.ItemStatsSlot itemStatsSlot) {
-                    addRecipeTooltipLine(itemStatsSlot.recipeId, itemStatsSlot.multiplier, currenttip);
-                }
-            }
-
         }
 
         return currenttip;
