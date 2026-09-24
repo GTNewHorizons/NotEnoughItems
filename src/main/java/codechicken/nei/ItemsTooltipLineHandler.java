@@ -150,10 +150,14 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
     protected static final int ICON_OFFSET = 1;
     protected static final int MAX_COLUMNS = 11;
     protected static final int MARGIN_TOP = 2;
+    protected static final int LABEL_MARGIN = 15;
+    protected static final int NAME_MARGIN = 2;
+    protected static final int DEFAULT_MAX_ROWS = 5;
     protected static final int FLUID_STACK_SIZE = 144;
 
     protected final List<ItemStack> items;
     protected final List<Long> amounts = new ArrayList<>();
+    protected final List<String> names = new ArrayList<>();
 
     protected AmountRenderer amountRenderer;
 
@@ -163,40 +167,115 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
     protected int activeStackIndex = -1;
     protected Dimension size = new Dimension();
 
-    protected int columns = 0;
-    protected int count = 0;
-    protected int rows = 0;
+    protected final boolean showNames;
+
     protected int length = 0;
+    protected int rows = 0;
+    protected int nameRows = 0;
+    protected int gridColumns = 0;
+    protected int gridCount = 0;
+
+    public static ItemsTooltipLineHandler grid(String label, List<ItemStack> items, int maxRows) {
+        return new ItemsTooltipLineHandler(label, items, true, maxRows, false);
+    }
+
+    public static ItemsTooltipLineHandler list(String label, List<ItemStack> items, int maxRows) {
+        return new ItemsTooltipLineHandler(label, items, true, maxRows, true);
+    }
 
     public ItemsTooltipLineHandler(String label, List<ItemStack> items) {
-        this(label, items, true, 5);
+        this(label, items, true, DEFAULT_MAX_ROWS, false);
     }
 
     public ItemsTooltipLineHandler(String label, List<ItemStack> items, boolean saveStackSize, int maxRows) {
+        this(label, items, saveStackSize, maxRows, false);
+    }
+
+    protected ItemsTooltipLineHandler(String label, List<ItemStack> items, boolean saveStackSize, int maxRows,
+            boolean showNames) {
         this.label = label;
         this.items = groupingItemStacks(items);
         this.amountRenderer = saveStackSize ? new TotalAmountRenderer() : new NoAmountRenderer();
         this.length = this.items.size();
+        this.showNames = showNames;
 
-        if (this.length > 0) {
-            this.columns = Math.min(MAX_COLUMNS, this.length);
-            this.rows = Math.min(maxRows, (int) Math.ceil((float) this.length / this.columns));
+        setMaxRows(maxRows);
+    }
 
-            this.size.width = Math.max(this.columns * SLOT_SIZE, fontRenderer.getStringWidth(this.label) + 15);
-            this.size.height = this.rows * SLOT_SIZE + fontRenderer.FONT_HEIGHT + 2 + MARGIN_TOP;
+    protected static int headerHeight() {
+        return fontRenderer.FONT_HEIGHT + 2 + MARGIN_TOP;
+    }
 
-            this.count = Math.min(
-                    this.length,
-                    Math.min(
-                            this.columns * this.rows,
-                            this.length > MAX_COLUMNS * maxRows ? (MAX_COLUMNS * maxRows) : Integer.MAX_VALUE));
+    public ItemsTooltipLineHandler setMaxRows(int maxRows) {
+        if (this.length == 0) {
+            return this;
+        }
 
-            if (this.items.size() > this.count) {
-                String text = "+" + (this.items.size() - this.count);
-                this.count -= (int) Math.ceil((float) (fontRenderer.getStringWidth(text) - 2) / SLOT_SIZE);
+        this.names.clear();
+        this.nameRows = 0;
+
+        if (!this.showNames || !layoutWithNames(maxRows)) {
+            layoutAsGrid(maxRows);
+        }
+
+        this.size.height = this.rows * SLOT_SIZE + headerHeight();
+
+        return this;
+    }
+
+    public int getRows() {
+        return this.rows;
+    }
+
+    protected boolean layoutWithNames(int maxRows) {
+        final int maxNames = this.length <= maxRows ? this.length : maxRows - 1;
+        final int[] lineWidth = new int[maxNames + 1];
+        lineWidth[0] = labelWidth();
+
+        for (int index = 0; index < maxNames; index++) {
+            final String name = this.items.get(index).getDisplayName();
+            this.names.add(name);
+            lineWidth[index + 1] = Math
+                    .max(lineWidth[index], SLOT_SIZE + NAME_MARGIN + fontRenderer.getStringWidth(name));
+        }
+
+        for (int named = maxNames; named >= 0; named--) {
+            final int rest = this.length - named;
+            final int width = Math.max(lineWidth[named], Math.min(rest, MAX_COLUMNS) * SLOT_SIZE);
+            final int columns = Math.max(1, width / SLOT_SIZE);
+            final int restRows = (int) Math.ceil((float) rest / columns);
+
+            if (named + restRows <= maxRows) {
+                this.nameRows = named;
+                this.gridColumns = columns;
+                this.gridCount = rest;
+                this.rows = named + restRows;
+                this.size.width = width;
+                return true;
             }
         }
 
+        this.names.clear();
+        return false;
+    }
+
+    protected void layoutAsGrid(int maxRows) {
+        this.gridColumns = Math.min(MAX_COLUMNS, this.length);
+        this.rows = Math.min(maxRows, (int) Math.ceil((float) this.length / this.gridColumns));
+        this.gridCount = Math.min(this.length, this.gridColumns * this.rows);
+        this.size.width = Math.max(this.gridColumns * SLOT_SIZE, labelWidth());
+
+        if (this.gridCount < this.length) {
+            this.gridCount -= reservedColumns(this.length - this.gridCount);
+        }
+    }
+
+    protected int labelWidth() {
+        return fontRenderer.getStringWidth(this.label) + LABEL_MARGIN;
+    }
+
+    protected int reservedColumns(int hidden) {
+        return (int) Math.ceil((float) (fontRenderer.getStringWidth("+" + hidden) - 2) / SLOT_SIZE);
     }
 
     public ItemsTooltipLineHandler setAmountRenderer(AmountRenderer amountRenderer) {
@@ -233,7 +312,7 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
 
     public void setLabel(String label) {
         this.label = label;
-        this.size.width = Math.max(this.columns * SLOT_SIZE, fontRenderer.getStringWidth(this.label) + 15);
+        this.size.width = Math.max(this.size.width, labelWidth());
     }
 
     @Override
@@ -254,38 +333,60 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
         final int zTranslation = GuiContainerManager.TOOLTIP_Z_OFFSET;
         GL11.glTranslatef(xTranslation, yTranslation, zTranslation);
 
-        int indexShift = 0;
+        final int gridShift = gridIndexShift();
 
-        if (this.activeStackIndex != -1) {
-            indexShift = Math.max(0, Math.min(this.items.size() - this.count, this.activeStackIndex - this.count + 2));
+        for (int index = 0; index < this.nameRows; index++) {
+            drawSlot(0, index * SLOT_SIZE, index);
         }
 
-        for (int index = 0; index < this.count && index + indexShift < this.items.size(); index++) {
-            int col = index % this.columns;
-            int row = index / this.columns;
+        for (int index = 0; index < this.gridCount; index++) {
+            drawSlot(
+                    (index % this.gridColumns) * SLOT_SIZE,
+                    (this.nameRows + index / this.gridColumns) * SLOT_SIZE,
+                    this.nameRows + gridShift + index);
+        }
 
-            if (this.activeStackIndex == index + indexShift) {
-                NEIClientUtils.gl2DRenderContext(
-                        () -> GuiDraw.drawRect(col * SLOT_SIZE, row * SLOT_SIZE, SLOT_SIZE, SLOT_SIZE, 0x66555555));
+        NEIClientUtils.gl2DRenderContext(() -> {
+            final int textShift = ICON_OFFSET + Math.round((ICON_SIZE - fontRenderer.FONT_HEIGHT) / 2f);
+
+            for (int index = 0; index < this.nameRows; index++) {
+                fontRenderer.drawStringWithShadow(
+                        EnumChatFormatting.GRAY + this.names.get(index),
+                        SLOT_SIZE + NAME_MARGIN,
+                        index * SLOT_SIZE + textShift,
+                        0xFFFFFF);
             }
 
-            drawStackWithAmount(col * SLOT_SIZE, row * SLOT_SIZE, index + indexShift);
-        }
+            final int hidden = this.length - this.nameRows - this.gridCount;
 
-        if (this.count < this.items.size()) {
-            final String text = "+" + (this.items.size() - this.count);
-
-            NEIClientUtils.gl2DRenderContext(() -> {
+            if (hidden > 0) {
+                final String text = "+" + hidden;
                 fontRenderer.drawStringWithShadow(
-                        text,
-                        MAX_COLUMNS * SLOT_SIZE - fontRenderer.getStringWidth(text) - 2,
-                        (this.rows - 1) * SLOT_SIZE + (SLOT_SIZE - fontRenderer.FONT_HEIGHT) / 2,
-                        0xee555555);
-            });
-        }
+                        EnumChatFormatting.GRAY + text,
+                        this.size.width - fontRenderer.getStringWidth(text) - 2,
+                        (this.rows - 1) * SLOT_SIZE + textShift,
+                        0xFFFFFF);
+            }
+        });
 
         GL11.glTranslatef(-xTranslation, -yTranslation, -zTranslation);
         GL11.glPopAttrib();
+    }
+
+    protected int gridIndexShift() {
+        if (this.nameRows > 0 || this.activeStackIndex == -1) {
+            return 0;
+        }
+
+        return Math.max(0, Math.min(this.length - this.gridCount, this.activeStackIndex - this.gridCount + 2));
+    }
+
+    protected void drawSlot(int x, int y, int index) {
+        if (this.activeStackIndex == index) {
+            NEIClientUtils.gl2DRenderContext(() -> GuiDraw.drawRect(x, y, SLOT_SIZE, SLOT_SIZE, 0x66555555));
+        }
+
+        drawStackWithAmount(x, y, index);
     }
 
     protected void drawStackWithAmount(int x, int y, int index) {

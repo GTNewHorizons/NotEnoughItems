@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
@@ -116,7 +115,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
     private static final int PADDING = 9;
     private static final int PADDING_TOP = 22;
 
-    private static LRUCache<String, String> handlerTitleCache = new LRUCache<>(100);
+    private final LRUCache<String, String> handlerTitleCache = new LRUCache<>(100);
 
     private GuiScreen prevGui;
     private boolean isFirstScreen = true;
@@ -919,15 +918,8 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
         super.keyTyped(typedChar, keyCode);
     }
 
-    private static String getHandlerTitle(String handlerName) {
-        return handlerTitleCache.computeIfAbsent(
-                handlerName,
-                hname -> Stream
-                        .concat(
-                                GuiCraftingRecipe.craftinghandlers.stream(),
-                                GuiCraftingRecipe.serialCraftingHandlers.stream())
-                        .filter(handler -> hname.equals(GuiRecipeTab.getHandlerInfo(handler).getHandlerName()))
-                        .findFirst().map(handler -> handler.getRecipeName().trim()).orElse(hname));
+    private String getHandlerTitle(String handlerName) {
+        return this.handlerTitleCache.computeIfAbsent(handlerName, GuiRecipeTab::getHandlerTitle);
     }
 
     @Override

@@ -262,11 +262,8 @@ public class GuiOverlayButton extends GuiRecipeButton {
                     .map(state -> state.getSlot().item).collect(Collectors.toList());
 
             if (!items.isEmpty()) {
-                this.missedMaterialsTooltipLineHandler = new ItemsTooltipLineHandler(
-                        NEIClientUtils.translate("recipe.overlay.missing"),
-                        items,
-                        true,
-                        Integer.MAX_VALUE);
+                this.missedMaterialsTooltipLineHandler = ItemsTooltipLineHandler
+                        .grid(NEIClientUtils.translate("recipe.overlay.missing"), items, Integer.MAX_VALUE);
             } else {
                 this.missedMaterialsTooltipLineHandler = null;
             }
