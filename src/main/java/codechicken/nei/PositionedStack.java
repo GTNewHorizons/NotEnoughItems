@@ -6,22 +6,18 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IIcon;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
-
-import org.lwjgl.opengl.GL11;
 
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.item.FluidDrawer;
+import codechicken.nei.item.FluidDrawer.FillDirection;
 import codechicken.nei.recipe.Badge;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.StackInfo;
@@ -255,7 +251,9 @@ public class PositionedStack implements Cloneable {
     public static class Fluid extends PositionedStack {
 
         /** The tank size the fill level is measured against, in mB. 0 means "always render full". */
-        public int capacity = 0;
+        protected int capacity = 0;
+        protected boolean flowingTexture = false;
+        protected FillDirection fillDirection = FillDirection.AUTO;
 
         private ItemStack cachedFluidItem;
         private FluidStack cachedFluidStack;
@@ -272,7 +270,34 @@ public class PositionedStack implements Cloneable {
             super(object, x, y, false);
             this.width = width;
             this.height = height;
-            this.capacity = capacity;
+            setCapacity(capacity);
+        }
+
+        public int getCapacity() {
+            return this.capacity;
+        }
+
+        public Fluid setCapacity(int capacity) {
+            this.capacity = Math.max(capacity, 0);
+            return this;
+        }
+
+        public boolean hasFlowingTexture() {
+            return this.flowingTexture;
+        }
+
+        public Fluid setFlowingTexture(boolean flowingTexture) {
+            this.flowingTexture = flowingTexture;
+            return this;
+        }
+
+        public FillDirection getFillDirection() {
+            return this.fillDirection;
+        }
+
+        public Fluid setFillDirection(FillDirection fillDirection) {
+            this.fillDirection = fillDirection == null ? FillDirection.AUTO : fillDirection;
+            return this;
         }
 
         protected FluidStack getFluidStack() {
@@ -313,62 +338,15 @@ public class PositionedStack implements Cloneable {
                 return;
             }
 
-            final int tankCapacity = this.capacity > 0 ? this.capacity : fluidStack.amount;
-            int fillHeight = tankCapacity > 0
-                    ? (int) ((long) this.height * Math.min(fluidStack.amount, tankCapacity) / tankCapacity)
-                    : 0;
-
-            if (fluidStack.amount > 0 && fillHeight <= 0) {
-                fillHeight = 1;
-            }
-
-            if (fillHeight > 0) {
-                drawFluid(this.relx, this.rely, this.width, this.height, fillHeight, fluidStack);
-            }
-        }
-
-        private static void drawFluid(int x, int y, int width, int height, int fillHeight, FluidStack fluidStack) {
-            final IIcon icon = fluidStack.getFluid().getIcon(fluidStack);
-
-            if (icon == null) {
-                return;
-            }
-
-            final int color = fluidStack.getFluid().getColor(fluidStack);
-            final float red = (color >> 16 & 0xFF) / 255F;
-            final float green = (color >> 8 & 0xFF) / 255F;
-            final float blue = (color & 0xFF) / 255F;
-
-            Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
-            GL11.glColor4f(red, green, blue, 1F);
-            GL11.glEnable(GL11.GL_BLEND);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            GL11.glDisable(GL11.GL_LIGHTING);
-
-            final Tessellator tessellator = Tessellator.instance;
-
-            tessellator.startDrawingQuads();
-            for (int tx = 0; tx < width; tx += 16) {
-                final int tileWidth = Math.min(16, width - tx);
-                final double u2 = icon.getMinU() + (icon.getMaxU() - icon.getMinU()) * tileWidth / 16D;
-
-                for (int ty = 0; ty < fillHeight; ty += 16) {
-                    final int tileHeight = Math.min(16, fillHeight - ty);
-                    final double v2 = icon.getMinV() + (icon.getMaxV() - icon.getMinV()) * tileHeight / 16D;
-                    final int bottomY = y + height - ty;
-                    final int topY = bottomY - tileHeight;
-
-                    tessellator.addVertexWithUV(x + tx, bottomY, 0, icon.getMinU(), v2);
-                    tessellator.addVertexWithUV(x + tx + tileWidth, bottomY, 0, u2, v2);
-                    tessellator.addVertexWithUV(x + tx + tileWidth, topY, 0, u2, icon.getMinV());
-                    tessellator.addVertexWithUV(x + tx, topY, 0, icon.getMinU(), icon.getMinV());
-                }
-            }
-            tessellator.draw();
-
-            GL11.glDisable(GL11.GL_BLEND);
-            GL11.glEnable(GL11.GL_LIGHTING);
-            GL11.glColor4f(1F, 1F, 1F, 1F);
+            FluidDrawer.drawFluid(
+                    this.relx,
+                    this.rely,
+                    this.width,
+                    this.height,
+                    this.capacity,
+                    fluidStack,
+                    this.flowingTexture,
+                    this.fillDirection);
         }
     }
 }
