@@ -212,9 +212,6 @@ public class NEIClientConfig {
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.bookmarks.showRecipeHandlerIcon", true));
 
-        tag.getTag("inventory.bookmarks.recipeChainDir").getIntValue(1);
-        API.addOption(new OptionCycled("inventory.bookmarks.recipeChainDir", 2, true));
-
         tag.getTag("inventory.bookmarks.ignorePotionOverlap").setComment("Ignore overlap with potion effect HUD")
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.bookmarks.ignorePotionOverlap", true));
@@ -1151,10 +1148,6 @@ public class NEIClientConfig {
 
     public static boolean ignorePotionOverlap() {
         return getBooleanSetting("inventory.bookmarks.ignorePotionOverlap");
-    }
-
-    public static int recipeChainDir() {
-        return getIntSetting("inventory.bookmarks.recipeChainDir");
     }
 
     public static boolean optimizeGuiOverlapComputation() {

@@ -1,6 +1,5 @@
 package codechicken.nei.recipe;
 
-import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,10 +15,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 
-import codechicken.lib.gui.GuiDraw.ITooltipLineHandler;
 import codechicken.lib.vec.Rectangle4i;
+import codechicken.nei.CompositeTooltipLineHandler;
 import codechicken.nei.ItemStackAmount;
-import codechicken.nei.ItemsListTooltipLineHandler;
 import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.ItemsTooltipLineHandler.StacksAmountRenderer;
 import codechicken.nei.ItemsTooltipLineHandler.TotalAmountRenderer;
@@ -30,7 +28,7 @@ import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.Recipe.RecipeIngredient;
 import codechicken.nei.util.ReadableNumberConverter;
 
-public class RecipeItemsTooltipLineHandler implements ITooltipLineHandler {
+public class RecipeItemsTooltipLineHandler extends CompositeTooltipLineHandler {
 
     protected static class ChanceTotalAmountRenderer extends TotalAmountRenderer {
 
@@ -86,16 +84,10 @@ public class RecipeItemsTooltipLineHandler implements ITooltipLineHandler {
         }
     }
 
-    protected static final int MAX_ROWS = 15;
-
     protected final RecipeId recipeId;
     protected final long multiplier;
     protected boolean useInventory = false;
-
-    protected final List<ItemsTooltipLineHandler> lines = new ArrayList<>();
-    protected final Dimension size = new Dimension();
     protected String title = "";
-    protected boolean created = false;
 
     public RecipeItemsTooltipLineHandler(RecipeId recipeId, long multiplier) {
         this.recipeId = recipeId;
@@ -125,37 +117,12 @@ public class RecipeItemsTooltipLineHandler implements ITooltipLineHandler {
         return this.title;
     }
 
-    @Override
-    public Dimension getSize() {
-        ensureCreated();
-        return this.size;
-    }
-
-    protected void ensureCreated() {
-        if (!this.created) {
-            this.created = true;
-            createLines();
-        }
-    }
-
-    @Override
-    public void draw(int x, int y) {
-        if (this.size.height == 0) return;
-
-        for (ItemsTooltipLineHandler line : this.lines) {
-            line.draw(x, y);
-            y += line.getSize().height;
-        }
-    }
-
     protected static int getIngredientOrder(ItemStack stack) {
         return StackInfo.isFluidDisplayItem(stack) ? 2 : stack.stackSize == 0 ? 0 : 1;
     }
 
+    @Override
     protected void createLines() {
-        this.lines.clear();
-        this.size.setSize(0, 0);
-
         final RecipeHandlerRef handlerRef = RecipeHandlerRef.of(this.recipeId);
 
         if (handlerRef == null) {
@@ -188,25 +155,17 @@ public class RecipeItemsTooltipLineHandler implements ITooltipLineHandler {
                 addNeededLine(
                         needed,
                         approximateIngredients,
-                        needed.size() == 1 || ingredientsAmount.size() + neededAmount.size() <= MAX_ROWS);
+                        needed.size() == 1 || ingredientsAmount.size() + neededAmount.size() <= maxLineRows());
             }
         }
 
-        int width = 0;
-        int height = 0;
-
-        for (ItemsTooltipLineHandler line : this.lines) {
-            width = Math.max(width, line.getSize().width);
-            height += line.getSize().height;
-        }
-
-        this.size.setSize(width, height);
     }
 
     protected void addResultLine(List<ItemStack> items, Set<NBTTagCompound> approximate) {
         final String label = NEIClientUtils.translate("recipe.items.results");
-        final ItemsTooltipLineHandler line = items.size() == 1 ? new ItemsListTooltipLineHandler(label, items, MAX_ROWS)
-                : new ItemsTooltipLineHandler(label, items);
+        final ItemsTooltipLineHandler line = items.size() == 1
+                ? ItemsTooltipLineHandler.list(label, items, maxLineRows())
+                : ItemsTooltipLineHandler.grid(label, items, maxLineRows());
 
         if (line.isEmpty()) {
             return;
@@ -229,7 +188,7 @@ public class RecipeItemsTooltipLineHandler implements ITooltipLineHandler {
 
     protected void addRequiredLine(List<ItemStack> items, Set<NBTTagCompound> approximate) {
         final String label = NEIClientUtils.translate("recipe.items.ingredients");
-        final ItemsTooltipLineHandler line = new ItemsListTooltipLineHandler(label, items, MAX_ROWS);
+        final ItemsTooltipLineHandler line = ItemsTooltipLineHandler.list(label, items, maxLineRows());
 
         if (line.isEmpty()) {
             return;
@@ -252,8 +211,8 @@ public class RecipeItemsTooltipLineHandler implements ITooltipLineHandler {
 
     protected void addNeededLine(List<ItemStack> items, Set<NBTTagCompound> approximate, boolean vertical) {
         final String label = NEIClientUtils.translate("recipe.items.ingredients_needed");
-        final ItemsTooltipLineHandler line = vertical ? new ItemsListTooltipLineHandler(label, items, MAX_ROWS)
-                : new ItemsTooltipLineHandler(label, items);
+        final ItemsTooltipLineHandler line = vertical ? ItemsTooltipLineHandler.list(label, items, maxLineRows())
+                : ItemsTooltipLineHandler.grid(label, items, maxLineRows());
 
         if (line.isEmpty()) {
             return;

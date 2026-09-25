@@ -181,6 +181,24 @@ public abstract class GuiRecipeTab extends Widget {
         return res;
     }
 
+    public static String getHandlerTitle(String handlerName) {
+        String title = findRecipeName(GuiCraftingRecipe.craftinghandlers, handlerName);
+        if (title == null) title = findRecipeName(GuiCraftingRecipe.serialCraftingHandlers, handlerName);
+        if (title == null) title = findRecipeName(GuiUsageRecipe.usagehandlers, handlerName);
+        if (title == null) title = findRecipeName(GuiUsageRecipe.serialUsageHandlers, handlerName);
+
+        return title != null ? title : handlerName;
+    }
+
+    private static String findRecipeName(List<? extends IRecipeHandler> handlers, String handlerName) {
+        for (int index = 0; index < handlers.size(); index++) {
+            final IRecipeHandler handler = handlers.get(index);
+            if (handlerName.equals(getHandlerInfo(handler).getHandlerName())) return handler.getRecipeName().trim();
+        }
+
+        return null;
+    }
+
     public static String getHandlerMod(String name, String name2) {
         HandlerInfo info = getHandlerInfo(name, name2);
         if (info == null) return "Unknown";
