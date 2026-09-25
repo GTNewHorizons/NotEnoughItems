@@ -32,6 +32,11 @@ public class RecipeItemInputHandler implements IContainerInputHandler, IContaine
     }
 
     @Override
+    public boolean supportsMouseKeybinds() {
+        return true;
+    }
+
+    @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyCode) {
         return ShortcutInputHandler.handleKeyEvent(GuiContainerManager.getStackMouseOver(gui));
     }
