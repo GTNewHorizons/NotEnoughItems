@@ -59,7 +59,7 @@ nei.options.wbutton.tip.0=Genel ayarları kullanıyorsunuz
 nei.options.wbutton.tip.1=Genel ayarların üstüne yazılıyor
 
 nei.options.keys=Tuşlar
-nei.options.keys.gui=Envanter
+nei.options.keys.gui=NEI Envanter
 nei.options.keys.recipe.recipe=Tarifler
 nei.options.keys.recipe.usage=Kullanım yeri
 nei.options.keys.gui.enchant=Büylüler
@@ -69,7 +69,7 @@ nei.options.keys.gui.prev=Önceki sayfa
 nei.options.keys.gui.next=Sonraki sayfa
 nei.options.keys.gui.hide=Nei görünürlük ayarı
 nei.options.keys.gui.search=Arama çubuğu odağı
-nei.options.keys.world=Dünya
+nei.options.keys.world=NEI Dünya
 nei.options.keys.world.chunkoverlay=Chunk sınır yerleşimi
 nei.options.keys.world.moboverlay=Mob Spawn yerleşimi
 nei.options.keys.world.highlight_tips=Nesne ipucu
