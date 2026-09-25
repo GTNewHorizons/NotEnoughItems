@@ -803,6 +803,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
         if (!isEnabled()) return;
 
+        AutoFocusWidget.instance.guiTick();
+
         for (Widget widget : drawWidgets) widget.update();
     }
 
