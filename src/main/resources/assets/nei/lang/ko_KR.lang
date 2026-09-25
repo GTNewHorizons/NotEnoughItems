@@ -58,7 +58,7 @@ nei.options.wbutton.tip.0=글로벌로 세팅
 nei.options.wbutton.tip.1=전역 설정
 
 nei.options.keys=키 바인딩
-nei.options.keys.gui=인벤토리
+nei.options.keys.gui=NEI 인벤토리
 nei.options.keys.recipe.recipe=레시피
 nei.options.keys.recipe.usage=사용법
 nei.options.keys.gui.enchant=인첸트
@@ -68,7 +68,7 @@ nei.options.keys.gui.prev=이전 페이지
 nei.options.keys.gui.next=다음 페이지
 nei.options.keys.gui.hide=NEI 활성/비활성화
 nei.options.keys.gui.search=빠른 검색
-nei.options.keys.world=월드
+nei.options.keys.world=NEI 월드
 nei.options.keys.world.chunkoverlay=청크경계 확인
 nei.options.keys.world.moboverlay=몹스폰 확인
 nei.options.keys.world.highlight_tips=하이라이트 툴팁

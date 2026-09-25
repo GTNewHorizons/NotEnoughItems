@@ -59,7 +59,7 @@ nei.options.wbutton.tip.0=Usando configurações globais
 nei.options.wbutton.tip.1=Substituindo configurações globais
 
 nei.options.keys=Atalhos de Teclado
-nei.options.keys.gui=Inventário
+nei.options.keys.gui=NEI Inventário
 nei.options.keys.recipe.recipe=Receita
 nei.options.keys.recipe.usage=Uso
 nei.options.keys.gui.enchant=Encantamentos
@@ -69,7 +69,7 @@ nei.options.keys.gui.prev=Pág. Anterior
 nei.options.keys.gui.next=Próxima Pág.
 nei.options.keys.gui.hide=Trocar Visibilidade do NEI
 nei.options.keys.gui.search=Focar na Barra de Buscas
-nei.options.keys.world=Mundo
+nei.options.keys.world=NEI Mundo
 nei.options.keys.world.chunkoverlay=Sobreposição de Fronteira de Chunks
 nei.options.keys.world.moboverlay=Sobreposição de Spawn de Mobs
 nei.options.keys.world.highlight_tips=Destacar Dicas

@@ -63,7 +63,7 @@ nei.options.wbutton.tip.0=Nutzt globale Einstellungen
 nei.options.wbutton.tip.1=Übergeht globale Einstellungen
 
 nei.options.keys=Tastenbelegung
-nei.options.keys.gui=Inventar
+nei.options.keys.gui=NEI Inventar
 nei.options.keys.recipe.recipe=Rezept
 nei.options.keys.recipe.usage=Nutzung
 nei.options.keys.gui.enchant=Verzauberungen
@@ -73,7 +73,7 @@ nei.options.keys.gui.prev=Vorherige Seite
 nei.options.keys.gui.next=Nächste Seite
 nei.options.keys.gui.hide=Verstelle NEI-Sichtbarkeit
 nei.options.keys.gui.search=Fokussiere Such-Leiste
-nei.options.keys.world=Welt
+nei.options.keys.world=NEI Welt
 nei.options.keys.world.chunkoverlay=Chunk-Grenzen-Overlay
 nei.options.keys.world.moboverlay=Mob-Spawn-Overlay
 nei.options.keys.world.highlight_tips=Highlight-Tooltips

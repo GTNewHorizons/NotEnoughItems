@@ -59,7 +59,7 @@ nei.options.wbutton.tip.0=Używanie ustawień globalnych
 nei.options.wbutton.tip.1=Nadpisywanie ustawienia globalnego
 
 nei.options.keys=Ustawienia klawiszy
-nei.options.keys.gui=Ekwipunek
+nei.options.keys.gui=NEI Ekwipunek
 nei.options.keys.recipe.recipe=Recepta
 nei.options.keys.recipe.usage=Użytek
 nei.options.keys.gui.enchant=Zaklęcia
@@ -69,7 +69,7 @@ nei.options.keys.gui.prev=Poprzednia strona
 nei.options.keys.gui.next=Następna strona
 nei.options.keys.gui.hide=Przełącz widzialność NEI
 nei.options.keys.gui.search=Ustaw ostrość na pasek wyszukiwania
-nei.options.keys.world=Świat
+nei.options.keys.world=NEI Świat
 nei.options.keys.world.chunkoverlay=Nakładka granic chunków
 nei.options.keys.world.moboverlay=Nakładka pojawiania się mobów
 nei.options.keys.world.highlight_tips=Podpowiedzi podświetleń
