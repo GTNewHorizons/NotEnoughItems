@@ -41,6 +41,7 @@ public class ItemFluidDisplay extends Item implements IFluidContainerItem {
     public ItemFluidDisplay() {
         setUnlocalizedName("nei.fluidDisplay");
         setMaxStackSize(1);
+        setHasSubtypes(true);
         INSTANCE = this;
     }
 
