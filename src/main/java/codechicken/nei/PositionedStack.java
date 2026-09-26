@@ -172,9 +172,8 @@ public class PositionedStack implements Cloneable {
     }
 
     public int getPermutationIndex(ItemStack stack) {
-
         for (int index = 0; index < this.items.length; index++) {
-            if (NEIServerUtils.areStacksSameType(items[index], stack)) {
+            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(items[index], stack)) {
                 return index;
             }
         }
