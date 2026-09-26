@@ -52,15 +52,10 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
 
     public static int findFirst(IRecipeHandler handler, IntPredicate predicate) {
         final IRecipeFilter filter = searchingAvailable(handler) ? GuiRecipe.getRecipeListFilter() : null;
-        int refIndex = -1;
 
         for (int recipeIndex = 0; recipeIndex < handler.numRecipes(); recipeIndex++) {
-            if (filter == null || mathRecipe(handler, recipeIndex, filter)) {
-                refIndex++;
-
-                if (predicate.test(recipeIndex)) {
-                    return refIndex;
-                }
+            if ((filter == null || mathRecipe(handler, recipeIndex, filter)) && predicate.test(recipeIndex)) {
+                return recipeIndex;
             }
         }
 
