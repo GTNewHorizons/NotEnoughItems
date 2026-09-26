@@ -89,9 +89,9 @@ public class PresetsList {
                 return false;
             }
 
-            final PositionedStack result = handler.getResultStack(recipeIndex);
+            final List<PositionedStack> results = handler.getResultStacks(recipeIndex);
 
-            if (result != null && matchPositionedStack(result)) {
+            if (!results.isEmpty() && matchPositionedStack(results, true)) {
                 return true;
             }
 
@@ -101,7 +101,13 @@ public class PresetsList {
                 return true;
             }
 
-            return result == null && others.isEmpty();
+            final List<PositionedStack> extraInputs = handler.getCatalystStacks(recipeIndex);
+
+            if (!extraInputs.isEmpty() && matchPositionedStack(extraInputs, true)) {
+                return true;
+            }
+
+            return results.isEmpty() && others.isEmpty();
         }
 
         private boolean matchPositionedStack(List<PositionedStack> items, boolean dir) {
