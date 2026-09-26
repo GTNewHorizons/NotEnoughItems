@@ -89,7 +89,7 @@ public class PermutationsCycler<K> {
 
     public static int indexOf(List<ItemStack> list, ItemStack stack) {
         for (int i = 0; i < list.size(); i++) {
-            if (NEIServerUtils.areStacksSameTypeCraftingWithNBT(list.get(i), stack)) {
+            if (NEIServerUtils.areStacksSameType(list.get(i), stack)) {
                 return i;
             }
         }
