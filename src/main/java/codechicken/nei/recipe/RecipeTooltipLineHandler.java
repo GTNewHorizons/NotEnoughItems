@@ -12,6 +12,7 @@ import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.recipe.widget.RecipeWidget;
 import codechicken.nei.scroll.GuiHelper;
 import codechicken.nei.util.ReadableNumberConverter;
 
@@ -30,7 +31,7 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
     protected String recipeName = "";
     protected GuiRecipe<?> gui = null;
     protected RecipeHandlerRef handlerRef = null;
-    protected NEIRecipeWidget widget = null;
+    protected RecipeWidget widget = null;
     protected RecipeId recipeId = null;
     protected boolean createdGui = false;
     protected long multiplier = 0;
@@ -63,13 +64,13 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
             this.handlerRef = RecipeHandlerRef.of(this.recipeId);
             this.createdGui = true;
 
-            if (handlerRef != null) {
-                this.widget = new NEIRecipeWidget(this.handlerRef);
+            if (this.handlerRef != null) {
+                this.widget = new RecipeWidget(this.handlerRef);
                 this.widget.showAsWidget(true);
                 this.widget.x = BG_PADDING;
                 this.widget.y = BG_PADDING + 12;
 
-                this.recipeName = this.widget.getRecipeHandlerRef().handler.getRecipeName().trim();
+                this.recipeName = this.handlerRef.handler.getRecipeName().trim();
             }
         }
 

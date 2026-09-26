@@ -52,6 +52,7 @@ import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.guihook.IGuiClientSide;
 import codechicken.nei.guihook.IGuiHandleMouseWheel;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.recipe.widget.RecipeWidget;
 import codechicken.nei.scroll.ScrollBar;
 import codechicken.nei.scroll.ScrollBar.OverflowType;
 import codechicken.nei.scroll.ScrollBar.ScrollPlace;
@@ -523,7 +524,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     public int openTargetRecipe(RecipeId recipeId) {
-        int refIndex = -1;
+        int recipeIndex = -1;
         int recipetype = 0;
 
         this.recipeId = recipeId;
@@ -537,10 +538,9 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                     recipetype = j;
 
                     if (!this.recipeId.getIngredients().isEmpty()) {
-                        refIndex = SearchRecipeHandler.findFirst(
+                        recipeIndex = SearchRecipeHandler.findFirst(
                                 localHandler,
-                                recipeIndex -> this.recipeId
-                                        .equalsIngredients(localHandler.getIngredientStacks(recipeIndex)));
+                                ri -> this.recipeId.equalsIngredients(localHandler.getIngredientStacks(ri)));
                     }
 
                     break;
@@ -549,17 +549,17 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         }
 
         setRecipePage(recipetype);
-        this.handlerPages.gotoRefIndex(Math.max(0, refIndex));
+        this.handlerPages.gotoRecipeIndex(Math.max(0, recipeIndex));
 
-        return refIndex;
+        return recipeIndex;
     }
 
     public Recipe getFocusedRecipe() {
         final Point mouse = GuiDraw.getMousePosition();
         final Widget activeWidget = this.container.getWidgetUnderMouse(mouse.x, mouse.y);
 
-        if (activeWidget instanceof NEIRecipeWidget recipeWidget && recipeWidget.isFocusedRecipe(mouse.x, mouse.y)) {
-            return recipeWidget.getRecipe();
+        if (activeWidget instanceof RecipeWidget recipeWidget && recipeWidget.isFocusedRecipe(mouse.x, mouse.y)) {
+            return Recipe.of(recipeWidget.getRecipeHandlerRef());
         }
 
         return null;
@@ -569,7 +569,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         final Point mouse = GuiDraw.getMousePosition();
         final Widget activeWidget = this.container.getWidgetUnderMouse(mouse.x, mouse.y);
 
-        if (activeWidget instanceof NEIRecipeWidget recipeWidget) {
+        if (activeWidget instanceof RecipeWidget recipeWidget) {
             final PositionedStack hovered = recipeWidget.getPositionedStackMouseOver(mouse.x, mouse.y);
 
             if (hovered != null) {
@@ -586,7 +586,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         final EmptyContainer slotcontainer = (EmptyContainer) inventorySlots;
         slotcontainer.setActiveStack(null);
 
-        if (activeWidget instanceof NEIRecipeWidget recipeWidget) {
+        if (activeWidget instanceof RecipeWidget recipeWidget) {
             final PositionedStack hovered = recipeWidget.getPositionedStackMouseOver(mousex, mousey);
 
             if (hovered != null) {
@@ -844,7 +844,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             List<String> currenttip) {
         final Widget activeWidget = this.container.getWidgetUnderMouse(mousex, mousey);
 
-        if (activeWidget instanceof NEIRecipeWidget recipeWidget) {
+        if (activeWidget instanceof RecipeWidget recipeWidget) {
             currenttip = recipeWidget.handleItemTooltip(itemstack, mousex, mousey, currenttip);
         }
 
@@ -891,7 +891,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         this.recipetype = this.currenthandlers.indexOf(this.handler.original);
 
         setRecipePage(this.recipetype);
-        this.handlerPages.changePage(currentPage);
+        this.handlerPages.changePage(currentPage - this.handlerPages.getCurrentPageIndex());
 
         refreshContainer();
     }
@@ -1014,8 +1014,23 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         return this.firstGuiGeneral;
     }
 
-    public Point getRecipePosition(int recipe) {
-        return getRefIndexPosition(getRecipeIndices().indexOf(recipe));
+    public Point getRecipePosition(int recipeIndex) {
+
+        for (Widget widget : this.container.getWidgets()) {
+            if (widget instanceof RecipeWidget recipeWidget && recipeWidget.containsRecipeIndex(recipeIndex)) {
+                return new Point(
+                        recipeWidget.x - this.guiLeft,
+                        recipeWidget.y - this.guiTop + recipeWidget.getHandlerInfo().getYShift());
+            }
+        }
+
+        return new Point(0, 0);
+    }
+
+    public Point getRecipeMousePosition(int recipeIndex) {
+        final Point mouse = GuiDraw.getMousePosition();
+        final Point recipePosition = getRecipePosition(recipeIndex);
+        return new Point(mouse.x - this.guiLeft - recipePosition.x, mouse.y - this.guiTop - recipePosition.y);
     }
 
     protected Point getRefIndexPosition(int refIndex) {
@@ -1027,7 +1042,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         final List<Widget> children = this.container.getWidgets();
 
         if (refIndex >= 0 && refIndex < children.size()
-                && children.get(refIndex) instanceof NEIRecipeWidget recipeWidget) {
+                && children.get(refIndex) instanceof RecipeWidget recipeWidget) {
             return new Point(
                     recipeWidget.x - this.guiLeft,
                     recipeWidget.y - this.guiTop + recipeWidget.getHandlerInfo().getYShift());

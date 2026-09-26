@@ -682,6 +682,8 @@ nei.recipe.concurrent.usage=Concurrent Usage - Total
 nei.recipe.concurrent.crafting=Concurrent Crafting - Total
 nei.recipe.accepts=Accepts following
 nei.recipe.accepts.scroll=Change Item
+nei.recipe.group=Variants
+nei.recipe.group.scroll=Change Variant (%s/%s)
 
 nei.recipe.overlay=Recipe Overlay
 nei.recipe.overlay.missing=Missing following

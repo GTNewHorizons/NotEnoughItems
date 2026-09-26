@@ -37,9 +37,9 @@ import codechicken.nei.recipe.GuiRecipeButton;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.HandlerInfo;
 import codechicken.nei.recipe.IRecipeHandler;
-import codechicken.nei.recipe.NEIRecipeWidget;
 import codechicken.nei.recipe.TemplateRecipeHandler;
 import codechicken.nei.recipe.TemplateRecipeHandler.RecipeTransferRect;
+import codechicken.nei.recipe.widget.RecipeWidget;
 import codechicken.nei.scroll.ScrollContainer;
 
 public class DebugHandlerWidget extends Widget {
@@ -532,7 +532,7 @@ public class DebugHandlerWidget extends Widget {
         }
     }
 
-    public void drawGuiPlaceholder(NEIRecipeWidget widget) {
+    public void drawGuiPlaceholder(RecipeWidget widget) {
         if (!this.showWidget) return;
 
         NEIClientUtils.gl2DRenderContext(() -> {
