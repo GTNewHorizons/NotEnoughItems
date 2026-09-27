@@ -92,6 +92,14 @@ public interface IRecipeHandler {
     PositionedStack getResultStack(int recipe);
 
     /**
+     * @param recipe The recipe index to get the group id for.
+     * @return An id shared by every recipe in this recipe's group, or {@code null} if this recipe isn't grouped.
+     */
+    default Object getRecipeGroupId(int recipe) {
+        return null;
+    }
+
+    /**
      * A tick function called for updating progress bars and cycling damage items.
      */
     void onUpdate();

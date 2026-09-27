@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import net.minecraft.init.Blocks;
@@ -42,7 +43,8 @@ public class PositionedStack implements Cloneable {
     protected boolean permutated = false;
 
     protected String acceptsLabel;
-    protected List<String> tooltip;
+
+    protected Function<ItemStack, List<String>> tooltip;
     protected List<Badge> badges;
 
     public PositionedStack(Object object, int x, int y, boolean genPerms) {
@@ -115,11 +117,15 @@ public class PositionedStack implements Cloneable {
     }
 
     public void setTooltip(List<String> tooltip) {
-        this.tooltip = tooltip;
+        this.tooltip = tooltip == null ? null : item -> tooltip;
+    }
+
+    public void setTooltipProvider(Function<ItemStack, List<String>> provider) {
+        this.tooltip = provider;
     }
 
     public List<String> getTooltip() {
-        return this.tooltip;
+        return this.tooltip == null ? null : this.tooltip.apply(this.item);
     }
 
     public int getChance() {
@@ -135,7 +141,6 @@ public class PositionedStack implements Cloneable {
             PositionedStack pStack = (PositionedStack) super.clone();
             pStack.items = Arrays.stream(this.items).map(ItemStack::copy).toArray(ItemStack[]::new);
             pStack.item = this.item == null ? null : this.item.copy();
-            pStack.tooltip = this.tooltip == null ? null : new ArrayList<>(this.tooltip);
             pStack.badges = this.badges == null ? null : new ArrayList<>(this.badges);
             return pStack;
         } catch (CloneNotSupportedException e) {
