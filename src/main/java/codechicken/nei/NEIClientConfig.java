@@ -224,6 +224,10 @@ public class NEIClientConfig {
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.bookmarks.bookmarkRecipeWithCount", true));
 
+        tag.getTag("inventory.bookmarks.craftingTreeZoomWithoutModifier")
+                .setComment("Zoom Crafting Tree with mouse wheel without holding Ctrl").getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.bookmarks.craftingTreeZoomWithoutModifier", true));
+
         tag.getTag("inventory.guirecipe.jeiStyleTabs").setComment("Enable/disable JEI Style Tabs")
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButtonBoubs("inventory.guirecipe.jeiStyleTabs", true));
@@ -1148,6 +1152,10 @@ public class NEIClientConfig {
 
     public static boolean ignorePotionOverlap() {
         return getBooleanSetting("inventory.bookmarks.ignorePotionOverlap");
+    }
+
+    public static boolean craftingTreeZoomWithoutModifier() {
+        return getBooleanSetting("inventory.bookmarks.craftingTreeZoomWithoutModifier");
     }
 
     public static boolean optimizeGuiOverlapComputation() {
