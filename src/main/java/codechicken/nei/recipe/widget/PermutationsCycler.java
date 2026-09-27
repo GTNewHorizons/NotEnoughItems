@@ -1,6 +1,7 @@
 package codechicken.nei.recipe.widget;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,11 @@ public class PermutationsCycler<K> {
         return false;
     }
 
+    public void invalidate() {
+        this.favoriteRevision = -1;
+        validate();
+    }
+
     public boolean contains(K key) {
         validate();
         return this.permutations.containsKey(key);
@@ -79,6 +85,11 @@ public class PermutationsCycler<K> {
         return items;
     }
 
+    public int getFavoriteCount(K key) {
+        get(key);
+        return this.favoriteCounts.getOrDefault(key, 0);
+    }
+
     public ItemStack getCycled(K key, int cycle) {
         final List<ItemStack> items = get(key);
         final int favoriteCount = this.favoriteCounts.getOrDefault(key, 0);
@@ -94,6 +105,12 @@ public class PermutationsCycler<K> {
             }
         }
         return -1;
+    }
+
+    // Hash key with the same equality as NEIServerUtils.areStacksSameType
+    public static Object getStackKey(ItemStack stack) {
+        return Arrays
+                .asList(stack.getItem(), stack.getHasSubtypes() ? stack.getItemDamage() : 0, stack.stackTagCompound);
     }
 
 }

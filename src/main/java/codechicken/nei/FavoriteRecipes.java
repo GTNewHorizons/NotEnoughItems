@@ -316,6 +316,10 @@ public class FavoriteRecipes {
         load();
     }
 
+    public static boolean hasManual() {
+        return manualFavorites.size() > 0;
+    }
+
     public static boolean containsManual(ItemStack stack) {
         return getManualFavorite(stack) != null;
     }

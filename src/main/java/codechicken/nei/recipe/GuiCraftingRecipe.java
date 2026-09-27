@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -35,6 +36,7 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
     public static GuiRecipe<?> createRecipeGui(String outputId, boolean open, Object... results) {
         final Minecraft mc = NEIClientUtils.mc();
         final RecipeId recipeId;
+        List<ItemStack> pinnedIngredients = null;
 
         for (int i = 0; i < results.length; i++) {
             if (results[i] instanceof ItemStack stack) {
@@ -46,6 +48,12 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
             recipeId = getRecipeId(mc.currentScreen, (ItemStack) results[0]);
         } else if ("recipeId".equals(outputId)) {
             recipeId = (RecipeId) results[1];
+
+            // optional third argument: ingredients to pin the found recipe with
+            if (results.length > 2 && results[2] instanceof List<?>list) {
+                pinnedIngredients = extractIngredients(list);
+            }
+
         } else {
             recipeId = getCurrentRecipeId(mc.currentScreen);
         }
@@ -65,11 +73,23 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
                 mc.displayGuiScreen(gui);
             }
 
-            gui.openTargetRecipe(recipeId);
+            gui.openTargetRecipe(recipeId, pinnedIngredients);
             return gui;
         }
 
         return null;
+    }
+
+    private static List<ItemStack> extractIngredients(List<?> list) {
+        final List<ItemStack> ingredients = new ArrayList<>(list.size());
+
+        for (Object item : list) {
+            if (item instanceof ItemStack stack) {
+                ingredients.add(stack);
+            }
+        }
+
+        return ingredients;
     }
 
     public static ArrayList<ICraftingHandler> getCraftingHandlers(String outputId, Object... results) {

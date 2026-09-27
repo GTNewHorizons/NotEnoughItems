@@ -422,6 +422,7 @@ nei.recipe.profiler.usage=Профилирование использовани�
 nei.recipe.concurrent.usage=Одновременное использование - всего
 nei.recipe.concurrent.crafting=Одновременный крафт - всего
 nei.recipe.accepts=Принимает следующее
+nei.recipe.pinned=Нажмите, чтобы продолжить перебор
 
 nei.recipe.overlay=отображение рецепта
 nei.recipe.overlay.missing=Отсутствует следующее

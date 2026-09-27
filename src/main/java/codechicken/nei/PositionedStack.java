@@ -163,7 +163,7 @@ public class PositionedStack implements Cloneable {
     }
 
     public List<ItemStack> getFilteredPermutations(ItemFilter additionalFilter) {
-        List<ItemStack> items = Arrays.asList(this.items);
+        List<ItemStack> items = new ArrayList<>(Arrays.asList(this.items));
 
         items = filteringPermutations(items, item -> !ItemInfo.isHidden(item));
         items = filteringPermutations(items, PresetsList.getItemFilter());

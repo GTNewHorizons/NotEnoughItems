@@ -524,6 +524,13 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     public int openTargetRecipe(RecipeId recipeId) {
+        return openTargetRecipe(recipeId, null);
+    }
+
+    /**
+     * @param pinnedIngredients when not null, the found recipe is paused with these ingredients shown
+     */
+    public int openTargetRecipe(RecipeId recipeId, List<ItemStack> pinnedIngredients) {
         int recipeIndex = -1;
         int recipetype = 0;
 
@@ -550,6 +557,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         setRecipePage(recipetype);
         this.handlerPages.gotoRecipeIndex(Math.max(0, recipeIndex));
+
+        if (pinnedIngredients != null && recipeIndex >= 0) {
+            this.handlerPages.pinRecipe(recipeIndex, pinnedIngredients);
+        }
 
         return recipeIndex;
     }
