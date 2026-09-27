@@ -16,11 +16,15 @@ public abstract class GuiRecipeButton extends GuiNEIButton {
 
         public List<GuiRecipeButton> buttonList;
         public RecipeHandlerRef handlerRef;
+        public int width;
+        public int height;
 
-        public UpdateRecipeButtonsEvent(GuiRecipe<?> gui, RecipeHandlerRef handlerRef,
+        public UpdateRecipeButtonsEvent(GuiRecipe<?> gui, RecipeHandlerRef handlerRef, int width, int height,
                 List<GuiRecipeButton> buttonList) {
             super(gui);
             this.handlerRef = handlerRef;
+            this.width = width;
+            this.height = height;
             this.buttonList = new ArrayList<>(buttonList);
         }
 
@@ -29,16 +33,17 @@ public abstract class GuiRecipeButton extends GuiNEIButton {
 
             public HandlerInfo handlerInfo;
 
-            public Pre(GuiRecipe<?> gui, RecipeHandlerRef handlerRef, HandlerInfo handlerInfo) {
-                super(gui, handlerRef, new ArrayList<>());
+            public Pre(GuiRecipe<?> gui, RecipeHandlerRef handlerRef, int width, int height, HandlerInfo handlerInfo) {
+                super(gui, handlerRef, width, height, new ArrayList<>());
                 this.handlerInfo = handlerInfo;
             }
         }
 
         public static class Post extends UpdateRecipeButtonsEvent {
 
-            public Post(GuiRecipe<?> gui, RecipeHandlerRef handlerRef, List<GuiRecipeButton> buttonList) {
-                super(gui, handlerRef, buttonList);
+            public Post(GuiRecipe<?> gui, RecipeHandlerRef handlerRef, int width, int height,
+                    List<GuiRecipeButton> buttonList) {
+                super(gui, handlerRef, width, height, buttonList);
             }
         }
     }
