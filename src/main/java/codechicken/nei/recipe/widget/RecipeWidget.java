@@ -2,6 +2,7 @@ package codechicken.nei.recipe.widget;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +22,6 @@ import org.lwjgl.opengl.GL12;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.FavoriteRecipes;
-import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.KeyManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -29,6 +29,8 @@ import codechicken.nei.PositionedStack;
 import codechicken.nei.Widget;
 import codechicken.nei.api.IGuiContainerOverlay;
 import codechicken.nei.api.ShortcutInputHandler;
+import codechicken.nei.drawable.DrawableBuilder;
+import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.AcceptsFollowingTooltipLineHandler;
 import codechicken.nei.recipe.Badge;
@@ -47,28 +49,35 @@ import codechicken.nei.util.NEIMouseUtils;
 public class RecipeWidget extends Widget {
 
     protected static final int TICKS_PER_CYCLE = 20;
+    protected static final DrawableResource PAUSE_MARKER = new DrawableBuilder(
+            "nei:textures/pinned_pause.png",
+            0,
+            0,
+            8,
+            8).setTextureSize(8, 8).build();
+    protected static final int PAUSE_MARKER_OFFSET = 1;
 
     protected final RecipeGroup group;
     protected final IRecipeHandler handler;
     protected final HandlerInfo handlerInfo;
 
-    protected final PermutationsCycler<PositionedStack> renderPermutations;
-
     protected final Map<PositionedStack, List<Badge>> badgeCache = new WeakHashMap<>();
     protected final Map<Integer, List<GuiRecipeButton>> buttonCache = new HashMap<>();
 
     protected AcceptsFollowingTooltipLineHandler acceptsTooltip;
-    protected ItemsTooltipLineHandler variantsTooltip;
-    protected Point variantsSlotKey;
 
     protected int activeMember = 0;
-    protected int memberCursor = -1;
-    protected int slotCycle = 0;
+    // single state counter: member = allowed[cycle % size], permutation index = cycle / size
+    protected int cycle = 0;
     protected int cycleticks = 0;
     protected int lastcycle = -1;
+    protected int favoriteRevision = FavoriteRecipes.getRevision();
 
     protected boolean showAsWidget = false;
     protected boolean update = true;
+    protected boolean paused = false;
+    protected List<ItemStack> pinnedIngredients = null;
+    protected Map<Point, ItemStack> pinnedSlots = Collections.emptyMap();
 
     public RecipeWidget(RecipeHandlerRef handlerRef) {
         this(handlerRef.handler, Collections.singletonList(handlerRef.recipeIndex));
@@ -82,13 +91,6 @@ public class RecipeWidget extends Widget {
         this.group = group;
         this.handler = group.getHandler();
         this.handlerInfo = group.getHandlerInfo();
-        this.renderPermutations = new PermutationsCycler<PositionedStack>(
-                new WeakHashMap<>(),
-                new WeakHashMap<>(),
-                PositionedStack::getFilteredPermutations).onInvalidate(() -> {
-                    this.badgeCache.clear();
-                    this.acceptsTooltip = null;
-                });
         update();
     }
 
@@ -117,6 +119,104 @@ public class RecipeWidget extends Widget {
         this.showAsWidget = show;
     }
 
+    public boolean isPaused() {
+        return this.paused;
+    }
+
+    public List<ItemStack> getPinnedIngredients() {
+        return this.pinnedIngredients;
+    }
+
+    public void setPaused(boolean paused) {
+        final boolean wasPaused = this.paused;
+        this.paused = paused && this.group.canCycle();
+
+        if (!this.paused) {
+            this.pinnedIngredients = null;
+            this.pinnedSlots = Collections.emptyMap();
+
+            if (wasPaused) {
+                syncCycle();
+            }
+        }
+    }
+
+    /**
+     * Pauses the widget on the recipe. Every given ingredient needs an input slot of its own that accepts it, otherwise
+     * the recipe is not pinned.
+     */
+    public boolean pinRecipe(int recipeIndex, List<ItemStack> ingredients) {
+        final int member = this.group.indexOf(recipeIndex);
+
+        if (member < 0 || !this.group.canCycle()) {
+            return false;
+        }
+
+        final Map<Point, ItemStack> slots = ingredients != null
+                ? matchIngredients(this.group.getInputs(member), ingredients)
+                : Collections.emptyMap();
+
+        if (slots == null) {
+            return false;
+        }
+
+        this.pinnedIngredients = ingredients;
+        this.pinnedSlots = slots;
+        this.paused = true;
+        setActiveMember(member);
+        updatePermutations();
+
+        return true;
+    }
+
+    // assigns each ingredient to its own slot (bipartite matching), null when some ingredient has no slot
+    private Map<Point, ItemStack> matchIngredients(List<PositionedStack> stacks, List<ItemStack> ingredients) {
+        final int[] slotOwners = new int[stacks.size()];
+        Arrays.fill(slotOwners, -1);
+
+        for (int ingredient = 0; ingredient < ingredients.size(); ingredient++) {
+            if (!assignIngredient(ingredient, stacks, ingredients, slotOwners, new boolean[stacks.size()])) {
+                return null;
+            }
+        }
+
+        final Map<Point, ItemStack> slots = new HashMap<>();
+
+        for (int slot = 0; slot < slotOwners.length; slot++) {
+            if (slotOwners[slot] != -1) {
+                slots.put(this.group.getSlotKey(stacks.get(slot)), ingredients.get(slotOwners[slot]));
+            }
+        }
+
+        return slots;
+    }
+
+    private boolean assignIngredient(int ingredient, List<PositionedStack> stacks, List<ItemStack> ingredients,
+            int[] slotOwners, boolean[] visited) {
+
+        for (int slot = 0; slot < stacks.size(); slot++) {
+            if (!visited[slot] && stacks.get(slot).getPermutationIndex(ingredients.get(ingredient)) != -1) {
+                visited[slot] = true;
+
+                if (slotOwners[slot] == -1
+                        || assignIngredient(slotOwners[slot], stacks, ingredients, slotOwners, visited)) {
+                    slotOwners[slot] = ingredient;
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private void applyPinnedIngredient(PositionedStack pStack) {
+        final ItemStack ingredient = this.pinnedSlots.get(this.group.getSlotKey(pStack));
+
+        if (ingredient != null) {
+            pStack.setPermutationToRender(ingredient);
+        }
+    }
+
     @Override
     public void update() {
 
@@ -142,11 +242,11 @@ public class RecipeWidget extends Widget {
         return this.buttonCache.computeIfAbsent(this.activeMember, this::createButtons);
     }
 
-    protected List<GuiRecipeButton> getRecipeButtonsIfInit() {
+    private List<GuiRecipeButton> getRecipeButtonsIfInit() {
         return this.buttonCache.getOrDefault(this.activeMember, Collections.emptyList());
     }
 
-    protected List<GuiRecipeButton> createButtons(int member) {
+    private List<GuiRecipeButton> createButtons(int member) {
 
         if (this.group.getOutputs(member).isEmpty()) {
             return Collections.emptyList();
@@ -156,7 +256,7 @@ public class RecipeWidget extends Widget {
                 .unmodifiableList(initButtons(RecipeHandlerRef.of(this.handler, this.group.getRecipeIndex(member))));
     }
 
-    protected List<GuiRecipeButton> initButtons(RecipeHandlerRef ref) {
+    private List<GuiRecipeButton> initButtons(RecipeHandlerRef ref) {
         final GuiRecipe<?> guiRecipe = getGuiRecipe();
 
         if (guiRecipe != null) {
@@ -186,7 +286,7 @@ public class RecipeWidget extends Widget {
 
     }
 
-    protected List<GuiRecipeButton> getDefaultButtons(RecipeHandlerRef ref) {
+    private List<GuiRecipeButton> getDefaultButtons(RecipeHandlerRef ref) {
         GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
         final List<GuiRecipeButton> buttons = new ArrayList<>();
         final boolean showFavorites = NEIClientConfig.favoritesEnabled() && handlerInfo.getShowFavoritesButton();
@@ -217,13 +317,17 @@ public class RecipeWidget extends Widget {
         if (this.update) {
             this.update = false;
 
-            if (tickCycle()) {
-
-                if (this.showAsWidget || !contains(mouseX, mouseY)) {
-                    nextMember();
-                }
-
-                updatePermutations(this.lastcycle);
+            if (this.lastcycle == -1) {
+                this.lastcycle = 0;
+                applyCycle();
+            } else if (tickCycle() && !isCycleFrozen(mouseX, mouseY)) {
+                this.cycle++;
+                applyCycle();
+            } else if (this.favoriteRevision != FavoriteRecipes.getRevision()) {
+                this.favoriteRevision = FavoriteRecipes.getRevision();
+                this.badgeCache.clear();
+                this.acceptsTooltip = null;
+                updatePermutations();
             }
 
             for (GuiRecipeButton button : getRecipeButtons()) {
@@ -244,21 +348,7 @@ public class RecipeWidget extends Widget {
 
         GuiContainerManager.enableMatrixStackLogging();
 
-        for (PositionedStack pStack : getInputs()) {
-
-            if (!this.renderPermutations.contains(pStack)) {
-                updatePermutationsFor(pStack);
-            }
-
-            drawItem(pStack, mouseX, mouseY, yShift, true);
-        }
-
-        for (PositionedStack pStack : getCatalysts()) {
-
-            if (!this.renderPermutations.contains(pStack)) {
-                updatePermutationsFor(pStack);
-            }
-
+        for (PositionedStack pStack : getCyclingStacks()) {
             drawItem(pStack, mouseX, mouseY, yShift, true);
         }
 
@@ -283,6 +373,10 @@ public class RecipeWidget extends Widget {
         GL11.glTranslatef(-this.x, -this.y - yShift, 0);
         GL11.glPopAttrib();
 
+        if (this.paused) {
+            NEIClientUtils.gl2DRenderContext(this::drawPauseMarker);
+        }
+
         if (!this.showAsWidget) {
             final Minecraft mc = NEIClientUtils.mc();
             for (GuiRecipeButton button : getRecipeButtons()) {
@@ -297,7 +391,22 @@ public class RecipeWidget extends Widget {
         DebugHandlerWidget.instance.drawGuiPlaceholder(this);
     }
 
-    protected void drawItem(PositionedStack pStack, int mouseX, int mouseY, int yShift, boolean input) {
+    private void drawPauseMarker() {
+        GL11.glColor4f(1, 1, 1, 1);
+        PAUSE_MARKER.draw(this.x + PAUSE_MARKER_OFFSET, this.y + PAUSE_MARKER_OFFSET);
+    }
+
+    private boolean isPauseMarkerMouseOver(int mouseX, int mouseY) {
+        final int left = this.x + PAUSE_MARKER_OFFSET;
+        final int top = this.y + PAUSE_MARKER_OFFSET;
+
+        return this.paused && mouseX >= left
+                && mouseX < left + PAUSE_MARKER.getWidth()
+                && mouseY >= top
+                && mouseY < top + PAUSE_MARKER.getHeight();
+    }
+
+    private void drawItem(PositionedStack pStack, int mouseX, int mouseY, int yShift, boolean input) {
         pStack.draw(mouseX - this.x, mouseY - this.y - yShift);
 
         if (this.handlerInfo.getShowBadge()) {
@@ -310,7 +419,7 @@ public class RecipeWidget extends Widget {
         }
     }
 
-    protected List<Badge> getBadges(PositionedStack pStack, boolean input) {
+    private List<Badge> getBadges(PositionedStack pStack, boolean input) {
 
         return this.badgeCache.computeIfAbsent(pStack, k -> {
             final List<Badge> badges = k.getBadges();
@@ -339,7 +448,7 @@ public class RecipeWidget extends Widget {
 
     }
 
-    protected void drawBadge(PositionedStack pStack, boolean input) {
+    private void drawBadge(PositionedStack pStack, boolean input) {
         final List<Badge> badges = getBadges(pStack, input);
 
         for (Badge badge : badges) {
@@ -357,6 +466,7 @@ public class RecipeWidget extends Widget {
 
             if (hovered != null && getPermutations(hovered).size() > 1) {
                 FavoriteRecipes.toggleFavoriteItem(hovered.item);
+                setPaused(false);
                 return true;
             }
 
@@ -382,6 +492,12 @@ public class RecipeWidget extends Widget {
 
     @Override
     public boolean handleClick(int mouseX, int mouseY, int button) {
+
+        if (button == 0 && isPauseMarkerMouseOver(mouseX, mouseY)) {
+            NEIClientUtils.playClickSound();
+            setPaused(false);
+            return true;
+        }
 
         if (ShortcutInputHandler.handleMouseClick(getStackMouseOver(mouseX, mouseY))) {
             return true;
@@ -418,6 +534,11 @@ public class RecipeWidget extends Widget {
         final GuiRecipe<?> guiRecipe = getGuiRecipe();
 
         if (guiRecipe == null) {
+            return tooltip;
+        }
+
+        if (isPauseMarkerMouseOver(mouseX, mouseY)) {
+            tooltip.add(NEIClientUtils.translate("recipe.pinned"));
             return tooltip;
         }
 
@@ -481,30 +602,6 @@ public class RecipeWidget extends Widget {
             tooltip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(this.acceptsTooltip));
         }
 
-        final Point outputKey = cycling == null && hovered != null && this.group.size() > 1
-                ? this.group.getSlotKey(hovered)
-                : null;
-
-        if (outputKey == null || !NEIClientConfig.showCycledIngredientsTooltip()) {
-            this.variantsTooltip = null;
-            this.variantsSlotKey = null;
-        } else if (!outputKey.equals(this.variantsSlotKey)) {
-            final List<ItemStack> variants = this.group.getOutputVariants(outputKey);
-
-            this.variantsSlotKey = outputKey;
-            this.variantsTooltip = variants.size() > 1
-                    ? new ItemsTooltipLineHandler(NEIClientUtils.translate("recipe.group"), variants, false, 4)
-                    : null;
-
-            if (this.variantsTooltip != null) {
-                this.variantsTooltip.setActiveStack(hovered.item);
-            }
-        }
-
-        if (this.variantsTooltip != null) {
-            tooltip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(this.variantsTooltip));
-        }
-
         return tooltip;
     }
 
@@ -563,7 +660,7 @@ public class RecipeWidget extends Widget {
         return guiRecipe != null && this.handler.mouseScrolled(guiRecipe, scroll, getRecipeIndex());
     }
 
-    protected boolean scrollPermutations(int scroll, PositionedStack hovered) {
+    private boolean scrollPermutations(int scroll, PositionedStack hovered) {
         final Point slotKey = this.group.getSlotKey(hovered);
         final List<ItemStack> items = this.group.getPermutations(slotKey);
 
@@ -571,46 +668,23 @@ public class RecipeWidget extends Widget {
             return false;
         }
 
-        final List<PositionedStack> slots = new ArrayList<>(this.group.size());
+        final int current = Math.max(0, PermutationsCycler.indexOf(items, hovered.item));
+        final int direction = scroll > 0 ? -1 : 1;
 
-        for (int member = 0; member < this.group.size(); member++) {
-            slots.add(this.group.getSlot(member, slotKey));
-        }
-
-        final int anchor = getCursorMember();
-        final int currentItem = PermutationsCycler.indexOf(items, hovered.item);
-        final List<int[]> variants = new ArrayList<>();
-        int current = 0;
-
-        for (int itemIndex = 0; itemIndex < items.size(); itemIndex++) {
-            final ItemStack stack = items.get(itemIndex);
-            int member = containsStack(slots.get(this.activeMember), stack) ? this.activeMember : -1;
-
-            for (int offset = 0; member == -1 && offset < slots.size(); offset++) {
-                if (containsStack(slots.get((anchor + offset) % slots.size()), stack)) {
-                    member = (anchor + offset) % slots.size();
-                }
-            }
+        for (int step = 1; step <= items.size(); step++) {
+            final ItemStack stack = items.get(Math.floorMod(current + direction * step, items.size()));
+            final int member = this.group.findMember(slotKey, stack, this.activeMember);
 
             if (member != -1) {
-                if (itemIndex == currentItem) {
-                    current = variants.size();
-                }
-                variants.add(new int[] { itemIndex, member });
+                switchMember(member, stack);
+                return true;
             }
         }
 
-        if (variants.isEmpty()) {
-            return false;
-        }
-
-        final int[] next = variants.get(((current - scroll) % variants.size() + variants.size()) % variants.size());
-        switchMember(next[1], items.get(next[0]));
-
-        return true;
+        return false;
     }
 
-    protected boolean scrollMembers(int scroll) {
+    private boolean scrollMembers(int scroll) {
         final int size = this.group.size();
 
         if (size <= 1) {
@@ -622,14 +696,19 @@ public class RecipeWidget extends Widget {
         return true;
     }
 
-    protected void switchMember(int member, ItemStack stack) {
+    private void switchMember(int member, ItemStack stack) {
         final Map<Point, ItemStack> rendered = new HashMap<>();
+
+        setPaused(false);
 
         for (PositionedStack pStack : getCyclingStacks()) {
             rendered.put(this.group.getSlotKey(pStack), pStack.item);
         }
 
         setActiveMember(member);
+        syncCycle();
+        this.group.refresh(member);
+        this.badgeCache.clear();
 
         for (PositionedStack pStack : getCyclingStacks()) {
             final ItemStack renderStack = containsStack(pStack, stack) ? stack
@@ -637,6 +716,8 @@ public class RecipeWidget extends Widget {
 
             if (containsStack(pStack, renderStack)) {
                 pStack.setPermutationToRender(renderStack);
+            } else {
+                updatePermutationsFor(pStack);
             }
         }
 
@@ -644,10 +725,9 @@ public class RecipeWidget extends Widget {
         notifyPermutationsChanged();
     }
 
-    protected boolean tickCycle() {
+    private boolean tickCycle() {
 
-        if (!NEIClientUtils.shiftKey() && (this.cycleticks++ / TICKS_PER_CYCLE) != this.lastcycle
-                || this.lastcycle == -1) {
+        if ((this.cycleticks++ / TICKS_PER_CYCLE) != this.lastcycle) {
             this.lastcycle = this.cycleticks / TICKS_PER_CYCLE;
             return true;
         }
@@ -655,20 +735,45 @@ public class RecipeWidget extends Widget {
         return false;
     }
 
-    protected void nextMember() {
-        final List<Integer> allowed = this.group.getAllowedMembers();
+    private boolean isCycleFrozen(int mouseX, int mouseY) {
 
-        this.memberCursor = (this.memberCursor + 1) % allowed.size();
-        setActiveMember(allowed.get(this.memberCursor));
+        if (this.paused || NEIClientUtils.shiftKey()) {
+            return true;
+        }
+
+        return !this.showAsWidget && contains(mouseX, mouseY)
+                && (getPositionedStackMouseOver(mouseX, mouseY) != null
+                        || forEachButtons(button -> button.contains(mouseX, mouseY) ? true : null, false));
     }
 
-    protected int getCursorMember() {
-        final List<Integer> allowed = this.group.getAllowedMembers();
-        return allowed.get(Math.max(0, this.memberCursor) % allowed.size());
+    private void applyCycle() {
+
+        if (!this.paused) {
+            final List<Integer> allowed = this.group.getAllowedMembers();
+            setActiveMember(allowed.get(this.cycle % allowed.size()));
+        }
+
+        this.group.refresh(this.activeMember);
+        updatePermutations();
     }
 
-    protected void updatePermutations(int cycle) {
-        this.slotCycle = cycle;
+    private int getPermutationIndex() {
+        return this.cycle / this.group.getAllowedMembers().size();
+    }
+
+    // keep the permutation index, move the member part of the counter to the active member
+    private void syncCycle() {
+        final List<Integer> allowed = this.group.getAllowedMembers();
+        final int allowedIndex = allowed.indexOf(this.activeMember);
+
+        if (allowedIndex >= 0) {
+            this.cycle = this.cycle / allowed.size() * allowed.size() + allowedIndex;
+        }
+    }
+
+    private void updatePermutations() {
+        // badges depend on the rendered item
+        this.badgeCache.clear();
 
         for (PositionedStack pStack : getCyclingStacks()) {
             updatePermutationsFor(pStack);
@@ -678,7 +783,7 @@ public class RecipeWidget extends Widget {
         notifyPermutationsChanged();
     }
 
-    protected void updateTooltipActiveStack() {
+    private void updateTooltipActiveStack() {
 
         if (this.acceptsTooltip != null && this.acceptsTooltip.tooltipGUID instanceof Point slotKey) {
             final PositionedStack pStack = this.group.getSlot(this.activeMember, slotKey);
@@ -688,29 +793,20 @@ public class RecipeWidget extends Widget {
             }
         }
 
-        if (this.variantsTooltip != null) {
-            final PositionedStack pStack = this.group.getOutputSlot(this.activeMember, this.variantsSlotKey);
-
-            if (pStack != null) {
-                this.variantsTooltip.setActiveStack(pStack.item);
-            }
-        }
-
     }
 
-    protected void updatePermutationsFor(PositionedStack pStack) {
+    private void updatePermutationsFor(PositionedStack pStack) {
+        final int index = this.group
+                .getCycledPermutationIndex(this.activeMember, this.group.getSlotKey(pStack), getPermutationIndex());
 
-        if (!this.renderPermutations.contains(pStack) || this.renderPermutations.get(pStack).size() > 1) {
-            final ItemStack stack = this.renderPermutations.getCycled(pStack, this.slotCycle);
-
-            if (stack != null) {
-                pStack.setPermutationToRender(stack);
-            }
+        if (index >= 0) {
+            pStack.setPermutationToRender(index);
         }
 
+        applyPinnedIngredient(pStack);
     }
 
-    protected void setActiveMember(int member) {
+    private void setActiveMember(int member) {
 
         if (member != this.activeMember) {
             this.activeMember = member;
@@ -722,22 +818,21 @@ public class RecipeWidget extends Widget {
 
     }
 
-    protected boolean containsStack(PositionedStack pStack, ItemStack stack) {
-        return pStack != null && stack != null
-                && PermutationsCycler.indexOf(pStack.getFilteredPermutations(), stack) != -1;
+    private boolean containsStack(PositionedStack pStack, ItemStack stack) {
+        return pStack != null && this.group.hasPermutation(this.activeMember, this.group.getSlotKey(pStack), stack);
     }
 
-    protected List<ItemStack> getPermutations(PositionedStack pStack) {
+    private List<ItemStack> getPermutations(PositionedStack pStack) {
         return this.group.getPermutations(this.group.getSlotKey(pStack));
     }
 
-    protected void notifyPermutationsChanged() {
+    private void notifyPermutationsChanged() {
         for (GuiRecipeButton button : getRecipeButtonsIfInit()) {
             button.onPermutationsChanged();
         }
     }
 
-    protected <R> R forEachButtons(Function<GuiRecipeButton, R> callback, R defaultValue) {
+    private <R> R forEachButtons(Function<GuiRecipeButton, R> callback, R defaultValue) {
 
         for (GuiRecipeButton button : getRecipeButtonsIfInit()) {
             button.xPosition += this.x;
@@ -773,7 +868,7 @@ public class RecipeWidget extends Widget {
         return cycling != null ? cycling : getOutputStackMouseOver(mx, my);
     }
 
-    protected PositionedStack getOutputStackMouseOver(int mx, int my) {
+    private PositionedStack getOutputStackMouseOver(int mx, int my) {
         final int yShift = this.handlerInfo.getYShift();
 
         for (PositionedStack pStack : getOutputs()) {
@@ -785,16 +880,10 @@ public class RecipeWidget extends Widget {
         return null;
     }
 
-    protected PositionedStack getCyclingStackMouseOver(int mx, int my) {
+    private PositionedStack getCyclingStackMouseOver(int mx, int my) {
         final int yShift = this.handlerInfo.getYShift();
 
-        for (PositionedStack pStack : getInputs()) {
-            if (pStack.contains(mx - this.x, my - this.y - yShift)) {
-                return pStack;
-            }
-        }
-
-        for (PositionedStack pStack : getCatalysts()) {
+        for (PositionedStack pStack : getCyclingStacks()) {
             if (pStack.contains(mx - this.x, my - this.y - yShift)) {
                 return pStack;
             }
@@ -809,7 +898,7 @@ public class RecipeWidget extends Widget {
         return pStack != null ? pStack.item : null;
     }
 
-    protected GuiRecipe<?> getGuiRecipe() {
+    private GuiRecipe<?> getGuiRecipe() {
         final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
 
         if (guiContainer instanceof GuiRecipe<?>guiRecipe) {
@@ -819,16 +908,8 @@ public class RecipeWidget extends Widget {
         return null;
     }
 
-    protected List<PositionedStack> getInputs() {
-        return this.group.getInputs(this.activeMember);
-    }
-
     protected List<PositionedStack> getOutputs() {
         return this.group.getOutputs(this.activeMember);
-    }
-
-    protected List<PositionedStack> getCatalysts() {
-        return this.group.getCatalysts(this.activeMember);
     }
 
     protected List<PositionedStack> getCyclingStacks() {

@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.item.ItemStack;
+
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.Widget;
 import codechicken.nei.recipe.widget.RecipeWidget;
@@ -42,6 +44,8 @@ public class RecipePageManager {
         }
 
         this.cacheKey = cacheKey;
+
+        final List<RecipeWidget> pausedWidgets = getPausedWidgets();
         this.pageWidgets.clear();
 
         final boolean allowOverflowY = this.handlerInfo.isAllowOverflowY();
@@ -75,6 +79,15 @@ public class RecipePageManager {
 
         for (int groupIndex = 0; groupIndex < groupedRecipes.size(); groupIndex++) {
             final RecipeWidget widget = new RecipeWidget(this.handler.original, groupedRecipes.get(groupIndex));
+
+            // keep the pause of the rebuilt widgets
+            for (RecipeWidget paused : pausedWidgets) {
+                final int pausedIndex = paused.getRecipeHandlerRef().recipeIndex;
+
+                if (widget.containsRecipeIndex(pausedIndex)) {
+                    widget.pinRecipe(pausedIndex, paused.getPinnedIngredients());
+                }
+            }
 
             widget.w = width;
 
@@ -137,6 +150,33 @@ public class RecipePageManager {
                 if (widget instanceof RecipeWidget recipeWidget && recipeWidget.containsRecipeIndex(recipeIndex)) {
                     changePage(page - this.currentPageIndex);
                     return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private List<RecipeWidget> getPausedWidgets() {
+        final List<RecipeWidget> paused = new ArrayList<>();
+
+        for (List<Widget> widgets : this.pageWidgets) {
+            for (Widget widget : widgets) {
+                if (widget instanceof RecipeWidget recipeWidget && recipeWidget.isPaused()) {
+                    paused.add(recipeWidget);
+                }
+            }
+        }
+
+        return paused;
+    }
+
+    public boolean pinRecipe(int recipeIndex, List<ItemStack> ingredients) {
+
+        for (List<Widget> widgets : this.pageWidgets) {
+            for (Widget widget : widgets) {
+                if (widget instanceof RecipeWidget recipeWidget && recipeWidget.containsRecipeIndex(recipeIndex)) {
+                    return recipeWidget.pinRecipe(recipeIndex, ingredients);
                 }
             }
         }
