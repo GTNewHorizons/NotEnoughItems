@@ -39,6 +39,7 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.KeyManager;
 import codechicken.nei.LRUCache;
 import codechicken.nei.NEICPH;
+import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.SearchField.GuiSearchField;
@@ -118,7 +119,6 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
     private final LRUCache<String, String> handlerTitleCache = new LRUCache<>(100);
 
     private GuiScreen prevGui;
-    private boolean isFirstScreen = true;
 
     private final BookmarkGrid grid;
     private final int groupId;
@@ -127,7 +127,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
     private final StatsPanel statsPanel = new StatsPanel();
     private final StatsSectionsMenu statsSectionsMenu = new StatsSectionsMenu();
-    private final CraftingTreeCanvas canvas = new CraftingTreeCanvas();
+    private final CraftingTreeCanvas canvas;
     private boolean statsPanelVisible;
 
     private GuiSearchField searchField;
@@ -136,7 +136,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
     private AcceptsFollowingTooltipLineHandler acceptsFollowingTooltipLineHandler;
     private RecipeItemsTooltipLineHandler recipeItemsTooltipLineHandler;
 
-    private final CraftingTreeState uiState = new CraftingTreeState();
+    private final CraftingTreeState uiState;
     private final CraftingTreeToolbar toolbar;
 
     private ItemTreeSlot hoveredNode;
@@ -148,6 +148,8 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
         this.grid = grid;
         this.groupId = groupId;
 
+        this.uiState = CraftingTreeState.of(grid.getGroup(groupId));
+        this.canvas = new CraftingTreeCanvas(this.uiState.camera);
         this.toolbar = new CraftingTreeToolbar(this.uiState);
     }
 
@@ -284,7 +286,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
         this.canvas.graph.rebuild(this.math);
 
-        if (this.isFirstScreen) {
+        if (!this.uiState.initialized) {
             updateCollapsedItems();
         } else {
             this.canvas.recalculateCoordinates(this.collapsedRecipes, this.uiState.collapsedItems, anchor);
@@ -292,8 +294,8 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
         rebuildStatsPanel();
 
-        if (this.isFirstScreen) {
-            this.isFirstScreen = false;
+        if (!this.uiState.initialized) {
+            this.uiState.initialized = true;
             this.canvas.fitToView();
         }
     }
@@ -842,7 +844,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
                 (int) mouse.getY(),
                 direction,
                 NEIClientUtils.shiftKey(),
-                NEIClientUtils.controlKey());
+                NEIClientUtils.controlKey() || NEIClientConfig.craftingTreeZoomWithoutModifier());
     }
 
     private boolean handleItemWheel(int wheel, Point2D mouse) {
@@ -902,6 +904,12 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
                 onSearchTextChanged();
                 return;
             }
+        }
+
+        if (keyCode == this.mc.gameSettings.keyBindInventory.getKeyCode()) {
+            this.mc.displayGuiScreen(this.prevGui);
+            NEICPH.sendRequestContainer();
+            return;
         }
 
         if (this.statsPanelVisible && KeyManager.isKeyDown("recipe.recipe")) {
