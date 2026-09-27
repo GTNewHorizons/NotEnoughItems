@@ -14,8 +14,12 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 
+import org.lwjgl.opengl.GL11;
+
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.drawable.DrawableBuilder;
+import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.item.FluidDrawer;
 import codechicken.nei.item.FluidDrawer.FillDirection;
@@ -253,25 +257,26 @@ public class PositionedStack implements Cloneable {
         public void draw(int mousex, int mousey) {}
     }
 
-    public static class Fluid extends PositionedStack {
+    public static class Tank extends PositionedStack {
 
         /** The tank size the fill level is measured against, in mB. 0 means "always render full". */
         protected int capacity = 0;
         protected boolean flowingTexture = false;
         protected FillDirection fillDirection = FillDirection.AUTO;
+        protected DrawableResource overlay;
 
         private ItemStack cachedFluidItem;
         private FluidStack cachedFluidStack;
 
-        public Fluid(Object object, int x, int y, boolean genPerms) {
+        public Tank(Object object, int x, int y, boolean genPerms) {
             super(object, x, y, genPerms);
         }
 
-        public Fluid(Object object, int x, int y) {
+        public Tank(Object object, int x, int y) {
             this(object, x, y, true);
         }
 
-        public Fluid(Object object, int x, int y, int width, int height, int capacity) {
+        public Tank(Object object, int x, int y, int width, int height, int capacity) {
             super(object, x, y, false);
             this.width = width;
             this.height = height;
@@ -282,7 +287,7 @@ public class PositionedStack implements Cloneable {
             return this.capacity;
         }
 
-        public Fluid setCapacity(int capacity) {
+        public Tank setCapacity(int capacity) {
             this.capacity = Math.max(capacity, 0);
             return this;
         }
@@ -291,7 +296,7 @@ public class PositionedStack implements Cloneable {
             return this.flowingTexture;
         }
 
-        public Fluid setFlowingTexture(boolean flowingTexture) {
+        public Tank setFlowingTexture(boolean flowingTexture) {
             this.flowingTexture = flowingTexture;
             return this;
         }
@@ -300,8 +305,21 @@ public class PositionedStack implements Cloneable {
             return this.fillDirection;
         }
 
-        public Fluid setFillDirection(FillDirection fillDirection) {
+        public Tank setFillDirection(FillDirection fillDirection) {
             this.fillDirection = fillDirection == null ? FillDirection.AUTO : fillDirection;
+            return this;
+        }
+
+        public DrawableResource getOverlay() {
+            return this.overlay;
+        }
+
+        public Tank setOverlay(String resourceLocation, int u, int v, int width, int height) {
+            return setOverlay(new DrawableBuilder(resourceLocation, u, v, width, height).build());
+        }
+
+        public Tank setOverlay(DrawableResource overlay) {
+            this.overlay = overlay;
             return this;
         }
 
@@ -352,6 +370,15 @@ public class PositionedStack implements Cloneable {
                     fluidStack,
                     this.flowingTexture,
                     this.fillDirection);
+
+            if (this.overlay != null) {
+                GL11.glEnable(GL11.GL_BLEND);
+                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                GL11.glDisable(GL11.GL_LIGHTING);
+                this.overlay.draw(this.relx, this.rely);
+                GL11.glEnable(GL11.GL_LIGHTING);
+                GL11.glDisable(GL11.GL_BLEND);
+            }
         }
     }
 }
