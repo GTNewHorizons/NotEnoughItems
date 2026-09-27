@@ -163,6 +163,8 @@ public class RecipeWidget extends Widget {
             final UpdateRecipeButtonsEvent.Pre preEvent = new UpdateRecipeButtonsEvent.Pre(
                     guiRecipe,
                     ref,
+                    this.w,
+                    this.h,
                     this.handlerInfo);
 
             if (MinecraftForge.EVENT_BUS.post(preEvent)) {
@@ -171,6 +173,8 @@ public class RecipeWidget extends Widget {
                 final UpdateRecipeButtonsEvent.Post postEvent = new UpdateRecipeButtonsEvent.Post(
                         guiRecipe,
                         ref,
+                        this.w,
+                        this.h,
                         getDefaultButtons(ref));
                 MinecraftForge.EVENT_BUS.post(postEvent);
                 return postEvent.buttonList;
