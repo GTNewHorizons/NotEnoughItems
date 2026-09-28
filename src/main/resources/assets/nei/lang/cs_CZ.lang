@@ -59,7 +59,7 @@ nei.options.wbutton.tip.0=Používám globální nastavení
 nei.options.wbutton.tip.1=Přepisuji globální nastavení
 
 nei.options.keys=Nastavení kláves
-nei.options.keys.gui=Inventář
+nei.options.keys.gui=NEI Inventář
 nei.options.keys.recipe.recipe=Recept
 nei.options.keys.recipe.usage=Použití
 nei.options.keys.gui.enchant=Očarování
@@ -69,7 +69,7 @@ nei.options.keys.gui.prev=Předchozí stránka
 nei.options.keys.gui.next=Další stránka
 nei.options.keys.gui.hide=Přepnout viditelnost NEI
 nei.options.keys.gui.search=Zaměřit vyhledávací pole
-nei.options.keys.world=Svět
+nei.options.keys.world=NEI Svět
 nei.options.keys.world.chunkoverlay=Ohraničení chunku
 nei.options.keys.world.moboverlay=Označení míst spawnu monster
 nei.options.keys.world.highlight_tips=Informace o bloku

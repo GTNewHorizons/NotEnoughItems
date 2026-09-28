@@ -142,7 +142,11 @@ class CraftingTreeCanvas {
     public int treeWidth = 0;
     public int treeHeight = 0;
 
-    private final Camera camera = new Camera();
+    private final Camera camera;
+
+    public CraftingTreeCanvas(Camera camera) {
+        this.camera = camera;
+    }
 
     public void setViewport(int x, int y, int w, int h) {
         this.camera.setViewport(x, y, w, h);

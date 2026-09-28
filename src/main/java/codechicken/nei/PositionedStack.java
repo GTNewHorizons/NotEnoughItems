@@ -4,16 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IIcon;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -21,7 +18,11 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
+import codechicken.nei.drawable.DrawableBuilder;
+import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.item.FluidDrawer;
+import codechicken.nei.item.FluidDrawer.FillDirection;
 import codechicken.nei.recipe.Badge;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.StackInfo;
@@ -46,7 +47,8 @@ public class PositionedStack implements Cloneable {
     protected boolean permutated = false;
 
     protected String acceptsLabel;
-    protected List<String> tooltip;
+
+    protected Function<ItemStack, List<String>> tooltip;
     protected List<Badge> badges;
 
     public PositionedStack(Object object, int x, int y, boolean genPerms) {
@@ -119,11 +121,15 @@ public class PositionedStack implements Cloneable {
     }
 
     public void setTooltip(List<String> tooltip) {
-        this.tooltip = tooltip;
+        this.tooltip = tooltip == null ? null : item -> tooltip;
+    }
+
+    public void setTooltipProvider(Function<ItemStack, List<String>> provider) {
+        this.tooltip = provider;
     }
 
     public List<String> getTooltip() {
-        return this.tooltip;
+        return this.tooltip == null ? null : this.tooltip.apply(this.item);
     }
 
     public int getChance() {
@@ -139,7 +145,6 @@ public class PositionedStack implements Cloneable {
             PositionedStack pStack = (PositionedStack) super.clone();
             pStack.items = Arrays.stream(this.items).map(ItemStack::copy).toArray(ItemStack[]::new);
             pStack.item = this.item == null ? null : this.item.copy();
-            pStack.tooltip = this.tooltip == null ? null : new ArrayList<>(this.tooltip);
             pStack.badges = this.badges == null ? null : new ArrayList<>(this.badges);
             return pStack;
         } catch (CloneNotSupportedException e) {
@@ -158,7 +163,7 @@ public class PositionedStack implements Cloneable {
     }
 
     public List<ItemStack> getFilteredPermutations(ItemFilter additionalFilter) {
-        List<ItemStack> items = Arrays.asList(this.items);
+        List<ItemStack> items = new ArrayList<>(Arrays.asList(this.items));
 
         items = filteringPermutations(items, item -> !ItemInfo.isHidden(item));
         items = filteringPermutations(items, PresetsList.getItemFilter());
@@ -252,27 +257,70 @@ public class PositionedStack implements Cloneable {
         public void draw(int mousex, int mousey) {}
     }
 
-    public static class Fluid extends PositionedStack {
+    public static class Tank extends PositionedStack {
 
         /** The tank size the fill level is measured against, in mB. 0 means "always render full". */
-        public int capacity = 0;
+        protected int capacity = 0;
+        protected boolean flowingTexture = false;
+        protected FillDirection fillDirection = FillDirection.AUTO;
+        protected DrawableResource overlay;
 
         private ItemStack cachedFluidItem;
         private FluidStack cachedFluidStack;
 
-        public Fluid(Object object, int x, int y, boolean genPerms) {
+        public Tank(Object object, int x, int y, boolean genPerms) {
             super(object, x, y, genPerms);
         }
 
-        public Fluid(Object object, int x, int y) {
+        public Tank(Object object, int x, int y) {
             this(object, x, y, true);
         }
 
-        public Fluid(Object object, int x, int y, int width, int height, int capacity) {
+        public Tank(Object object, int x, int y, int width, int height, int capacity) {
             super(object, x, y, false);
             this.width = width;
             this.height = height;
-            this.capacity = capacity;
+            setCapacity(capacity);
+        }
+
+        public int getCapacity() {
+            return this.capacity;
+        }
+
+        public Tank setCapacity(int capacity) {
+            this.capacity = Math.max(capacity, 0);
+            return this;
+        }
+
+        public boolean hasFlowingTexture() {
+            return this.flowingTexture;
+        }
+
+        public Tank setFlowingTexture(boolean flowingTexture) {
+            this.flowingTexture = flowingTexture;
+            return this;
+        }
+
+        public FillDirection getFillDirection() {
+            return this.fillDirection;
+        }
+
+        public Tank setFillDirection(FillDirection fillDirection) {
+            this.fillDirection = fillDirection == null ? FillDirection.AUTO : fillDirection;
+            return this;
+        }
+
+        public DrawableResource getOverlay() {
+            return this.overlay;
+        }
+
+        public Tank setOverlay(String resourceLocation, int u, int v, int width, int height) {
+            return setOverlay(new DrawableBuilder(resourceLocation, u, v, width, height).build());
+        }
+
+        public Tank setOverlay(DrawableResource overlay) {
+            this.overlay = overlay;
+            return this;
         }
 
         protected FluidStack getFluidStack() {
@@ -313,62 +361,24 @@ public class PositionedStack implements Cloneable {
                 return;
             }
 
-            final int tankCapacity = this.capacity > 0 ? this.capacity : fluidStack.amount;
-            int fillHeight = tankCapacity > 0
-                    ? (int) ((long) this.height * Math.min(fluidStack.amount, tankCapacity) / tankCapacity)
-                    : 0;
+            FluidDrawer.drawFluid(
+                    this.relx,
+                    this.rely,
+                    this.width,
+                    this.height,
+                    this.capacity,
+                    fluidStack,
+                    this.flowingTexture,
+                    this.fillDirection);
 
-            if (fluidStack.amount > 0 && fillHeight <= 0) {
-                fillHeight = 1;
+            if (this.overlay != null) {
+                GL11.glEnable(GL11.GL_BLEND);
+                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                GL11.glDisable(GL11.GL_LIGHTING);
+                this.overlay.draw(this.relx, this.rely);
+                GL11.glEnable(GL11.GL_LIGHTING);
+                GL11.glDisable(GL11.GL_BLEND);
             }
-
-            if (fillHeight > 0) {
-                drawFluid(this.relx, this.rely, this.width, this.height, fillHeight, fluidStack);
-            }
-        }
-
-        private static void drawFluid(int x, int y, int width, int height, int fillHeight, FluidStack fluidStack) {
-            final IIcon icon = fluidStack.getFluid().getIcon(fluidStack);
-
-            if (icon == null) {
-                return;
-            }
-
-            final int color = fluidStack.getFluid().getColor(fluidStack);
-            final float red = (color >> 16 & 0xFF) / 255F;
-            final float green = (color >> 8 & 0xFF) / 255F;
-            final float blue = (color & 0xFF) / 255F;
-
-            Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
-            GL11.glColor4f(red, green, blue, 1F);
-            GL11.glEnable(GL11.GL_BLEND);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            GL11.glDisable(GL11.GL_LIGHTING);
-
-            final Tessellator tessellator = Tessellator.instance;
-
-            tessellator.startDrawingQuads();
-            for (int tx = 0; tx < width; tx += 16) {
-                final int tileWidth = Math.min(16, width - tx);
-                final double u2 = icon.getMinU() + (icon.getMaxU() - icon.getMinU()) * tileWidth / 16D;
-
-                for (int ty = 0; ty < fillHeight; ty += 16) {
-                    final int tileHeight = Math.min(16, fillHeight - ty);
-                    final double v2 = icon.getMinV() + (icon.getMaxV() - icon.getMinV()) * tileHeight / 16D;
-                    final int bottomY = y + height - ty;
-                    final int topY = bottomY - tileHeight;
-
-                    tessellator.addVertexWithUV(x + tx, bottomY, 0, icon.getMinU(), v2);
-                    tessellator.addVertexWithUV(x + tx + tileWidth, bottomY, 0, u2, v2);
-                    tessellator.addVertexWithUV(x + tx + tileWidth, topY, 0, u2, icon.getMinV());
-                    tessellator.addVertexWithUV(x + tx, topY, 0, icon.getMinU(), icon.getMinV());
-                }
-            }
-            tessellator.draw();
-
-            GL11.glDisable(GL11.GL_BLEND);
-            GL11.glEnable(GL11.GL_LIGHTING);
-            GL11.glColor4f(1F, 1F, 1F, 1F);
         }
     }
 }

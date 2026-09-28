@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -314,12 +316,31 @@ public class FavoriteRecipes {
         load();
     }
 
+    public static boolean hasManual() {
+        return manualFavorites.size() > 0;
+    }
+
     public static boolean containsManual(ItemStack stack) {
         return getManualFavorite(stack) != null;
     }
 
     public static boolean contains(ItemStack stack) {
         return getFavorite(stack) != null;
+    }
+
+    public static void toggleFavoriteItem(ItemStack stack) {
+        if (stack == null) return;
+
+        if (containsManual(stack)) {
+            setFavorite(stack, null);
+        } else {
+            setFavorite(
+                    stack,
+                    RecipeId.of(
+                            stack,
+                            FavoriteRecipes.FAVORITE_ITEM,
+                            Arrays.asList(new ItemStack(Blocks.fire, 1), stack)));
+        }
     }
 
     public static void setFavorite(ItemStack stack, RecipeId recipeId) {

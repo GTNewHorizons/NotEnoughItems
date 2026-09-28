@@ -58,7 +58,7 @@ nei.options.wbutton.tip.0=使用全局設定
 nei.options.wbutton.tip.1=覆蓋全局設定
 
 nei.options.keys=按鍵設定
-nei.options.keys.gui=物品欄
+nei.options.keys.gui=NEI 物品欄
 nei.options.keys.recipe.recipe=合成表
 nei.options.keys.recipe.usage=用途
 nei.options.keys.gui.enchant=附魔
@@ -68,7 +68,7 @@ nei.options.keys.gui.prev=上一頁
 nei.options.keys.gui.next=下一頁
 nei.options.keys.gui.hide=隱藏/顯示NEI界面
 nei.options.keys.gui.search=焦點搜索欄
-nei.options.keys.world=世界
+nei.options.keys.world=NEI 世界
 nei.options.keys.world.chunkoverlay=區塊邊界顯示
 nei.options.keys.world.moboverlay=怪物生成區域顯示
 nei.options.keys.world.highlight_tips=高亮工具提示

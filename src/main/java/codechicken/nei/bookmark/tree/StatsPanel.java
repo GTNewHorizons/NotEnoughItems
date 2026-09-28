@@ -3,6 +3,7 @@ package codechicken.nei.bookmark.tree;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,10 @@ class StatsPanel extends ScrollContainer {
             this(stack, stackSize, icon, null, 1);
         }
 
+        public ItemStack getStack() {
+            return StackInfo.withAmount(this.stack, stackSize);
+        }
+
         @Override
         public void draw(int mx, int my) {
 
@@ -118,7 +123,7 @@ class StatsPanel extends ScrollContainer {
 
             GL11.glPushMatrix();
             GL11.glColor4f(1, 1, 1, 1);
-            GL11.glTranslatef(badgeX, y - 6 * scale, 3.0f);
+            GL11.glTranslatef(badgeX, y - 6 * scale, 10.0f);
             GL11.glScalef(scale, scale, 1.0f);
 
             if (this.info.hasImageOrItem()) {
@@ -519,7 +524,7 @@ class StatsPanel extends ScrollContainer {
 
     public ItemStack getStackMouseOver(int mouseX, int mouseY) {
         final Widget widget = getWidgetUnderMouse(mouseX, mouseY);
-        return widget instanceof ItemStatsSlot slot ? slot.stack : null;
+        return widget instanceof ItemStatsSlot slot && slot.recipeId == null ? slot.getStack() : null;
     }
 
     public void setHighlight(SearchResult searchResult) {
@@ -711,8 +716,14 @@ class StatsPanel extends ScrollContainer {
     private List<Widget> collectHandlers(RecipeChainMath math) {
         final Map<String, HandlerStats> handlerStats = new HashMap<>();
         final List<Widget> widgets = new ArrayList<>();
+        final Set<RecipeId> countedRecipes = new HashSet<>();
 
         for (BookmarkItem item : math.recipeResults) {
+            // a recipe adds one result item per output, count it only once
+            if (!countedRecipes.add(item.recipeId)) {
+                continue;
+            }
+
             final HandlerStats stats = handlerStats
                     .computeIfAbsent(item.recipeId.getHandlerName(), k -> new HandlerStats());
             stats.iterations += item.getMultiplier();

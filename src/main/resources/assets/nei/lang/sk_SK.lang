@@ -59,7 +59,7 @@ nei.options.wbutton.tip.0=Používajú sa globálne nastavenia
 nei.options.wbutton.tip.1=Globálne nastavenia sú nahradené
 
 nei.options.keys=Klávesové skratky
-nei.options.keys.gui=Inventár
+nei.options.keys.gui=NEI Inventár
 nei.options.keys.recipe.recipe=Recept
 nei.options.keys.recipe.usage=Použitie
 nei.options.keys.gui.enchant=Očarovania
@@ -69,7 +69,7 @@ nei.options.keys.gui.prev=Predchádzajúca strana
 nei.options.keys.gui.next=Nasledujúca strana
 nei.options.keys.gui.hide=Prepni viditeľnosť NEI
 nei.options.keys.gui.search=Zamerania na vyhľadávací riadok
-nei.options.keys.world=Svet
+nei.options.keys.world=NEI Svet
 nei.options.keys.world.chunkoverlay=Vrstva hraníc chunkov
 nei.options.keys.world.moboverlay=Vrstva zrodenia sa monštier
 nei.options.keys.world.highlight_tips=Zvýraznenie opisov

@@ -20,6 +20,7 @@ public class AcceptsFollowingTooltipLineHandler extends ItemsTooltipLineHandler 
         super(NEIClientUtils.translate("recipe.accepts"), items, false, maxRows);
         this.tooltipGUID = tooltipGUID;
         setActiveStack(activeStack);
+        setAmountRenderer(new FavoriteAmountRenderer());
     }
 
     public static AcceptsFollowingTooltipLineHandler of(Object tooltipGUID, List<ItemStack> items,
@@ -38,12 +39,15 @@ public class AcceptsFollowingTooltipLineHandler extends ItemsTooltipLineHandler 
         return null;
     }
 
-    @Override
-    protected void drawItem(int x, int y, ItemStack drawStack, String stackSize) {
-        super.drawItem(x, y, drawStack, stackSize);
+    protected static class FavoriteAmountRenderer extends NoAmountRenderer {
 
-        if (FavoriteRecipes.containsManual(drawStack)) {
-            NEIClientUtils.drawNEIOverlayText("F", x, y);
+        @Override
+        public void draw(int x, int y, ItemStack stack, long amount) {
+            super.draw(x, y, stack, amount);
+
+            if (FavoriteRecipes.containsManual(stack)) {
+                NEIClientUtils.drawNEIOverlayText("F", x, y);
+            }
         }
     }
 

@@ -2,9 +2,12 @@ package codechicken.nei.bookmark.tree;
 
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import codechicken.nei.NEIClientConfig;
+import codechicken.nei.bookmark.BookmarkGroup;
 import codechicken.nei.bookmark.BookmarkItem;
 
 class CraftingTreeState {
@@ -25,6 +28,8 @@ class CraftingTreeState {
         HANDLERS
     }
 
+    private static final Map<BookmarkGroup, CraftingTreeState> GROUP_STATES = new WeakHashMap<>();
+
     private static final String KEY_STATS_VISIBLE = "craftingTree.statsVisible";
     private static final String KEY_STATS_SECTIONS = "craftingTree.statsSections";
     private static final String KEY_USE_INVENTORY_SNAPSHOT = "craftingTree.useInventorySnapshot";
@@ -35,6 +40,8 @@ class CraftingTreeState {
     public boolean useInventorySnapshot = false;
     public CollapseMode collapseMode = CollapseMode.EXPANDED;
 
+    public boolean initialized;
+    public final Camera camera = new Camera();
     public final Set<BookmarkItem> collapsedItems = new HashSet<>();
     public ItemTreeSlot replaceRecipeNode;
 
@@ -65,6 +72,9 @@ class CraftingTreeState {
                 ? collapseModes[savedCollapseMode]
                 : CollapseMode.EXPANDED;
         this.replaceRecipeNode = null;
+        this.searchItemResult = null;
+        this.searchStatsResult = null;
+        this.camera.endDrag();
     }
 
     public void toggleStatsPanelVisible() {
@@ -96,6 +106,10 @@ class CraftingTreeState {
         final CollapseMode[] collapseModes = CollapseMode.values();
         this.collapseMode = collapseModes[(this.collapseMode.ordinal() + 1) % collapseModes.length];
         NEIClientConfig.world.nbt.setInteger(KEY_COLLAPSE_MODE, this.collapseMode.ordinal());
+    }
+
+    public static CraftingTreeState of(BookmarkGroup group) {
+        return GROUP_STATES.computeIfAbsent(group, g -> new CraftingTreeState());
     }
 
     public SearchResult activeSearchResult() {

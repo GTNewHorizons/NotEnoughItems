@@ -88,7 +88,7 @@ nei.options.wbutton.tip.1=覆写全局设置
 
 nei.options.keys=按键绑定
 nei.options.keys.showenchant=显示附魔值
-nei.options.keys.gui=物品栏
+nei.options.keys.gui=NEI 物品栏
 nei.options.keys.recipe.recipe=查看合成
 nei.options.keys.recipe.usage=查看用途
 nei.options.keys.gui.enchant=附魔
@@ -110,7 +110,7 @@ nei.options.keys.gui.getnextsearch=下一个搜索
 nei.options.keys.copy.name=复制物品名称 (Ctrl +)
 nei.options.keys.copy.oredict=复制物品矿词词典 (Ctrl +)
 nei.options.keys.copy.identifier=复制物品ID (Ctrl +)
-nei.options.keys.world=世界
+nei.options.keys.world=NEI 世界
 nei.options.keys.world.chunkoverlay=区块(chunks)边界显示
 nei.options.keys.world.moboverlay=刷怪区域显示
 nei.options.keys.world.highlight_tips=显示选中方块名称

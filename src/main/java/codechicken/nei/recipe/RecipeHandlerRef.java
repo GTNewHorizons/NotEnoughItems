@@ -36,12 +36,12 @@ public class RecipeHandlerRef {
                         .getCraftingHandlers("recipeId", recipeId.getResult(), recipeId);
 
                 for (ICraftingHandler handler : handlers) {
-                    int refIndex = SearchRecipeHandler.findFirst(
+                    int recipeIndex = SearchRecipeHandler.findFirst(
                             handler,
-                            recipeIndex -> recipeId.equalsIngredients(handler.getIngredientStacks(recipeIndex)));
+                            index -> recipeId.equalsIngredients(handler.getIngredientStacks(index)));
 
-                    if (refIndex >= 0) {
-                        return new RecipeHandlerRef(handler, refIndex);
+                    if (recipeIndex >= 0) {
+                        return new RecipeHandlerRef(handler, recipeIndex);
                     }
                 }
 
@@ -64,10 +64,6 @@ public class RecipeHandlerRef {
         }
 
         return firstGui != null && firstGui.inventorySlots != null ? firstGui : null;
-    }
-
-    public NEIRecipeWidget getRecipeWidget() {
-        return new NEIRecipeWidget(this);
     }
 
     public IOverlayHandler getOverlayHandler(GuiContainer gui) {

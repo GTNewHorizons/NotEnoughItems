@@ -2,10 +2,15 @@ package codechicken.nei.recipe;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import net.minecraft.item.ItemStack;
 
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.Widget;
+import codechicken.nei.recipe.widget.RecipeWidget;
 import codechicken.nei.scroll.ScrollContainer;
 
 public class RecipePageManager {
@@ -16,7 +21,6 @@ public class RecipePageManager {
 
     private String cacheKey = "";
     private int currentPageIndex = -1;
-    private List<Integer> recipeIndices = new ArrayList<>();
     private List<List<Widget>> pageWidgets = new ArrayList<>();
 
     public RecipePageManager(SearchRecipeHandler<?> handler, HandlerInfo handlerInfo, ScrollContainer container) {
@@ -40,6 +44,8 @@ public class RecipePageManager {
         }
 
         this.cacheKey = cacheKey;
+
+        final List<RecipeWidget> pausedWidgets = getPausedWidgets();
         this.pageWidgets.clear();
 
         final boolean allowOverflowY = this.handlerInfo.isAllowOverflowY();
@@ -52,12 +58,37 @@ public class RecipePageManager {
         final int width = Math.max(166, this.handlerInfo.getWidth());
         final List<Integer> searchRecipes = this.handler.getFilteredRecipes();
         final int numRecipes = searchRecipes.size();
+        final List<List<Integer>> groupedRecipes = new ArrayList<>();
+        final Map<Object, Integer> groupEndIndices = new HashMap<>();
         List<Widget> widgets = new ArrayList<>();
         int shiftY = 0;
 
         for (int i = 0; i < numRecipes; i++) {
             final int recipeIndex = searchRecipes.get(i);
-            final NEIRecipeWidget widget = RecipeHandlerRef.of(this.handler.original, recipeIndex).getRecipeWidget();
+            final Object groupId = this.handler.original.getRecipeGroupId(recipeIndex);
+            final int groupIndex = groupId != null
+                    ? groupEndIndices.computeIfAbsent(groupId, k -> groupedRecipes.size())
+                    : groupedRecipes.size();
+
+            if (groupedRecipes.size() <= groupIndex) {
+                groupedRecipes.add(new ArrayList<>());
+            }
+
+            groupedRecipes.get(groupIndex).add(recipeIndex);
+        }
+
+        for (int groupIndex = 0; groupIndex < groupedRecipes.size(); groupIndex++) {
+            final RecipeWidget widget = new RecipeWidget(this.handler.original, groupedRecipes.get(groupIndex));
+
+            // keep the pause of the rebuilt widgets
+            for (RecipeWidget paused : pausedWidgets) {
+                final int pausedIndex = paused.getRecipeHandlerRef().recipeIndex;
+
+                if (widget.containsRecipeIndex(pausedIndex)) {
+                    widget.pinRecipe(pausedIndex, paused.getPinnedIngredients());
+                }
+            }
+
             widget.w = width;
 
             if (allowOverflowY) {
@@ -109,29 +140,48 @@ public class RecipePageManager {
         }
 
         this.currentPageIndex = page;
-        this.recipeIndices = new ArrayList<>();
-
-        for (Widget widget : getCurrentPageWidgets()) {
-            if (widget instanceof NEIRecipeWidget recipeWidget) {
-                this.recipeIndices.add(recipeWidget.getRecipeHandlerRef().recipeIndex);
-            }
-        }
-
         this.container.setVerticalScrollOffset(0);
     }
 
-    public void gotoRefIndex(int refIndex) {
-        int page = 0;
+    public boolean gotoRecipeIndex(int recipeIndex) {
 
-        for (int i = 0; i < this.pageWidgets.size(); i++) {
-            refIndex -= this.pageWidgets.get(i).size();
-            if (refIndex < 0) {
-                page = i;
-                break;
+        for (int page = 0; page < this.pageWidgets.size(); page++) {
+            for (Widget widget : this.pageWidgets.get(page)) {
+                if (widget instanceof RecipeWidget recipeWidget && recipeWidget.containsRecipeIndex(recipeIndex)) {
+                    changePage(page - this.currentPageIndex);
+                    return true;
+                }
             }
         }
 
-        changePage(page);
+        return false;
+    }
+
+    private List<RecipeWidget> getPausedWidgets() {
+        final List<RecipeWidget> paused = new ArrayList<>();
+
+        for (List<Widget> widgets : this.pageWidgets) {
+            for (Widget widget : widgets) {
+                if (widget instanceof RecipeWidget recipeWidget && recipeWidget.isPaused()) {
+                    paused.add(recipeWidget);
+                }
+            }
+        }
+
+        return paused;
+    }
+
+    public boolean pinRecipe(int recipeIndex, List<ItemStack> ingredients) {
+
+        for (List<Widget> widgets : this.pageWidgets) {
+            for (Widget widget : widgets) {
+                if (widget instanceof RecipeWidget recipeWidget && recipeWidget.containsRecipeIndex(recipeIndex)) {
+                    return recipeWidget.pinRecipe(recipeIndex, ingredients);
+                }
+            }
+        }
+
+        return false;
     }
 
     public List<Widget> getCurrentPageWidgets() {
@@ -143,7 +193,7 @@ public class RecipePageManager {
         int shiftY = 0;
 
         for (Widget widget : currentWidgets) {
-            if (widget instanceof NEIRecipeWidget recipeWidget) {
+            if (widget instanceof RecipeWidget recipeWidget) {
                 recipeWidget.setLocation(2, shiftY);
             }
             shiftY += widget.h;
@@ -153,7 +203,20 @@ public class RecipePageManager {
     }
 
     public List<Integer> getRecipeIndices() {
-        return this.recipeIndices;
+
+        if (this.pageWidgets.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        final List<Integer> recipeIndices = new ArrayList<>();
+
+        for (Widget widget : this.pageWidgets.get(this.currentPageIndex)) {
+            if (widget instanceof RecipeWidget recipeWidget) {
+                recipeIndices.add(recipeWidget.getRecipeHandlerRef().recipeIndex);
+            }
+        }
+
+        return recipeIndices;
     }
 
 }

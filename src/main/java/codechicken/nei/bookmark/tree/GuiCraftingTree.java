@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
@@ -40,6 +39,7 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.KeyManager;
 import codechicken.nei.LRUCache;
 import codechicken.nei.NEICPH;
+import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.SearchField.GuiSearchField;
@@ -67,6 +67,7 @@ import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.recipe.RecipeItemsTooltipLineHandler;
 import codechicken.nei.recipe.RecipeTooltipLineHandler;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.EmptyContainer;
@@ -115,10 +116,9 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
     private static final int PADDING = 9;
     private static final int PADDING_TOP = 22;
 
-    private static LRUCache<String, String> handlerTitleCache = new LRUCache<>(100);
+    private final LRUCache<String, String> handlerTitleCache = new LRUCache<>(100);
 
     private GuiScreen prevGui;
-    private boolean isFirstScreen = true;
 
     private final BookmarkGrid grid;
     private final int groupId;
@@ -127,15 +127,16 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
     private final StatsPanel statsPanel = new StatsPanel();
     private final StatsSectionsMenu statsSectionsMenu = new StatsSectionsMenu();
-    private final CraftingTreeCanvas canvas = new CraftingTreeCanvas();
+    private final CraftingTreeCanvas canvas;
     private boolean statsPanelVisible;
 
     private GuiSearchField searchField;
 
     private RecipeTooltipLineHandler recipeTooltipLineHandler;
     private AcceptsFollowingTooltipLineHandler acceptsFollowingTooltipLineHandler;
+    private RecipeItemsTooltipLineHandler recipeItemsTooltipLineHandler;
 
-    private final CraftingTreeState uiState = new CraftingTreeState();
+    private final CraftingTreeState uiState;
     private final CraftingTreeToolbar toolbar;
 
     private ItemTreeSlot hoveredNode;
@@ -147,6 +148,8 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
         this.grid = grid;
         this.groupId = groupId;
 
+        this.uiState = CraftingTreeState.of(grid.getGroup(groupId));
+        this.canvas = new CraftingTreeCanvas(this.uiState.camera);
         this.toolbar = new CraftingTreeToolbar(this.uiState);
     }
 
@@ -283,7 +286,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
         this.canvas.graph.rebuild(this.math);
 
-        if (this.isFirstScreen) {
+        if (!this.uiState.initialized) {
             updateCollapsedItems();
         } else {
             this.canvas.recalculateCoordinates(this.collapsedRecipes, this.uiState.collapsedItems, anchor);
@@ -291,8 +294,8 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
         rebuildStatsPanel();
 
-        if (this.isFirstScreen) {
-            this.isFirstScreen = false;
+        if (!this.uiState.initialized) {
+            this.uiState.initialized = true;
             this.canvas.fitToView();
         }
     }
@@ -841,7 +844,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
                 (int) mouse.getY(),
                 direction,
                 NEIClientUtils.shiftKey(),
-                NEIClientUtils.controlKey());
+                NEIClientUtils.controlKey() || NEIClientConfig.craftingTreeZoomWithoutModifier());
     }
 
     private boolean handleItemWheel(int wheel, Point2D mouse) {
@@ -903,6 +906,12 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
             }
         }
 
+        if (keyCode == this.mc.gameSettings.keyBindInventory.getKeyCode()) {
+            this.mc.displayGuiScreen(this.prevGui);
+            NEICPH.sendRequestContainer();
+            return;
+        }
+
         if (this.statsPanelVisible && KeyManager.isKeyDown("recipe.recipe")) {
             final Point2D mouse = getMousePosition();
             final Widget widget = this.statsPanel.getWidgetUnderMouse((int) mouse.getX(), (int) mouse.getY());
@@ -917,15 +926,8 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
         super.keyTyped(typedChar, keyCode);
     }
 
-    private static String getHandlerTitle(String handlerName) {
-        return handlerTitleCache.computeIfAbsent(
-                handlerName,
-                hname -> Stream
-                        .concat(
-                                GuiCraftingRecipe.craftinghandlers.stream(),
-                                GuiCraftingRecipe.serialCraftingHandlers.stream())
-                        .filter(handler -> hname.equals(GuiRecipeTab.getHandlerInfo(handler).getHandlerName()))
-                        .findFirst().map(handler -> handler.getRecipeName().trim()).orElse(hname));
+    private String getHandlerTitle(String handlerName) {
+        return this.handlerTitleCache.computeIfAbsent(handlerName, GuiRecipeTab::getHandlerTitle);
     }
 
     @Override
@@ -939,12 +941,15 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
         if (toolbarTooltip != null) {
             currenttip.add(toolbarTooltip);
         } else if (this.hoveredBadgeHandler != null) {
-            final RecipeId recipeId = this.hoveredBadgeHandler.prefItem != null
-                    ? this.hoveredBadgeHandler.prefItem.recipeId
-                    : null;
-            final long multiplier = this.hoveredBadgeHandler.multiplier;
+            final ItemTreeSlot node = this.hoveredBadgeHandler;
+            final RecipeId recipeId = node.prefItem != null ? node.prefItem.recipeId : null;
 
-            addRecipeTooltipLine(recipeId, multiplier, currenttip);
+            if (recipeId != null && NEIClientUtils.shiftKey()) {
+                addRecipeItemsTooltipLine(recipeId, node.multiplier, currenttip);
+            } else {
+                addRecipeTooltipLine(recipeId, node.multiplier, currenttip);
+            }
+
         } else {
 
             if (this.statsPanelVisible) {
@@ -960,12 +965,33 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
                             EnumChatFormatting.GRAY + NEIClientUtils.translate(
                                     "bookmark.tree.stats.handler_iterations",
                                     handlerStatsSlot.stats.iterations));
+                } else if (widget instanceof StatsPanel.ItemStatsSlot itemStatsSlot && itemStatsSlot.recipeId != null) {
+                    if (NEIClientUtils.shiftKey()) {
+                        addRecipeItemsTooltipLine(itemStatsSlot.recipeId, itemStatsSlot.multiplier, currenttip);
+                    } else {
+                        currenttip.add(itemStatsSlot.stack.getDisplayName() + GuiDraw.TOOLTIP_LINESPACE);
+
+                        addRecipeTooltipLine(itemStatsSlot.recipeId, itemStatsSlot.multiplier, currenttip);
+                    }
                 }
             }
 
         }
 
         return currenttip;
+    }
+
+    private void addRecipeItemsTooltipLine(RecipeId recipeId, long multiplier, List<String> currenttip) {
+
+        if (this.recipeItemsTooltipLineHandler == null
+                || this.recipeItemsTooltipLineHandler.getMultiplier() != multiplier
+                || !this.recipeItemsTooltipLineHandler.getRecipeId().equals(recipeId)) {
+            this.recipeItemsTooltipLineHandler = new RecipeItemsTooltipLineHandler(recipeId, multiplier)
+                    .setUseInventory(true);
+        }
+
+        currenttip.add(this.recipeItemsTooltipLineHandler.getTitle() + GuiDraw.TOOLTIP_LINESPACE);
+        currenttip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(this.recipeItemsTooltipLineHandler));
     }
 
     private void addRecipeTooltipLine(RecipeId recipeId, long multiplier, List<String> currenttip) {
@@ -1078,14 +1104,6 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
         } else {
             this.acceptsFollowingTooltipLineHandler = null;
-
-            if (this.statsPanelVisible) {
-                final Widget widget = this.statsPanel.getWidgetUnderMouse(mousex, mousey);
-                if (widget instanceof StatsPanel.ItemStatsSlot itemStatsSlot) {
-                    addRecipeTooltipLine(itemStatsSlot.recipeId, itemStatsSlot.multiplier, currenttip);
-                }
-            }
-
         }
 
         return currenttip;
