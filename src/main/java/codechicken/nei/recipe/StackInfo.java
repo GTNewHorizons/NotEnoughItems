@@ -131,7 +131,14 @@ public class StackInfo {
         }
 
         if (isFluidDisplayItem(stackA)) {
-            return isFluidDisplayItem(stackB) && getFluid(stackA).isFluidEqual(getFluid(stackB));
+
+            if (isFluidDisplayItem(stackB)) {
+                final FluidStack fluidA = getFluid(stackA);
+                final FluidStack fluidB = getFluid(stackB);
+                return fluidA != null && fluidA.isFluidEqual(fluidB);
+            }
+
+            return false;
         }
 
         if (stackA.getItem() != stackB.getItem()) {
