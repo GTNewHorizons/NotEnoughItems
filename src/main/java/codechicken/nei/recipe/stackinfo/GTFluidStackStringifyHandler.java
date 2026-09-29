@@ -21,6 +21,7 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
     protected static Method getFluidFromDisplayStack = null;
     protected static Class<?> gtMetaGeneratedTool = null;
     protected static Field playSound = null;
+    private static boolean loggedNoNbtDisplay = false;
 
     static {
         try {
@@ -86,6 +87,12 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
 
                 if (obj != null) {
                     return (FluidStack) obj;
+                }
+
+                final Fluid fluid = FluidRegistry.getFluid(stack.getItemDamage());
+
+                if (fluid != null) {
+                    return new FluidStack(fluid, 0);
                 }
 
             } else if (item == GameRegistry.findItem("ae2fc", "fluid_packet")) {
