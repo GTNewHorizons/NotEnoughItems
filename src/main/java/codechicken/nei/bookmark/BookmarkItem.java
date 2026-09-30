@@ -144,7 +144,7 @@ public class BookmarkItem {
         private static synchronized String getItemGUID(ItemStack stack) {
             final FluidStack fluidStack = StackInfo.getFluid(stack);
 
-            if (fluidStack != null) {
+            if (fluidStack != null && (fluidStack.amount > 0 || !StackInfo.isFluidContainer(stack))) {
                 return fluidStack.getFluid().getName() + ":" + fluidStack.tag;
             } else {
 
