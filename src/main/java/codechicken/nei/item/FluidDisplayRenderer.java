@@ -2,15 +2,14 @@ package codechicken.nei.item;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.IIcon;
 import net.minecraftforge.client.IItemRenderer;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 
 import org.lwjgl.opengl.GL11;
 
+import codechicken.nei.item.FluidDrawer.FillDirection;
 import codechicken.nei.util.ReadableNumberConverter;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -34,37 +33,13 @@ public class FluidDisplayRenderer implements IItemRenderer {
             return;
         }
 
-        renderIcon(item, fluidDisplay);
+        renderIcon(item);
         renderAmountOverlay(item, fluidDisplay);
     }
 
-    private void renderIcon(ItemStack item, ItemFluidDisplay fluidDisplay) {
-        final IIcon icon = fluidDisplay.getIconIndex(item);
-        if (icon == null) {
-            return;
-        }
-
-        final int color = fluidDisplay.getColorFromItemStack(item, 0);
-        final float red = (color >> 16 & 0xFF) / 255F;
-        final float green = (color >> 8 & 0xFF) / 255F;
-        final float blue = (color & 0xFF) / 255F;
-
-        Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
-        GL11.glColor4f(red, green, blue, 1F);
-        GL11.glEnable(GL11.GL_BLEND);
-        OpenGlHelper
-                .glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
-
-        final Tessellator tessellator = Tessellator.instance;
-        tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(0, 16, 0, icon.getMinU(), icon.getMaxV());
-        tessellator.addVertexWithUV(16, 16, 0, icon.getMaxU(), icon.getMaxV());
-        tessellator.addVertexWithUV(16, 0, 0, icon.getMaxU(), icon.getMinV());
-        tessellator.addVertexWithUV(0, 0, 0, icon.getMinU(), icon.getMinV());
-        tessellator.draw();
-
-        GL11.glColor4f(1F, 1F, 1F, 1F);
-        GL11.glDisable(GL11.GL_BLEND);
+    private void renderIcon(ItemStack item) {
+        final Fluid fluid = FluidRegistry.getFluid(item.getItemDamage());
+        FluidDrawer.drawFluidArea(fluid != null ? fluid : FluidRegistry.WATER, 0, 0, 16, 16, false, FillDirection.UP);
     }
 
     private void renderAmountOverlay(ItemStack item, ItemFluidDisplay fluidDisplay) {

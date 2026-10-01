@@ -12,6 +12,7 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.Fluid;
 
 import org.lwjgl.input.Keyboard;
 
@@ -33,6 +34,7 @@ import codechicken.nei.SubsetWidget.SubsetTag;
 import codechicken.nei.api.IRecipeFilter.IRecipeFilterProvider;
 import codechicken.nei.api.ItemFilter.ItemFilterProvider;
 import codechicken.nei.config.Option;
+import codechicken.nei.item.FluidDrawer;
 import codechicken.nei.recipe.CatalystInfo;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
@@ -373,6 +375,16 @@ public class API {
 
     public static void registerStackStringifyHandler(IStackStringifyHandler handler) {
         StackInfo.stackStringifyHandlers.add(handler);
+    }
+
+    /**
+     * Replaces the default rendering of a fluid in NEI fluid display slots and fluid tanks.
+     *
+     * @param fluid    the fluid to render
+     * @param renderer the renderer, or null to restore the default rendering
+     */
+    public static void registerFluidRenderer(Fluid fluid, IFluidRenderer renderer) {
+        FluidDrawer.registerFluidRenderer(fluid, renderer);
     }
 
     /**

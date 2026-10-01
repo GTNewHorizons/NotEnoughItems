@@ -16,6 +16,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class GuiHelper {
 
     private static final Stack<int[]> scissorFrameStack = new Stack<>();
+    private static final FloatBuffer MATRIX_BUFFER = BufferUtils.createFloatBuffer(16);
 
     public static void useScissor(int x, int y, int width, int height, Runnable codeBlock) {
         pushScissorFrame(x, y, width, height);
@@ -36,7 +37,7 @@ public class GuiHelper {
         return currentTopFrame;
     }
 
-    private static void pushScissorFrame(int x, int y, int width, int height) {
+    public static void pushScissorFrame(int x, int y, int width, int height) {
         int[] matrix = prepareMatrix(x, y, width, height);
         int[] parentScissor = peekFirstScissorOrFullScreen();
         int parentX = parentScissor[0];
@@ -110,7 +111,7 @@ public class GuiHelper {
 
     private static int[] prepareMatrix(int x, int y, int w, int h) {
         // Get the current translation component to support the Gui being drawn at any position on the screen
-        final FloatBuffer matBuf = BufferUtils.createFloatBuffer(16);
+        final FloatBuffer matBuf = MATRIX_BUFFER;
         GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, matBuf);
         final float xScale = matBuf.get(0);
         final float yScale = matBuf.get(5);
