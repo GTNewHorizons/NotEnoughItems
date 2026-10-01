@@ -73,7 +73,7 @@ public class ItemFluidDisplay extends Item implements IFluidContainerItem {
     @Override
     public FluidStack getFluid(ItemStack stack) {
 
-        if (stack == null || !(stack.getItem() instanceof ItemFluidDisplay) || !stack.hasTagCompound()) {
+        if (stack == null || !(stack.getItem() instanceof ItemFluidDisplay)) {
             return null;
         }
 
@@ -86,7 +86,7 @@ public class ItemFluidDisplay extends Item implements IFluidContainerItem {
         final NBTTagCompound nbTag = stack.getTagCompound();
         final FluidStack fluidStack = new FluidStack(
                 fluid,
-                (int) Math.min(nbTag.getLong("neiFluidDisplayAmount"), Integer.MAX_VALUE));
+                (int) Math.min(nbTag != null ? nbTag.getLong("neiFluidDisplayAmount") : 0, Integer.MAX_VALUE));
 
         return fluidStack;
     }

@@ -361,7 +361,7 @@ public class PositionedStack implements Cloneable {
                 return;
             }
 
-            FluidDrawer.drawFluid(
+            FluidDrawer.drawTank(
                     this.relx,
                     this.rely,
                     this.width,
