@@ -160,7 +160,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
         // 1 - partitial hidden
         // 2 - enabled
         public int state = 2;
-        public int calculatedWidth;
+        public volatile int calculatedWidth = -1;
         public final List<ItemStack> items;
         public final List<SubsetTag> children = new ArrayList<>();
         protected final SubsetSlot slot = new SubsetSlot();
@@ -206,7 +206,7 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
             this.state = 2;
             this.items.clear();
             this.children.clear();
-            this.calculatedWidth = 0;
+            this.calculatedWidth = -1;
         }
 
         public void updateVisiblity(int mx, int my) {
@@ -261,6 +261,10 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
         }
 
         public void resize(Rectangle4i screen, Rectangle4i parent, boolean dropRight) {
+            if (calculatedWidth < 0) {
+                calculatedWidth = this.children.stream().mapToInt(SubsetTag::nameWidth).max().orElse(0);
+            }
+
             int height = Math.min(slot.contentHeight(), screen.h);
             int width = Math.max(calculatedWidth + 2, this.items.isEmpty() ? 0 : 16 + MARGIN * 2);
             int scrollbarWidth = slot.scrollbarDim().width;
@@ -686,12 +690,12 @@ public class SubsetWidget extends Button implements ItemFilterProvider {
 
                 for (SubsetTag tag : list) {
                     tag.children.sort(Comparator.comparing(SubsetTag::displayName));
-                    tag.calculatedWidth = tag.children.stream().mapToInt(SubsetTag::nameWidth).max().orElse(0);
+                    tag.calculatedWidth = -1;
                 }
 
                 root.children.removeIf(child -> child.children.isEmpty() && child.items.isEmpty());
                 root.children.sort(Comparator.comparing(SubsetTag::displayName));
-                root.calculatedWidth = root.children.stream().mapToInt(SubsetTag::nameWidth).max().orElse(0);
+                root.calculatedWidth = -1;
 
                 calculateVisibility(root);
             } catch (Throwable e) {
