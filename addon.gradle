@@ -21,7 +21,19 @@ sourceSets {
     }
 }
 
+// ASMReader initializes process-wide remapping caches from the harness's fake Forge environment.
+// Keep that setup out of the JVM running the ordinary unit tests.
+def mouseKeybindAsmTest = tasks.register('mouseKeybindAsmTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    javaLauncher = tasks.named('test', Test).flatMap { it.javaLauncher }
+    useJUnitPlatform()
+    include '**/MouseKeybindDispatchTest.class'
+}
+
 test {
+    dependsOn mouseKeybindAsmTest
+    exclude '**/MouseKeybindDispatchTest.class'
     useJUnitPlatform()
     testLogging {
         events "passed", "skipped", "failed"
