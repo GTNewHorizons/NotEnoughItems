@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
+import java.util.WeakHashMap;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -295,73 +295,118 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     }
 
     /**
-     * Many old mods assumed a fixed NEI window height of {@code 166} pixels. Now that this is no longer the case, their
-     * tooltip and click zone handling is broken. This helper class fixes these old mods by hacking the {@link #height}
-     * property's value so that these old mods' calculations return the correct value for the new height.
+     * Many old mods assumed a fixed NEI window size of {@code 176x166} pixels, with exactly one recipe shown at a time,
+     * flush against the top-left corner of the window. Now that none of these assumptions hold (the window has a
+     * flexible size, several recipes can be stacked in the same scrollable list, and the recipe area is inset from the
+     * window's edges), these old mods' tooltip and click zone handling is broken. This helper class fixes these old
+     * mods by hacking the {@link #width}, {@link #height}, {@link #guiLeft} and {@link #guiTop} properties' values so
+     * that these old mods' calculations return the correct value for whichever recipe they are currently being asked
+     * about.
      *
      * <p>
-     * New and old mods often assume that the handler is only drawn when {@link GuiRecipe} is the currently active
-     * screen in {@link net.minecraft.client.Minecraft}. This is no longer true since the addition of recipe tooltips
-     * which need to render the recipe in other containers on mouse hover, this class temporarily switches the active
-     * screen to {@code this} while rendering them to avoid ClassCastExceptions and other similar crashes.
+     * Since each recipe handled by a {@link RecipeWidget} can sit at a different real position, this must be
+     * constructed with that widget's top-left edge every time a legacy entry point ({@code mouseClicked},
+     * {@code handleTooltip}, ...) is invoked for it, rather than once per {@link GuiRecipe}.
      *
      * <p>
      * This class is an {@link AutoCloseable} so that it can be used with try-with-resources, which will ensure that
-     * {@link #height} and {@link net.minecraft.client.Minecraft#currentScreen} is returned to the correct value
+     * {@link #width}, {@link #height}, {@link #guiLeft} and {@link #guiTop} are returned to the correct value
      * afterwards.
      */
-    private class CompatibilityHacks implements AutoCloseable {
+    public static final class CompatibilityHacks implements AutoCloseable {
 
+        // The historical NEI recipe screen's fixed size: a single top paging widget 16px tall, no horizontal inset,
+        // and a 176x166 box. Legacy handlers either read guiLeft/guiTop directly (expecting them to point 16px above
+        // their recipe, flush on the left) or recompute them from width/height with these same two constants.
+        private static final int LEGACY_TOP_GAP = 16;
+        private static final int LEGACY_BOX_WIDTH = 176;
+        private static final int LEGACY_BOX_HEIGHT = 166;
+
+        // layoutWindow() places the recipe container at (guiLeft + 3, guiTop + 32); RecipePageManager then places
+        // each left-aligned recipe widget another 2px to the right of that. This is the inverse of both, undoing the
+        // container's own inset so a legacy handler sees its recipe flush with guiLeft as it expects.
+        private static final int CONTAINER_LEFT_INSET = 3 + 2;
+
+        private final GuiRecipe<?> gui;
+        private final int trueWidth;
         private final int trueHeight;
+        private final int trueGuiLeft;
         private final int trueGuiTop;
 
-        private CompatibilityHacks() {
-            trueHeight = height;
-            trueGuiTop = guiTop;
+        /**
+         * @param widget The recipe widget a legacy entry point ({@code mouseClicked}, {@code handleTooltip}, ...) is
+         *               about to be invoked for.
+         */
+        public CompatibilityHacks(GuiRecipe<?> gui, RecipeWidget widget) {
+            this.gui = gui;
+            this.trueWidth = gui.width;
+            this.trueHeight = gui.height;
+            this.trueGuiLeft = gui.guiLeft;
+            this.trueGuiTop = gui.guiTop;
 
-            isHeightHackApplied = NEIClientConfig.heightHackHandlerRegex.stream()
-                    .map(pattern -> pattern.matcher(handler.original.getHandlerId())).anyMatch(Matcher::matches);
-            if (isHeightHackApplied) {
-                // guiTop is the top edge of the recipe screen on the y-axis. Old recipe
-                // handlers expect a single paging
-                // widget at the top and at the bottom of the recipe screen with a height of
-                // 16px each, but GTNH NEI
-                // moved the bottom paging widget to the top following JEI's design, increasing
-                // the "forbidden" zone at
-                // the top to 32px. To fix these old recipe handlers we move guiTop down 16px so
-                // that they can keep
-                // working with the old 16px gap.
-                guiTop += 16;
+            final String handlerId = gui.handler.original.getHandlerId();
+            gui.isHeightHackApplied = NEIClientConfig.heightHackHandlerRegex.stream()
+                    .anyMatch(pattern -> pattern.matcher(handlerId).matches());
 
-                // The old NEI recipe screen had a fixed width and height and was always
-                // centered on the screen. Legacy
-                // recipe handlers use the calculation ((height - 166) / 2) to compute the
-                // y-value of the top edge of
-                // the NEI window. GTNH NEI changes the layout so that the recipe screen length
-                // now has a flexible
-                // length and is no longer centered vertically. In order for the top-of-screen
-                // calculation to return the
-                // correct result, we have to hack the height field with an inverse of the
-                // calculation using the actual
-                // top of the recipe screen stored in guiTop.
-                height = (2 * guiTop) + 166;
-
-                // For reference, in case we ever need to modify width as well:
-                // the legacy calculation used for width is ((width - 176) / 2), which should
-                // evaluate to be equal to
-                // guiWidth (the x-value of the left edge of the NEI recipe screen). So if we
-                // wanted to override width
-                // as well, we'd do this:
-                // width = (2 * guiWidth) + 176;
+            if (gui.isHeightHackApplied) {
+                gui.guiTop = recipeTop(widget) - LEGACY_TOP_GAP;
+                gui.guiLeft = widget.x - CONTAINER_LEFT_INSET;
+                gui.height = (2 * gui.guiTop) + LEGACY_BOX_HEIGHT;
+                gui.width = (2 * gui.guiLeft) + LEGACY_BOX_WIDTH;
             }
+        }
+
+        // recipiesPerPage() == 2 is the IRecipeHandler default: a handler only ends up with this value if it never
+        // overrode the method, or if it overrode it and chose 2 on purpose. We only care about the latter case, so
+        // we require the override to actually come from the handler's own class rather than being inherited as-is.
+        private static final Map<Class<?>, Boolean> overridesRecipiesPerPage = new WeakHashMap<>();
+
+        /**
+         * The real top edge of this widget's recipe, as a legacy handler following the {@link #LEGACY_TOP_GAP}
+         * convention would expect to find it at guiTop. A few handlers (e.g. ImmersiveEngineering) are left over from
+         * the old {@code recipiesPerPage() == 2} convention, where two recipes shared one physical page: their own
+         * {@code mouseClicked}/{@code handleTooltip} still add a hardcoded "recipe height * (recipe % 2)" on top of
+         * guiTop to find the odd one of the pair. Since every recipe is its own independent widget now, we pre-subtract
+         * that same offset here so their own addition cancels out and lands back on this widget's real top.
+         *
+         * <p>
+         * This only applies when the handler itself overrides {@link IRecipeHandler#recipiesPerPage()} to return
+         * {@code 2}: that method defaults to {@code 2} on the interface, so most height-hacked handlers return it
+         * without ever having implemented this pairing (e.g. BuildCraftCompat never overrides it at all, and only reads
+         * it elsewhere to pick a cosmetic sub-name), and applying this compensation to them would break them. A handler
+         * that went out of its way to declare {@code return 2;} itself is making a deliberate statement about this
+         * legacy convention that a handler which simply never mentions the method isn't.
+         */
+        private static int recipeTop(RecipeWidget widget) {
+            final RecipeHandlerRef ref = widget.getRecipeHandlerRef();
+            final HandlerInfo handlerInfo = widget.getHandlerInfo();
+            final int top = widget.y + handlerInfo.getYShift();
+
+            if (ref.handler.recipiesPerPage() == 2 && declaresRecipiesPerPage(ref.handler)) {
+                return top - handlerInfo.getHeight() * (ref.recipeIndex % 2);
+            }
+
+            return top;
+        }
+
+        private static boolean declaresRecipiesPerPage(IRecipeHandler handler) {
+            return overridesRecipiesPerPage.computeIfAbsent(handler.getClass(), clazz -> {
+                try {
+                    return clazz.getMethod("recipiesPerPage").getDeclaringClass() != IRecipeHandler.class;
+                } catch (NoSuchMethodException e) {
+                    return false;
+                }
+            });
         }
 
         @Override
         public void close() {
-            guiTop = trueGuiTop;
-            height = trueHeight;
+            this.gui.guiLeft = this.trueGuiLeft;
+            this.gui.guiTop = this.trueGuiTop;
+            this.gui.width = this.trueWidth;
+            this.gui.height = this.trueHeight;
 
-            isHeightHackApplied = false;
+            this.gui.isHeightHackApplied = false;
         }
     }
 
@@ -698,10 +743,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             return;
         }
 
-        try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
-            if (this.container.handleClick(mousex, mousey, button)) {
-                return;
-            }
+        if (this.container.handleClick(mousex, mousey, button)) {
+            return;
         }
 
         if (this.recipeTabs.mouseClicked(mousex, mousey, button)) {
@@ -749,11 +792,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     public void mouseScrolled(int scroll) {
         // Height hacking is not necessary here since mouse scrolling is a new feature,
         // added in
-        // GTNH NEI. So no old mods will use this. Though not hacking the height here
-        // does mean that
-        // the value of the height field will be different from in other mouseover
-        // methods, which
-        // could be confusing...
+        // GTNH NEI. So no old mods will use this.
 
         // First, invoke scroll handling over recipe handler tabbar. Makes sure it is
         // not overwritten by recipe
@@ -766,10 +805,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             return;
         }
 
-        try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
-            if (this.container.onMouseWheel(scroll, mouse.x, mouse.y)) {
-                return;
-            }
+        if (this.container.onMouseWheel(scroll, mouse.x, mouse.y)) {
+            return;
         }
 
         // If shift is held, try switching to the next recipe handler. Replicates the
@@ -821,9 +858,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             currenttip = this.recipeCatalyst.handleTooltip(mousex, mousey, currenttip);
         }
 
-        try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
-            currenttip = this.container.handleTooltip(mousex, mousey, currenttip);
-        }
+        currenttip = this.container.handleTooltip(mousex, mousey, currenttip);
 
         this.recipeTabs.handleTooltip(mousex, mousey, currenttip);
 
@@ -869,9 +904,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             hotkeys = this.recipeCatalyst.handleHotkeys(mousex, mousey, hotkeys);
         }
 
-        try (CompatibilityHacks compatibilityHacks = new CompatibilityHacks()) {
-            hotkeys = this.container.handleHotkeys(mousex, mousey, hotkeys);
-        }
+        hotkeys = this.container.handleHotkeys(mousex, mousey, hotkeys);
 
         return hotkeys;
     }
