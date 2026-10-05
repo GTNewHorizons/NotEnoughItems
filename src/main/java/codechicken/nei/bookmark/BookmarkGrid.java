@@ -799,6 +799,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
             sortableGroup.groupId = groupId;
             this.onItemsChanged();
             this.getMask();// force generate grid
+            overGroupId = getRowGroupId(overRowIndex);
         }
 
         if (sortableGroup.groupId == overGroupId) {
