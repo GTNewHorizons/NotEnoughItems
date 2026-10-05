@@ -526,7 +526,9 @@ public class RecipeWidget extends Widget {
             return false;
         }
 
-        return this.handler.mouseClicked(guiRecipe, button, getRecipeIndex());
+        try (GuiRecipe.CompatibilityHacks hack = new GuiRecipe.CompatibilityHacks(guiRecipe, this)) {
+            return this.handler.mouseClicked(guiRecipe, button, getRecipeIndex());
+        }
     }
 
     @Override
@@ -550,7 +552,9 @@ public class RecipeWidget extends Widget {
             return buttonTooltip;
         }
 
-        return this.handler.handleTooltip(guiRecipe, tooltip, getRecipeIndex());
+        try (GuiRecipe.CompatibilityHacks hack = new GuiRecipe.CompatibilityHacks(guiRecipe, this)) {
+            return this.handler.handleTooltip(guiRecipe, tooltip, getRecipeIndex());
+        }
     }
 
     @Override
