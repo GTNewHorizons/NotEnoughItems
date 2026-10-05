@@ -572,7 +572,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
 
             return;
         } else if (this.sortableGroup != null) {
-            final int overRowIndex = grid.getRowIndex(mousey);
+            final int overRowIndex = Math.min(grid.getRowIndex(mousey), grid.getRows() - 1);
 
             if (overRowIndex >= 0 && this.sortableGroup.groupId != this.grid.getRowGroupId(overRowIndex)) {
                 this.grid.moveGroup(this.sortableGroup, overRowIndex);
@@ -1105,7 +1105,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         }
 
         if (super.onMouseWheel(shift, mousex, mousey)) {
-            final int overRowIndex = grid.getRowIndex(mousey);
+            final int overRowIndex = Math.min(grid.getRowIndex(mousey), grid.getRows() - 1);
 
             if (this.sortableGroup != null && overRowIndex >= 0
                     && this.sortableGroup.groupId != this.grid.getRowGroupId(overRowIndex)) {
