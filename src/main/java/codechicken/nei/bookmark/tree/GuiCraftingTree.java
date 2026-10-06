@@ -190,6 +190,13 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
     @Override
     public void initGui() {
+
+        // the group can be removed from the bookmark panel while a recipe screen opened from this tree is shown
+        if (this.grid.getGroup(this.groupId) == null) {
+            this.mc.displayGuiScreen(this.prevGui);
+            return;
+        }
+
         this.xSize = this.width;
         this.ySize = this.height;
 
