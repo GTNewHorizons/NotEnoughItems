@@ -162,7 +162,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
         final ItemTreeSlot replaceNode = this.uiState.replaceRecipeNode;
         this.uiState.replaceRecipeNode = null;
 
-        if (recipe != null) {
+        if (recipe != null && this.grid.getGroup(this.groupId) != null) {
             final RecipeId recipeId = recipe.getRecipeId();
             boolean changed = false;
 
