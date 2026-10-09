@@ -267,6 +267,11 @@ public class NEIClientConfig {
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.guirecipe.scrollPages", true));
 
+        tag.getTag("inventory.guirecipe.freezeCycleOnHover")
+                .setComment("Stop cycling the recipe while hovering over an ingredient or a button")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.freezeCycleOnHover", true));
+
         tag.getTag("inventory.guirecipe.profile").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.guirecipe.profile", true));
 
@@ -1164,6 +1169,10 @@ public class NEIClientConfig {
 
     public static boolean showCycledIngredientsTooltip() {
         return getBooleanSetting("inventory.guirecipe.cycledIngredientsTooltip");
+    }
+
+    public static boolean freezeCycleOnHover() {
+        return getBooleanSetting("inventory.guirecipe.freezeCycleOnHover");
     }
 
     public static boolean requireShiftForOverlayRecipe() {
