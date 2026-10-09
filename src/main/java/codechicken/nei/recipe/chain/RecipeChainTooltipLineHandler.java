@@ -25,6 +25,7 @@ import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.ItemsTooltipLineHandler.AmountRenderer;
 import codechicken.nei.ItemsTooltipLineHandler.StacksAmountRenderer;
 import codechicken.nei.ItemsTooltipLineHandler.TotalAmountRenderer;
+import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.drawable.DrawableResource;
@@ -354,8 +355,8 @@ public class RecipeChainTooltipLineHandler extends CompositeTooltipLineHandler {
 
     protected void addLine(String label, List<ItemStack> items, boolean vertical, EnumChatFormatting labelColor,
             AmountRenderer amountRenderer) {
-        final ItemsTooltipLineHandler line = vertical ? ItemsTooltipLineHandler.list(label, items, maxLineRows())
-                : ItemsTooltipLineHandler.grid(label, items, maxLineRows());
+        final int maxNamedRows = vertical ? NEIClientConfig.getMaxVerticalTooltipRows() : 0;
+        final ItemsTooltipLineHandler line = ItemsTooltipLineHandler.of(label, items, maxLineRows(), maxNamedRows);
 
         if (line.isEmpty()) {
             return;

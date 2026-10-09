@@ -263,7 +263,7 @@ public class GuiOverlayButton extends GuiRecipeButton {
 
             if (!items.isEmpty()) {
                 this.missedMaterialsTooltipLineHandler = ItemsTooltipLineHandler
-                        .grid(NEIClientUtils.translate("recipe.overlay.missing"), items, Integer.MAX_VALUE);
+                        .of(NEIClientUtils.translate("recipe.overlay.missing"), items, Integer.MAX_VALUE, 0);
             } else {
                 this.missedMaterialsTooltipLineHandler = null;
             }

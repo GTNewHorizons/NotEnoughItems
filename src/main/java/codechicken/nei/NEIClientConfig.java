@@ -200,6 +200,11 @@ public class NEIClientConfig {
         tag.getTag("inventory.bookmarks.showRecipeMarkerMode").setComment("Show Recipe Marker").getIntValue(0);
         API.addOption(new OptionCycled("inventory.bookmarks.showRecipeMarkerMode", 3, true));
 
+        tag.getTag("inventory.bookmarks.maxVerticalTooltipRows")
+                .setComment("Max rows in vertical crafting chain tooltip lists (0 - disable, always use grid)")
+                .getIntValue(12);
+        API.addOption(new OptionIntegerField("inventory.bookmarks.maxVerticalTooltipRows", 0, 50));
+
         tag.getTag("inventory.bookmarks.recipeMarkerColor").setComment("Color of the icon marker")
                 .getHexValue(0xADADAD);
         API.addOption(
@@ -1109,6 +1114,10 @@ public class NEIClientConfig {
 
     public static int showRecipeMarkerMode() {
         return getIntSetting("inventory.bookmarks.showRecipeMarkerMode");
+    }
+
+    public static int getMaxVerticalTooltipRows() {
+        return getIntSetting("inventory.bookmarks.maxVerticalTooltipRows");
     }
 
     public static boolean showItemQuantityWidget() {
