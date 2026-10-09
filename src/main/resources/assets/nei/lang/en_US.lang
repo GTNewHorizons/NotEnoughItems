@@ -289,6 +289,7 @@ nei.options.inventory.bookmarks.showRecipeMarkerMode=Show Recipe Marker
 nei.options.inventory.bookmarks.showRecipeMarkerMode.0=None
 nei.options.inventory.bookmarks.showRecipeMarkerMode.1=Text
 nei.options.inventory.bookmarks.showRecipeMarkerMode.2=Background
+nei.options.inventory.bookmarks.maxVerticalTooltipRows=Max Vertical Tooltip Rows (0 - disable)
 nei.options.inventory.bookmarks.showRecipeHandlerIcon=Show Handler Icon
 nei.options.inventory.bookmarks.showRecipeHandlerIcon.true=Yes
 nei.options.inventory.bookmarks.showRecipeHandlerIcon.false=No
