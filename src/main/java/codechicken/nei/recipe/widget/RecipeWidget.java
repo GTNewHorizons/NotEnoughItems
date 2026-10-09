@@ -745,7 +745,8 @@ public class RecipeWidget extends Widget {
             return true;
         }
 
-        return !this.showAsWidget && contains(mouseX, mouseY)
+        return NEIClientConfig.freezeCycleOnHover() && !this.showAsWidget
+                && contains(mouseX, mouseY)
                 && (getPositionedStackMouseOver(mouseX, mouseY) != null
                         || forEachButtons(button -> button.contains(mouseX, mouseY) ? true : null, false));
     }

@@ -198,6 +198,11 @@ public class BookmarkStorage {
                 final BookmarkItem item = BookmarkItem.of(parser.parse(itemStr).getAsJsonObject());
 
                 if (item != null) {
+
+                    if (!grid.groups.containsKey(item.groupId)) {
+                        item.groupId = BookmarkGrid.DEFAULT_GROUP_ID;
+                    }
+
                     grid.addItem(item, false);
                 } else {
                     wasError = true;

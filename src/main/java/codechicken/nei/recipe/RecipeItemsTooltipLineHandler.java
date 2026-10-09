@@ -21,6 +21,7 @@ import codechicken.nei.ItemStackAmount;
 import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.ItemsTooltipLineHandler.StacksAmountRenderer;
 import codechicken.nei.ItemsTooltipLineHandler.TotalAmountRenderer;
+import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.IGuiContainerOverlay;
@@ -163,9 +164,9 @@ public class RecipeItemsTooltipLineHandler extends CompositeTooltipLineHandler {
 
     protected void addResultLine(List<ItemStack> items, Set<NBTTagCompound> approximate) {
         final String label = NEIClientUtils.translate("recipe.items.results");
-        final ItemsTooltipLineHandler line = items.size() == 1
-                ? ItemsTooltipLineHandler.list(label, items, maxLineRows())
-                : ItemsTooltipLineHandler.grid(label, items, maxLineRows());
+        final int maxRows = maxLineRows();
+        final int maxNamedRows = items.size() == 1 ? NEIClientConfig.getMaxVerticalTooltipRows() : 0;
+        final ItemsTooltipLineHandler line = ItemsTooltipLineHandler.of(label, items, maxRows, maxNamedRows);
 
         if (line.isEmpty()) {
             return;
@@ -188,7 +189,9 @@ public class RecipeItemsTooltipLineHandler extends CompositeTooltipLineHandler {
 
     protected void addRequiredLine(List<ItemStack> items, Set<NBTTagCompound> approximate) {
         final String label = NEIClientUtils.translate("recipe.items.ingredients");
-        final ItemsTooltipLineHandler line = ItemsTooltipLineHandler.list(label, items, maxLineRows());
+        final int maxRows = maxLineRows();
+        final int maxNamedRows = NEIClientConfig.getMaxVerticalTooltipRows();
+        final ItemsTooltipLineHandler line = ItemsTooltipLineHandler.of(label, items, maxRows, maxNamedRows);
 
         if (line.isEmpty()) {
             return;
@@ -211,8 +214,9 @@ public class RecipeItemsTooltipLineHandler extends CompositeTooltipLineHandler {
 
     protected void addNeededLine(List<ItemStack> items, Set<NBTTagCompound> approximate, boolean vertical) {
         final String label = NEIClientUtils.translate("recipe.items.ingredients_needed");
-        final ItemsTooltipLineHandler line = vertical ? ItemsTooltipLineHandler.list(label, items, maxLineRows())
-                : ItemsTooltipLineHandler.grid(label, items, maxLineRows());
+        final int maxRows = maxLineRows();
+        final int maxNamedRows = vertical ? NEIClientConfig.getMaxVerticalTooltipRows() : 0;
+        final ItemsTooltipLineHandler line = ItemsTooltipLineHandler.of(label, items, maxRows, maxNamedRows);
 
         if (line.isEmpty()) {
             return;

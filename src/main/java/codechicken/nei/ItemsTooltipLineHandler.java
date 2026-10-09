@@ -167,7 +167,7 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
     protected int activeStackIndex = -1;
     protected Dimension size = new Dimension();
 
-    protected final boolean showNames;
+    protected int maxNamedRows = Integer.MAX_VALUE;
 
     protected int length = 0;
     protected int rows = 0;
@@ -175,29 +175,25 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
     protected int gridColumns = 0;
     protected int gridCount = 0;
 
-    public static ItemsTooltipLineHandler grid(String label, List<ItemStack> items, int maxRows) {
-        return new ItemsTooltipLineHandler(label, items, true, maxRows, false);
-    }
-
-    public static ItemsTooltipLineHandler list(String label, List<ItemStack> items, int maxRows) {
-        return new ItemsTooltipLineHandler(label, items, true, maxRows, true);
+    public static ItemsTooltipLineHandler of(String label, List<ItemStack> items, int maxRows, int maxNamedRows) {
+        return new ItemsTooltipLineHandler(label, items, true, maxRows, maxNamedRows);
     }
 
     public ItemsTooltipLineHandler(String label, List<ItemStack> items) {
-        this(label, items, true, DEFAULT_MAX_ROWS, false);
+        this(label, items, true, DEFAULT_MAX_ROWS, 0);
     }
 
     public ItemsTooltipLineHandler(String label, List<ItemStack> items, boolean saveStackSize, int maxRows) {
-        this(label, items, saveStackSize, maxRows, false);
+        this(label, items, saveStackSize, maxRows, 0);
     }
 
     protected ItemsTooltipLineHandler(String label, List<ItemStack> items, boolean saveStackSize, int maxRows,
-            boolean showNames) {
+            int maxNamedRows) {
         this.label = label;
         this.items = groupingItemStacks(items);
         this.amountRenderer = saveStackSize ? new TotalAmountRenderer() : new NoAmountRenderer();
         this.length = this.items.size();
-        this.showNames = showNames;
+        this.maxNamedRows = maxNamedRows;
 
         setMaxRows(maxRows);
     }
@@ -214,7 +210,7 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
         this.names.clear();
         this.nameRows = 0;
 
-        if (!this.showNames || !layoutWithNames(maxRows)) {
+        if (!layoutWithNames(maxRows)) {
             layoutAsGrid(maxRows);
         }
 
@@ -228,7 +224,7 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
     }
 
     protected boolean layoutWithNames(int maxRows) {
-        final int maxNames = this.length <= maxRows ? this.length : maxRows - 1;
+        final int maxNames = Math.min(this.maxNamedRows, this.length <= maxRows ? this.length : maxRows - 1);
         final int[] lineWidth = new int[maxNames + 1];
         lineWidth[0] = labelWidth();
 

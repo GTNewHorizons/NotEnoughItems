@@ -200,6 +200,11 @@ public class NEIClientConfig {
         tag.getTag("inventory.bookmarks.showRecipeMarkerMode").setComment("Show Recipe Marker").getIntValue(0);
         API.addOption(new OptionCycled("inventory.bookmarks.showRecipeMarkerMode", 3, true));
 
+        tag.getTag("inventory.bookmarks.maxVerticalTooltipRows")
+                .setComment("Max rows in vertical crafting chain tooltip lists (0 - disable, always use grid)")
+                .getIntValue(12);
+        API.addOption(new OptionIntegerField("inventory.bookmarks.maxVerticalTooltipRows", 0, 50));
+
         tag.getTag("inventory.bookmarks.recipeMarkerColor").setComment("Color of the icon marker")
                 .getHexValue(0xADADAD);
         API.addOption(
@@ -266,6 +271,11 @@ public class NEIClientConfig {
         tag.getTag("inventory.guirecipe.scrollPages").setComment("Disable page scroll when overlaying recipe")
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.guirecipe.scrollPages", true));
+
+        tag.getTag("inventory.guirecipe.freezeCycleOnHover")
+                .setComment("Stop cycling the recipe while hovering over an ingredient or a button")
+                .getBooleanValue(false);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.freezeCycleOnHover", true));
 
         tag.getTag("inventory.guirecipe.profile").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.guirecipe.profile", true));
@@ -1106,6 +1116,10 @@ public class NEIClientConfig {
         return getIntSetting("inventory.bookmarks.showRecipeMarkerMode");
     }
 
+    public static int getMaxVerticalTooltipRows() {
+        return getIntSetting("inventory.bookmarks.maxVerticalTooltipRows");
+    }
+
     public static boolean showItemQuantityWidget() {
         return getBooleanSetting("inventory.showItemQuantityWidget");
     }
@@ -1164,6 +1178,10 @@ public class NEIClientConfig {
 
     public static boolean showCycledIngredientsTooltip() {
         return getBooleanSetting("inventory.guirecipe.cycledIngredientsTooltip");
+    }
+
+    public static boolean freezeCycleOnHover() {
+        return getBooleanSetting("inventory.guirecipe.freezeCycleOnHover");
     }
 
     public static boolean requireShiftForOverlayRecipe() {
