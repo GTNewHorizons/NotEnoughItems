@@ -121,6 +121,12 @@ RETURN
 
 list m_handleMouseInput
 ALOAD 0
+GETFIELD net/minecraft/client/gui/inventory/GuiContainer.manager : Lcodechicken/nei/guihook/GuiContainerManager;
+INVOKEVIRTUAL codechicken/nei/guihook/GuiContainerManager.handleMouseKeybind ()Z
+IFEQ LCONT
+RETURN
+LCONT
+ALOAD 0
 INVOKESPECIAL net/minecraft/client/gui/GuiScreen.func_146274_d ()V
 ALOAD 0
 GETFIELD net/minecraft/client/gui/inventory/GuiContainer.manager : Lcodechicken/nei/guihook/GuiContainerManager;
