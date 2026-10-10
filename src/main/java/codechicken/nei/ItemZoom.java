@@ -111,8 +111,14 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
             this.xPosition = (availableAreaWidth - this.scale * SLOT_SIZE) / 2;
             this.availableAreaWidth = (int) (availableAreaWidth / screenScale);
 
-            if (availableAreaWidth / screenScale >= mouse.x) {
-                this.xPosition += gui.width * screenScale - availableAreaWidth;
+            final float rightSideShift = gui.width * screenScale - availableAreaWidth;
+            final boolean leftSideFree = availableAreaWidth / screenScale < mouse.x;
+            final boolean rightSideFree = mouse.x < gui.width - availableAreaWidth / screenScale;
+
+            final boolean showOnRight = leftSideFree && rightSideFree ? !preferLeftSide() : !leftSideFree;
+
+            if (showOnRight) {
+                this.xPosition += rightSideShift;
             }
 
             try {
@@ -126,6 +132,22 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
             this.stack = null;
             this.displayName = "";
         }
+    }
+
+    private boolean preferLeftSide() {
+        switch (NEIClientConfig.getIntSetting("inventory.itemzoom.preferredSide")) {
+            case 1:
+                return true;
+            case 2:
+                return false;
+        }
+
+        final int leftCount = NEIClientConfig.isBookmarkPanelHidden()
+                || ItemPanels.bookmarkPanel.getGrid().getPerPage() == 0 ? 0 : ItemPanels.bookmarkPanel.getGrid().size();
+        final int rightCount = ItemPanels.itemPanel.getGrid().getPerPage() == 0 ? 0
+                : ItemPanels.itemPanel.getGrid().size();
+
+        return leftCount <= rightCount;
     }
 
     private float getPointSize(GuiContainer gui) {
