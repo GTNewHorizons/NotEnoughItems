@@ -19,7 +19,6 @@ import codechicken.nei.BookmarkContainerInfo;
 import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemQuantityField;
-import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.KeyManager;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
@@ -38,6 +37,7 @@ import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiFavoriteButton;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
+import codechicken.nei.recipe.HoveredRecipe;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.RecipeHandlerRef;
@@ -415,41 +415,37 @@ public abstract class ShortcutInputHandler {
 
     private static Recipe getFocusedRecipe(ItemStack stackover, int mousex, int mousey, boolean useFavorites) {
         final GuiContainer gui = NEIClientUtils.getGuiContainer();
-        Recipe recipe = null;
 
-        if (useFavorites) {
-            ItemsGridSlot itemSlot = ItemPanels.itemPanel.getSlotMouseOver(mousex, mousey);
+        if (gui instanceof GuiRecipe<?>guiRecipe) {
+            final Recipe focusedRecipe = guiRecipe.getFocusedRecipe();
 
-            if (itemSlot == null) {
-                itemSlot = ItemPanels.itemPanel.historyPanel.getSlotMouseOver(mousex, mousey);
-            }
-
-            if (itemSlot == null) {
-                itemSlot = ItemPanels.itemPanel.craftablesPanel.getSlotMouseOver(mousex, mousey);
-            }
-
-            if (itemSlot != null) {
-                final RecipeId recipeId = itemSlot.getRecipeId();
-
-                if (recipeId != null && (recipe = Recipe.of(recipeId)) != null) {
-
-                    recipe.getIngredients().stream().forEach(ingr -> {
-                        final List<ItemStack> permutations = ingr.getPermutations();
-                        for (int index = 0; index < permutations.size(); index++) {
-                            if (FavoriteRecipes.contains(permutations.get(index))) {
-                                ingr.setActiveIndex(index);
-                                break;
-                            }
-                        }
-                    });
-
-                }
-
+            if (focusedRecipe != null) {
+                return focusedRecipe;
             }
         }
 
-        if (gui instanceof GuiRecipe<?>guiRecipe) {
-            recipe = guiRecipe.getFocusedRecipe();
+        if (!useFavorites) {
+            return null;
+        }
+
+        final HoveredRecipe hovered = HoveredRecipe.of(gui, stackover);
+
+        if (hovered == null || hovered.source != HoveredRecipe.Source.ITEM_PANEL) {
+            return null;
+        }
+
+        final Recipe recipe = Recipe.of(hovered.recipeId);
+
+        if (recipe != null) {
+            recipe.getIngredients().stream().forEach(ingr -> {
+                final List<ItemStack> permutations = ingr.getPermutations();
+                for (int index = 0; index < permutations.size(); index++) {
+                    if (FavoriteRecipes.contains(permutations.get(index))) {
+                        ingr.setActiveIndex(index);
+                        break;
+                    }
+                }
+            });
         }
 
         return recipe;
@@ -529,7 +525,9 @@ public abstract class ShortcutInputHandler {
         }
 
         final BookmarksGridSlot slot = ItemPanels.bookmarkPanel.getSlotMouseOver(mousex, mousey);
-        final RecipeId recipeId = getHotkeyRecipeId(gui, mousex, mousey, stack, slot);
+        final HoveredRecipe hovered = HoveredRecipe.of(gui, stack);
+        final RecipeId recipeId = hovered == null || hovered.source == HoveredRecipe.Source.OTHER
+                || hovered.source == HoveredRecipe.Source.BOOKMARK && hovered.favorite ? null : hovered.recipeId;
 
         if (slot != null) {
             final BookmarkGroup group = slot.getGroup();
@@ -727,38 +725,6 @@ public abstract class ShortcutInputHandler {
                 }
             }
         }
-    }
-
-    private static RecipeId getHotkeyRecipeId(GuiContainer gui, int mousex, int mousey, ItemStack stack,
-            BookmarksGridSlot slot) {
-
-        if (slot != null) {
-            return slot.getType() == BookmarkItemType.INGREDIENT ? null : slot.getRecipeId();
-        }
-
-        ItemsGridSlot itemSlot = ItemPanels.itemPanel.getSlotMouseOver(mousex, mousey);
-
-        if (itemSlot == null) {
-            itemSlot = ItemPanels.itemPanel.historyPanel.getSlotMouseOver(mousex, mousey);
-        }
-
-        if (itemSlot == null) {
-            itemSlot = ItemPanels.itemPanel.craftablesPanel.getSlotMouseOver(mousex, mousey);
-        }
-
-        if (itemSlot != null) {
-            return itemSlot.getRecipeId();
-        }
-
-        if (gui instanceof GuiRecipe<?>guiRecipe) {
-            final Recipe focusedRecipe = guiRecipe.getFocusedRecipe();
-
-            if (focusedRecipe != null) {
-                return focusedRecipe.getRecipeId();
-            }
-        }
-
-        return null;
     }
 
 }
