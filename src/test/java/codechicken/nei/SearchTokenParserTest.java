@@ -64,6 +64,7 @@ public class SearchTokenParserTest {
             new ModeValue(1, "Extended mode"), new ModeValue(2, "Regex mode"), new ModeValue(3, "Extended+ mode") };
     private static final ModeValue[] extendedPlusPatternMode = { patternModes[3] };
     private static final ModeValue[] extendedPatternModes = { patternModes[1], patternModes[3] };
+    private static final ModeValue[] nonGrammarPatternModes = { patternModes[0], patternModes[1], patternModes[2] };
 
     private static final SearchParserProvider defaultParserProvider = parserProvider(
             '\0',
@@ -118,6 +119,10 @@ public class SearchTokenParserTest {
     }
 
     private static final List<Arguments> allModesTestProvider = combinationsProvider(spaceModes, patternModes);
+
+    private static final List<Arguments> nonGrammarAllSpaceModesTestProvider = combinationsProvider(
+            spaceModes,
+            nonGrammarPatternModes);
 
     private static final List<Arguments> extendedPlusAllSpaceModesTestProvider = combinationsProvider(
             spaceModes,
@@ -234,6 +239,36 @@ public class SearchTokenParserTest {
 
         assertEquals(1, matchedItems.size());
         assertTrue(matchedItems.contains(itemA));
+    }
+
+    @DisplayName("Negated prefix (dash)")
+    @ParameterizedTest(name = "{argumentsWithNames}")
+    @FieldSource("allModesTestProvider")
+    public void testNegatedPrefixDash(int spaceMode, int patternMode) {
+        SearchTokenParser searchParser = new SearchTokenParser();
+        searchParser.addProvider(defaultParserProvider);
+        searchParser
+                .addProvider(parserProvider('?', "custom", SearchTokenParser.SearchMode.PREFIX, customCreateFilter));
+
+        Set<ItemStack> matchedItems = testFilterAgainstAllItems(spaceMode, patternMode, searchParser, "-?A");
+
+        assertEquals(5, matchedItems.size());
+        assertFalse(matchedItems.contains(itemA));
+    }
+
+    @DisplayName("Negated prefix (bang)")
+    @ParameterizedTest(name = "{argumentsWithNames}")
+    @FieldSource("nonGrammarAllSpaceModesTestProvider")
+    public void testNegatedPrefixBang(int spaceMode, int patternMode) {
+        SearchTokenParser searchParser = new SearchTokenParser();
+        searchParser.addProvider(defaultParserProvider);
+        searchParser
+                .addProvider(parserProvider('?', "custom", SearchTokenParser.SearchMode.PREFIX, customCreateFilter));
+
+        Set<ItemStack> matchedItems = testFilterAgainstAllItems(spaceMode, patternMode, searchParser, "!?A");
+
+        assertEquals(5, matchedItems.size());
+        assertFalse(matchedItems.contains(itemA));
     }
 
     @DisplayName("Space mode")

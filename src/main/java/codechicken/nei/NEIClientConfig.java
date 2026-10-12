@@ -382,6 +382,11 @@ public class NEIClientConfig {
         tag.getTag("inventory.itemzoom.onlySolid").getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.itemzoom.onlySolid", true));
 
+        tag.getTag("inventory.itemzoom.preferredSide")
+                .setComment("Which side to prefer showing the zoomed item on, when both sides are free.")
+                .getIntValue(0);
+        API.addOption(new OptionCycled("inventory.itemzoom.preferredSide", 3, true));
+
         tag.getTag("inventory.itemzoom.helpText")
                 .setComment("Display name \"Item Zoom\" and the hotkey to toggle this mod below the zoomed item.")
                 .getBooleanValue(true);

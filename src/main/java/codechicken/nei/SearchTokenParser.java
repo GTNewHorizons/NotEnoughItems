@@ -445,7 +445,7 @@ public class SearchTokenParser {
             final char ch = input.charAt(index);
 
             if (!insideQuotes && delimiters.indexOf(ch) >= 0
-                    && (!space || index == 0 || input.charAt(index - 1) == ' ')) {
+                    && (!space || index == 0 || input.charAt(index - 1) == ' ' || lastEnd == index)) {
 
                 if (lastEnd == index) {
                     token += String.valueOf(ch);
