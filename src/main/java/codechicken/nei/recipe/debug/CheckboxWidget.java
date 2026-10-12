@@ -25,6 +25,7 @@ public class CheckboxWidget extends Button implements IUpdatableWidget {
 
     @Override
     public boolean onButtonPress(boolean rightclick) {
+        if (this.state == 2) return false;
         this.value = !this.value;
         onChange.accept(this);
         return true;
