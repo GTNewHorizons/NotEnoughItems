@@ -74,7 +74,26 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
         this.grid = new ItemsPanelGrid();
     }
 
-    public static void updateItemList(ArrayList<ItemStack> newItems) {
+    private static ArrayList<ItemStack> pendingItems;
+
+    // Filtering runs in the background; only publish the result here
+    public static synchronized void updateItemList(ArrayList<ItemStack> newItems) {
+        pendingItems = newItems;
+    }
+
+    // Called by the client thread before refreshing the item grid
+    static void applyPendingItems() {
+        final ArrayList<ItemStack> newItems;
+
+        synchronized (ItemPanel.class) {
+            newItems = pendingItems;
+            pendingItems = null;
+        }
+
+        if (newItems == null) {
+            return;
+        }
+
         final ItemsPanelGrid grid = ItemPanels.itemPanel.getGrid();
 
         if (grid.rawItems.size() != newItems.size()) {

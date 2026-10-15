@@ -87,6 +87,7 @@ public class ItemsPanelGrid extends ItemsGrid<ItemsPanelGrid.ItemsPanelGridSlot,
 
     @Override
     public void refresh(GuiContainer gui) {
+        ItemPanel.applyPendingItems();
 
         if (this.newItems != null) {
             this.groupItems.clear();
