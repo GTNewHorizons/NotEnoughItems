@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -103,7 +104,7 @@ public class ItemList {
             }
 
             for (String alias : ItemInfo.getAliases(item)) {
-                if (this.pattern.matcher(alias).find()) {
+                if (this.pattern.matcher(StatCollector.translateToLocal(alias)).find()) {
                     return true;
                 }
             }
