@@ -180,6 +180,8 @@ public class API {
 
     /**
      * Add an alias name that this item can be found by in the search field, in addition to its display name.
+     *
+     * @param aliases translation keys, localized at search time
      */
     public static void setAliases(ItemStack item, String... aliases) {
         final List<String> list = Arrays.asList(aliases).stream().filter(Objects::nonNull).map(String::trim)
