@@ -75,13 +75,7 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
     }
 
     public static void updateItemList(ArrayList<ItemStack> newItems) {
-        final ItemsPanelGrid grid = ItemPanels.itemPanel.getGrid();
-
-        if (grid.rawItems.size() != newItems.size()) {
-            grid.setPage(0);
-        }
-
-        grid.setItems(newItems);
+        ItemPanels.itemPanel.getGrid().setItems(newItems);
         ItemPanels.itemPanel.realItems = newItems;
     }
 
