@@ -15,6 +15,10 @@ public class DrawableBuilder {
     private int paddingBottom = 0;
     private int paddingLeft = 0;
     private int paddingRight = 0;
+    private int sliceLeft = 0;
+    private int sliceRight = 0;
+    private int sliceTop = 0;
+    private int sliceBottom = 0;
 
     public DrawableBuilder(String resourceLocation, int u, int v, int width, int height) {
         this.u = u;
@@ -38,6 +42,14 @@ public class DrawableBuilder {
         return this;
     }
 
+    public DrawableBuilder setSlices(int sliceLeft, int sliceRight, int sliceTop, int sliceBottom) {
+        this.sliceLeft = sliceLeft;
+        this.sliceRight = sliceRight;
+        this.sliceTop = sliceTop;
+        this.sliceBottom = sliceBottom;
+        return this;
+    }
+
     public DrawableBuilder trim(int trimTop, int trimBottom, int trimLeft, int trimRight) {
         this.u += trimLeft;
         this.v += trimTop;
@@ -58,6 +70,10 @@ public class DrawableBuilder {
                 paddingLeft,
                 paddingRight,
                 textureWidth,
-                textureHeight);
+                textureHeight,
+                sliceLeft,
+                sliceRight,
+                sliceTop,
+                sliceBottom);
     }
 }
