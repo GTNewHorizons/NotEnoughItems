@@ -218,6 +218,11 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public void onKeyTyped(GuiContainer gui, char keyChar, int keyID) {}
 
     @Override
+    public boolean supportsMouseKeybinds() {
+        return true;
+    }
+
+    @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyID) {
 
         if (KeyManager.isKeyDown("gui.hide")) {

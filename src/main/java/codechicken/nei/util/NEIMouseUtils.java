@@ -48,7 +48,7 @@ public class NEIMouseUtils {
                     mouseText.add(NEIClientUtils.translate("mouse.middle"));
                     break;
                 default:
-                    mouseText.add(NEIClientUtils.translate("mouse.other", button));
+                    mouseText.add(NEIClientUtils.translate("mouse.other", button + 1));
                     break;
             }
         }

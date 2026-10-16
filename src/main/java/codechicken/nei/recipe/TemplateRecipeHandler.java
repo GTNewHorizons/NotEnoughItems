@@ -286,6 +286,11 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         }
 
         @Override
+        public boolean supportsMouseKeybinds() {
+            return true;
+        }
+
+        @Override
         public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyCode) {
             if (!canHandle(gui)) return false;
 
