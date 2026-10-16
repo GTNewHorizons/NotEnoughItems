@@ -71,15 +71,23 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             0,
             0,
             176 + TRANSPARENCY_BORDER * 2,
-            166 + TRANSPARENCY_BORDER * 2).build();
+            166 + TRANSPARENCY_BORDER * 2)
+                    .setSlices(
+                            BORDER_PADDING + TRANSPARENCY_BORDER,
+                            BORDER_PADDING + TRANSPARENCY_BORDER,
+                            BORDER_PADDING + TRANSPARENCY_BORDER,
+                            BORDER_PADDING + TRANSPARENCY_BORDER)
+                    .build();
 
     private static final int BUTTON_WIDTH = 13;
     private static final int BUTTON_HEIGHT = 12;
 
     protected static final ScrollBar VERTICAL_SCROLLBAR = new ScrollBar().setTrackWidth(14)
             .setOverflowType(OverflowType.AUTO).setScrollPlace(ScrollPlace.END)
-            .setTrackTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 42, 90, 13, 21).build(), 9, 9)
-            .setThumbTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 22, 96, 6, 9).build(), 3, 2)
+            .setTrackTexture(
+                    new DrawableBuilder("nei:textures/nei_sprites.png", 42, 90, 13, 21).setSlices(0, 0, 9, 9).build())
+            .setThumbTexture(
+                    new DrawableBuilder("nei:textures/nei_sprites.png", 22, 96, 6, 9).setSlices(0, 0, 3, 2).build())
             .setThumbPadding(1, 6, 0, 6);
 
     public static final List<IRecipeFilterProvider> recipeFilterers = new LinkedList<>();
@@ -958,11 +966,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 this.guiLeft - TRANSPARENCY_BORDER,
                 this.guiTop - TRANSPARENCY_BORDER,
                 this.xSize + TRANSPARENCY_BORDER * 2,
-                this.ySize + TRANSPARENCY_BORDER * 2,
-                BORDER_PADDING + TRANSPARENCY_BORDER,
-                BORDER_PADDING + TRANSPARENCY_BORDER,
-                BORDER_PADDING + TRANSPARENCY_BORDER,
-                BORDER_PADDING + TRANSPARENCY_BORDER);
+                this.ySize + TRANSPARENCY_BORDER * 2);
 
         drawJEITabs(mouseX, mouseY);
     }

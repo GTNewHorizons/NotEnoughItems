@@ -55,11 +55,17 @@ public class GuiRecipeCatalyst extends ScrollContainer {
             0,
             0,
             28 + TRANSPARENCY_BORDER * 2,
-            28 + TRANSPARENCY_BORDER * 2).setTextureSize(28 + TRANSPARENCY_BORDER * 2, 28 + TRANSPARENCY_BORDER * 2)
+            28 + TRANSPARENCY_BORDER * 2)
+                    .setTextureSize(28 + TRANSPARENCY_BORDER * 2, 28 + TRANSPARENCY_BORDER * 2)
+                    .setSlices(
+                            BORDER_PADDING + TRANSPARENCY_BORDER,
+                            BORDER_PADDING + TRANSPARENCY_BORDER,
+                            BORDER_PADDING + TRANSPARENCY_BORDER,
+                            BORDER_PADDING + TRANSPARENCY_BORDER)
                     .build();
 
     private static final DrawableResource FG_TEXTURE = new DrawableBuilder("nei:textures/slot.png", 0, 0, 18, 18)
-            .setTextureSize(18, 18).build();
+            .setTextureSize(18, 18).setSlices(1, 1, 1, 1).build();
 
     private static final ScrollBar VERTICAL_SCROLLBAR = ScrollBar.defaultVerticalBar()
             .setOverflowType(ScrollBar.OverflowType.AUTO).setTrackPadding(0, BORDER_PADDING, -13, BORDER_PADDING)
@@ -155,20 +161,12 @@ public class GuiRecipeCatalyst extends ScrollContainer {
                 this.x - TRANSPARENCY_BORDER,
                 this.y - TRANSPARENCY_BORDER,
                 this.w + TRANSPARENCY_BORDER * 2,
-                this.h + TRANSPARENCY_BORDER * 2,
-                BORDER_PADDING + TRANSPARENCY_BORDER,
-                BORDER_PADDING + TRANSPARENCY_BORDER,
-                BORDER_PADDING + TRANSPARENCY_BORDER,
-                BORDER_PADDING + TRANSPARENCY_BORDER);
+                this.h + TRANSPARENCY_BORDER * 2);
         FG_TEXTURE.draw(
                 this.x + this.paddingInlineStart - 1,
                 this.y + this.paddingBlockStart - 1,
                 this.w - this.paddingInlineStart - this.paddingInlineEnd + 2,
-                this.h - this.paddingBlockStart - this.paddingBlockEnd + 2,
-                1,
-                1,
-                1,
-                1);
+                this.h - this.paddingBlockStart - this.paddingBlockEnd + 2);
 
         super.draw(mx, my);
     }

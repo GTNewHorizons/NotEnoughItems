@@ -19,9 +19,42 @@ public class DrawableResource extends Image {
     private final int paddingLeft;
     private final int paddingRight;
 
+    private final int sliceLeft;
+    private final int sliceRight;
+    private final int sliceTop;
+    private final int sliceBottom;
+
     public DrawableResource(ResourceLocation resourceLocation, int u, int v, int width, int height, int paddingTop,
             int paddingBottom, int paddingLeft, int paddingRight, int textureWidth, int textureHeight) {
+        this(
+                resourceLocation,
+                u,
+                v,
+                width,
+                height,
+                paddingTop,
+                paddingBottom,
+                paddingLeft,
+                paddingRight,
+                textureWidth,
+                textureHeight,
+                0,
+                0,
+                0,
+                0);
+    }
+
+    // negative padding lets the texture overflow the box it is drawn into
+    public DrawableResource(ResourceLocation resourceLocation, int u, int v, int width, int height, int paddingTop,
+            int paddingBottom, int paddingLeft, int paddingRight, int textureWidth, int textureHeight, int sliceLeft,
+            int sliceRight, int sliceTop, int sliceBottom) {
         super(u, v, width, height);
+
+        this.sliceLeft = sliceLeft;
+        this.sliceRight = sliceRight;
+        this.sliceTop = sliceTop;
+        this.sliceBottom = sliceBottom;
+
         this.resourceLocation = resourceLocation;
         this.textureWidth = textureWidth;
         this.textureHeight = textureHeight;
@@ -59,14 +92,21 @@ public class DrawableResource extends Image {
         if (!is2DTexture) GL11.glDisable(GL11.GL_TEXTURE_2D);
     }
 
-    public void draw(int xOffset, int yOffset, int width, int height, int sliceLeft, int sliceRight, int sliceTop,
-            int sliceBottom) {
-        final int textureWidth = getWidth();
-        final int textureHeight = getHeight();
-        final int middleWidth = textureWidth - sliceLeft - sliceRight;
-        final int middleHeight = textureHeight - sliceTop - sliceBottom;
-        final int tileWidth = width - sliceLeft - sliceRight;
-        final int tileHeight = height - sliceTop - sliceBottom;
+    public void draw(int xOffset, int yOffset, int width, int height) {
+
+        if (width == getWidth() && height == getHeight()) {
+            draw(xOffset, yOffset);
+            return;
+        }
+
+        final int sliceLeft = this.sliceLeft;
+        final int sliceRight = this.sliceRight;
+        final int sliceTop = this.sliceTop;
+        final int sliceBottom = this.sliceBottom;
+        final int middleWidth = this.width - sliceLeft - sliceRight;
+        final int middleHeight = this.height - sliceTop - sliceBottom;
+        final int tileWidth = width - this.paddingLeft - this.paddingRight - sliceLeft - sliceRight;
+        final int tileHeight = height - this.paddingTop - this.paddingBottom - sliceTop - sliceBottom;
 
         if (middleWidth > 0 && middleHeight > 0 && tileWidth > 0 && tileHeight > 0) {
             final boolean is2DTexture = GL11.glGetBoolean(GL11.GL_TEXTURE_2D);
