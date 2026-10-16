@@ -30,19 +30,24 @@ import codechicken.nei.ClientHandler;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.Widget;
+import codechicken.nei.api.API;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiRecipeButton;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.HandlerInfo;
 import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.RecipeHandlerRef;
+import codechicken.nei.recipe.ShapedRecipeHandler;
 import codechicken.nei.recipe.TemplateRecipeHandler;
 import codechicken.nei.recipe.TemplateRecipeHandler.RecipeTransferRect;
 import codechicken.nei.recipe.widget.RecipeWidget;
 import codechicken.nei.scroll.ScrollContainer;
 
-public class DebugHandlerWidget extends Widget {
+public class DebugHandlerWidget extends Widget implements IContainerTooltipHandler {
 
     private static class HandlerInfoRecord {
 
@@ -152,6 +157,9 @@ public class DebugHandlerWidget extends Widget {
     private Map<String, HandlerInfoRecord> patches = new HashMap<>();
 
     private HandlerInfoRecord record;
+    private RecipeWidget hoveredRecipe;
+    private boolean duplicatesOnly = false;
+    private String duplicatesHandlerId;
 
     private Point dragPoint = null;
     private boolean showWidget = false;
@@ -166,7 +174,9 @@ public class DebugHandlerWidget extends Widget {
     private static final int BORDER_PADDING = 6;
     private static final int TRANSPARENCY_BORDER = 4;
 
-    public DebugHandlerWidget() {
+    protected DebugHandlerWidget() {
+        GuiContainerManager.addTooltipHandler(this);
+
         this.w = WINDOW_WIDTH;
         this.x = 10;
         this.y = 50;
@@ -241,6 +251,20 @@ public class DebugHandlerWidget extends Widget {
             record.showBadge = button.value;
             saveHandlerInfoPatch();
         }, y);
+
+        if (Boolean.getBoolean("nei.recipeOrigins")) {
+            y = addCheckboxWidget("DuplicatesOnly", button -> {
+                this.duplicatesOnly = button.value;
+
+                if (NEIClientUtils.getGuiContainer() instanceof GuiRecipe<?>recipe) {
+                    this.duplicatesHandlerId = getHandlerID(recipe.getHandler());
+                    recipe.forceRefreshPage();
+                }
+            }, y + LINE_HEIGHT / 2);
+
+            // only the handler the checkbox was toggled on is filtered, so switching handlers does not pay for a rescan
+            API.addRecipeFilter(() -> this.duplicatesOnly ? this::isDuplicate : null);
+        }
 
         this.h = 10 + LINE_HEIGHT + y;
         this.container.h = this.h - INLINE_PADDING * 2 - LINE_HEIGHT;
@@ -417,6 +441,11 @@ public class DebugHandlerWidget extends Widget {
 
                 updateOverride();
 
+                if (this.values.get("duplicatesonly") instanceof CheckboxWidget duplicates) {
+                    duplicates.state = handler instanceof ShapedRecipeHandler ? 0 : 2;
+                    resetDuplicatesOnly();
+                }
+
                 this.container.removeIf(
                         widget -> this.values.get("height") == widget || this.values.get("height_readonly") == widget);
                 if (handler.getRecipeHeight(0) > 0) {
@@ -430,9 +459,24 @@ public class DebugHandlerWidget extends Widget {
         } else {
             this.record = null;
             this.showWidget = false;
+            resetDuplicatesOnly();
         }
 
         this.container.update();
+    }
+
+    private void resetDuplicatesOnly() {
+        if (!this.duplicatesOnly) return;
+
+        this.duplicatesOnly = false;
+
+        if (this.values.get("duplicatesonly") instanceof CheckboxWidget duplicates) {
+            duplicates.updateValue("false");
+        }
+
+        if (NEIClientUtils.getGuiContainer() instanceof GuiRecipe<?>recipe) {
+            recipe.forceRefreshPage();
+        }
     }
 
     @Override
@@ -532,8 +576,50 @@ public class DebugHandlerWidget extends Widget {
         }
     }
 
+    @Override
+    public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> tooltip) {
+        final RecipeWidget widget = this.hoveredRecipe;
+        this.hoveredRecipe = null;
+
+        if (widget == null || !this.showWidget || !tooltip.isEmpty()) {
+            return tooltip;
+        }
+
+        final RecipeHandlerRef ref = widget.getRecipeHandlerRef();
+
+        for (List<String> origin : RecipeOrigins.findOrigins(ref.handler, ref.recipeIndex)) {
+            addOriginLines(tooltip, origin);
+        }
+
+        return tooltip;
+    }
+
+    private static void addOriginLines(List<String> tooltip, List<String> lines) {
+        tooltip.add(
+                EnumChatFormatting.WHITE + NEIClientUtils.translate("debug.RecipeHandler.RegisteredBy", lines.get(0))
+                        + GuiDraw.TOOLTIP_LINESPACE);
+
+        for (int i = 1; i < lines.size(); i++) {
+            tooltip.add(EnumChatFormatting.GRAY + lines.get(i));
+        }
+
+        tooltip.add("");
+    }
+
+    // only the handler the checkbox was toggled on is filtered
+    private boolean isDuplicate(IRecipeHandler handler, int recipeIndex) {
+        return !getHandlerID(handler).equals(this.duplicatesHandlerId)
+                || RecipeOrigins.hasDuplicates(handler, recipeIndex);
+    }
+
     public void drawGuiPlaceholder(RecipeWidget widget) {
         if (!this.showWidget) return;
+
+        final Point mouse = GuiDraw.getMousePosition();
+        if (widget.getRecipeHandlerRef().handler instanceof ShapedRecipeHandler && widget.contains(mouse.x, mouse.y)
+                && widget.getStackMouseOver(mouse.x, mouse.y) == null) {
+            this.hoveredRecipe = widget;
+        }
 
         NEIClientUtils.gl2DRenderContext(() -> {
 

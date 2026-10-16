@@ -14,6 +14,7 @@ import static org.objectweb.asm.Opcodes.ILOAD;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.NEW;
 
 import java.util.Map;
 
@@ -22,11 +23,14 @@ import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 import codechicken.lib.asm.ASMBlock;
@@ -97,6 +101,48 @@ public class NEITransformer implements IClassTransformer {
                         key.insertBefore(asmblocks.get("workbenchFix").rawListCopy());
                     }
                 });
+
+        if (Boolean.getBoolean("nei.recipeOrigins")) {
+            // Replace the plain ArrayList CraftingManager's constructor builds its recipe list with, so every recipe
+            // added anywhere (including vanilla's own, added in that same constructor) is observed for
+            // codechicken.nei.recipe.debug.RecipeOrigins. Must be done at classload time, since by the time any mod
+            // code runs vanilla has already populated the list. Capturing a stack trace per recipe is slow, so this is
+            // opt-in via -Dnei.recipeOrigins=true.
+            transformer.add(
+                    new MethodTransformer(
+                            new ObfMapping("net/minecraft/item/crafting/CraftingManager", "<init>", "()V")) {
+
+                        @Override
+                        public void transform(MethodNode mv) {
+                            ASMHelper.logger.debug("NEI: Hooking CraftingManager recipe list for origin tracking");
+
+                            TypeInsnNode newInsn = null;
+                            MethodInsnNode initInsn = null;
+
+                            // only the first ArrayList construction, the recipe list field
+                            for (AbstractInsnNode insn : mv.instructions.toArray()) {
+                                if (newInsn == null) {
+                                    if (insn.getOpcode() == NEW
+                                            && "java/util/ArrayList".equals(((TypeInsnNode) insn).desc)) {
+                                        newInsn = (TypeInsnNode) insn;
+                                    }
+                                } else if (insn.getOpcode() == INVOKESPECIAL
+                                        && "java/util/ArrayList".equals(((MethodInsnNode) insn).owner)
+                                        && "<init>".equals(((MethodInsnNode) insn).name)) {
+                                            initInsn = (MethodInsnNode) insn;
+                                            break;
+                                        }
+                            }
+
+                            if (newInsn == null || initInsn == null) {
+                                ASMHelper.logger.warn("NEI: CraftingManager recipe list not found, origins disabled");
+                                return;
+                            }
+
+                            newInsn.desc = initInsn.owner = "codechicken/nei/recipe/debug/RecipeOrigins$TrackingList";
+                        }
+                    });
+        }
 
         // put glint alpha into the buffer correctly for exporting
         transformer.add(
