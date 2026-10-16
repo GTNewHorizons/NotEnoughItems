@@ -422,6 +422,12 @@ nei.recipe.fuel.required=Требуется %s
 nei.recipe.fuel.processed=Обработано %s
 # Устарело
 nei.recipe.fuel.produced=Произведено %s
+nei.recipe.badge.nc=NC
+nei.recipe.badge.nc.tooltip=Не расходуется в процессе работы
+nei.recipe.badge.ncp=NC(P)
+nei.recipe.badge.ncp.tooltip=Учитывается в расчёте параллели, но не расходуется.
+nei.recipe.badge.chance.consume=Шанс потребления: %s
+nei.recipe.badge.chance.output=Шанс выхода: %s
 nei.recipe.firework=Фейерверки
 nei.recipe.firework.tooltip0=Красители добавляют цвета к зарядам
 nei.recipe.firework.tooltip1=Перекрашивание добавляет цвета затухания к заряду
