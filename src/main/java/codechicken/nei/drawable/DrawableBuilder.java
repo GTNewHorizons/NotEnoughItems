@@ -21,11 +21,15 @@ public class DrawableBuilder {
     private int sliceBottom = 0;
 
     public DrawableBuilder(String resourceLocation, int u, int v, int width, int height) {
+        this(new ResourceLocation(resourceLocation), u, v, width, height);
+    }
+
+    public DrawableBuilder(ResourceLocation resource, int u, int v, int width, int height) {
         this.u = u;
         this.v = v;
         this.width = width;
         this.height = height;
-        this.resourceLocation = new ResourceLocation(resourceLocation);
+        this.resourceLocation = resource;
     }
 
     public DrawableBuilder setTextureSize(int width, int height) {
