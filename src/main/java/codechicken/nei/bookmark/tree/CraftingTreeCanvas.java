@@ -472,7 +472,7 @@ class CraftingTreeCanvas {
 
     private void drawProgress(ItemTreeSlot node, Point point) {
         final long needed = node.neededCount();
-        final long done = needed > 0 ? this.progress.getOrDefault(node.progressKey(), 0L) : 0;
+        final long done = needed > 0 ? this.progress.getOrDefault(this.graph.getProgressKey(node), 0L) : 0;
 
         if (done <= 0) {
             return;
@@ -519,11 +519,10 @@ class CraftingTreeCanvas {
             final long remainder = stackSize % maxStackSize;
             final String stacks = prefix + formatAmount(stackSize / maxStackSize) + "×" + maxStackSize;
 
+            drawStackSizeLine(node, stacks, x, y, color, 0);
+
             if (remainder > 0) {
-                drawStackSizeLine(node, stacks, x, y, color, 1);
-                drawStackSizeLine(node, "+" + remainder, x, y, color, 0);
-            } else {
-                drawStackSizeLine(node, stacks, x, y, color, 0);
+                drawStackSizeLine(node, "+" + remainder, x, y, color, 1);
             }
         } else {
             drawStackSizeLine(node, prefix + formatAmount(stackSize), x, y, color, 0);

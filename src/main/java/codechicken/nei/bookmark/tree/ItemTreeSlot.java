@@ -2,7 +2,6 @@ package codechicken.nei.bookmark.tree;
 
 import net.minecraft.item.ItemStack;
 
-import codechicken.nei.bookmark.BookmarkGroup.ProgressKey;
 import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.HandlerInfo;
@@ -28,8 +27,6 @@ class ItemTreeSlot {
 
     public final HandlerInfo info;
     public final long multiplier;
-
-    private ProgressKey progressKey;
 
     public ItemTreeSlot(BookmarkItem ingrItem, long ingeritRequestedAmount, long currentRequestedAmount,
             long producedAmount, long containerAmount, BookmarkItem prefItem) {
@@ -59,17 +56,6 @@ class ItemTreeSlot {
 
         this.isFluidDisplay = StackInfo.isFluidDisplayItem(this.emptyStack);
         this.isContainerItem = isContainerItem(this.emptyStack);
-    }
-
-    /** Key under which the done count of this node is saved in the bookmark group. */
-    public ProgressKey progressKey() {
-        if (this.progressKey == null) {
-            this.progressKey = new ProgressKey(
-                    this.ingrItem.recipeId,
-                    StackInfo.getItemStackGUID(this.ingrItem.itemStack));
-        }
-
-        return this.progressKey;
     }
 
     /** The amount shown on the node. */

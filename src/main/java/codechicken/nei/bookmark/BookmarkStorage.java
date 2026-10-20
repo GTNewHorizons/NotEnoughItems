@@ -189,14 +189,10 @@ public class BookmarkStorage {
 
                                 if (value.has("progress")) {
                                     for (JsonElement entry : value.get("progress").getAsJsonArray()) {
-                                        if (entry instanceof JsonObject progress && progress.has("item")
+                                        if (entry instanceof JsonObject progress && progress.has("path")
                                                 && progress.has("done")) {
                                             group.setProgress(
-                                                    new BookmarkGroup.ProgressKey(
-                                                            progress.get("recipeId") instanceof JsonObject recipeId
-                                                                    ? RecipeId.of(recipeId)
-                                                                    : null,
-                                                            progress.get("item").getAsString()),
+                                                    progressKeyFromJson(progress.get("path").getAsJsonArray()),
                                                     progress.get("done").getAsLong());
                                         }
                                     }
@@ -258,6 +254,45 @@ public class BookmarkStorage {
         this.bookmarkFile = bookmarkFile;
     }
 
+    /** The path of a progress key, from the root of the tree down to the key itself. */
+    private static JsonArray progressKeyToJson(BookmarkGroup.ProgressKey key) {
+        final List<BookmarkGroup.ProgressKey> path = new ArrayList<>();
+
+        for (BookmarkGroup.ProgressKey current = key; current != null; current = current.parent) {
+            path.add(0, current);
+        }
+
+        final JsonArray array = new JsonArray();
+
+        for (BookmarkGroup.ProgressKey current : path) {
+            final JsonObject node = new JsonObject();
+
+            if (current.recipeId != null) {
+                node.add("recipeId", current.recipeId.toJsonObject());
+            }
+
+            node.add("item", new JsonPrimitive(current.itemGuid));
+            array.add(node);
+        }
+
+        return array;
+    }
+
+    private static BookmarkGroup.ProgressKey progressKeyFromJson(JsonArray array) {
+        BookmarkGroup.ProgressKey key = null;
+
+        for (JsonElement element : array) {
+            final JsonObject node = element.getAsJsonObject();
+
+            key = new BookmarkGroup.ProgressKey(
+                    key,
+                    node.get("recipeId") instanceof JsonObject recipeId ? RecipeId.of(recipeId) : null,
+                    node.get("item").getAsString());
+        }
+
+        return key;
+    }
+
     public void save() {
 
         if (this.bookmarkFile == null) {
@@ -292,10 +327,7 @@ public class BookmarkStorage {
                     JsonArray progress = new JsonArray();
                     for (Map.Entry<BookmarkGroup.ProgressKey, Long> entry : group.progress.entrySet()) {
                         JsonObject progressJson = new JsonObject();
-                        if (entry.getKey().recipeId != null) {
-                            progressJson.add("recipeId", entry.getKey().recipeId.toJsonObject());
-                        }
-                        progressJson.add("item", new JsonPrimitive(entry.getKey().itemGuid));
+                        progressJson.add("path", progressKeyToJson(entry.getKey()));
                         progressJson.add("done", new JsonPrimitive(entry.getValue()));
                         progress.add(progressJson);
                     }
