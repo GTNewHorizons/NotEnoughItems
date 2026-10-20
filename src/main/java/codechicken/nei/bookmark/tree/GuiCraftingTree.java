@@ -61,6 +61,7 @@ import codechicken.nei.guihook.IGuiHandleMouseWheel;
 import codechicken.nei.recipe.AcceptsFollowingTooltipLineHandler;
 import codechicken.nei.recipe.AutoCraftingManager;
 import codechicken.nei.recipe.GuiCraftingRecipe;
+import codechicken.nei.recipe.GuiCraftingTreeButton;
 import codechicken.nei.recipe.GuiOverlayButton;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiRecipeButton.UpdateRecipeButtonsEvent;
@@ -90,6 +91,9 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
             }
 
             if (screen instanceof GuiCraftingTree treeGui) {
+                // a crafting tree is already open, so the button that opens one is not needed
+                event.buttonList.removeIf(button -> button instanceof GuiCraftingTreeButton);
+
                 for (int index = 0; index < event.buttonList.size(); index++) {
                     if (event.buttonList.get(index) instanceof GuiOverlayButton button) {
                         event.buttonList.set(
@@ -105,6 +109,9 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
     private static final int MARGIN = 4;
     private static final int PADDING = 9;
     private static final int PADDING_TOP = 22;
+    // fluids are counted in mB: a scroll notch changes the done count by a tenth of a bucket, or a bucket with shift
+    private static final int FLUID_DONE_STEP = 100;
+    private static final int FLUID_DONE_STEP_LARGE = 1000;
 
     private static final DrawableResource BG_TEXTURE = new DrawableBuilder(
             "nei:textures/gui/craftingtree.png",
@@ -276,6 +283,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
                 : Collections.emptyList();
 
         this.collapsedRecipes = group.collapsedRecipes;
+        this.canvas.setProgress(group.progress);
         this.math = new CraftingTreeMath(chainItems, this.collapsedRecipes);
         this.math.initialItems.clear();
 
@@ -592,7 +600,9 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
             final boolean collapse = switch (this.uiState.collapseMode) {
                 case EXPANDED -> false;
-                case SMART -> !this.canvas.graph.childrenNeedCraftingCache.contains(node);
+                // nothing left to craft: the node is done itself, or all of its ingredients are covered or done
+                case SMART -> isDone(node) || this.canvas.graph.childrenOf.get(node).stream()
+                        .allMatch(child -> child.leftAmount == 0 || isDone(child));
                 case ALL -> true;
             };
 
@@ -661,7 +671,50 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
             return;
         }
 
+        if (button == 1 && handleProgressClick(mouseX, mouseY)) {
+            return;
+        }
+
         super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    private long getDoneCount(ItemTreeSlot node) {
+        final BookmarkGroup group = this.grid.getGroup(this.groupId);
+        return group != null ? group.getProgress(node.progressKey()) : 0;
+    }
+
+    private void setDoneCount(ItemTreeSlot node, long done) {
+        this.grid.setItemProgress(this.groupId, node.progressKey(), Math.max(0, Math.min(node.neededCount(), done)));
+    }
+
+    private boolean isDone(ItemTreeSlot node) {
+        return node.neededCount() > 0 && getDoneCount(node) >= node.neededCount();
+    }
+
+    /** Update smart collapse when progress changes because done items count as "nothing left to craft". */
+    private void onProgressChanged() {
+        if (this.uiState.collapseMode == CraftingTreeState.CollapseMode.SMART) {
+            updateCollapsedItems();
+        }
+    }
+
+    /** Right-click toggles an item between done and not done. */
+    private boolean handleProgressClick(int mouseX, int mouseY) {
+
+        if (!this.canvas.isInWidget(mouseX, mouseY)) {
+            return false;
+        }
+
+        final ItemTreeSlot node = this.canvas.getNodeMouseOver(getMousePosition());
+
+        if (node == null || node.neededCount() <= 0) {
+            return false;
+        }
+
+        setDoneCount(node, isDone(node) ? 0 : node.neededCount());
+        onProgressChanged();
+        NEIClientUtils.playClickSound();
+        return true;
     }
 
     private static boolean isOverButton(GuiButton button, int mouseX, int mouseY) {
@@ -711,6 +764,18 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
         }
 
         final Point2D mouse = getMousePosition();
+        final ItemTreeSlot pickTarget = this.canvas.getPickIconMouseOver(mouse);
+
+        if (pickTarget != null) {
+            NEIClientUtils.playClickSound();
+            // store the node that will be replaced by the user choice in the recipeGui
+            this.uiState.replaceRecipeNode = this.canvas.graph.childrenOf.containsKey(pickTarget) ? pickTarget : null;
+
+            // only the recipes of this item can be browsed, the player picks one or leaves the screen
+            GuiCraftingRecipe.openLockedRecipeGui("item", pickTarget.emptyStack.copy());
+            return true;
+        }
+
         final ItemTreeSlot deleteButtonTarget = this.canvas.getHandlerBadgeMouseOver(mouse);
         final ItemTreeSlot hoveredNode = deleteButtonTarget != null ? null : this.canvas.getNodeMouseOver(mouse);
 
@@ -854,6 +919,24 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
         if (this.statsPanelVisible && this.statsPanel.contains(x, y) && this.statsPanel.onMouseWheel(direction, x, y)
                 || !this.canvas.isInWidget(x, y)) {
             return true;
+        }
+
+        if (NEIClientUtils.altKey() && !NEIClientUtils.controlKey()) {
+            final ItemTreeSlot node = this.canvas.getNodeMouseOver(mouse);
+
+            if (node != null && node.neededCount() > 0) {
+                final long step;
+
+                if (node.isFluidDisplay) {
+                    step = NEIClientUtils.shiftKey() ? FLUID_DONE_STEP_LARGE : FLUID_DONE_STEP;
+                } else {
+                    step = NEIClientUtils.shiftKey() ? NEIClientUtils.getScrollMultiplier(node.emptyStack) : 1;
+                }
+
+                setDoneCount(node, getDoneCount(node) + step * direction);
+                onProgressChanged();
+                return true;
+            }
         }
 
         if (NEIClientUtils.controlKey()) {
@@ -1030,6 +1113,14 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
             }
 
+            if (hoveredItemNode.neededCount() > 0 && getDoneCount(hoveredItemNode) > 0) {
+                currenttip.add(
+                        1,
+                        EnumChatFormatting.GREEN + NEIClientUtils.translate(
+                                "bookmark.tree.item.progress",
+                                getDoneCount(hoveredItemNode) + " / " + hoveredItemNode.neededCount()));
+            }
+
             if (this.uiState.useInventorySnapshot && hoveredItemNode.requestedAmount > 0) {
 
                 if (hoveredItemNode.leftAmount == 0) {
@@ -1118,6 +1209,31 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
                         NEIClientUtils.translate("bookmark.tree.item.toggle_recipe"));
             }
 
+            if (this.hoveredNode.neededCount() > 0) {
+                hotkeys.put(
+                        NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_RMB),
+                        NEIClientUtils.translate("bookmark.tree.item.mark_done"));
+
+                hotkeys.put(
+                        NEIClientUtils.getKeyName(
+                                NEIClientUtils.ALT_HASH,
+                                NEIMouseUtils.MOUSE_BTN_NONE + NEIMouseUtils.MOUSE_SCROLL),
+                        // the done count is part of the line because holding Alt can hide the other tooltip lines
+                        NEIClientUtils.translate("bookmark.tree.item.change_done") + " ("
+                                + getDoneCount(this.hoveredNode)
+                                + " / "
+                                + this.hoveredNode.neededCount()
+                                + ")");
+
+                hotkeys.put(
+                        NEIClientUtils.getKeyName(
+                                NEIClientUtils.ALT_HASH + NEIClientUtils.SHIFT_HASH,
+                                NEIMouseUtils.MOUSE_BTN_NONE + NEIMouseUtils.MOUSE_SCROLL),
+                        NEIClientUtils.translate(
+                                this.hoveredNode.isFluidDisplay ? "bookmark.tree.item.change_done_step_fluid"
+                                        : "bookmark.tree.item.change_done_step"));
+            }
+
             if (this.canvas.graph.roots.contains(this.hoveredNode)) {
                 hotkeys.put(
                         NEIClientUtils.getKeyName(
@@ -1131,32 +1247,39 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
                                 NEIMouseUtils.MOUSE_BTN_NONE + NEIMouseUtils.MOUSE_SCROLL),
                         NEIClientUtils.translate("bookmark.change_quantity_step"));
             }
-        } else if (this.statsPanelVisible) {
-            final Object widgetGUID = this.statsPanel.getWidgetGUIDUnderMouse(mousex, mousey);
-
-            if (widgetGUID != null) {
-
-                if (this.uiState.searchStatsResult != null && this.uiState.searchStatsResult.matchesGUID(widgetGUID)) {
+        } else if (this.canvas.isInWidget(mousex, mousey)
+                && this.canvas.getPickIconMouseOver(getMousePosition()) != null) {
                     hotkeys.put(
                             NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
-                            NEIClientUtils.translate("bookmark.tree.stats.next_highlight"));
+                            NEIClientUtils.translate("bookmark.tree.item.pick_recipe"));
+                } else
+            if (this.statsPanelVisible) {
+                final Object widgetGUID = this.statsPanel.getWidgetGUIDUnderMouse(mousex, mousey);
 
-                    hotkeys.put(
-                            NEIClientUtils.getKeyName(NEIClientUtils.SHIFT_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
-                            NEIClientUtils.translate("bookmark.tree.stats.prev_highlight"));
+                if (widgetGUID != null) {
 
-                    hotkeys.put(
-                            NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_RMB),
-                            NEIClientUtils.translate("bookmark.tree.stats.clear_highlight"));
-                } else {
-                    hotkeys.put(
-                            NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
-                            NEIClientUtils.translate("bookmark.tree.stats.highlight_handler"));
+                    if (this.uiState.searchStatsResult != null
+                            && this.uiState.searchStatsResult.matchesGUID(widgetGUID)) {
+                        hotkeys.put(
+                                NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
+                                NEIClientUtils.translate("bookmark.tree.stats.next_highlight"));
+
+                        hotkeys.put(
+                                NEIClientUtils.getKeyName(NEIClientUtils.SHIFT_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
+                                NEIClientUtils.translate("bookmark.tree.stats.prev_highlight"));
+
+                        hotkeys.put(
+                                NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_RMB),
+                                NEIClientUtils.translate("bookmark.tree.stats.clear_highlight"));
+                    } else {
+                        hotkeys.put(
+                                NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
+                                NEIClientUtils.translate("bookmark.tree.stats.highlight_handler"));
+                    }
+
                 }
 
             }
-
-        }
 
         if (this.acceptsFollowingTooltipLineHandler != null) {
             hotkeys.put(

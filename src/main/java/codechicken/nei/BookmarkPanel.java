@@ -36,6 +36,7 @@ import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.bookmark.GroupingItem;
 import codechicken.nei.bookmark.SortableGroup;
 import codechicken.nei.bookmark.SortableItem;
+import codechicken.nei.bookmark.tree.GuiCraftingTree;
 import codechicken.nei.recipe.AcceptsFollowingTooltipLineHandler;
 import codechicken.nei.recipe.BookmarkRecipeId;
 import codechicken.nei.recipe.Recipe;
@@ -651,6 +652,11 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     @Override
     public boolean handleClickExt(int mousex, int mousey, int button) {
 
+        // the tree icon on a group handle opens the tree when the button is released, see mouseUp
+        if (button == 0 && this.grid.getTreeIconGroupId(mousex, mousey) != -1) {
+            return true;
+        }
+
         if (button == 0 && NEIClientUtils.shiftKey()) {
             final int overRowIndex = this.grid.getHoveredRowIndex(true);
             final int groupId = overRowIndex != -1 ? this.grid.getRowGroupId(overRowIndex)
@@ -899,6 +905,12 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             }
         }
 
+        if (this.grid.getTreeIconGroupId(mousex, mousey) != -1) {
+            hotkeys.put(
+                    NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
+                    NEIClientUtils.translate("bookmark.group.open_crafting_tree"));
+        }
+
         return super.handleHotkeys(mousex, mousey, hotkeys);
     }
 
@@ -997,8 +1009,12 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         } else {
             int rowIndex = this.grid.getHoveredRowIndex(true);
             int groupId = rowIndex != -1 ? this.grid.getRowGroupId(rowIndex) : BookmarkGrid.DEFAULT_GROUP_ID;
+            final int treeGroupId = button == 0 ? this.grid.getTreeIconGroupId(mousex, mousey) : -1;
 
-            if (groupId != BookmarkGrid.DEFAULT_GROUP_ID) {
+            if (treeGroupId != -1) {
+                GuiCraftingTree.openCraftingTreeGui(this.grid, treeGroupId);
+                NEIClientUtils.playClickSound();
+            } else if (groupId != BookmarkGrid.DEFAULT_GROUP_ID) {
                 if (button == 0 && NEIClientUtils.altKey()) {
                     this.grid.toggleCollapsedState(groupId);
                     NEIClientUtils.playClickSound();
