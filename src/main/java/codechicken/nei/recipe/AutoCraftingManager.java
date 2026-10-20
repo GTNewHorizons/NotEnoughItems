@@ -5,13 +5,18 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.inventory.SlotCrafting;
+import net.minecraft.item.ItemStack;
 
+import codechicken.nei.FastTransferManager;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemStackAmount;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.NEIServerUtils;
 import codechicken.nei.RestartableTask;
+import codechicken.nei.ServerSync;
 import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.chain.RecipeChainIterator;
@@ -26,6 +31,7 @@ public class AutoCraftingManager {
         @Override
         public void execute() {
             final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
+            final ItemStack[] layout = snapshotLayout(guiContainer);
             final List<BookmarkItem> initialItems = prepareInitialItems(math, getInventoryItems(guiContainer));
             boolean processed = false;
             boolean changed = false;
@@ -68,6 +74,11 @@ public class AutoCraftingManager {
                     }
 
                 } while (changed && !interrupted(guiContainer));
+
+                if (!interrupted(guiContainer)) {
+                    restoreLayout(guiContainer, layout);
+                    ServerSync.request();
+                }
 
             } finally {
                 StackInfo.pauseItemDamageSound(false);
@@ -132,6 +143,72 @@ public class AutoCraftingManager {
         }
 
         return inventory;
+    }
+
+    private static ItemStack[] snapshotLayout(GuiContainer guiContainer) {
+        final List<Slot> slots = guiContainer.inventorySlots.inventorySlots;
+        final ItemStack[] layout = new ItemStack[slots.size()];
+
+        for (int index = 0; index < slots.size(); index++) {
+            final Slot slot = slots.get(index);
+
+            if (slot.getHasStack() && !(slot instanceof SlotCrafting)) {
+                layout[index] = slot.getStack().copy();
+            }
+        }
+
+        return layout;
+    }
+
+    private static void restoreLayout(GuiContainer guiContainer, ItemStack[] layout) {
+        final List<Slot> slots = guiContainer.inventorySlots.inventorySlots;
+        final EntityPlayer player = guiContainer.mc.thePlayer;
+
+        for (int index = 0; index < slots.size() && player.inventory.getItemStack() == null
+                && guiContainer.mc.currentScreen == guiContainer; index++) {
+            final ItemStack expected = layout[index];
+            final Slot target = slots.get(index);
+
+            if (expected == null || inPlace(slots, layout, index)
+                    || !target.isItemValid(expected)
+                    || target.getHasStack() && !target.canTakeStack(player)) {
+                continue;
+            }
+
+            final Slot source = findMisplaced(slots, layout, expected, player);
+            if (source == null) continue;
+
+            FastTransferManager.clickSlot(guiContainer, source.slotNumber);
+            FastTransferManager.clickSlot(guiContainer, target.slotNumber);
+
+            if (player.inventory.getItemStack() != null) {
+                FastTransferManager.clickSlot(guiContainer, source.slotNumber);
+            }
+        }
+
+        FastTransferManager.dropHeldItem(guiContainer);
+    }
+
+    private static boolean inPlace(List<Slot> slots, ItemStack[] layout, int index) {
+        final ItemStack stack = slots.get(index).getStack();
+        return stack != null && layout[index] != null
+                && NEIServerUtils.areStacksSameTypeCraftingWithNBT(layout[index], stack);
+    }
+
+    private static Slot findMisplaced(List<Slot> slots, ItemStack[] layout, ItemStack expected, EntityPlayer player) {
+
+        for (int index = 0; index < slots.size(); index++) {
+            final Slot slot = slots.get(index);
+
+            if (slot.getHasStack() && !(slot instanceof SlotCrafting)
+                    && !inPlace(slots, layout, index)
+                    && slot.canTakeStack(player)
+                    && NEIServerUtils.areStacksSameTypeCraftingWithNBT(expected, slot.getStack())) {
+                return slot;
+            }
+        }
+
+        return null;
     }
 
 }
