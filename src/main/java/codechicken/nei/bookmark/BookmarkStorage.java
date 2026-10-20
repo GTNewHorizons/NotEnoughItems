@@ -187,6 +187,21 @@ public class BookmarkStorage {
                                     }
                                 }
 
+                                if (value.has("progress")) {
+                                    for (JsonElement entry : value.get("progress").getAsJsonArray()) {
+                                        if (entry instanceof JsonObject progress && progress.has("item")
+                                                && progress.has("done")) {
+                                            group.setProgress(
+                                                    new BookmarkGroup.ProgressKey(
+                                                            progress.get("recipeId") instanceof JsonObject recipeId
+                                                                    ? RecipeId.of(recipeId)
+                                                                    : null,
+                                                            progress.get("item").getAsString()),
+                                                    progress.get("done").getAsLong());
+                                        }
+                                    }
+                                }
+
                                 grid.groups.put(Integer.valueOf(jsonEntry.getKey()), group);
                             }
                         }
@@ -271,6 +286,20 @@ public class BookmarkStorage {
                         collapsedRecipes.add(recipeId.toJsonObject());
                     }
                     groupJson.add("collapsedRecipes", collapsedRecipes);
+                }
+
+                if (!group.progress.isEmpty()) {
+                    JsonArray progress = new JsonArray();
+                    for (Map.Entry<BookmarkGroup.ProgressKey, Long> entry : group.progress.entrySet()) {
+                        JsonObject progressJson = new JsonObject();
+                        if (entry.getKey().recipeId != null) {
+                            progressJson.add("recipeId", entry.getKey().recipeId.toJsonObject());
+                        }
+                        progressJson.add("item", new JsonPrimitive(entry.getKey().itemGuid));
+                        progressJson.add("done", new JsonPrimitive(entry.getValue()));
+                        progress.add(progressJson);
+                    }
+                    groupJson.add("progress", progress);
                 }
 
                 groups.add(String.valueOf(groupId), groupJson);
