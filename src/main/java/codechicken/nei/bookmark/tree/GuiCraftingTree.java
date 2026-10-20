@@ -680,11 +680,14 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
     private long getDoneCount(ItemTreeSlot node) {
         final BookmarkGroup group = this.grid.getGroup(this.groupId);
-        return group != null ? group.getProgress(node.progressKey()) : 0;
+        return group != null ? group.getProgress(this.canvas.graph.getProgressKey(node)) : 0;
     }
 
     private void setDoneCount(ItemTreeSlot node, long done) {
-        this.grid.setItemProgress(this.groupId, node.progressKey(), Math.max(0, Math.min(node.neededCount(), done)));
+        this.grid.setItemProgress(
+                this.groupId,
+                this.canvas.graph.getProgressKey(node),
+                Math.max(0, Math.min(node.neededCount(), done)));
     }
 
     private boolean isDone(ItemTreeSlot node) {
