@@ -340,7 +340,8 @@ public class BookmarkGridGenerator {
                     0,
                     chainItem.getItem(),
                     null,
-                    group);
+                    group,
+                    this.grid);
         } else {
             return new BookmarksGridSlot(
                     slotIndex,
@@ -350,7 +351,8 @@ public class BookmarkGridGenerator {
                     chainItem.getCalculatedMultiplier(),
                     chainItem.getItem(),
                     chainItem.calculatedType,
-                    group);
+                    group,
+                    this.grid);
         }
     }
 
