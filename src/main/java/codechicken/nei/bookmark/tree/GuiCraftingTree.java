@@ -757,7 +757,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
                 return true;
             }
 
-            this.canvas.startDrag(mouseX, mouseY);
+            this.canvas.startDrag(getMousePosition());
         }
 
         return false;
@@ -778,7 +778,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
         }
 
-        this.canvas.drag(mouseX, mouseY);
+        this.canvas.drag(getMousePosition());
     }
 
     @Override
