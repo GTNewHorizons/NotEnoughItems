@@ -144,18 +144,23 @@ public class KeyManager {
 
     public static String getKeyName(String ident, int meta) {
         final int keyCode = getKeyCode(ident);
-        return keyCode == Keyboard.KEY_NONE ? null : NEIKeyboardUtils.getKeyName(keyCode + meta);
+        return keyCode == Keyboard.KEY_NONE ? null : NEIKeyboardUtils.getKeyName(keyCode, meta);
     }
 
     public static String getKeyName(String ident, int meta, int mouseBind) {
         final int keyCode = getKeyCode(ident);
         return keyCode == Keyboard.KEY_NONE && mouseBind == NEIMouseUtils.MOUSE_BTN_NONE ? null
-                : getKeyName(keyCode + meta, mouseBind);
+                : getKeyName(keyCode, meta, mouseBind);
     }
 
     public static String getKeyName(int keyBind, int mouseBind) {
+        final int keyCode = NEIKeyboardUtils.unhash(keyBind);
+        return getKeyName(keyCode, keyBind - keyCode, mouseBind);
+    }
+
+    private static String getKeyName(int keyCode, int hash, int mouseBind) {
         StringJoiner keyText = new StringJoiner(" + ");
-        String keyHash = keyBind == Keyboard.KEY_NONE ? "" : NEIKeyboardUtils.getKeyName(keyBind);
+        String keyHash = keyCode == Keyboard.KEY_NONE && hash == 0 ? "" : NEIKeyboardUtils.getKeyName(keyCode, hash);
         String mouseHash = mouseBind == NEIMouseUtils.MOUSE_BTN_NONE ? "" : NEIMouseUtils.getKeyName(mouseBind);
 
         if (!keyHash.isEmpty()) {
