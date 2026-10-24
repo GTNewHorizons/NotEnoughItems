@@ -21,7 +21,6 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
     protected static Method getFluidFromDisplayStack = null;
     protected static Class<?> gtMetaGeneratedTool = null;
     protected static Field playSound = null;
-    private static boolean loggedNoNbtDisplay = false;
 
     static {
         try {

@@ -1,6 +1,5 @@
 package codechicken.nei.recipe;
 
-import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -13,14 +12,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
 
-import codechicken.lib.gui.GuiDraw;
-import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
-import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
-import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
-import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.recipe.Recipe.RecipeId;
 
 public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
@@ -138,39 +132,8 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
     }
 
     public static RecipeId getRecipeId(GuiScreen gui, ItemStack stackover) {
-
-        if (gui instanceof GuiRecipe<?>guiRecipe) {
-            final Recipe focusedRecipe = guiRecipe.getFocusedRecipe();
-
-            if (focusedRecipe != null) {
-                return focusedRecipe.getRecipeId();
-            }
-        }
-
-        final Point mouseover = GuiDraw.getMousePosition();
-        final BookmarksGridSlot panelSlot = ItemPanels.bookmarkPanel.getSlotMouseOver(mouseover.x, mouseover.y);
-
-        if (panelSlot != null) {
-            return panelSlot.getType() == BookmarkItemType.INGREDIENT || panelSlot.getRecipeId() == null
-                    ? FavoriteRecipes.getFavorite(stackover)
-                    : panelSlot.getRecipeId();
-        }
-
-        ItemsGridSlot itemSlot = ItemPanels.itemPanel.getSlotMouseOver(mouseover.x, mouseover.y);
-
-        if (itemSlot == null) {
-            itemSlot = ItemPanels.itemPanel.historyPanel.getSlotMouseOver(mouseover.x, mouseover.y);
-        }
-
-        if (itemSlot == null) {
-            itemSlot = ItemPanels.itemPanel.craftablesPanel.getSlotMouseOver(mouseover.x, mouseover.y);
-        }
-
-        if (itemSlot != null) {
-            return itemSlot.getRecipeId();
-        }
-
-        return null;
+        final HoveredRecipe hovered = HoveredRecipe.of(gui, stackover);
+        return hovered != null ? hovered.recipeId : null;
     }
 
     private GuiCraftingRecipe(ArrayList<ICraftingHandler> handlers) {

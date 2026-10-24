@@ -61,6 +61,9 @@ public class NEICPH implements IClientPacketHandler {
             case S2C.CACHE_BOOKMARK_DATA:
                 handleCacheBookmarkData(packet);
                 break;
+            case S2C.SYNC:
+                ServerSync.onReply(packet.readInt());
+                break;
         }
     }
 

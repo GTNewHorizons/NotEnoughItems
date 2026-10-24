@@ -170,7 +170,13 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
             0,
             0,
             176 + TRANSPARENCY_BORDER * 2,
-            166 + TRANSPARENCY_BORDER * 2).build();
+            166 + TRANSPARENCY_BORDER * 2)
+                    .setSlices(
+                            BORDER_PADDING + TRANSPARENCY_BORDER,
+                            BORDER_PADDING + TRANSPARENCY_BORDER,
+                            BORDER_PADDING + TRANSPARENCY_BORDER,
+                            BORDER_PADDING + TRANSPARENCY_BORDER)
+                    .build();
     private static final int BORDER_PADDING = 6;
     private static final int TRANSPARENCY_BORDER = 4;
 
@@ -379,11 +385,7 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
                     this.x - TRANSPARENCY_BORDER,
                     this.y - TRANSPARENCY_BORDER,
                     this.w + TRANSPARENCY_BORDER * 2,
-                    this.h + TRANSPARENCY_BORDER * 2,
-                    BORDER_PADDING + TRANSPARENCY_BORDER,
-                    BORDER_PADDING + TRANSPARENCY_BORDER,
-                    BORDER_PADDING + TRANSPARENCY_BORDER,
-                    BORDER_PADDING + TRANSPARENCY_BORDER);
+                    this.h + TRANSPARENCY_BORDER * 2);
             GuiDraw.drawRect(
                     this.x + INLINE_PADDING,
                     this.y + BORDER_PADDING,

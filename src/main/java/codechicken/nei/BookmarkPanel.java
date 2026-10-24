@@ -574,7 +574,8 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         } else if (this.sortableGroup != null) {
             final int overRowIndex = Math.min(grid.getRowIndex(mousey), grid.getRows() - 1);
 
-            if (overRowIndex >= 0 && this.sortableGroup.groupId != this.grid.getRowGroupId(overRowIndex)) {
+            if (overRowIndex >= 0 && !isOverNamespaceControls(mousex, mousey)
+                    && !this.sortableGroup.matches(this.grid, this.grid.getRowGroupId(overRowIndex))) {
                 this.grid.moveGroup(this.sortableGroup, overRowIndex);
             }
 
@@ -1022,14 +1023,18 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         this.mouseDownSlot = -1;
     }
 
-    @Override
-    public boolean onMouseWheel(int shift, int mousex, int mousey) {
-
-        if ((!inEditingState() || this.sortableGroup != null) && new Rectangle4i(
+    private boolean isOverNamespaceControls(int mousex, int mousey) {
+        return new Rectangle4i(
                 namespacePrev.x,
                 namespacePrev.y,
                 namespaceNext.x + namespaceNext.w - namespacePrev.x,
-                namespacePrev.h).contains(mousex, mousey)) {
+                namespacePrev.h).contains(mousex, mousey);
+    }
+
+    @Override
+    public boolean onMouseWheel(int shift, int mousex, int mousey) {
+
+        if ((!inEditingState() || this.sortableGroup != null) && isOverNamespaceControls(mousex, mousey)) {
 
             if (shift > 0) {
                 this.storage.prevNamespace();
@@ -1108,7 +1113,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
             final int overRowIndex = Math.min(grid.getRowIndex(mousey), grid.getRows() - 1);
 
             if (this.sortableGroup != null && overRowIndex >= 0
-                    && this.sortableGroup.groupId != this.grid.getRowGroupId(overRowIndex)) {
+                    && !this.sortableGroup.matches(this.grid, this.grid.getRowGroupId(overRowIndex))) {
                 this.grid.moveGroup(this.sortableGroup, overRowIndex);
             }
 

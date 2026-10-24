@@ -7,14 +7,10 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
 import codechicken.lib.gui.GuiDraw;
-import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
-import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
-import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.api.ShortcutInputHandler;
-import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
 import codechicken.nei.bookmark.BookmarksGridSlot;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerInputHandler;
@@ -58,7 +54,9 @@ public class RecipeItemInputHandler implements IContainerInputHandler, IContaine
             List<String> currenttip) {
 
         if (itemstack != null) {
-            final RecipeId recipeId = getHoveredRecipeId(gui, itemstack, mousex, mousey);
+            final HoveredRecipe hovered = HoveredRecipe.of(gui, itemstack);
+            final RecipeId recipeId = hovered != null && showRecipeTooltip(hovered, mousex, mousey) ? hovered.recipeId
+                    : null;
 
             if (recipeId == null) {
                 recipeTooltipLineHandler = null;
@@ -76,49 +74,21 @@ public class RecipeItemInputHandler implements IContainerInputHandler, IContaine
         return currenttip;
     }
 
-    private RecipeId getHoveredRecipeId(GuiContainer gui, ItemStack itemstack, int mousex, int mousey) {
+    private boolean showRecipeTooltip(HoveredRecipe hovered, int mousex, int mousey) {
+        return switch (hovered.source) {
+            case BOOKMARK -> !hovered.favorite && showRecipeTooltipInBookmarks(mousex, mousey);
+            case ITEM_PANEL -> NEIClientConfig.showRecipeTooltipInPanel();
+            case RECIPE_GUI -> hovered.favorite && NEIClientConfig.showRecipeTooltipInGui();
+            default -> false;
+        };
+    }
 
-        if (ItemPanels.bookmarkPanel.contains(mousex, mousey)) {
-            final BookmarksGridSlot slot = ItemPanels.bookmarkPanel.getSlotMouseOver(mousex, mousey);
-
-            if (slot != null && slot.getRecipeId() != null
-                    && slot.getType() != BookmarkItemType.INGREDIENT
-                    && NEIClientConfig.getRecipeTooltipsMode() != 0) {
-                final int tooltipMode = NEIClientConfig.getRecipeTooltipsMode();
-                final BookmarkViewMode viewMode = slot.getGroup().viewMode;
-                if (tooltipMode == 3 || viewMode == BookmarkViewMode.DEFAULT && tooltipMode == 1
-                        || viewMode == BookmarkViewMode.TODO_LIST && tooltipMode == 2) {
-                    return slot.getRecipeId();
-                }
-            }
-
-            return null;
-        }
-
-        if (NEIClientConfig.showRecipeTooltipInPanel()) {
-            ItemsGridSlot panelSlot = ItemPanels.itemPanel.getSlotMouseOver(mousex, mousey);
-
-            if (panelSlot == null) {
-                panelSlot = ItemPanels.itemPanel.historyPanel.getSlotMouseOver(mousex, mousey);
-            }
-
-            if (panelSlot == null) {
-                panelSlot = ItemPanels.itemPanel.craftablesPanel.getSlotMouseOver(mousex, mousey);
-            }
-
-            if (panelSlot != null) {
-                return panelSlot.getRecipeId();
-            }
-        }
-
-        if (gui instanceof GuiRecipe<?>guiRecipe
-                && new Rectangle4i(gui.guiLeft, gui.guiTop, gui.xSize, gui.ySize).contains(mousex, mousey)
-                && NEIClientConfig.showRecipeTooltipInGui()
-                && guiRecipe.getFocusedRecipe() == null) {
-            return FavoriteRecipes.getFavorite(itemstack);
-        }
-
-        return null;
+    private boolean showRecipeTooltipInBookmarks(int mousex, int mousey) {
+        final BookmarksGridSlot slot = ItemPanels.bookmarkPanel.getSlotMouseOver(mousex, mousey);
+        final int tooltipMode = NEIClientConfig.getRecipeTooltipsMode();
+        final BookmarkViewMode viewMode = slot.getGroup().viewMode;
+        return tooltipMode == 3 || viewMode == BookmarkViewMode.DEFAULT && tooltipMode == 1
+                || viewMode == BookmarkViewMode.TODO_LIST && tooltipMode == 2;
     }
 
     @Override

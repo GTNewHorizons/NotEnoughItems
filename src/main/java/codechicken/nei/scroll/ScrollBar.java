@@ -53,28 +53,26 @@ public class ScrollBar {
     private int trackPaddingBottom = 0;
 
     private DrawableResource thumbTexture;
-    private int thumbSliceStart;
-    private int thumbSliceEnd;
-
     private DrawableResource trackTexture;
-    private int trackSliceStart;
-    private int trackSliceEnd;
 
     public static ScrollBar defaultScrollBar() {
         return new ScrollBar();
     }
 
     public static ScrollBar defaultVerticalBar() {
-        return new ScrollBar().setTrackWidth(8)
-                .setTrackTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 29, 95, 8, 11).build(), 3, 4)
-                .setThumbTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 22, 96, 6, 9).build(), 3, 2)
+        return new ScrollBar().setTrackWidth(8).setTrackTexture(
+                new DrawableBuilder("nei:textures/nei_sprites.png", 29, 95, 8, 11).setSlices(0, 0, 3, 4).build())
+                .setThumbTexture(
+                        new DrawableBuilder("nei:textures/nei_sprites.png", 22, 96, 6, 9).setSlices(0, 0, 3, 2).build())
                 .setThumbPadding(1, 1, 1, 1);
     }
 
     public static ScrollBar defaultHorizontalBar() {
         return new ScrollBar().setTrackWidth(8).setOverflowType(OverflowType.SCROLL)
-                .setTrackTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 0, 97, 11, 8).build(), 3, 4)
-                .setThumbTexture(new DrawableBuilder("nei:textures/nei_sprites.png", 12, 98, 9, 6).build(), 3, 2)
+                .setTrackTexture(
+                        new DrawableBuilder("nei:textures/nei_sprites.png", 0, 97, 11, 8).setSlices(3, 4, 0, 0).build())
+                .setThumbTexture(
+                        new DrawableBuilder("nei:textures/nei_sprites.png", 12, 98, 9, 6).setSlices(3, 2, 0, 0).build())
                 .setThumbPadding(1, 1, 1, 1);
     }
 
@@ -126,17 +124,13 @@ public class ScrollBar {
         return getTrackWidth();
     }
 
-    public ScrollBar setThumbTexture(DrawableResource texture, int sliceStart, int sliceEnd) {
+    public ScrollBar setThumbTexture(DrawableResource texture) {
         this.thumbTexture = texture;
-        this.thumbSliceStart = sliceStart;
-        this.thumbSliceEnd = sliceEnd;
         return this;
     }
 
-    public ScrollBar setTrackTexture(DrawableResource texture, int sliceStart, int sliceEnd) {
+    public ScrollBar setTrackTexture(DrawableResource texture) {
         this.trackTexture = texture;
-        this.trackSliceStart = sliceStart;
-        this.trackSliceEnd = sliceEnd;
         return this;
     }
 
@@ -379,13 +373,13 @@ public class ScrollBar {
         final boolean disabled = getVisibleSize(container) >= getActualSize(container);
 
         if (this.trackTexture != null) {
-            drawTexture(this.trackTexture, this.trackSliceStart, this.trackSliceEnd, trackBounds, false, opacity);
+            drawTexture(this.trackTexture, trackBounds, false, opacity);
         } else {
             drawTrackRect(container, trackBounds, opacity);
         }
 
         if (this.thumbTexture != null) {
-            drawTexture(this.thumbTexture, this.thumbSliceStart, this.thumbSliceEnd, thumbBounds, disabled, opacity);
+            drawTexture(this.thumbTexture, thumbBounds, disabled, opacity);
         } else {
             drawThumbRect(container, thumbBounds, selected, opacity);
         }
@@ -417,8 +411,7 @@ public class ScrollBar {
         NEIClientUtils.drawRect(bounds.x, bounds.y, bounds.w, bounds.h, thumbColor);
     }
 
-    private void drawTexture(DrawableResource texture, int sliceStart, int sliceEnd, Rectangle4i bounds,
-            boolean disabled, float opacity) {
+    private void drawTexture(DrawableResource texture, Rectangle4i bounds, boolean disabled, float opacity) {
         final float c = disabled ? 0.65f : 1f;
 
         GL11.glColor4f(c, c, c, opacity);
@@ -426,9 +419,9 @@ public class ScrollBar {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         if (this.scrollType == ScrollType.HORIZONTAL) {
-            texture.draw(bounds.x, bounds.y, bounds.w, texture.getHeight(), sliceStart, sliceEnd, 0, 0);
+            texture.draw(bounds.x, bounds.y, bounds.w, texture.getHeight());
         } else {
-            texture.draw(bounds.x, bounds.y, texture.getWidth(), bounds.h, 0, 0, sliceStart, sliceEnd);
+            texture.draw(bounds.x, bounds.y, texture.getWidth(), bounds.h);
         }
 
     }

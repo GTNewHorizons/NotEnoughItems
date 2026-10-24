@@ -242,7 +242,7 @@ class StatsPanel extends ScrollContainer {
             26,
             84,
             46,
-            16).build();
+            16).setSlices(0, 0, 2, 0).build();
 
     private static final DrawableResource SLOT_DEFAULT = new DrawableBuilder(
             "nei:textures/gui/craftingtree.png",
@@ -290,8 +290,8 @@ class StatsPanel extends ScrollContainer {
 
     public StatsPanel() {
         final ScrollBar scrollbar = new ScrollBar().setTrackWidth(4)
-                .setThumbTexture(new DrawableBuilder("nei:textures/gui/craftingtree.png", 26, 100, 24, 4).build(), 0, 0)
-                .setTrackTexture(new DrawableBuilder("nei:textures/gui/craftingtree.png", 26, 104, 24, 4).build(), 0, 0)
+                .setThumbTexture(new DrawableBuilder("nei:textures/gui/craftingtree.png", 26, 100, 24, 4).build())
+                .setTrackTexture(new DrawableBuilder("nei:textures/gui/craftingtree.png", 26, 104, 24, 4).build())
                 .setTrackPadding(1, -5, 1, 0).setOverflowType(ScrollBar.OverflowType.AUTO);
 
         setHorizontalScroll(scrollbar);
@@ -589,7 +589,7 @@ class StatsPanel extends ScrollContainer {
         RenderHelper.enableGUIStandardItemLighting();
         GL11.glDisable(GL11.GL_LIGHTING);
 
-        BG_TEXTURE.draw(this.x, this.y, this.w, this.h, 0, 0, 2, 0);
+        BG_TEXTURE.draw(this.x, this.y, this.w, this.h);
 
         super.draw(mouseX, mouseY);
 

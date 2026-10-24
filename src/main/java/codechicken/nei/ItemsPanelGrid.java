@@ -89,6 +89,10 @@ public class ItemsPanelGrid extends ItemsGrid<ItemsPanelGrid.ItemsPanelGridSlot,
     public void refresh(GuiContainer gui) {
 
         if (this.newItems != null) {
+            if (this.rawItems.size() != this.newItems.size()) {
+                this.page = 0;
+            }
+
             this.groupItems.clear();
             this.itemToGroup.clear();
             this.forceExpand = false;

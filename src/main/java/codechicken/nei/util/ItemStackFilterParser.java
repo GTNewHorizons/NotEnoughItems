@@ -14,6 +14,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.oredict.OreDictionary;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+
 import codechicken.nei.ItemList.AllMultiItemFilter;
 import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.NegatedItemFilter;
@@ -197,9 +200,9 @@ public class ItemStackFilterParser {
     }
 
     private static ItemFilter getStrictIdentifierFilter(String rule) {
-        ItemStack item = NEIServerUtils.getModdedItem(rule, null);
+        Supplier<ItemStack> item = Suppliers.memoize(() -> NEIServerUtils.getModdedItem(rule, null));
 
-        return stack -> OreDictionary.itemMatches(item, stack, false);
+        return stack -> OreDictionary.itemMatches(item.get(), stack, false);
     }
 
     protected static ItemFilter getStringIdentifierFilter(String rule) {

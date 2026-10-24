@@ -25,7 +25,13 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
             0,
             0,
             176 + TRANSPARENCY_BORDER * 2,
-            166 + TRANSPARENCY_BORDER * 2).build();
+            166 + TRANSPARENCY_BORDER * 2)
+                    .setSlices(
+                            BG_PADDING + TRANSPARENCY_BORDER,
+                            BG_PADDING + TRANSPARENCY_BORDER,
+                            BG_PADDING + TRANSPARENCY_BORDER,
+                            BG_PADDING + TRANSPARENCY_BORDER)
+                    .build();
 
     protected long lastUpdate = System.currentTimeMillis();
     protected String recipeName = "";
@@ -105,11 +111,7 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
                 -TRANSPARENCY_BORDER,
                 -TRANSPARENCY_BORDER,
                 size.width + TRANSPARENCY_BORDER * 2,
-                size.height + TRANSPARENCY_BORDER * 2,
-                BG_PADDING + TRANSPARENCY_BORDER,
-                BG_PADDING + TRANSPARENCY_BORDER,
-                BG_PADDING + TRANSPARENCY_BORDER,
-                BG_PADDING + TRANSPARENCY_BORDER);
+                size.height + TRANSPARENCY_BORDER * 2);
 
         GL11.glEnable(GL11.GL_ALPHA_TEST);
 

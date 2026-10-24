@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
@@ -249,6 +250,8 @@ public class ScrollContainer extends WidgetContainer {
         final boolean canScrollHorizontal = canScrollHorizontal();
 
         if (canScrollVertical || canScrollHorizontal) {
+            dragScrollBars(mousex, mousey, canScrollVertical, canScrollHorizontal);
+
             GuiHelper.useScissor(
                     this.x + this.paddingInlineStart,
                     this.y + this.paddingBlockStart,
@@ -271,6 +274,20 @@ public class ScrollContainer extends WidgetContainer {
             drawContent(mousex, mousey);
         }
 
+    }
+
+    private void dragScrollBars(int mousex, int mousey, boolean canScrollVertical, boolean canScrollHorizontal) {
+        if (!Mouse.isButtonDown(0)) {
+            return;
+        }
+
+        if (canScrollVertical) {
+            this.verticalScrollBar.onMouseDragged(this, mousex, mousey, 0, 0);
+        }
+
+        if (canScrollHorizontal) {
+            this.horizontalScrollBar.onMouseDragged(this, mousex, mousey, 0, 0);
+        }
     }
 
     protected void drawContent(int mousex, int mousey) {

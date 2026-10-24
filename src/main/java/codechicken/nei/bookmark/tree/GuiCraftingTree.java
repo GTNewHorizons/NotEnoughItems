@@ -102,19 +102,19 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
         }
     }
 
+    private static final int MARGIN = 4;
+    private static final int PADDING = 9;
+    private static final int PADDING_TOP = 22;
+
     private static final DrawableResource BG_TEXTURE = new DrawableBuilder(
             "nei:textures/gui/craftingtree.png",
             0,
             0,
             64,
-            64).build();
+            64).setSlices(PADDING, PADDING, PADDING_TOP, PADDING).build();
 
     private static final DateTimeFormatter SCREENSHOT_DATE_FORMAT = DateTimeFormatter
             .ofPattern("yyyy-MM-dd_HH.mm.ss", Locale.ROOT);
-
-    private static final int MARGIN = 4;
-    private static final int PADDING = 9;
-    private static final int PADDING_TOP = 22;
 
     private final LRUCache<String, String> handlerTitleCache = new LRUCache<>(100);
 
@@ -338,15 +338,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
         this.hoveredNode = canHover && hoveredBadgeHandler == null ? this.canvas.getNodeMouseOver(getMousePosition())
                 : null;
 
-        BG_TEXTURE.draw(
-                MARGIN,
-                MARGIN,
-                this.width - MARGIN * 2,
-                this.height - MARGIN * 2,
-                PADDING,
-                PADDING,
-                PADDING_TOP,
-                PADDING);
+        BG_TEXTURE.draw(MARGIN, MARGIN, this.width - MARGIN * 2, this.height - MARGIN * 2);
 
         if (this.math.outputRecipes.isEmpty()) {
             drawCenteredString(
@@ -765,7 +757,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
                 return true;
             }
 
-            this.canvas.startDrag(mouseX, mouseY);
+            this.canvas.startDrag(getMousePosition());
         }
 
         return false;
@@ -786,7 +778,7 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
 
         }
 
-        this.canvas.drag(mouseX, mouseY);
+        this.canvas.drag(getMousePosition());
     }
 
     @Override
