@@ -519,7 +519,7 @@ public class GuiContainerManager {
             }
         }
 
-        return false;
+        return window instanceof IGuiHotkeyListener && ((IGuiHotkeyListener) window).onScreenHotkeyPressed();
     }
 
     public boolean handleMouseHotkey() {

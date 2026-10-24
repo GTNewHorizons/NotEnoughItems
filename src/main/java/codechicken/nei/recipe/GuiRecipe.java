@@ -734,6 +734,12 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             return true;
         }
 
+        return false;
+    }
+
+    @Override
+    public boolean onScreenHotkeyPressed() {
+
         if (KeyManager.isKeyDown("recipe.back")) {
             this.mc.displayGuiScreen(this.prevGui);
         } else if (KeyManager.isKeyDown("recipe.prev_machine")) {

@@ -11,5 +11,17 @@ public interface IGuiHotkeyListener {
      *
      * @return true to terminate further processing of this event.
      */
-    public boolean onHotkeyPressed();
+    default boolean onHotkeyPressed() {
+        return false;
+    }
+
+    /**
+     * Called after the input handlers for screen-wide hotkeys that do not depend on the hovered object, so they never
+     * take priority over more specific actions
+     *
+     * @return true to terminate further processing of this event.
+     */
+    default boolean onScreenHotkeyPressed() {
+        return false;
+    }
 }
