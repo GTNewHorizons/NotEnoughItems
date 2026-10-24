@@ -58,6 +58,7 @@ import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.guihook.IGuiClientSide;
 import codechicken.nei.guihook.IGuiHandleMouseWheel;
+import codechicken.nei.guihook.IGuiHotkeyListener;
 import codechicken.nei.recipe.AcceptsFollowingTooltipLineHandler;
 import codechicken.nei.recipe.AutoCraftingManager;
 import codechicken.nei.recipe.GuiCraftingRecipe;
@@ -77,7 +78,7 @@ import codechicken.nei.util.SlotInaccessible;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGuiClientSide, IGuiHandleMouseWheel,
-        IContainerTooltipHandler, IGuiContainerOverlay {
+        IGuiHotkeyListener, IContainerTooltipHandler, IGuiContainerOverlay {
 
     public static class EventHandler {
 
@@ -911,6 +912,12 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
             return;
         }
 
+        super.keyTyped(typedChar, keyCode);
+    }
+
+    @Override
+    public boolean onHotkeyPressed() {
+
         if (this.statsPanelVisible && KeyManager.isKeyDown("recipe.recipe")) {
             final Point2D mouse = getMousePosition();
             final Widget widget = this.statsPanel.getWidgetUnderMouse((int) mouse.getX(), (int) mouse.getY());
@@ -918,11 +925,11 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
             if (widget != null && widget instanceof StatsPanel.ItemStatsSlot itemStatsSlot
                     && itemStatsSlot.recipeId != null) {
                 GuiCraftingRecipe.openRecipeGui("recipeId", itemStatsSlot.recipeId.getResult(), itemStatsSlot.recipeId);
-                return;
+                return true;
             }
         }
 
-        super.keyTyped(typedChar, keyCode);
+        return false;
     }
 
     private String getHandlerTitle(String handlerName) {

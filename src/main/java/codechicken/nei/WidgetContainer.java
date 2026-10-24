@@ -163,6 +163,19 @@ public class WidgetContainer extends Widget {
     }
 
     @Override
+    public boolean onHotkeyPressed() {
+
+        for (int index = this.widgets.size() - 1; index >= 0; index--) {
+            final Widget widget = this.widgets.get(index);
+            if (widget.onHotkeyPressed()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
     public boolean isFocused() {
         return this.isFocused;
     }
