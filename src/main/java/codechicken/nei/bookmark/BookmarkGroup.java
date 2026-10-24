@@ -1,6 +1,9 @@
 package codechicken.nei.bookmark;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
@@ -12,6 +15,40 @@ public class BookmarkGroup {
     public BookmarkViewMode viewMode;
     public boolean collapsed = false;
     public Set<RecipeId> collapsedRecipes = new HashSet<>();
+    public Map<ProgressKey, Long> progress = new HashMap<>();
+
+    /**
+     * Identifies one node of the crafting tree by its position: the recipe that uses (or, for the final results,
+     * produces) the item, the item itself, and the key of the parent node.
+     */
+    public static class ProgressKey {
+
+        public final ProgressKey parent;
+        public final RecipeId recipeId;
+        public final String itemGuid;
+
+        private final int hash;
+
+        public ProgressKey(ProgressKey parent, RecipeId recipeId, String itemGuid) {
+            this.parent = parent;
+            this.recipeId = recipeId;
+            this.itemGuid = itemGuid;
+            this.hash = Objects.hash(parent, recipeId, itemGuid);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof ProgressKey other && this.hash == other.hash
+                    && Objects.equals(this.recipeId, other.recipeId)
+                    && Objects.equals(this.itemGuid, other.itemGuid)
+                    && Objects.equals(this.parent, other.parent);
+        }
+
+        @Override
+        public int hashCode() {
+            return this.hash;
+        }
+    }
 
     public BookmarkGroup(BookmarkViewMode viewMode) {
         this.viewMode = viewMode;
@@ -49,6 +86,18 @@ public class BookmarkGroup {
             this.collapsedRecipes.remove(recipeId);
         } else {
             this.collapsedRecipes.add(recipeId);
+        }
+    }
+
+    public long getProgress(ProgressKey key) {
+        return this.progress.getOrDefault(key, 0L);
+    }
+
+    public void setProgress(ProgressKey key, long done) {
+        if (done <= 0) {
+            this.progress.remove(key);
+        } else {
+            this.progress.put(key, done);
         }
     }
 

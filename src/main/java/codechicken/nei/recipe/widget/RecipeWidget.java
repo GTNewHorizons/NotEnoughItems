@@ -34,6 +34,7 @@ import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.AcceptsFollowingTooltipLineHandler;
 import codechicken.nei.recipe.Badge;
+import codechicken.nei.recipe.GuiCraftingTreeButton;
 import codechicken.nei.recipe.GuiFavoriteButton;
 import codechicken.nei.recipe.GuiOverlayButton;
 import codechicken.nei.recipe.GuiRecipe;
@@ -305,6 +306,8 @@ public class RecipeWidget extends Widget {
 
         if (showFavorites) {
             buttons.add(new GuiFavoriteButton(ref, x, y));
+            y -= GuiRecipeButton.BUTTON_HEIGHT + 1;
+            buttons.add(new GuiCraftingTreeButton(ref, x, y));
         }
 
         return buttons;

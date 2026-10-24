@@ -57,6 +57,12 @@ nei.bookmark.tree.item.state.partial=Still needed: %s
 nei.bookmark.tree.item.state.craftable=Can be crafted
 nei.bookmark.tree.item.state.surplus=Extra produced: %s
 nei.bookmark.tree.item.toggle_recipe=Collapse/Expand Recipe
+nei.bookmark.tree.item.progress=Done: %s
+nei.bookmark.tree.item.mark_done=Mark Done/Undone
+nei.bookmark.tree.item.change_done=Change Done Count
+nei.bookmark.tree.item.change_done_step=Change Done Count by Stack
+nei.bookmark.tree.item.change_done_step_fluid=Change Done Count by Bucket
+nei.bookmark.tree.item.pick_recipe=Choose Recipe
 
 nei.bookmark.tree.stats.handlers=Handlers
 nei.bookmark.tree.stats.ingredients=Ingredients
@@ -711,6 +717,7 @@ nei.recipe.overlay.bookmarkRecipe=Save with Recipe
 nei.recipe.overlay.bookmarkRecipeAndCount=Save with Recipe & Count
 nei.recipe.overlay.sendRecipeToChat=Send Recipe to Chat
 
+nei.recipe.open_crafting_tree=Open Crafting Tree
 nei.recipe.favorite=Favorite
 nei.recipe.favorite.bookmark_recipe=Save Recipe Tree
 nei.recipe.favorite.change_result_index=Change Output
