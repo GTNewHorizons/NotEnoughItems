@@ -29,6 +29,11 @@ public class RecipeItemInputHandler implements IContainerInputHandler, IContaine
 
     @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyCode) {
+        return false;
+    }
+
+    @Override
+    public boolean onHotkeyPressed(GuiContainer gui) {
         return ShortcutInputHandler.handleKeyEvent(GuiContainerManager.getStackMouseOver(gui));
     }
 

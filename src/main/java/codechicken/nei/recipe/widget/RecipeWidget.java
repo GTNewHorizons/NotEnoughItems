@@ -457,25 +457,6 @@ public class RecipeWidget extends Widget {
     }
 
     @Override
-    public boolean handleKeyPress(int keyID, char keyChar) {
-
-        if (NEIClientConfig.favoritesEnabled()
-                && KeyManager.isHashDown("bookmark.favorite_item", NEIClientUtils.SHIFT_HASH)) {
-            final Point mouse = GuiDraw.getMousePosition();
-            final PositionedStack hovered = getCyclingStackMouseOver(mouse.x, mouse.y);
-
-            if (hovered != null && getPermutations(hovered).size() > 1) {
-                FavoriteRecipes.toggleFavoriteItem(hovered.item);
-                setPaused(false);
-                return true;
-            }
-
-        }
-
-        return false;
-    }
-
-    @Override
     public void lastKeyTyped(int keyID, char keyChar) {
         final Point mouse = GuiDraw.getMousePosition();
 
@@ -488,6 +469,27 @@ public class RecipeWidget extends Widget {
             return null;
         }, null);
 
+    }
+
+    @Override
+    public boolean onHotkeyPressed() {
+        final Point mouse = GuiDraw.getMousePosition();
+
+        if (NEIClientConfig.favoritesEnabled()
+                && KeyManager.isHashDown("bookmark.favorite_item", NEIClientUtils.SHIFT_HASH)) {
+            final PositionedStack hovered = getCyclingStackMouseOver(mouse.x, mouse.y);
+
+            if (hovered != null && getPermutations(hovered).size() > 1) {
+                FavoriteRecipes.toggleFavoriteItem(hovered.item);
+                setPaused(false);
+                return true;
+            }
+
+        }
+
+        return forEachButtons(
+                button -> button.contains(mouse.x, mouse.y) && button.onHotkeyPressed() ? true : null,
+                false);
     }
 
     @Override

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.function.BooleanSupplier;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -29,6 +30,7 @@ public class KeyManager {
     private static final Map<String, KeyBinding> keyBindings = new HashMap<>();
     private static final Map<String, String> keyAliases = new HashMap<>();
     private static volatile boolean pendingOptionsReload = false;
+    private static int clickedButton = -1;
 
     static {
         // Aliases for legacy keybinds
@@ -73,13 +75,48 @@ public class KeyManager {
             final int keyCode = binding.getKeyCode();
 
             if (keyCode < 0) {
-                return Mouse.isButtonDown(keyCode + 100);
+                final int button = keyCode + 100;
+                return Mouse.isButtonDown(button) || button == clickedButton;
             } else if (keyCode > Keyboard.KEY_NONE && keyCode < Keyboard.KEYBOARD_SIZE) {
                 return Keyboard.isKeyDown(keyCode);
             }
         }
 
         return false;
+    }
+
+    /**
+     * Whether any NEI key binding is assigned to the given mouse button.
+     */
+    public static boolean isMouseBound(int button) {
+        for (KeyBinding binding : keyBindings.values()) {
+            if (binding.getKeyCode() == button - 100) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Runs a hotkey handler for a click of the given mouse button if the button is bound to any NEI key binding. The
+     * button is reported as down by {@link #isKeyDown} for the duration of the call, because the LWJGL button state can
+     * already be released when a quick click is processed.
+     *
+     * @return true if the click was consumed by the handler
+     */
+    public static boolean handleMouseHotkey(int button, BooleanSupplier handler) {
+        if (!isMouseBound(button)) {
+            return false;
+        }
+
+        final int previous = clickedButton;
+        clickedButton = button;
+
+        try {
+            return handler.getAsBoolean();
+        } finally {
+            clickedButton = previous;
+        }
     }
 
     public static boolean isHashDown(String ident) {
@@ -107,18 +144,23 @@ public class KeyManager {
 
     public static String getKeyName(String ident, int meta) {
         final int keyCode = getKeyCode(ident);
-        return keyCode == Keyboard.KEY_NONE ? null : NEIKeyboardUtils.getKeyName(keyCode + meta);
+        return keyCode == Keyboard.KEY_NONE ? null : NEIKeyboardUtils.getKeyName(keyCode, meta);
     }
 
     public static String getKeyName(String ident, int meta, int mouseBind) {
         final int keyCode = getKeyCode(ident);
         return keyCode == Keyboard.KEY_NONE && mouseBind == NEIMouseUtils.MOUSE_BTN_NONE ? null
-                : getKeyName(keyCode + meta, mouseBind);
+                : getKeyName(keyCode, meta, mouseBind);
     }
 
     public static String getKeyName(int keyBind, int mouseBind) {
+        final int keyCode = NEIKeyboardUtils.unhash(keyBind);
+        return getKeyName(keyCode, keyBind - keyCode, mouseBind);
+    }
+
+    private static String getKeyName(int keyCode, int hash, int mouseBind) {
         StringJoiner keyText = new StringJoiner(" + ");
-        String keyHash = keyBind == Keyboard.KEY_NONE ? "" : NEIKeyboardUtils.getKeyName(keyBind);
+        String keyHash = keyCode == Keyboard.KEY_NONE && hash == 0 ? "" : NEIKeyboardUtils.getKeyName(keyCode, hash);
         String mouseHash = mouseBind == NEIMouseUtils.MOUSE_BTN_NONE ? "" : NEIMouseUtils.getKeyName(mouseBind);
 
         if (!keyHash.isEmpty()) {

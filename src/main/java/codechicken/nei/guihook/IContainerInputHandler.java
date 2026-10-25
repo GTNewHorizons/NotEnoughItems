@@ -37,6 +37,18 @@ public interface IContainerInputHandler {
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyID);
 
     /**
+     * Called when a key or a mouse button is pressed and the event has not been handled by the first pass. Use this for
+     * key bindings that work globally and check them with {@link codechicken.nei.KeyManager#isKeyDown}, so they work
+     * the same for keyboard keys and mouse buttons.
+     *
+     * @param gui An instance of the currentscreen
+     * @return true to terminate further processing of this event.
+     */
+    default boolean onHotkeyPressed(GuiContainer gui) {
+        return false;
+    }
+
+    /**
      * Called when the mouse is clicked in the gui
      * 
      * @param gui    An instance of the currentscreen

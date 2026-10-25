@@ -305,7 +305,7 @@ public abstract class PanelWidget<T extends ItemsGrid<? extends ItemsGridSlot, ?
     }
 
     @Override
-    public boolean handleKeyPress(int keyID, char keyChar) {
+    public boolean onHotkeyPressed() {
         final Point mouse = GuiDraw.getMousePosition();
         if (!contains(mouse.x, mouse.y)) return false;
 
