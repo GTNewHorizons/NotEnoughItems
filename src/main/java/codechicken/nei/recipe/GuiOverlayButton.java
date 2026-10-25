@@ -177,12 +177,20 @@ public class GuiOverlayButton extends GuiRecipeButton {
                 hotkeys.put(
                         NEIClientUtils.getKeyName(NEIClientUtils.SHIFT_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
                         NEIClientUtils.translate("recipe.overlay.fillCraftingGrid"));
+                hotkeys.put(
+                        NEIClientUtils.getKeyName(
+                                NEIClientUtils.SHIFT_HASH + NEIClientUtils.CTRL_HASH,
+                                NEIMouseUtils.MOUSE_BTN_LMB),
+                        NEIClientUtils.translate("recipe.overlay.fillCraftingGridOnce"));
             }
 
         } else if (canFillCraftingGrid()) {
             hotkeys.put(
                     NEIMouseUtils.getKeyName(NEIMouseUtils.MOUSE_BTN_LMB),
                     NEIClientUtils.translate("recipe.overlay.fillCraftingGrid"));
+            hotkeys.put(
+                    NEIClientUtils.getKeyName(NEIClientUtils.CTRL_HASH, NEIMouseUtils.MOUSE_BTN_LMB),
+                    NEIClientUtils.translate("recipe.overlay.fillCraftingGridOnce"));
         }
 
         hotkeys.put(
@@ -329,7 +337,7 @@ public class GuiOverlayButton extends GuiRecipeButton {
 
         if (!requireShiftForOverlayRecipe() || shift) {
             if (this.canFillCraftingGrid) {
-                this.handlerRef.fillCraftingGrid(this.firstGui, 0);
+                this.handlerRef.fillCraftingGrid(this.firstGui, NEIClientUtils.controlKey() ? 1 : 0);
             }
         } else if (hasOverlay() && useOverlayRenderer()) {
             this.handlerRef.useOverlayRenderer(this.firstGui);
@@ -338,14 +346,21 @@ public class GuiOverlayButton extends GuiRecipeButton {
     }
 
     @Override
-    public void lastKeyTyped(char keyChar, int keyID) {
+    public void lastKeyTyped(char keyChar, int keyID) {}
+
+    @Override
+    public boolean onHotkeyPressed() {
         if (KeyManager.isKeyDown("bookmark.add") && NEIClientUtils.shiftKey()) {
             saveRecipeInBookmark();
+            return true;
         }
 
         if (KeyManager.isKeyDown("bookmark.chat_link") && NEIClientUtils.controlKey() && NEIClientUtils.shiftKey()) {
             sendRecipeChatLink();
+            return true;
         }
+
+        return false;
     }
 
     public void saveRecipeInBookmark() {

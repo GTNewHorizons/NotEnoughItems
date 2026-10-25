@@ -706,6 +706,7 @@ nei.recipe.overlay.missing=Missing following
 nei.recipe.overlay.mismatch=Mismatch Crafting Grid
 nei.recipe.overlay.overlayRecipe=Overlay Recipe
 nei.recipe.overlay.fillCraftingGrid=Fill Crafting Grid
+nei.recipe.overlay.fillCraftingGridOnce=Fill Crafting Grid (single recipe)
 nei.recipe.overlay.bookmarkRecipe=Save with Recipe
 nei.recipe.overlay.bookmarkRecipeAndCount=Save with Recipe & Count
 nei.recipe.overlay.sendRecipeToChat=Send Recipe to Chat

@@ -74,7 +74,11 @@ public class IMCHandler {
                     tag.getInteger("imageX"),
                     tag.getInteger("imageY"),
                     tag.getInteger("imageWidth"),
-                    tag.getInteger("imageHeight"));
+                    tag.getInteger("imageHeight"),
+                    tag.hasKey("imageTextureWidth") ? tag.getInteger("imageTextureWidth")
+                            : HandlerInfo.DEFAULT_IMAGE_TEXTURE_SIZE,
+                    tag.hasKey("imageTextureHeight") ? tag.getInteger("imageTextureHeight")
+                            : HandlerInfo.DEFAULT_IMAGE_TEXTURE_SIZE);
         }
         if (!info.hasImageOrItem()) {
             final String itemName = tag.getString("itemName");

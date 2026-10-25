@@ -12,6 +12,7 @@ public class HandlerInfo {
 
     public static int DEFAULT_HEIGHT = 65;
     public static int DEFAULT_WIDTH = 166;
+    public static final int DEFAULT_IMAGE_TEXTURE_SIZE = 256;
 
     @Deprecated
     public static int DEFAULT_MAX_PER_PAGE = 1;
@@ -70,9 +71,22 @@ public class HandlerInfo {
     }
 
     public boolean setImage(String resourceLocation, int imageX, int imageY, int imageWidth, int imageHeight) {
+        return setImage(
+                resourceLocation,
+                imageX,
+                imageY,
+                imageWidth,
+                imageHeight,
+                DEFAULT_IMAGE_TEXTURE_SIZE,
+                DEFAULT_IMAGE_TEXTURE_SIZE);
+    }
+
+    public boolean setImage(String resourceLocation, int imageX, int imageY, int imageWidth, int imageHeight,
+            int textureWidth, int textureHeight) {
         if (hasImageOrItem()) return false;
 
-        this.image = new DrawableBuilder(resourceLocation, imageX, imageY, imageWidth, imageHeight).build();
+        this.image = new DrawableBuilder(resourceLocation, imageX, imageY, imageWidth, imageHeight)
+                .setTextureSize(textureWidth, textureHeight).build();
         return true;
     }
 
@@ -208,6 +222,20 @@ public class HandlerInfo {
                 int imageHeight) {
             this.info.itemStack = null;
             this.info.setImage(location.toString(), imageX, imageY, imageWidth, imageHeight);
+            return this;
+        }
+
+        public Builder setDisplayImage(ResourceLocation location, int imageX, int imageY, int imageWidth,
+                int imageHeight, int textureWidth, int textureHeight) {
+            this.info.itemStack = null;
+            this.info.setImage(
+                    location.toString(),
+                    imageX,
+                    imageY,
+                    imageWidth,
+                    imageHeight,
+                    textureWidth,
+                    textureHeight);
             return this;
         }
 

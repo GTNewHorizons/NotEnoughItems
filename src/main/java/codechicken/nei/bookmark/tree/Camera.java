@@ -2,6 +2,8 @@ package codechicken.nei.bookmark.tree;
 
 import java.awt.geom.Point2D;
 
+import org.lwjgl.input.Mouse;
+
 class Camera {
 
     private static final float ZOOM_MIN = 0.1f;
@@ -39,21 +41,32 @@ class Camera {
                 && y < this.widgetY + this.widgetH;
     }
 
-    public void startDrag(int mouseX, int mouseY) {
+    public void startDrag(Point2D mouse) {
         this.dragging = true;
-        this.lastDragX = mouseX;
-        this.lastDragY = mouseY;
+        this.lastDragX = (float) mouse.getX();
+        this.lastDragY = (float) mouse.getY();
     }
 
-    public void drag(int mouseX, int mouseY) {
+    public void drag(Point2D mouse) {
         if (!this.dragging) {
             return;
         }
+
+        final float mouseX = (float) mouse.getX();
+        final float mouseY = (float) mouse.getY();
 
         this.scrollX -= (mouseX - this.lastDragX) / this.zoomLevel;
         this.scrollY -= (mouseY - this.lastDragY) / this.zoomLevel;
         this.lastDragX = mouseX;
         this.lastDragY = mouseY;
+    }
+
+    public void update(Point2D mouse, int treeWidth, int treeHeight) {
+        if (this.dragging && Mouse.isButtonDown(0)) {
+            drag(mouse);
+        }
+
+        clampToBounds(treeWidth, treeHeight);
     }
 
     public void endDrag() {
@@ -79,7 +92,6 @@ class Camera {
         } else {
             this.scrollY -= direction * this.widgetH / (SCROLL_STEP_DIVISOR * this.zoomLevel);
         }
-
     }
 
     public void centerOn(float worldX, float worldY) {

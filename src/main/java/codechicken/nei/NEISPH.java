@@ -92,7 +92,15 @@ public class NEISPH implements IServerPacketHandler {
             case C2S.SEND_CHAT_ITEM_LINK:
                 handleSendChatItemLink(sender, packet);
                 break;
+            case C2S.SYNC:
+                handleSync(sender, packet.readInt());
+                break;
         }
+    }
+
+    private void handleSync(EntityPlayerMP sender, int id) {
+        sender.sendContainerAndContentsToPlayer(sender.openContainer, sender.openContainer.getInventory());
+        new PacketCustom(channel, S2C.SYNC).writeInt(id).sendToPlayer(sender);
     }
 
     private void handleSendChatItemLink(EntityPlayerMP sender, PacketCustom packet) {
