@@ -48,6 +48,7 @@ nei.bookmark.recipe.toggle_collapse=Toggle Collapse/Expand
 nei.bookmark.recipe.chat_link=Send Recipe to Chat
 nei.bookmark.crafting_chain=Crafting Chain
 nei.bookmark.crafting_chain.input=Ingredients
+nei.bookmark.crafting_chain.missing=Missing Items
 nei.bookmark.crafting_chain.needed=Required Crafts
 nei.bookmark.tree.title=Crafting Tree
 nei.bookmark.tree.empty=No crafting chain to display
