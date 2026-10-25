@@ -69,6 +69,7 @@ public class NEIClientConfig {
     private static boolean pluginNEIConfigLoaded;
     private static boolean enabledOverride;
     private static String worldPath;
+    private static final String CHEAT_MODE_KEY = "cheatmode";
 
     public static Logger logger = LogManager.getLogger("NotEnoughItems");
     public static File configDir = new File(CommonUtils.getMinecraftDir(), "config/NEI/");
@@ -156,6 +157,16 @@ public class NEIClientConfig {
                 "For those who can't help themselves.\nSet this to a mode and you will be unable to change it ingame")
                 .getIntValue(-1);
         API.addOption(new OptionCycled("inventory.cheatmode", 3) {
+
+            @Override
+            public int value() {
+                return getCheatMode();
+            }
+
+            @Override
+            public void setValue(int value) {
+                setCheatMode(value);
+            }
 
             @Override
             public boolean optionValid(int index) {
@@ -547,13 +558,8 @@ public class NEIClientConfig {
         OptionList.setOptionList(new OptionList("nei.options") {
 
             @Override
-            public ConfigSet globalConfigSet() {
+            public ConfigSet configSet() {
                 return global;
-            }
-
-            @Override
-            public ConfigSet worldConfigSet() {
-                return world;
             }
 
             @Override
@@ -562,8 +568,8 @@ public class NEIClientConfig {
             }
 
             @Override
-            public GuiOptionList getGui(GuiScreen parent, OptionList list, boolean world) {
-                return new GuiNEIOptionList(parent, list, world);
+            public GuiOptionList getGui(GuiScreen parent, OptionList list) {
+                return new GuiNEIOptionList(parent, list);
             }
         });
     }
@@ -930,15 +936,15 @@ public class NEIClientConfig {
                 specificDir.mkdirs();
             }
 
-            world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
+            world = new ConfigSet(new File(specificDir, "NEI.dat"));
 
             if (newWorld && Minecraft.getMinecraft().isSingleplayer() && getLockedMode() == -1) {
-                final int globalMode = global.config.getTag("inventory.cheatmode").getIntValue();
+                final int globalMode = getCheatMode();
                 final int worldMode = Math
                         .min(globalMode, NEIClientUtils.mc().playerController.isInCreativeMode() ? 2 : 0);
 
                 if (worldMode != globalMode) {
-                    world.config.getTag("inventory.cheatmode").setIntValue(worldMode);
+                    setCheatMode(worldMode);
                 }
             }
 
@@ -952,9 +958,6 @@ public class NEIClientConfig {
     }
 
     private static void onWorldLoad() {
-        world.config.setComment(
-                "World based configuration of NEI.\nMost of these options can be changed ingame.\nDeleting any element will restore it to it's default value");
-
         setWorldDefaults();
         creativeInv = new ItemStack[54];
         LayoutManager.searchField.setText(getSearchExpression());
@@ -1069,14 +1072,8 @@ public class NEIClientConfig {
 
     }
 
-    public static boolean isWorldSpecific(String setting) {
-        if (world == null) return false;
-        ConfigTag tag = world.config.getTag(setting, false);
-        return tag != null && tag.value != null;
-    }
-
     public static ConfigTag getSetting(String s) {
-        return isWorldSpecific(s) ? world.config.getTag(s) : global.config.getTag(s);
+        return global.config.getTag(s);
     }
 
     public static boolean getBooleanSetting(String s) {
@@ -1222,12 +1219,18 @@ public class NEIClientConfig {
     }
 
     public static int getCheatMode() {
+        if (world != null && world.nbt.hasKey(CHEAT_MODE_KEY)) return world.nbt.getInteger(CHEAT_MODE_KEY);
         return getIntSetting("inventory.cheatmode");
+    }
+
+    public static void setCheatMode(int mode) {
+        if (world != null) world.nbt.setInteger(CHEAT_MODE_KEY, mode);
+        else setIntSetting("inventory.cheatmode", mode);
     }
 
     public static boolean canChangeCheatMode() {
         if (getLockedMode() != -1) {
-            setIntSetting("inventory.cheatmode", getLockedMode());
+            setCheatMode(getLockedMode());
             return false;
         }
 

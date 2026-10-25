@@ -165,11 +165,6 @@ nei.options=Налаштування NEI
 nei.options.back=Повернутися
 nei.options.save=Зберегти
 nei.options.world=Світ
-nei.options.global=Глобально
-nei.options.global.tip.0=Налаштування застосовуються до всіх світів
-nei.options.global.tip.1=Натисніть W біля налаштування, щоб увімкнути перевизначення для цього світу
-nei.options.wbutton.tip.0=Використовуються глобальні налаштування
-nei.options.wbutton.tip.1=Перевизначення глобального налаштування
 
 nei.options.keys=Прив’язка клавіш
 nei.options.keys.tip=Налаштувати гарячі клавіші NEI у вікні керування Minecraft

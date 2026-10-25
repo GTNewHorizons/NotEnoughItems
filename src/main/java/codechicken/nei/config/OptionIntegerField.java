@@ -22,7 +22,7 @@ public class OptionIntegerField extends OptionTextField {
     @Override
     protected int getMaxInputWidth() {
 
-        if (renderTag().getValue().startsWith("0x")) {
+        if (getTag().getValue().startsWith("0x")) {
             return GuiDraw.getStringWidth("0x" + Long.toHexString(this.max).toUpperCase()) + 32;
         }
 

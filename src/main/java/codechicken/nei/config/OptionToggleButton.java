@@ -14,7 +14,7 @@ public class OptionToggleButton extends OptionButton {
     }
 
     public boolean state() {
-        return renderTag().getBooleanValue();
+        return getTag().getBooleanValue();
     }
 
     @Override

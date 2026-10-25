@@ -55,7 +55,6 @@ public class GuiPanelSettings extends GuiScreenWidget {
 
         private final Option opt;
         private final String name;
-        private final boolean world;
         private Rectangle4i margin;
         private Point dragDown;
         private String dragDir;
@@ -69,10 +68,9 @@ public class GuiPanelSettings extends GuiScreenWidget {
         private PanelResizeButton rightButton = new PanelResizeButton(PANEL_SIZE, PANEL_SIZE * 2);
         private PanelResizeButton bottomButton = new PanelResizeButton(PANEL_SIZE * 2, PANEL_SIZE);
 
-        public PanelPlaceholder(Option opt, String name, boolean world) {
+        public PanelPlaceholder(Option opt, String name) {
             this.opt = opt;
             this.name = name;
-            this.world = world;
         }
 
         public void resize(Rectangle4i margin) {
@@ -163,7 +161,7 @@ public class GuiPanelSettings extends GuiScreenWidget {
         }
 
         private ConfigTag getTag(String s) {
-            return (world ? opt.worldConfigSet() : opt.globalConfigSet()).config.getTag(s);
+            return opt.configSet().config.getTag(s);
         }
 
         protected void drawItems() {
@@ -241,9 +239,8 @@ public class GuiPanelSettings extends GuiScreenWidget {
         super(176, 198);
         this.parentGui = (GuiOptionList) Minecraft.getMinecraft().currentScreen;
 
-        boolean world = parentGui.worldConfig();
-        bookmarksPanel = new PanelPlaceholder(opt, opt.name + ".bookmarks", world);
-        itemsPanel = new PanelPlaceholder(opt, opt.name + ".items", world);
+        bookmarksPanel = new PanelPlaceholder(opt, opt.name + ".bookmarks");
+        itemsPanel = new PanelPlaceholder(opt, opt.name + ".items");
     }
 
     @Override

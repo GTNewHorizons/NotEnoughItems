@@ -115,11 +115,6 @@ nei.options=Настройки NEI
 nei.options.back=Назад
 nei.options.save=Сохранить
 nei.options.world=Мир
-nei.options.global=Глобальные
-nei.options.global.tip.0=Настройки применяются ко всем мирам
-nei.options.global.tip.1=Нажмите W рядом с опцией, чтобы включить переопределение для этого мира
-nei.options.wbutton.tip.0=Используются глобальные настройки
-nei.options.wbutton.tip.1=Переопределение глобальной настройки
 
 nei.options.keys=Привязки клавиш
 nei.options.keys.tip=Настройте привязки клавиш NEI на экране управления Minecraft

@@ -52,7 +52,6 @@ public class GuiItemSorter extends GuiOptionPane {
     public final List<SortItem> slots = new ArrayList<>();
     public final List<SortEntry> list;
     private final GuiOptionList parentGui;
-    private final boolean world;
 
     boolean dragging;
     public SortItem dragged;
@@ -62,8 +61,7 @@ public class GuiItemSorter extends GuiOptionPane {
     public GuiItemSorter(Option opt) {
         this.opt = opt;
         this.parentGui = (GuiOptionList) Minecraft.getMinecraft().currentScreen;
-        this.world = parentGui.worldConfig();
-        list = ItemSorter.fromSaveString(renderTag(opt.configName()).getValue());
+        list = ItemSorter.fromSaveString(getTag(opt.configName()).getValue());
         for (SortEntry e : list) slots.add(new SortItem(e));
     }
 
@@ -122,10 +120,7 @@ public class GuiItemSorter extends GuiOptionPane {
                 list.add(nslot, dragged.e);
 
                 getTag(opt.configName()).setValue(ItemSorter.getSaveString(list));
-
-                if (opt.activeTag() == getTag(opt.configName())) {
-                    ItemSorter.list = new ArrayList<>(list);
-                }
+                ItemSorter.list = new ArrayList<>(list);
 
                 ItemList.refreshItems.restart();
             }
@@ -133,11 +128,7 @@ public class GuiItemSorter extends GuiOptionPane {
     }
 
     private ConfigTag getTag(String s) {
-        return (world ? opt.worldConfigSet() : opt.globalConfigSet()).config.getTag(s);
-    }
-
-    private ConfigTag renderTag(String s) {
-        return (world && opt.worldSpecific(s) ? opt.worldConfigSet() : opt.globalConfigSet()).config.getTag(s);
+        return opt.configSet().config.getTag(s);
     }
 
     public SortItem itemAt(int mx, int my) {

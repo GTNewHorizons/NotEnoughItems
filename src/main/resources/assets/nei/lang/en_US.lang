@@ -212,11 +212,6 @@ nei.options=NEI Options
 nei.options.back=Back
 nei.options.save=Save
 nei.options.world=World
-nei.options.global=Global
-nei.options.global.tip.0=Options apply to all worlds
-nei.options.global.tip.1=Click the W beside an:option to enable an:override for this world
-nei.options.wbutton.tip.0=Using global settings
-nei.options.wbutton.tip.1=Overriding global setting
 
 nei.options.keys=KeyBindings
 nei.options.keys.tip=Configure NEI key bindings in the Minecraft controls screen
