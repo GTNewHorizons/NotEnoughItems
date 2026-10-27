@@ -449,6 +449,7 @@ public class GuiContainerManager {
     }
 
     private int clickHandled = 0;
+    private int hotkeyHandled = 0;
     public final List<IContainerTooltipHandler> instanceTooltipHandlers;
 
     public GuiContainerManager(GuiContainer screen) {
@@ -483,6 +484,7 @@ public class GuiContainerManager {
 
     public void load() {
         clickHandled = 0;
+        hotkeyHandled = 0;
         for (IContainerObjectHandler objectHandler : objectHandlers) objectHandler.load(window);
     }
 
@@ -501,6 +503,46 @@ public class GuiContainerManager {
 
         for (IContainerInputHandler inputhander : inputHandlers)
             if (inputhander.lastKeyTyped(window, keyChar, keyID)) return true;
+
+        return onHotkeyPressed();
+    }
+
+    public boolean onHotkeyPressed() {
+
+        if (window instanceof IGuiHotkeyListener && ((IGuiHotkeyListener) window).onHotkeyPressed()) {
+            return true;
+        }
+
+        for (IContainerInputHandler inputhander : inputHandlers) {
+            if (inputhander.onHotkeyPressed(window)) {
+                return true;
+            }
+        }
+
+        return window instanceof IGuiHotkeyListener && ((IGuiHotkeyListener) window).onScreenHotkeyPressed();
+    }
+
+    public boolean handleMouseHotkey() {
+        final int button = Mouse.getEventButton();
+
+        if (button < 0) {
+            return false;
+        }
+
+        if (!Mouse.getEventButtonState()) {
+            // the press has been consumed, so the release must not reach the screen either
+            if ((hotkeyHandled & 1 << button) == 0) {
+                return false;
+            }
+
+            hotkeyHandled &= ~(1 << button);
+            return true;
+        }
+
+        if (KeyManager.handleMouseHotkey(button, this::onHotkeyPressed)) {
+            hotkeyHandled |= 1 << button;
+            return true;
+        }
 
         return false;
     }
