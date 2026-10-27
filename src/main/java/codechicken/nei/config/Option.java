@@ -59,12 +59,8 @@ public abstract class Option {
         return elem;
     }
 
-    public ConfigSet globalConfigSet() {
-        return assertParentOverride(parent.globalConfigSet());
-    }
-
-    public ConfigSet worldConfigSet() {
-        return assertParentOverride(parent.worldConfigSet());
+    public ConfigSet configSet() {
+        return assertParentOverride(parent.configSet());
     }
 
     public OptionList configBase() {
@@ -72,125 +68,17 @@ public abstract class Option {
     }
 
     /**
-     * @return true if the world config contains a tag with this name
-     */
-    public boolean worldSpecific() {
-        return worldSpecific(configName());
-    }
-
-    /**
-     * @return true if the world config contains a tag with this name
-     */
-    public boolean worldSpecific(String s) {
-        ConfigTag tag = worldConfigSet().config.getTag(s, false);
-        return tag != null && tag.value != null;
-    }
-
-    /**
-     * @return The currently config set for the gui based on the world/global button
-     */
-    public ConfigSet configSet() {
-        return worldConfig() ? worldConfigSet() : globalConfigSet();
-    }
-
-    /**
-     * @return The tag to render, world if world override, otherwise global
-     */
-    public ConfigTag renderTag() {
-        return renderTag(configName());
-    }
-
-    /**
-     * @return The tag to render, world if world override, otherwise global
-     */
-    public ConfigTag renderTag(String s) {
-        return (worldConfig() && worldSpecific(s) ? worldConfigSet() : globalConfigSet()).config.getTag(s);
-    }
-
-    /**
-     * @return The tag with this name from the current configSet
+     * @return The tag with this name from the config set
      */
     public ConfigTag getTag() {
         return getTag(configName());
     }
 
     /**
-     * @return The tag with this name from the current configSet
+     * @return The tag with this name from the config set
      */
     public ConfigTag getTag(String s) {
         return configSet().config.getTag(s);
-    }
-
-    /**
-     * @return The tag currently being used ingame, world if a world override exists, otherwise global
-     */
-    public ConfigTag activeTag() {
-        return activeTag(configName());
-    }
-
-    /**
-     * @return The tag currently being used ingame, world if a world override exists, otherwise global
-     */
-    public ConfigTag activeTag(String s) {
-        return (worldSpecific() ? worldConfigSet() : globalConfigSet()).config.getTag(s);
-    }
-
-    /**
-     * @return true if the gui is in world config mode
-     */
-    public boolean worldConfig() {
-        return getSlot().getGui().worldConfig();
-    }
-
-    /**
-     * @return true if in world mode, but this tag has no world override. Changes should not be made in this mode
-     */
-    public boolean defaulting() {
-        return defaulting(configName());
-    }
-
-    /**
-     * @return true if in world mode, but this tag has no world override. Changes should not be made in this mode
-     */
-    public boolean defaulting(String s) {
-        return worldConfig() && !worldSpecific(s);
-    }
-
-    /**
-     * Called when world specific is disabled for this option. Should delete all world specific overrides
-     */
-    public void useGlobals() {
-        useGlobal(configName());
-    }
-
-    /**
-     * Deletes a specific named tag from the worldConfig
-     */
-    public void useGlobal(String s) {
-        if (worldConfig()) worldConfigSet().config.removeTag(s);
-    }
-
-    /**
-     * Called when world specific is activated for this option. Should copy the global value into a world specific
-     * override
-     */
-    public void copyGlobals() {
-        copyGlobal(configName(), true);
-    }
-
-    /**
-     * Copies the global value into a world specific override
-     */
-    public void copyGlobal(String s) {
-        copyGlobal(s, false);
-    }
-
-    public void copyGlobal(String s, boolean recursive) {
-        if (!worldConfig()) return;
-
-        ConfigTag tag = globalConfigSet().config.getTag(s);
-        worldConfigSet().config.getTag(s).setValue(tag.getValue());
-        if (recursive) for (String s2 : tag.childTagMap().keySet()) copyGlobal(s + "." + s2);
     }
 
     public void onAdded(OptionScrollSlot slot) {
@@ -216,13 +104,5 @@ public abstract class Option {
 
     public List<String> handleTooltip(int mx, int my, List<String> currenttip) {
         return currenttip;
-    }
-
-    public boolean showWorldSelector() {
-        return true;
-    }
-
-    public boolean hasWorldOverride() {
-        return worldSpecific();
     }
 }

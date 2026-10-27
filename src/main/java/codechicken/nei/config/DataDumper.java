@@ -110,7 +110,7 @@ public abstract class DataDumper extends Option {
     }
 
     public int getMode() {
-        return renderTag().getIntValue(0);
+        return getTag().getIntValue(0);
     }
 
     public void drawButton(int mousex, int mousey, Rectangle4i b, String text) {

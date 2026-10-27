@@ -118,14 +118,7 @@ public class ItemSorter implements Comparator<ItemStack> {
             return name1.compareTo(name2);
         });
         tag.getTag("inventory.itemsort").setDefaultValue(getSaveString(list));
-        API.addOption(new OptionOpenGui("inventory.itemsort", GuiItemSorter.class) {
-
-            @Override
-            public void useGlobals() {
-                super.useGlobals();
-                list = fromSaveString(activeTag().getValue());
-            }
-        });
+        API.addOption(new OptionOpenGui("inventory.itemsort", GuiItemSorter.class));
     }
 
     public static String getSaveString(List<SortEntry> list) {

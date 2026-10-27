@@ -52,11 +52,6 @@ nei.chat.chunkoverlay.3=Chunk Overlay: GT Ore Veins
 nei.options=NEI Ayarları
 nei.options.back=Geri
 nei.options.world=Dünya
-nei.options.global=Genel
-nei.options.global.tip.0=Ayarlar tüm dünyalar için kaydedilecek
-nei.options.global.tip.1=W tuşuna tıklayın:seçeneği aç:dünyada gör
-nei.options.wbutton.tip.0=Genel ayarları kullanıyorsunuz
-nei.options.wbutton.tip.1=Genel ayarların üstüne yazılıyor
 
 nei.options.keys=Tuşlar
 nei.options.keys.gui=NEI Envanter

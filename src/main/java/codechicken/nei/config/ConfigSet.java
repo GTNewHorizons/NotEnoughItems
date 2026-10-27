@@ -13,6 +13,10 @@ public class ConfigSet {
     public NBTTagCompound nbt;
     public final ConfigTagParent config;
 
+    public ConfigSet(File nbtFile) {
+        this(nbtFile, null);
+    }
+
     public ConfigSet(File nbtFile, ConfigTagParent config) {
         this.nbtFile = nbtFile;
         this.config = config;

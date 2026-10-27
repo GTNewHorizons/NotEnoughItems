@@ -34,7 +34,7 @@ public class OptionToggleButtonBoubs extends OptionButton {
     }
 
     public boolean state() {
-        return renderTag().getBooleanValue();
+        return getTag().getBooleanValue();
     }
 
     @Override

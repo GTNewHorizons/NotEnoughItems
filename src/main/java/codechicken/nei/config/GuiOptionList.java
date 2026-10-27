@@ -1,7 +1,6 @@
 package codechicken.nei.config;
 
 import static codechicken.lib.gui.GuiDraw.drawMultilineTip;
-import static codechicken.lib.gui.GuiDraw.drawStringC;
 import static codechicken.lib.gui.GuiDraw.fontRenderer;
 import static codechicken.lib.gui.GuiDraw.getMousePosition;
 import static net.minecraft.util.StatCollector.translateToLocal;
@@ -10,7 +9,6 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,8 +21,6 @@ import org.lwjgl.opengl.GL11;
 import codechicken.core.gui.GuiCCButton;
 import codechicken.core.gui.GuiScreenWidget;
 import codechicken.core.gui.GuiScrollSlot;
-import codechicken.lib.vec.Rectangle4i;
-import codechicken.nei.LayoutManager;
 
 public class GuiOptionList extends GuiScreenWidget {
 
@@ -66,23 +62,9 @@ public class GuiOptionList extends GuiScreenWidget {
         protected void drawSlot(int slot, int x, int y, int mx, int my, float frame) {
             Option o = options.get(slot);
             GL11.glTranslatef(x, y, 0);
-            if (o.showWorldSelector() && world) drawWorldSelector(o, mx, my);
             GL11.glTranslatef(24, 2, 0);
             o.draw(mx - 24, my - 2, frame);
             GL11.glTranslatef(-x - 24, -y - 2, 0);
-        }
-
-        public Rectangle4i worldButtonSize() {
-            return new Rectangle4i(0, 2, 20, 20);
-        }
-
-        private void drawWorldSelector(Option o, int mousex, int mousey) {
-            Rectangle4i b = worldButtonSize();
-            boolean set = o.hasWorldOverride();
-            boolean mouseover = b.contains(mousex, mousey);
-            GL11.glColor4f(1, 1, 1, 1);
-            LayoutManager.drawButtonBackground(b.x, b.y, b.w, b.h, true, !set ? 0 : mouseover ? 2 : 1);
-            drawStringC("W", b.x, b.y, b.w, b.h, -1);
         }
 
         @Override
@@ -116,16 +98,7 @@ public class GuiOptionList extends GuiScreenWidget {
 
         @Override
         protected void slotClicked(int slot, int button, int mx, int my, int count) {
-            Option o = options.get(slot);
-            if (world && o.showWorldSelector() && worldButtonSize().contains(mx, my)) {
-                if (button == 1 && o.hasWorldOverride()) {
-                    o.useGlobals();
-                    Option.playClickSound();
-                } else if (button == 0 && !o.hasWorldOverride()) {
-                    o.copyGlobals();
-                    Option.playClickSound();
-                }
-            } else if (slotBounds(slot).contains(mx, my)) {
+            if (slotBounds(slot).contains(mx, my)) {
                 options.get(slot).mouseClicked(mx - 24, my - 2, button);
             }
         }
@@ -167,26 +140,20 @@ public class GuiOptionList extends GuiScreenWidget {
         }
 
         private List<String> handleTooltip(int slot, int mx, int my, List<String> tooltip) {
-            Option o = options.get(slot);
-            if (world && o.showWorldSelector() && worldButtonSize().contains(mx, my))
-                tooltip.add(translateToLocal("nei.options.wbutton.tip." + (o.hasWorldOverride() ? "1" : "0")));
-            if (slotBounds(slot).contains(mx, my)) return o.handleTooltip(mx - 24, my - 2, tooltip);
+            if (slotBounds(slot).contains(mx, my)) return options.get(slot).handleTooltip(mx - 24, my - 2, tooltip);
             return tooltip;
         }
     }
 
     protected final GuiScreen parent;
     protected final OptionList optionList;
-    protected boolean world;
 
     protected OptionScrollSlot slot;
     protected GuiCCButton backButton;
-    protected GuiCCButton worldButton;
 
-    public GuiOptionList(GuiScreen parent, OptionList optionList, boolean world) {
+    public GuiOptionList(GuiScreen parent, OptionList optionList) {
         this.parent = parent;
         this.optionList = optionList;
-        this.world = world;
     }
 
     @Override
@@ -202,29 +169,18 @@ public class GuiOptionList extends GuiScreenWidget {
         backButton.width = Math.min(200, width - 40);
         backButton.x = (width - backButton.width) / 2;
         backButton.y = height - 25;
-        worldButton.width = 60;
-        worldButton.x = width - worldButton.width - 15;
     }
 
     @Override
     public void addWidgets() {
         add(slot = new OptionScrollSlot());
         add(backButton = new GuiCCButton(0, 0, 0, 20, translateToLocal("nei.options.back")).setActionCommand("back"));
-        add(worldButton = new GuiCCButton(0, 2, 0, 16, worldButtonName()).setActionCommand("world"));
-    }
-
-    private String worldButtonName() {
-        return translateToLocal("nei.options." + (world ? "world" : "global"));
     }
 
     @Override
     public void actionPerformed(String ident, Object... params) {
         if (ident.equals("back")) {
-            if (parent instanceof GuiOptionList) ((GuiOptionList) parent).world = world;
             Minecraft.getMinecraft().displayGuiScreen(parent);
-        } else if (ident.equals("world")) {
-            world = !world;
-            worldButton.text = worldButtonName();
         }
     }
 
@@ -242,9 +198,6 @@ public class GuiOptionList extends GuiScreenWidget {
     private void drawTooltip() {
         List<String> tooltip = new LinkedList<>();
         Point mouse = getMousePosition();
-        if (worldButton.pointInside(mouse.x, mouse.y))
-            tooltip.addAll(Arrays.asList(translateToLocal("nei.options.global.tip." + (world ? "1" : "0")).split(":")));
-
         tooltip = slot.handleTooltip(mouse.x, mouse.y, tooltip);
         drawMultilineTip(mouse.x + 12, mouse.y - 12, tooltip);
     }
@@ -264,9 +217,5 @@ public class GuiOptionList extends GuiScreenWidget {
         } else {
             super.keyTyped(c, keycode);
         }
-    }
-
-    public boolean worldConfig() {
-        return world;
     }
 }

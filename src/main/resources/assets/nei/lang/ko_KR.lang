@@ -51,11 +51,6 @@ nei.chat.chunkoverlay.3=Chunk Overlay: GT Ore Veins
 nei.options=NEI 옵션
 nei.options.back=뒤로
 nei.options.world=세계
-nei.options.global=글로벌
-nei.options.global.tip.0= 모든세계의 NEI의 옵션을 적용합니다
-nei.options.global.tip.1= 월드의 설정을 재정의 하려면 w를 클릭
-nei.options.wbutton.tip.0=글로벌로 세팅
-nei.options.wbutton.tip.1=전역 설정
 
 nei.options.keys=키 바인딩
 nei.options.keys.gui=NEI 인벤토리
