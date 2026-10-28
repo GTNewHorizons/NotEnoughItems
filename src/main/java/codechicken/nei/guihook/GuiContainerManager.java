@@ -501,13 +501,20 @@ public class GuiContainerManager {
     public boolean lastKeyTyped(int keyID, char keyChar) {
         if (keyID == 1) return false;
 
+        // hotkeys go before lastKeyTyped, otherwise a third-party handler that consumes every key blocks them
+        if (handleHotkeys()) return true;
+
         for (IContainerInputHandler inputhander : inputHandlers)
             if (inputhander.lastKeyTyped(window, keyChar, keyID)) return true;
 
-        return onHotkeyPressed();
+        return handleScreenHotkeys();
     }
 
     public boolean onHotkeyPressed() {
+        return handleHotkeys() || handleScreenHotkeys();
+    }
+
+    private boolean handleHotkeys() {
 
         if (window instanceof IGuiHotkeyListener && ((IGuiHotkeyListener) window).onHotkeyPressed()) {
             return true;
@@ -519,6 +526,10 @@ public class GuiContainerManager {
             }
         }
 
+        return false;
+    }
+
+    private boolean handleScreenHotkeys() {
         return window instanceof IGuiHotkeyListener && ((IGuiHotkeyListener) window).onScreenHotkeyPressed();
     }
 
