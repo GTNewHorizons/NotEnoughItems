@@ -31,6 +31,8 @@ import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.BookmarkItem.BookmarkItemType;
+import codechicken.nei.drawable.DrawableBuilder;
+import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.Recipe.RecipeIngredient;
@@ -93,6 +95,22 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
     public static final int GROUP_PANEL_WIDTH = 7;
     protected static final float SCALE_SPEED = 0.1f;
 
+    private static final int TREE_ICON_SIZE = GROUP_PANEL_WIDTH;
+    private static final int TREE_ICON_MARGIN = 2;
+    private static final Color TREE_ICON_BACKGROUND = new Color(0xFF1A1A1A, true);
+    private static final DrawableResource ICON_TREE = new DrawableBuilder(
+            "nei:textures/nei_sprites.png",
+            0,
+            116,
+            TREE_ICON_SIZE,
+            TREE_ICON_SIZE).build();
+    private static final DrawableResource ICON_TREE_HOVER = new DrawableBuilder(
+            "nei:textures/nei_sprites.png",
+            8,
+            116,
+            TREE_ICON_SIZE,
+            TREE_ICON_SIZE).build();
+
     protected List<BookmarkItem> bookmarkItems = new ArrayList<>();
     protected final WeakHashMap<BookmarkItem, Float> animation = new WeakHashMap<>();
 
@@ -100,6 +118,9 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
     protected final BookmarkGridGenerator gridGenerator;
 
     private boolean isDirty = false;
+
+    /** Positions of the "open crafting tree" icons that were drawn last frame, by group id. */
+    private final Map<Integer, Rectangle4i> treeIcons = new HashMap<>();
 
     public BookmarkGrid() {
         this.groups.put(DEFAULT_GROUP_ID, new BookmarkGroup(BookmarkViewMode.DEFAULT));
@@ -125,6 +146,32 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
     public void toggleCollapsedState(int groupId) {
         this.groups.get(groupId).toggleCollapsedState();
         onItemsChanged();
+    }
+
+    /**
+     * Looks for a crafting group in which the recipe is the start of a chain, meaning that no other recipe of the group
+     * uses its result.
+     *
+     * @return the group id, or -1 if there is no such group
+     */
+    public int findCraftingGroupStartingWith(RecipeId recipeId) {
+
+        for (Map.Entry<Integer, BookmarkGroup> entry : this.groups.entrySet()) {
+            if (entry.getValue().crafting != null) {
+                final RecipeChainMath math = createRecipeChainMath(entry.getKey());
+
+                if (math != null && math.outputRecipes.containsKey(recipeId)) {
+                    return entry.getKey();
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    public void setItemProgress(int groupId, BookmarkGroup.ProgressKey key, long done) {
+        // saved together with the group by BookmarkStorage
+        getGroup(groupId).setProgress(key, done);
     }
 
     public void toggleCollapsedRecipe(int groupId, RecipeId recipeId) {
@@ -441,6 +488,8 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
 
     @Override
     public void draw(int mousex, int mousey) {
+        this.treeIcons.clear();
+
         if (getPerPage() == 0) {
             return;
         }
@@ -533,6 +582,40 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         super.draw(mousex, mousey);
     }
 
+    /** @return the crafting group whose "open crafting tree" icon is under the mouse, or -1 */
+    public int getTreeIconGroupId(int mousex, int mousey) {
+
+        for (Map.Entry<Integer, Rectangle4i> entry : this.treeIcons.entrySet()) {
+            if (entry.getValue().contains(mousex, mousey)) {
+                return entry.getKey();
+            }
+        }
+
+        return -1;
+    }
+
+    /** Draws a small tree icon on the handle of a crafting group; it opens the crafting tree of the group. */
+    private void drawTreeIcon(int groupId, int top) {
+        final Rectangle4i rect = new Rectangle4i(
+                marginLeft + paddingLeft - GROUP_PANEL_WIDTH,
+                top,
+                TREE_ICON_SIZE,
+                TREE_ICON_SIZE);
+        final Point mouse = GuiDraw.getMousePosition();
+
+        this.treeIcons.put(groupId, rect);
+
+        // hide the handle line behind the icon
+        NEIClientUtils.drawRect(rect.x, rect.y, rect.w, rect.h, TREE_ICON_BACKGROUND);
+        final DrawableResource icon = rect.contains(mouse.x, mouse.y) ? ICON_TREE_HOVER : ICON_TREE;
+
+        GL11.glColor4f(1, 1, 1, 1);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        icon.draw(rect.x, rect.y);
+        GL11.glDisable(GL11.GL_BLEND);
+    }
+
     public void drawGroup(int groupId, int rowIndexStart, int rowIndexEnd) {
         final int halfWidth = GROUP_PANEL_WIDTH / 2;
         final int heightPadding = SLOT_SIZE / 4;
@@ -560,6 +643,11 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         }
 
         NEIClientUtils.drawRect(leftPosition, top, 1, height, color);
+
+        // draw open tree icon
+        if (groupId > DEFAULT_GROUP_ID && this.groups.get(groupId).crafting != null) {
+            drawTreeIcon(groupId, top + Math.min(TREE_ICON_MARGIN, (height - TREE_ICON_SIZE) / 2));
+        }
     }
 
     private void drawShadowGroup(int rowIndexStart, int rowIndexEnd) {

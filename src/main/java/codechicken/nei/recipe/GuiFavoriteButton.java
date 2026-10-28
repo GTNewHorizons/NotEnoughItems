@@ -211,7 +211,7 @@ public class GuiFavoriteButton extends GuiRecipeButton {
         return ItemPanels.bookmarkPanel.addGroup(getRecipesTree(getRecipe()), BookmarkViewMode.TODO_LIST, true);
     }
 
-    private List<Recipe> getRecipesTree(Recipe mainRecipe) {
+    public static List<Recipe> getRecipesTree(Recipe mainRecipe) {
         int depth = NEIClientConfig.getIntSetting("inventory.favorites.depth");
         final ItemStackSet items = new ItemStackSet();
         final List<Recipe> result = new ArrayList<>();
@@ -284,7 +284,7 @@ public class GuiFavoriteButton extends GuiRecipeButton {
         return result;
     }
 
-    private int getIngrActiveIndex(List<ItemStack> permutations, ItemStack stack) {
+    private static int getIngrActiveIndex(List<ItemStack> permutations, ItemStack stack) {
 
         for (int i = 0; i < permutations.size(); i++) {
             if (StackInfo.equalItemAndNBT(stack, permutations.get(i), true)) {

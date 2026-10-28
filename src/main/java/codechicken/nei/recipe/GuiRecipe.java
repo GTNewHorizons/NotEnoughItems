@@ -247,8 +247,20 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
      */
     private boolean isHeightHackApplied = false;
 
+    private final boolean navigationLocked;
+
     protected GuiRecipe(GuiScreen prevgui) {
+        this(prevgui, false);
+    }
+
+    /**
+     * @param navigationLocked if true, opening the recipes or usages of any other item (keys, clicks on ingredients,
+     *                         ...) is ignored while this screen is shown, so the player can only browse the recipes it
+     *                         was opened with or leave the screen
+     */
+    protected GuiRecipe(GuiScreen prevgui, boolean navigationLocked) {
         super(new EmptyContainer());
+        this.navigationLocked = navigationLocked;
         this.recipeTabs = new GuiRecipeTabs() {
 
             @Override
@@ -301,6 +313,11 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 nextPage();
             }
         };
+    }
+
+    /** @return true if the given screen is a recipe screen created with navigation locked */
+    public static boolean isNavigationLocked(GuiScreen screen) {
+        return screen instanceof GuiRecipe<?>gui && gui.navigationLocked;
     }
 
     /**
