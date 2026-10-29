@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -1025,11 +1024,11 @@ public class NEIClientConfig {
 
                 @Override
                 public void run() {
-                    final Stream<Class<?>> stream = NEIClientConfig.getBooleanSetting("loadPluginsInParallel")
-                            ? NEIClientConfig.pluginsList.parallelStream()
-                            : NEIClientConfig.pluginsList.stream();
-
-                    PluginLoader.load(stream, NEIModContainer.plugins, logger);
+                    PluginLoader.load(
+                            NEIClientConfig.pluginsList,
+                            NEIClientConfig.getBooleanSetting("loadPluginsInParallel"),
+                            NEIModContainer.plugins,
+                            logger);
 
                     KeyManager.requestOptionsReload();
                     RecipeCatalysts.loadCatalystInfo();
