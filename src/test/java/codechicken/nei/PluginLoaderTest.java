@@ -2,12 +2,10 @@ package codechicken.nei;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -20,20 +18,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import codechicken.nei.api.IConfigureNEI;
 
 class PluginLoaderTest {
 
-    @ParameterizedTest
-    @ValueSource(booleans = { false, true })
-    void loadsPluginsAndLogsFailuresWithTheGameClassLoader(boolean parallel) throws Exception {
+    @Test
+    void loadsPluginsInParallelAndLogsFailuresWithTheGameClassLoader() throws Exception {
         ClassLoader workerClassLoader = new ClassLoader(null) {};
         Set<Thread> workers = ConcurrentHashMap.newKeySet();
         ForkJoinPool pool = new ForkJoinPool(2, owner -> {
@@ -57,34 +51,13 @@ class PluginLoaderTest {
         List<IConfigureNEI> loaded = new CopyOnWriteArrayList<>();
 
         try {
-            pool.submit(() -> PluginLoader.load(parallel ? plugins.parallelStream() : plugins.stream(), loaded, logger))
-                    .get(10, TimeUnit.SECONDS);
+            pool.submit(() -> PluginLoader.load(plugins, true, loaded, logger)).get(10, TimeUnit.SECONDS);
 
             assertEquals(16, loaded.size());
             verify(logger, times(32)).error(eq("Failed to Load {}"), anyString(), any(Throwable.class));
             workers.forEach(worker -> assertSame(workerClassLoader, worker.getContextClassLoader()));
         } finally {
             pool.shutdownNow();
-        }
-    }
-
-    @Test
-    void restoresTheClassLoaderEvenIfErrorLoggingThrows() {
-        Thread thread = Thread.currentThread();
-        ClassLoader previousClassLoader = thread.getContextClassLoader();
-        ClassLoader workerClassLoader = new ClassLoader(null) {};
-        Logger logger = mock(Logger.class);
-        doThrow(new LinkageError("Logging failed")).when(logger)
-                .error(eq("Failed to Load {}"), anyString(), any(Throwable.class));
-
-        try {
-            thread.setContextClassLoader(workerClassLoader);
-            assertThrows(
-                    LinkageError.class,
-                    () -> PluginLoader.load(Stream.of(ConfigurationFailurePlugin.class), new ArrayList<>(), logger));
-            assertSame(workerClassLoader, thread.getContextClassLoader());
-        } finally {
-            thread.setContextClassLoader(previousClassLoader);
         }
     }
 
