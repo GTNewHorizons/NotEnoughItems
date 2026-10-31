@@ -7,16 +7,20 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import net.minecraft.event.ClickEvent;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
+import com.google.common.base.Stopwatch;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -57,6 +61,8 @@ public class RecipeJsonWriter {
 
     private static final File DUMP_DIR = new File(CommonUtils.getMinecraftDir(), "dumps/recipes");
 
+    // display names by stack NBT without Count, built once per dump
+    private final Map<String, String> names = new HashMap<>();
     private int dumped = 0;
     private int skipped = 0;
 
@@ -65,7 +71,9 @@ public class RecipeJsonWriter {
         final File file = new File(DUMP_DIR, fileName(handler) + ".jsonl");
 
         try {
+            final Stopwatch stopwatch = Stopwatch.createStarted();
             dumper.writeFile(file, Collections.singletonList(handler), h -> recipeIndices);
+            NEIClientConfig.logger.info("Writing " + dumper.dumped + " recipes took " + stopwatch.stop());
             dumper.printDumped(file);
         } catch (Exception e) {
             printFailed(e);
@@ -80,7 +88,10 @@ public class RecipeJsonWriter {
         final RecipeJsonWriter dumper = new RecipeJsonWriter();
 
         try {
+            final Stopwatch stopwatch = Stopwatch.createStarted();
             final List<ICraftingHandler> handlers = GuiCraftingRecipe.getCraftingHandlers("all");
+            NEIClientConfig.logger.info("Loading " + handlers.size() + " recipe handlers took " + stopwatch.stop());
+            stopwatch.reset().start();
 
             if (separate) {
                 if (DUMP_DIR.exists()) {
@@ -95,10 +106,12 @@ public class RecipeJsonWriter {
                     dumper.writeFile(file, Collections.singletonList(handler), RecipeJsonWriter::filteredRecipes);
                 }
 
+                NEIClientConfig.logger.info("Writing " + dumper.dumped + " recipes took " + stopwatch.stop());
                 dumper.printDumped(DUMP_DIR);
             } else {
                 final File file = new File(CommonUtils.getMinecraftDir(), "dumps/recipes.jsonl");
                 dumper.writeFile(file, handlers, RecipeJsonWriter::filteredRecipes);
+                NEIClientConfig.logger.info("Writing " + dumper.dumped + " recipes took " + stopwatch.stop());
                 dumper.printDumped(file);
             }
         } catch (Exception e) {
@@ -165,7 +178,7 @@ public class RecipeJsonWriter {
         }
     }
 
-    private static String recipeJson(IRecipeHandler handler, int recipeIndex) throws IllegalAccessException {
+    private String recipeJson(IRecipeHandler handler, int recipeIndex) throws IllegalAccessException {
         final Recipe recipe = Recipe.of(handler, recipeIndex);
         final JsonObject json = new JsonObject();
         json.addProperty("handler", recipe.getHandlerName());
@@ -184,7 +197,7 @@ public class RecipeJsonWriter {
      * Each slot's shown stack, with {@code anyOf} listing every accepted stack. In a crafting grid, an ingredient's
      * container item (an empty bucket, a damaged tool) goes under {@code returns}.
      */
-    private static JsonArray slotsJson(List<RecipeIngredient> slots, boolean craftingGrid) {
+    private JsonArray slotsJson(List<RecipeIngredient> slots, boolean craftingGrid) {
         final JsonArray array = new JsonArray();
 
         for (RecipeIngredient slot : slots) {
@@ -228,17 +241,26 @@ public class RecipeJsonWriter {
         return array;
     }
 
-    private static JsonObject stackJson(ItemStack stack) {
+    private JsonObject stackJson(ItemStack stack) {
         final NBTTagCompound nbTag = stack != null ? StackInfo.itemStackToNBT(stack) : null;
 
         if (nbTag == null) {
             return null;
         }
 
+        final NBTBase count = nbTag.getTag("Count");
+        nbTag.removeTag("Count");
+        final String name = this.names.computeIfAbsent(
+                nbTag.toString(),
+                key -> EnumChatFormatting
+                        .getTextWithoutFormattingCodes(GuiContainerManager.itemDisplayNameShort(stack)));
+
+        if (count != null) {
+            nbTag.setTag("Count", count);
+        }
+
         final JsonObject json = NBTJson.toJsonObject(nbTag).getAsJsonObject();
-        json.addProperty(
-                "name",
-                EnumChatFormatting.getTextWithoutFormattingCodes(GuiContainerManager.itemDisplayNameShort(stack)));
+        json.addProperty("name", name);
         return json;
     }
 
