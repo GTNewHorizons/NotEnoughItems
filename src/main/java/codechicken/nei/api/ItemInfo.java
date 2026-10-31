@@ -59,6 +59,7 @@ import codechicken.nei.SearchTokenParser.SearchMode;
 import codechicken.nei.config.ArrayDumper;
 import codechicken.nei.config.HandlerDumper;
 import codechicken.nei.config.ItemPanelDumper;
+import codechicken.nei.config.RecipeDumper;
 import codechicken.nei.config.RegistryDumper;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.item.FluidDisplayRenderer;
@@ -284,6 +285,7 @@ public class ItemInfo {
         });
         API.addOption(new ItemPanelDumper("tools.dump.itempanel"));
         API.addOption(new HandlerDumper("tools.dump.handlers"));
+        API.addOption(new RecipeDumper("tools.dump.recipes"));
     }
 
     @SuppressWarnings("unchecked")
