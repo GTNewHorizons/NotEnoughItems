@@ -41,6 +41,7 @@ import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.HandlerInfo;
 import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.RecipeHandlerRef;
+import codechicken.nei.recipe.RecipeJsonWriter;
 import codechicken.nei.recipe.ShapedRecipeHandler;
 import codechicken.nei.recipe.TemplateRecipeHandler;
 import codechicken.nei.recipe.TemplateRecipeHandler.RecipeTransferRect;
@@ -272,6 +273,8 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
             API.addRecipeFilter(() -> this.duplicatesOnly ? this::isDuplicate : null);
         }
 
+        y = addExportWidget("ExportRecipes", y);
+
         this.h = 10 + LINE_HEIGHT + y;
         this.container.h = this.h - INLINE_PADDING * 2 - LINE_HEIGHT;
     }
@@ -328,6 +331,45 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
         this.container.addWidget(label);
         this.container.addWidget(value);
         this.values.put(key.toLowerCase(), value);
+
+        return y + value.h + 1;
+    }
+
+    private int addExportWidget(String key, int y) {
+        final LabelWidget label = new LabelWidget(0x888888, false) {
+
+            @Override
+            public List<String> handleTooltip(int mx, int my, List<String> tooltip) {
+                if (contains(mx, my)) {
+                    super.handleTooltip(mx, my, tooltip);
+                    tooltip.add(
+                            EnumChatFormatting.GRAY + NEIClientUtils.translate("debug.RecipeHandler.export.tooltip"));
+                }
+
+                return tooltip;
+            }
+        };
+        final Button value = new Button(NEIClientUtils.translate("debug.RecipeHandler.export")) {
+
+            @Override
+            public boolean onButtonPress(boolean rightclick) {
+                if (rightclick || !(NEIClientUtils.getGuiContainer() instanceof GuiRecipe<?>recipe)) return false;
+
+                RecipeJsonWriter.dump(recipe.getHandler(), recipe.getFilteredRecipes());
+                return true;
+            }
+        };
+
+        value.w = 58;
+        value.h = 16;
+        value.y = label.y = y;
+        value.x = this.w - INLINE_PADDING * 2 - value.w - 1;
+        label.w = value.x;
+
+        label.updateValue(NEIClientUtils.translate(TOOLTIP_PREFIX + key));
+
+        this.container.addWidget(label);
+        this.container.addWidget(value);
 
         return y + value.h + 1;
     }
