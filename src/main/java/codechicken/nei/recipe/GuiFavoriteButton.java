@@ -122,18 +122,25 @@ public class GuiFavoriteButton extends GuiRecipeButton {
         return Recipe.of(this.handlerRef);
     }
 
-    public void lastKeyTyped(char keyChar, int keyID) {
+    @Override
+    public void lastKeyTyped(char keyChar, int keyID) {}
+
+    @Override
+    public boolean onHotkeyPressed() {
 
         if (KeyManager.isKeyDown("bookmark.add") && NEIClientUtils.shiftKey()) {
             saveRecipeInBookmark();
+            return true;
         }
 
         if (KeyManager.isKeyDown("bookmark.open_crafting_tree") && NEIClientUtils.shiftKey()
                 && saveRecipeInBookmark()) {
             final int groupId = ItemPanels.bookmarkPanel.getGrid().getNextGroupId() - 1;
             GuiCraftingTree.openCraftingTreeGui(ItemPanels.bookmarkPanel.getGrid(), groupId);
+            return true;
         }
 
+        return false;
     }
 
     @Override

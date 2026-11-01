@@ -220,6 +220,20 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyID) {
 
+        if (isEnabled() && !isHidden()) {
+            for (Widget widget : controlWidgets) {
+                if (inputFocused == null) {
+                    widget.lastKeyTyped(keyID, keyChar);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean onHotkeyPressed(GuiContainer gui) {
+
         if (KeyManager.isKeyDown("gui.hide")) {
             toggleBooleanSetting("inventory.hidden");
             return true;
@@ -234,8 +248,12 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             return true;
         }
 
-        if (isEnabled() && !isHidden()) {
-            for (Widget widget : controlWidgets) if (inputFocused == null) widget.lastKeyTyped(keyID, keyChar);
+        if (isEnabled() && !isHidden() && inputFocused == null) {
+            for (Widget widget : controlWidgets) {
+                if (widget.onHotkeyPressed()) {
+                    return true;
+                }
+            }
         }
 
         return false;

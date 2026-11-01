@@ -1,6 +1,7 @@
 package codechicken.nei.recipe;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -20,9 +21,12 @@ import codechicken.lib.inventory.InventoryUtils;
 import codechicken.nei.FastTransferManager;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
+import codechicken.nei.ServerSync;
 import codechicken.nei.api.IOverlayHandler;
 
 public class DefaultOverlayHandler implements IOverlayHandler {
+
+    private static final long SYNC_TIMEOUT_MILLIS = 5000;
 
     public static class DistributedIngred {
 
@@ -113,7 +117,8 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         }
 
         boolean craft = false;
-        while (multiplier > 0) {
+        while (multiplier > 0 && firstGui.mc.currentScreen == firstGui
+                && presenceOverlay(firstGui, handler, recipeIndex).stream().allMatch(s -> s.isPresent())) {
             final int transfer = transferRecipe(firstGui, handler, recipeIndex, multiplier);
 
             if (transfer <= 0) {
@@ -121,6 +126,10 @@ public class DefaultOverlayHandler implements IOverlayHandler {
             }
 
             multiplier -= transfer;
+
+            if (!craftingSlot.getHasStack() && !awaitServer(firstGui)) {
+                break;
+            }
 
             if (craftingSlot.getHasStack() && craftingSlot.canTakeStack(firstGui.mc.thePlayer)) {
                 FastTransferManager.clickSlot(firstGui, craftingSlot.slotNumber, 0, 1);
@@ -139,9 +148,30 @@ public class DefaultOverlayHandler implements IOverlayHandler {
         return craft;
     }
 
+    private boolean awaitServer(GuiContainer gui) {
+        final long deadline = System.currentTimeMillis() + SYNC_TIMEOUT_MILLIS;
+        ServerSync.request();
+
+        while (ServerSync.pending()) {
+            if (gui.mc.currentScreen != gui || System.currentTimeMillis() > deadline) {
+                return false;
+            }
+
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     protected boolean clearIngredients(GuiContainer gui, IRecipeHandler handler) {
 
         for (Slot slot : getCraftMatrixSlots(gui, handler)) {
+            if (gui.mc.currentScreen != gui) return false;
+
             if (slot.canTakeStack(gui.mc.thePlayer)) {
                 FastTransferManager.clickSlot(gui, slot.slotNumber, 0, 1);
                 if (slot.getHasStack()) return false;
@@ -206,7 +236,9 @@ public class DefaultOverlayHandler implements IOverlayHandler {
     protected void moveIngredients(GuiContainer gui, List<IngredientDistribution> assignedIngredients, int multiplier) {
         final Slot craftingSlot = getCraftingResultSlot(gui);
 
-        for (Slot slot : gui.inventorySlots.inventorySlots) {
+        for (Slot slot : getSourceSlots(gui)) {
+            if (gui.mc.currentScreen != gui) return;
+
             if (slot == craftingSlot || !slot.getHasStack()
                     || !canMoveFrom(slot, gui)
                     || !slot.canTakeStack(gui.mc.thePlayer))
@@ -239,6 +271,10 @@ public class DefaultOverlayHandler implements IOverlayHandler {
                             if (pickup != (pickup = true)) {
                                 FastTransferManager.clickSlot(gui, slot.slotNumber);
                             }
+
+                            // A right click with an empty or foreign cursor would take half of the dest stack
+                            final ItemStack held = gui.mc.thePlayer.inventory.getItemStack();
+                            if (held == null || !canStack(distrib.permutation, held)) break;
 
                             FastTransferManager.clickSlot(gui, dest.slotNumber, 1);
                             stackSize--;
@@ -370,7 +406,7 @@ public class DefaultOverlayHandler implements IOverlayHandler {
     }
 
     protected void findInventoryQuantities(GuiContainer gui, List<DistributedIngred> ingredStacks) {
-        for (Slot slot : gui.inventorySlots.inventorySlots) /* work out how much we have to go round */ {
+        for (Slot slot : getSourceSlots(gui)) /* work out how much we have to go round */ {
             if (slot.getHasStack() && canMoveFrom(slot, gui)) {
                 final ItemStack pstack = slot.getStack();
                 final DistributedIngred istack = findIngred(ingredStacks, pstack);
@@ -406,6 +442,25 @@ public class DefaultOverlayHandler implements IOverlayHandler {
                 }
             }
         }
+    }
+
+    protected List<Slot> getSourceSlots(GuiContainer gui) {
+        final List<Slot> slots = new ArrayList<>(gui.inventorySlots.inventorySlots);
+        slots.sort(Comparator.comparingLong(slot -> getRemainingDurability(slot.getStack())));
+        return slots;
+    }
+
+    private static long getRemainingDurability(ItemStack stack) {
+        if (stack == null || stack.getMaxStackSize() != 1) return Long.MAX_VALUE;
+
+        final NBTTagCompound tagCompound = stack.getTagCompound();
+
+        if (tagCompound != null && tagCompound.hasKey("GT.ToolStats")) {
+            final NBTTagCompound toolStats = tagCompound.getCompoundTag("GT.ToolStats");
+            return toolStats.getLong("MaxDamage") - toolStats.getLong("Damage");
+        }
+
+        return stack.isItemStackDamageable() ? stack.getMaxDamage() - stack.getItemDamage() : Long.MAX_VALUE;
     }
 
     private int getGTToolDamagePerContainerCraft(ItemStack aStack) {

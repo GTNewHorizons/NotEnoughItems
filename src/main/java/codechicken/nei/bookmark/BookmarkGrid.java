@@ -501,8 +501,9 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
         if (!this.isEmpty() && this.gridGenerator.maxAbsoluteSlotIndex > 0) {
             final GroupingItem groupingItem = ItemPanels.bookmarkPanel.groupingItem;
             final int sortableGroupId = ItemPanels.bookmarkPanel.sortableGroup != null
-                    ? ItemPanels.bookmarkPanel.sortableGroup.groupId
-                    : -3;
+                    && ItemPanels.bookmarkPanel.sortableGroup.grid == this
+                            ? ItemPanels.bookmarkPanel.sortableGroup.groupId
+                            : -3;
             final int rowShift = this.page * this.rows;
             Map<Integer, Integer> groups = this.gridGenerator.rowToGroupId;
 
@@ -883,8 +884,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
                 this.bookmarkItems.add(item);
             }
 
-            sortableGroup.grid = this;
-            sortableGroup.groupId = groupId;
+            sortableGroup.update(this, groupId);
             this.onItemsChanged();
             this.getMask();// force generate grid
             overGroupId = getRowGroupId(overRowIndex);
@@ -1373,7 +1373,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
             for (BookmarksGridSlot slot : getMask()) {
                 Rectangle4i rect = getSlotRect(slot.slotIndex);
 
-                if (sortableGroup != null && slot.getGroupId() == sortableGroup.groupId) {
+                if (sortableGroup != null && sortableGroup.matches(this, slot.getGroupId())) {
                     NEIClientUtils.drawRect(rect.x, rect.y, rect.w, rect.h, DRAG_COLOR);
                 } else if (sortableItem != null && sortableItem.items.contains(slot.itemIndex)) {
                     NEIClientUtils.drawRect(rect.x, rect.y, rect.w, rect.h, DRAG_COLOR);
@@ -1402,7 +1402,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
             final SortableItem sortableItem = LayoutManager.bookmarkPanel.sortableItem;
 
             for (BookmarksGridSlot slot : getMask()) {
-                if ((sortableGroup == null || slot.getGroupId() != sortableGroup.groupId)
+                if ((sortableGroup == null || !sortableGroup.matches(this, slot.getGroupId()))
                         && (sortableItem == null || !sortableItem.items.contains(slot.itemIndex))) {
                     slot.afterDraw(getSlotRect(slot.slotIndex), mouseContext);
                 }
@@ -1419,7 +1419,7 @@ public class BookmarkGrid extends ItemsGrid<BookmarksGridSlot, BookmarkGrid.Book
 
         for (BookmarksGridSlot slot : getMask()) {
 
-            if ((sortableGroup == null || slot.getGroupId() != sortableGroup.groupId)
+            if ((sortableGroup == null || !sortableGroup.matches(this, slot.getGroupId()))
                     && (sortableItem == null || !sortableItem.items.contains(slot.itemIndex))) {
                 final BookmarkItem item = slot.getBookmarkItem();
 

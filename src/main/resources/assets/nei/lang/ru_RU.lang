@@ -438,6 +438,7 @@ nei.recipe.overlay=отображение рецепта
 nei.recipe.overlay.missing=Отсутствует следующее
 nei.recipe.overlay.mismatch=Несоответствие сетки крафта
 nei.recipe.overlay.fillCraftingGrid=Заполнить сетку крафта
+nei.recipe.overlay.fillCraftingGridOnce=Заполнить сетку крафта (один рецепт)
 nei.recipe.overlay.bookmarkRecipe=Сохранить с рецептом
 nei.recipe.overlay.sendRecipeToChat=Отправить рецепт в чат
 

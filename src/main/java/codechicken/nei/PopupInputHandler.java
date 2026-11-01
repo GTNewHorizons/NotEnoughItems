@@ -23,6 +23,11 @@ public class PopupInputHandler implements IContainerInputHandler {
 
     @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyID) {
+        return false;
+    }
+
+    @Override
+    public boolean onHotkeyPressed(GuiContainer gui) {
 
         if (KeyManager.isHashDown("gui.enchant") && canPerformAction("enchant")) {
             NEICPH.sendOpenEnchantmentWindow();

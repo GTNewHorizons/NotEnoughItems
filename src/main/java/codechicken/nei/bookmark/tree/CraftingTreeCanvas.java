@@ -192,12 +192,12 @@ class CraftingTreeCanvas {
                 : -FIT_MARGIN;
     }
 
-    public void startDrag(int mouseX, int mouseY) {
-        this.camera.startDrag(mouseX, mouseY);
+    public void startDrag(Point2D mouse) {
+        this.camera.startDrag(mouse);
     }
 
-    public void drag(int mouseX, int mouseY) {
-        this.camera.drag(mouseX, mouseY);
+    public void drag(Point2D mouse) {
+        this.camera.drag(mouse);
     }
 
     public void endDrag() {
@@ -315,7 +315,7 @@ class CraftingTreeCanvas {
 
     public void draw(Point2D mouse, Set<BookmarkItem> collapsedItems, SearchResult searchResult,
             boolean useInventorySnapshot, ItemTreeSlot hoveredNode, ItemTreeSlot deleteHoverNode) {
-        this.camera.clampToBounds(this.treeWidth, this.treeHeight);
+        this.camera.update(mouse, this.treeWidth, this.treeHeight);
 
         final float zScrollX = this.camera.scrollX * this.camera.zoomLevel;
         final float zScrollY = this.camera.scrollY * this.camera.zoomLevel;

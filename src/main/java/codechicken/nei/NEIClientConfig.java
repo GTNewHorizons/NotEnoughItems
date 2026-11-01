@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -37,7 +36,6 @@ import codechicken.lib.config.ConfigTag;
 import codechicken.lib.config.ConfigTagParent;
 import codechicken.nei.api.API;
 import codechicken.nei.api.GuiInfo;
-import codechicken.nei.api.IConfigureNEI;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.api.NEIInfo;
 import codechicken.nei.config.ConfigSet;
@@ -1026,20 +1024,11 @@ public class NEIClientConfig {
 
                 @Override
                 public void run() {
-                    final Stream<Class<?>> stream = NEIClientConfig.getBooleanSetting("loadPluginsInParallel")
-                            ? NEIClientConfig.pluginsList.parallelStream()
-                            : NEIClientConfig.pluginsList.stream();
-
-                    stream.forEach(clazz -> {
-                        try {
-                            IConfigureNEI config = (IConfigureNEI) clazz.getConstructor().newInstance();
-                            config.loadConfig();
-                            NEIModContainer.plugins.add(config);
-                            logger.debug("Loaded {}", clazz.getName());
-                        } catch (Throwable e) {
-                            logger.error("Failed to Load {}", clazz.getName(), e);
-                        }
-                    });
+                    PluginLoader.load(
+                            NEIClientConfig.pluginsList,
+                            NEIClientConfig.getBooleanSetting("loadPluginsInParallel"),
+                            NEIModContainer.plugins,
+                            logger);
 
                     KeyManager.requestOptionsReload();
                     RecipeCatalysts.loadCatalystInfo();

@@ -219,6 +219,11 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
 
     @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyID) {
+        return false;
+    }
+
+    @Override
+    public boolean onHotkeyPressed(GuiContainer gui) {
 
         if (KeyManager.isHashDown("itemzoom.toggle", NEIClientUtils.SHIFT_HASH)) {
             NEIClientConfig.getSetting("inventory.itemzoom.enabled")

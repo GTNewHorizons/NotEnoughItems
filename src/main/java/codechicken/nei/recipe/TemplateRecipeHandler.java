@@ -287,6 +287,11 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
         @Override
         public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyCode) {
+            return false;
+        }
+
+        @Override
+        public boolean onHotkeyPressed(GuiContainer gui) {
             if (!canHandle(gui)) return false;
 
             if (KeyManager.isKeyDown("recipe.recipe")) {

@@ -29,6 +29,10 @@ public abstract class Widget {
 
     public void lastKeyTyped(int keyID, char keyChar) {}
 
+    public boolean onHotkeyPressed() {
+        return false;
+    }
+
     public boolean handleClickExt(int mx, int my, int button) {
         return false;
     }

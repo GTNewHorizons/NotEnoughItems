@@ -8,7 +8,6 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
-import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.ItemsGrid.MouseContext;
 import codechicken.nei.NEIClientConfig;
@@ -65,7 +64,8 @@ public class BookmarksGridSlot extends ItemsGridSlot {
     protected final int rowIndex;
 
     public BookmarksGridSlot(int slotIndex, int itemIndex, long realMultiplier, long shiftAmount,
-            long calculatedMultiplier, BookmarkItem bookmarkItem, CalculatedType calculatedType, BookmarkGroup group) {
+            long calculatedMultiplier, BookmarkItem bookmarkItem, CalculatedType calculatedType, BookmarkGroup group,
+            BookmarkGrid grid) {
         super(
                 slotIndex,
                 itemIndex,
@@ -96,7 +96,6 @@ public class BookmarksGridSlot extends ItemsGridSlot {
                             : CalculatedType.RESULT;
         }
 
-        final BookmarkGrid grid = ItemPanels.bookmarkPanel.getGrid();
         final BookmarkItem prevItem = grid.getCalculatedItem(
                 grid.gridGenerator.slotToItem.getOrDefault(grid.gridGenerator.itemToSlot.get(this.itemIndex) - 1, -1));
         this.isFirstOutput = this.itemIndex >= 0 && this.bookmarkItem.type == BookmarkItemType.RESULT

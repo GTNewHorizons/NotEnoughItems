@@ -513,6 +513,11 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
     }
 
     @Override
+    public boolean onHotkeyPressed() {
+        return this.record != null && this.container.onHotkeyPressed();
+    }
+
+    @Override
     public void onGuiClick(int mx, int my) {
         if (this.record != null) {
             this.container.onGuiClick(mx, my);

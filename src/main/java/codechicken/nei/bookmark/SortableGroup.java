@@ -13,13 +13,23 @@ public class SortableGroup {
 
     public int groupId;
     public BookmarkGrid grid;
+    public boolean aloneInGrid;
 
     public int shiftX = 0;
     public int shiftY = 0;
 
     public SortableGroup(BookmarkGrid grid, int groupId) {
+        update(grid, groupId);
+    }
+
+    public void update(BookmarkGrid grid, int groupId) {
         this.grid = grid;
         this.groupId = groupId;
+        this.aloneInGrid = grid.bookmarkItems.stream().allMatch(item -> item.groupId == groupId);
+    }
+
+    public boolean matches(BookmarkGrid grid, int groupId) {
+        return this.grid == grid && this.groupId == groupId;
     }
 
     public void postDraw(int mousex, int mousey) {

@@ -23,6 +23,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
+import codechicken.nei.ItemPanels;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.util.NBTJson;
@@ -79,10 +80,21 @@ public class BookmarkStorage {
 
     public int getNamespaceSize() {
 
-        if (this.namespaces.get(this.namespaces.size() - 1).size() > 0) {
-            this.namespaces.add(new BookmarkGrid());
-        } else if (this.activeNamespaceIndex == this.namespaces.size() - 2 && getActiveGrid().size() == 0) {
-            this.namespaces.remove(this.namespaces.size() - 1);
+        final int lastIndex = this.namespaces.size() - 1;
+        final BookmarkGrid lastGrid = this.namespaces.get(lastIndex);
+        final SortableGroup sortableGroup = ItemPanels.bookmarkPanel.sortableGroup;
+
+        if (lastGrid.size() > 0) {
+            if (sortableGroup == null || sortableGroup.grid != lastGrid || !sortableGroup.aloneInGrid) {
+                this.namespaces.add(new BookmarkGrid());
+            }
+        } else if (lastIndex > 0 && this.activeNamespaceIndex != lastIndex) {
+            final BookmarkGrid prevGrid = this.namespaces.get(lastIndex - 1);
+
+            if (sortableGroup != null && sortableGroup.grid == prevGrid && sortableGroup.aloneInGrid
+                    || prevGrid == getActiveGrid() && prevGrid.size() == 0) {
+                this.namespaces.remove(lastIndex);
+            }
         }
 
         return this.namespaces.size();

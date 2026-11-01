@@ -1,5 +1,6 @@
 package codechicken.nei.recipe;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 
@@ -167,6 +168,8 @@ public class RecipeHandlerRef {
         return transferAlghoritmCache.computeIfAbsent(overlayHandler.getClass(), clazz -> {
 
             try {
+                final Method transferRecipe = overlayHandler.getClass()
+                        .getMethod("transferRecipe", GuiContainer.class, IRecipeHandler.class, int.class, int.class);
 
                 if (overlayHandler instanceof DefaultOverlayHandler) {
                     final Class<?> overlayRecipeClazz = overlayHandler.getClass()
@@ -178,14 +181,11 @@ public class RecipeHandlerRef {
                                     boolean.class)
                             .getDeclaringClass();
 
-                    if (overlayRecipeClazz.equals(DefaultOverlayHandler.class)) {
-                        return true;
-                    }
+                    return overlayRecipeClazz.equals(DefaultOverlayHandler.class)
+                            || !transferRecipe.getDeclaringClass().equals(DefaultOverlayHandler.class);
                 }
 
-                return !overlayHandler.getClass()
-                        .getMethod("transferRecipe", GuiContainer.class, IRecipeHandler.class, int.class, int.class)
-                        .isDefault();
+                return !transferRecipe.isDefault();
             } catch (NoSuchMethodException e) {}
 
             return false;
