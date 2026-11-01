@@ -682,6 +682,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         return this.handlerPages.getRecipeIndices();
     }
 
+    public List<Integer> getFilteredRecipes() {
+        return this.handler.getFilteredRecipes();
+    }
+
     @Override
     public void keyTyped(char c, int i) {
 
