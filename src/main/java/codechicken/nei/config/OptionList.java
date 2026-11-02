@@ -20,12 +20,7 @@ public class OptionList extends OptionButton {
         }
 
         @Override
-        public ConfigSet globalConfigSet() {
-            return null;
-        }
-
-        @Override
-        public ConfigSet worldConfigSet() {
+        public ConfigSet configSet() {
             return null;
         }
 
@@ -35,8 +30,8 @@ public class OptionList extends OptionButton {
         }
 
         @Override
-        public GuiOptionList getGui(GuiScreen parent, OptionList list, boolean world) {
-            return new GuiOptionList(parent, list, world);
+        public GuiOptionList getGui(GuiScreen parent, OptionList list) {
+            return new GuiOptionList(parent, list);
         }
     }
 
@@ -118,41 +113,25 @@ public class OptionList extends OptionButton {
      * 
      * @param parent The parent screen for the back button
      * @param list   The option list to be displayed in the gui
-     * @param world  true if in world config mode, false for global
      */
-    public GuiOptionList getGui(GuiScreen parent, OptionList list, boolean world) {
-        return this.parent.getGui(parent, list, world);
+    public GuiOptionList getGui(GuiScreen parent, OptionList list) {
+        return this.parent.getGui(parent, list);
     }
 
-    public void openGui(GuiScreen parent, boolean world) {
-        Minecraft.getMinecraft().displayGuiScreen(getGui(parent, this, world));
-    }
-
-    /**
-     * Adds this option to a temporary slot and gui for internal setting manipulation.
-     */
-    public GuiOptionList synthesizeEnvironment(boolean world) {
-        GuiOptionList gui = getGui(null, this, world);
-        gui.addWidgets();
-        return gui;
+    public void openGui(GuiScreen parent) {
+        Minecraft.getMinecraft().displayGuiScreen(getGui(parent, this));
     }
 
     @Override
     public boolean onClick(int button) {
-        openGui(getSlot().getGui(), getSlot().getGui().worldConfig());
+        openGui(getSlot().getGui());
         return true;
-    }
-
-    @Override
-    public boolean showWorldSelector() {
-        return false;
     }
 
     @Override
     public void onAdded(OptionScrollSlot slot) {
         super.onAdded(slot);
 
-        globalConfigSet().config.getTag(configName()).useBraces();
-        worldConfigSet().config.getTag(configName()).useBraces();
+        configSet().config.getTag(configName()).useBraces();
     }
 }

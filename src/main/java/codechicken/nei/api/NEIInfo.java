@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import net.minecraft.world.World;
 
 import codechicken.nei.NEIClientConfig;
-import codechicken.nei.config.GuiOptionList;
 import codechicken.nei.config.OptionCycled;
 
 public class NEIInfo {
@@ -14,11 +13,7 @@ public class NEIInfo {
 
     public static void load(World world) {
         OptionCycled modeOption = (OptionCycled) NEIClientConfig.getOptionList().getOption("inventory.cheatmode");
-        final boolean worldConfig = NEIClientConfig.isWorldSpecific("inventory.cheatmode");
-        // kept alive so the WeakReference in Option.slotRef isn't GC'd before copyGlobals/cycle use it
-        GuiOptionList env = modeOption.parent.synthesizeEnvironment(worldConfig);
         if (!modeOption.optionValid(modeOption.value())) {
-            modeOption.copyGlobals();
             modeOption.cycle();
         }
     }

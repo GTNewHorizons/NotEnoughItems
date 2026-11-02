@@ -16,7 +16,11 @@ public class OptionCycled extends OptionButton {
     }
 
     public int value() {
-        return renderTag().getIntValue();
+        return getTag().getIntValue();
+    }
+
+    public void setValue(int value) {
+        getTag().setIntValue(value);
     }
 
     @Override
@@ -52,7 +56,7 @@ public class OptionCycled extends OptionButton {
 
         if (next == value()) return false;
 
-        getTag().setIntValue(next);
+        setValue(next);
         return true;
     }
 

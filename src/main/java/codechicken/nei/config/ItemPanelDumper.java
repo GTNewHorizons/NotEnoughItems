@@ -58,7 +58,7 @@ public class ItemPanelDumper extends DataDumper {
     }
 
     public int getRes() {
-        int i = renderTag(name + ".res").getIntValue(0);
+        int i = getTag(name + ".res").getIntValue(0);
         int size = 16 << i;
         if (size >= getSmallerScreenAxisSize() || i < 0) {
             getTag(name + ".res").setIntValue(0);
@@ -95,7 +95,7 @@ public class ItemPanelDumper extends DataDumper {
         }
         if (resButtonSize().contains(mousex, mousey)) {
             NEIClientUtils.playClickSound();
-            int current = renderTag(name + ".res").getIntValue(0);
+            int current = getTag(name + ".res").getIntValue(0);
             int next;
             // 31 - numberOfLeadingZeros(x) = floor(log2(x))
             int max = 31 - Integer.numberOfLeadingZeros(getSmallerScreenAxisSize()) - 3;
