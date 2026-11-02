@@ -24,7 +24,6 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import org.apache.commons.io.IOUtils;
 
-import com.google.common.io.Files;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
@@ -244,14 +243,7 @@ public class FavoriteRecipes {
 
         if (hasErrors) {
 
-            try {
-                Files.copy(
-                        favoriteFile,
-                        new File(favoriteFile.getAbsolutePath() + ".backup-" + System.currentTimeMillis()));
-                NEIClientConfig.logger.info("Backed up invalid favorite file to {}", favoriteFile);
-            } catch (IOException e) {
-                NEIClientConfig.logger.error("Failed to backup invalid favorite file to {}", favoriteFile, e);
-            }
+            NEIClientUtils.backupFile(favoriteFile);
 
             save();
         }

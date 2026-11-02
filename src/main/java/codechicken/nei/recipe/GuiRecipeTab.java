@@ -1,15 +1,10 @@
 package codechicken.nei.recipe;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -207,41 +202,27 @@ public abstract class GuiRecipeTab extends Widget {
     }
 
     public static void loadHandlerInfo() {
-        final boolean fromJar = NEIClientConfig.loadHandlersFromJar();
+        final boolean fromJar = !NEIClientConfig.handlerFile.exists();
         NEIClientConfig.logger.info("Loading handler info from " + (fromJar ? "JAR" : "Config"));
         handlerMap.clear();
-        URL handlerUrl = GuiRecipeTab.class.getResource("/assets/nei/csv/handlers.csv");
 
         URL url;
-        if (fromJar) {
-            url = handlerUrl;
-            if (url == null) {
-                NEIClientConfig.logger.info("Invalid URL for handlers csv.");
-                return;
-            }
-        } else {
-            File handlerFile = NEIClientConfig.handlerFile;
-            if (!handlerFile.exists()) {
-                NEIClientConfig.logger.info("Config file doesn't exist, creating");
-                try (FileOutputStream fileOutputStream = new FileOutputStream(handlerFile.getAbsoluteFile())) {
-                    assert handlerUrl != null;
-                    ReadableByteChannel readableByteChannel = Channels.newChannel(handlerUrl.openStream());
-                    FileChannel fileChannel = fileOutputStream.getChannel();
-                    fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return;
-                }
-            }
-            try {
-                url = NEIClientConfig.handlerFile.toURI().toURL();
-            } catch (MalformedURLException e) {
-                NEIClientConfig.logger.info("Invalid URL for handlers csv (via config).");
-                e.printStackTrace();
-                return;
-            }
+        try {
+            url = fromJar ? GuiRecipeTab.class.getResource("/assets/nei/csv/handlers.csv")
+                    : NEIClientConfig.handlerFile.toURI().toURL();
+        } catch (MalformedURLException e) {
+            NEIClientConfig.logger.info("Invalid URL for handlers csv (via config).");
+            e.printStackTrace();
+            return;
         }
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+
+        if (url == null) {
+            NEIClientConfig.logger.info("Invalid URL for handlers csv.");
+            return;
+        }
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
             CSVParser csvParser = CSVFormat.EXCEL.builder().setHeader().setSkipHeaderRecord(true).build().parse(reader);
             for (CSVRecord record : csvParser) {
                 final String handler = record.get("handler");

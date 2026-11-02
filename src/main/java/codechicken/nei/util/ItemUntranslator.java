@@ -379,7 +379,7 @@ public class ItemUntranslator {
         LanguageRegistryPatch.secondLanguageListCache = null;
         this.processedNames.clear();
 
-        if (ClientHandler.loadSettingsFile(CONFIG_FILE, null, this::parseStream)
+        if (ClientHandler.loadSettingsFile(CONFIG_FILE, this::parseStream)
                 || ClientHandler.loadSettingsResource(CONFIG_FILE, this::parseStream)) {
             NEIClientConfig.logger.info("Untranslator loaded");
         }
