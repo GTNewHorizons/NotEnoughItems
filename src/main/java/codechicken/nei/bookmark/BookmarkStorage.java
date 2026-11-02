@@ -14,7 +14,6 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import org.apache.commons.io.IOUtils;
 
-import com.google.common.io.Files;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -25,6 +24,7 @@ import com.google.gson.JsonSyntaxException;
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.NEIClientConfig;
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.util.NBTJson;
 
@@ -230,14 +230,7 @@ public class BookmarkStorage {
         }
 
         if (wasError) {
-            try {
-                Files.copy(
-                        bookmarkFile,
-                        new File(bookmarkFile.getAbsolutePath() + ".backup-" + System.currentTimeMillis()));
-                NEIClientConfig.logger.info("Backed up invalid bookmark file to {}", bookmarkFile);
-            } catch (IOException e) {
-                NEIClientConfig.logger.error("Failed to backup invalid bookmark file to {}", bookmarkFile, e);
-            }
+            NEIClientUtils.backupFile(bookmarkFile);
         }
 
         for (BookmarkGrid gr : namespaces) {
