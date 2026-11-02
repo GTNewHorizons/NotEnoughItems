@@ -16,8 +16,7 @@ public class OptionTextField extends Option {
 
         @Override
         public void onTextChange(String oldText) {
-            // don't override global if text hasn't changed
-            if (focused() && isValidValue(text()) && (!defaulting() || !text().equals(getTag().getValue()))) {
+            if (focused() && isValidValue(text())) {
                 getTag().setValue(text());
                 OptionTextField.this.onTextChange(text());
             }
@@ -25,7 +24,7 @@ public class OptionTextField extends Option {
 
         @Override
         public void setFocus(boolean focus) {
-            if (!focus && !isValidValue(text())) setText(renderTag().getValue());
+            if (!focus && !isValidValue(text())) setText(getTag().getValue());
             super.setFocus(focus);
         }
 
@@ -45,7 +44,7 @@ public class OptionTextField extends Option {
     @Override
     public void update() {
         textField.update();
-        if (!textField.focused()) textField.setText(renderTag().getValue());
+        if (!textField.focused()) textField.setText(getTag().getValue());
     }
 
     public String getPrefix() {

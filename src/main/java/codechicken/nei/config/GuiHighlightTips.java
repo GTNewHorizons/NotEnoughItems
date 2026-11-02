@@ -29,7 +29,6 @@ public class GuiHighlightTips extends GuiScreenWidget {
     private GuiCCButton toggleButton;
     private final Option opt;
     private final GuiOptionList parentGui;
-    private final boolean world;
     private Point dragDown;
 
     public GuiHighlightTips(Option opt) {
@@ -37,7 +36,6 @@ public class GuiHighlightTips extends GuiScreenWidget {
         this.opt = opt;
         name = opt.name;
         this.parentGui = (GuiOptionList) Minecraft.getMinecraft().currentScreen;
-        this.world = parentGui.worldConfig();
     }
 
     @Override
@@ -63,15 +61,11 @@ public class GuiHighlightTips extends GuiScreenWidget {
     }
 
     private boolean show() {
-        return renderTag(name).getBooleanValue();
+        return getTag(name).getBooleanValue();
     }
 
     private ConfigTag getTag(String s) {
-        return (world ? opt.worldConfigSet() : opt.globalConfigSet()).config.getTag(s);
-    }
-
-    private ConfigTag renderTag(String s) {
-        return (world && opt.worldSpecific(s) ? opt.worldConfigSet() : opt.globalConfigSet()).config.getTag(s);
+        return opt.configSet().config.getTag(s);
     }
 
     @Override
@@ -95,7 +89,7 @@ public class GuiHighlightTips extends GuiScreenWidget {
     }
 
     public Point getPos() {
-        return new Point(renderTag(name + ".x").getIntValue(), renderTag(name + ".y").getIntValue());
+        return new Point(getTag(name + ".x").getIntValue(), getTag(name + ".y").getIntValue());
     }
 
     public Dimension sampleSize() // copied from HUDManager when running with the sample for this gui
@@ -161,7 +155,6 @@ public class GuiHighlightTips extends GuiScreenWidget {
     }
 
     private void setPos(Point p) {
-        getTag(name).setBooleanValue(show()); // duplicates global tag for the option gui if in world mode
         getTag(name + ".x").setIntValue(p.x);
         getTag(name + ".y").setIntValue(p.y);
     }
