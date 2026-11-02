@@ -343,7 +343,6 @@ public abstract class ShortcutInputHandler {
             if (handlerRef != null) {
                 final GuiFavoriteButton button = new GuiFavoriteButton(handlerRef, 0, 0);
                 button.saveRecipeInBookmark();
-                return true;
             }
 
             return true;
