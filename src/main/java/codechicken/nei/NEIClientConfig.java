@@ -15,6 +15,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.storage.SaveFormatComparator;
 import net.minecraftforge.common.MinecraftForge;
@@ -43,7 +44,9 @@ import codechicken.nei.config.GuiHighlightTips;
 import codechicken.nei.config.GuiNEIOptionList;
 import codechicken.nei.config.GuiOptionList;
 import codechicken.nei.config.GuiPanelSettings;
+import codechicken.nei.config.OptionButton;
 import codechicken.nei.config.OptionCycled;
+import codechicken.nei.config.OptionExportConfig;
 import codechicken.nei.config.OptionGamemodes;
 import codechicken.nei.config.OptionIntegerField;
 import codechicken.nei.config.OptionList;
@@ -54,7 +57,6 @@ import codechicken.nei.config.OptionToggleButtonBoubs;
 import codechicken.nei.config.OptionUtilities;
 import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
-import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
@@ -525,29 +527,32 @@ public class NEIClientConfig {
 
         });
 
-        tag.getTag("tools.handler_load_from_config").setComment("ADVANCED: Load handlers from config")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("tools.handler_load_from_config", true) {
+        API.addOption(
+                new OptionButton(
+                        "tools.export_configs.all",
+                        "tools.export_configs.all",
+                        null,
+                        "tools.export_configs.all.tip") {
 
-            @Override
-            public boolean onClick(int button) {
-                super.onClick(button);
-                GuiRecipeTab.loadHandlerInfo();
-                return true;
-            }
-        });
+                    @Override
+                    public String getButtonText() {
+                        return translateN("tools.export_configs.button");
+                    }
 
-        tag.getTag("tools.catalyst_load_from_config").setComment("ADVANCED: Load catalysts from config")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("tools.catalyst_load_from_config", true) {
+                    @Override
+                    public boolean onClick(int button) {
+                        int exported = 0;
 
-            @Override
-            public boolean onClick(int button) {
-                super.onClick(button);
-                RecipeCatalysts.loadCatalystInfo();
-                return true;
-            }
-        });
+                        for (String resource : ClientHandler.DEFAULT_CONFIGS) {
+                            if (ClientHandler.exportDefaultConfig(resource)) exported++;
+                        }
+
+                        NEIClientUtils.printChatMessage(
+                                new ChatComponentTranslation("nei.options.tools.export_configs.all.done", exported));
+                        return true;
+                    }
+                });
+        ClientHandler.DEFAULT_CONFIGS.forEach(fileName -> API.addOption(new OptionExportConfig(fileName)));
 
         setDefaultKeyBindings();
     }
@@ -1185,14 +1190,6 @@ public class NEIClientConfig {
 
     public static boolean isLoaded() {
         return mainNEIConfigLoaded && pluginNEIConfigLoaded;
-    }
-
-    public static boolean loadHandlersFromJar() {
-        return !getBooleanSetting("tools.handler_load_from_config");
-    }
-
-    public static boolean loadCatalystsFromJar() {
-        return !getBooleanSetting("tools.catalyst_load_from_config");
     }
 
     public static boolean isProfileRecipeEnabled() {

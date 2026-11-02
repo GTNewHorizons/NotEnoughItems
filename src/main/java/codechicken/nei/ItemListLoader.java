@@ -36,7 +36,6 @@ import cpw.mods.fml.common.FMLLog;
 public class ItemListLoader {
 
     private static final HashSet<Item> erroredItems = new HashSet<>();
-    private static final HashSet<String> stackTraces = new HashSet<>();
     private static Map<ItemStack, Integer> ordering = new HashMap<>();
 
     private ItemListLoader() {}
@@ -60,11 +59,10 @@ public class ItemListLoader {
             } catch (TimeoutException t) {
                 throw t;
             } catch (Throwable t) {
-                NEIServerUtils.logOnce(
-                        t,
-                        stackTraces,
+                NEIClientUtils.errorOnce(
+                        "ItemListLoader: " + item.toString(),
                         "Ommiting " + item + ":" + damage + " " + item.getClass().getSimpleName(),
-                        item.toString());
+                        t);
             }
         }
     }

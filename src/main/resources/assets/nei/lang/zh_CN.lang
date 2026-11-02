@@ -203,12 +203,6 @@ nei.options.world.highlight_tips.sample=样本
 nei.options.world.panels=面板布局
 
 nei.options.tools=工具
-nei.options.tools.handler_load_from_config=从Config加载handler(加工所使用的机器类别)
-nei.options.tools.handler_load_from_config.true=Config
-nei.options.tools.handler_load_from_config.false=JAR
-nei.options.tools.catalyst_load_from_config=从Config加载catalysts(加工所使用的具体机器等)
-nei.options.tools.catalyst_load_from_config.true=Config
-nei.options.tools.catalyst_load_from_config.false=JAR
 nei.options.tools.dump=数据存储
 nei.options.tools.dump.dump=存储
 nei.options.tools.dump.dumped=%s ID已保存到.minecraft/%s
