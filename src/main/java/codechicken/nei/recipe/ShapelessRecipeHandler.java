@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
@@ -83,7 +82,7 @@ public class ShapelessRecipeHandler extends ShapedRecipeHandler {
     @Override
     public void loadCraftingRecipes(String outputId, Object... results) {
         if (outputId.equals("crafting") && getClass() == ShapelessRecipeHandler.class) {
-            List<IRecipe> allrecipes = CraftingManager.getInstance().getRecipeList();
+            List<IRecipe> allrecipes = getCraftingRecipesSnapshot();
             for (IRecipe irecipe : allrecipes) {
                 CachedShapelessRecipe recipe = null;
 
@@ -98,7 +97,7 @@ public class ShapelessRecipeHandler extends ShapedRecipeHandler {
                 }
             }
         } else if (outputId.equals("crafting2x2") && getClass() == ShapelessRecipeHandler.class) {
-            List<IRecipe> allrecipes = CraftingManager.getInstance().getRecipeList();
+            List<IRecipe> allrecipes = getCraftingRecipesSnapshot();
             for (IRecipe irecipe : allrecipes) {
                 CachedShapelessRecipe recipe = null;
 
@@ -119,7 +118,7 @@ public class ShapelessRecipeHandler extends ShapedRecipeHandler {
 
     @Override
     public void loadCraftingRecipes(ItemStack result) {
-        List<IRecipe> allrecipes = CraftingManager.getInstance().getRecipeList();
+        List<IRecipe> allrecipes = getCraftingRecipesSnapshot();
         for (IRecipe irecipe : allrecipes) {
             if (NEIServerUtils.areStacksSameTypeCrafting(irecipe.getRecipeOutput(), result)) {
                 CachedShapelessRecipe recipe = null;
@@ -136,7 +135,7 @@ public class ShapelessRecipeHandler extends ShapedRecipeHandler {
 
     @Override
     public void loadUsageRecipes(ItemStack ingredient) {
-        List<IRecipe> allrecipes = CraftingManager.getInstance().getRecipeList();
+        List<IRecipe> allrecipes = getCraftingRecipesSnapshot();
         for (IRecipe irecipe : allrecipes) {
             CachedShapelessRecipe recipe = null;
             if (irecipe instanceof ShapelessRecipes) recipe = shapelessRecipe((ShapelessRecipes) irecipe);
