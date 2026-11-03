@@ -652,6 +652,8 @@ nei.recipe.search.tooltip.name=Filter Syntax
 nei.recipe.search.tooltip.shift=§7Hold §6Shift§7 for more info
 nei.recipe.search.tooltip.input=%s§ftext§8 - §7search in inputs
 nei.recipe.search.tooltip.output=%s§ftext§8 - §7search in outputs
+nei.recipe.search.tooltip.auxiliary=%s§ftext§8 - §7search in other stacks (fuel, catalysts)
+nei.recipe.search.tooltip.all=%s§ftext§8 - §7all inputs must match (same with > and ^)
 nei.recipe.search.tooltip.prefix=%stext§8 - §7%s
 
 nei.recipe.search.tooltip.prefix.modName=search by mod
@@ -665,6 +667,7 @@ nei.recipe.search.tooltip.exclude=%s§ftext§8 - §7exclude items with text
 nei.recipe.search.tooltip.exclude_recipe=%s§ftext§8 - §7exclude recipes with text
 nei.recipe.search.tooltip.or=§fa%s§fb§8 - §7match a or b
 nei.recipe.search.tooltip.exact=%s§ftext%s§8 - §7match exact phrase
+nei.recipe.search.tooltip.regex=%s§ftext%s§8 - §7match regular expression
 
 nei.recipe.shaped=Shaped Crafting
 nei.recipe.shapeless=Shapeless Crafting
