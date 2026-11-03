@@ -55,6 +55,10 @@ public abstract class Widget {
         return bounds().contains(px, py);
     }
 
+    public boolean isVisible() {
+        return true;
+    }
+
     public ItemStack getStackMouseOver(int mx, int my) {
         return null;
     }

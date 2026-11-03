@@ -8,10 +8,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -41,8 +39,6 @@ import codechicken.nei.api.IOverlayHandler;
 import codechicken.nei.api.IRecipeOverlayRenderer;
 import codechicken.nei.api.IStackPositioner;
 import codechicken.nei.guihook.GuiContainerManager;
-import codechicken.nei.guihook.IContainerInputHandler;
-import codechicken.nei.guihook.IContainerTooltipHandler;
 import cpw.mods.fml.common.FMLLog;
 
 /**
@@ -273,114 +269,26 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
             return rect;
         }
 
-        Rectangle rect;
-        String outputId;
-        Object[] results;
+        public boolean contains(GuiContainer gui, int offsetx, int offsety) {
+            final Point pos = GuiDraw.getMousePosition();
+            return rect.contains(pos.x - gui.guiLeft - offsetx, pos.y - gui.guiTop - offsety);
+        }
+
+        public boolean open(boolean usage) {
+            return usage ? GuiUsageRecipe.openRecipeGui(outputId, results)
+                    : GuiCraftingRecipe.openRecipeGui(outputId, results);
+        }
+
+        public Rectangle rect;
+        public String outputId;
+        public Object[] results;
     }
 
-    public static class RecipeTransferRectHandler implements IContainerInputHandler, IContainerTooltipHandler {
-
-        private static final Map<Class<? extends GuiContainer>, HashSet<RecipeTransferRect>> guiMap = new ConcurrentHashMap<>();
-
-        public static void registerRectsToGuis(List<Class<? extends GuiContainer>> classes,
-                List<RecipeTransferRect> rects) {
-            if (classes == null) return;
-
-            for (Class<? extends GuiContainer> clazz : classes) {
-                HashSet<RecipeTransferRect> set = guiMap.computeIfAbsent(clazz, k -> new HashSet<>());
-                set.addAll(rects);
-            }
-        }
-
-        public boolean canHandle(GuiContainer gui) {
-            return guiMap.containsKey(gui.getClass());
-        }
-
-        @Override
-        public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyCode) {
-            return false;
-        }
-
-        @Override
-        public boolean onHotkeyPressed(GuiContainer gui) {
-            if (!canHandle(gui)) return false;
-
-            if (KeyManager.isKeyDown("recipe.recipe")) {
-                return transferRect(gui, false);
-            } else if (KeyManager.isKeyDown("recipe.usage")) {
-                return transferRect(gui, true);
-            }
-
-            return false;
-        }
-
-        @Override
-        public boolean mouseClicked(GuiContainer gui, int mousex, int mousey, int button) {
-            if (!canHandle(gui)) return false;
-
-            if (button == 0) return transferRect(gui, false);
-            else if (button == 1) return transferRect(gui, true);
-
-            return false;
-        }
-
-        private boolean transferRect(GuiContainer gui, boolean usage) {
-            int[] offset = RecipeInfo.getGuiOffset(gui);
-            return TemplateRecipeHandler.transferRect(gui, guiMap.get(gui.getClass()), offset[0], offset[1], usage);
-        }
-
-        @Override
-        public void onKeyTyped(GuiContainer gui, char keyChar, int keyID) {}
-
-        @Override
-        public void onMouseClicked(GuiContainer gui, int mousex, int mousey, int button) {}
-
-        @Override
-        public void onMouseUp(GuiContainer gui, int mousex, int mousey, int button) {}
-
-        @Override
-        public boolean keyTyped(GuiContainer gui, char keyChar, int keyID) {
-            return false;
-        }
-
-        @Override
-        public boolean mouseScrolled(GuiContainer gui, int mousex, int mousey, int scrolled) {
-            return false;
-        }
-
-        @Override
-        public void onMouseScrolled(GuiContainer gui, int mousex, int mousey, int scrolled) {}
-
-        @Override
-        public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
-            if (!canHandle(gui)) return currenttip;
-
-            if (GuiContainerManager.shouldShowTooltip(gui) && currenttip.size() == 0) {
-                int[] offset = RecipeInfo.getGuiOffset(gui);
-                currenttip = TemplateRecipeHandler
-                        .transferRectTooltip(gui, guiMap.get(gui.getClass()), offset[0], offset[1], currenttip);
-            }
-            return currenttip;
-        }
-
-        @Override
-        public List<String> handleItemDisplayName(GuiContainer gui, ItemStack itemstack, List<String> currenttip) {
-            return currenttip;
-        }
-
-        @Override
-        public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
-                List<String> currenttip) {
-            return currenttip;
-        }
-
-        @Override
-        public void onMouseDragged(GuiContainer gui, int mousex, int mousey, int button, long heldTime) {}
-    }
-
-    static {
-        GuiContainerManager.addInputHandler(new RecipeTransferRectHandler());
-        GuiContainerManager.addTooltipHandler(new RecipeTransferRectHandler());
+    /**
+     * @deprecated moved to {@link codechicken.nei.recipe.RecipeTransferRectHandler}
+     */
+    @Deprecated
+    public static class RecipeTransferRectHandler extends codechicken.nei.recipe.RecipeTransferRectHandler {
     }
 
     /**
@@ -730,25 +638,19 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
         return transferRect(gui, transferRects, offset.x, offset.y, usage);
     }
 
-    private static boolean transferRect(GuiContainer gui, Collection<RecipeTransferRect> transferRects, int offsetx,
+    static boolean transferRect(GuiContainer gui, Collection<RecipeTransferRect> transferRects, int offsetx,
             int offsety, boolean usage) {
-        Point pos = GuiDraw.getMousePosition();
-        Point relMouse = new Point(pos.x - gui.guiLeft - offsetx, pos.y - gui.guiTop - offsety);
         for (RecipeTransferRect rect : transferRects) {
-            if (rect.rect.contains(relMouse) && (usage ? GuiUsageRecipe.openRecipeGui(rect.outputId, rect.results)
-                    : GuiCraftingRecipe.openRecipeGui(rect.outputId, rect.results)))
-                return true;
+            if (rect.contains(gui, offsetx, offsety) && rect.open(usage)) return true;
         }
 
         return false;
     }
 
-    private static List<String> transferRectTooltip(GuiContainer gui, Collection<RecipeTransferRect> transferRects,
-            int offsetx, int offsety, List<String> currenttip) {
-        Point pos = GuiDraw.getMousePosition();
-        Point relMouse = new Point(pos.x - gui.guiLeft - offsetx, pos.y - gui.guiTop - offsety);
+    static List<String> transferRectTooltip(GuiContainer gui, Collection<RecipeTransferRect> transferRects, int offsetx,
+            int offsety, List<String> currenttip) {
         for (RecipeTransferRect rect : transferRects) {
-            if (rect.rect.contains(relMouse)) {
+            if (rect.contains(gui, offsetx, offsety)) {
                 currenttip.add(NEIClientUtils.translate("recipe.tooltip"));
                 break;
             }

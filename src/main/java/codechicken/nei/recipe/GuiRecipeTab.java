@@ -263,13 +263,12 @@ public abstract class GuiRecipeTab extends Widget {
                     NEIClientConfig.logger.info("Error setting handler dimensions for " + handler);
                 }
 
-                final boolean allowOverflow = record.isSet("useCustomScroll")
-                        && Boolean.parseBoolean(record.get("useCustomScroll"));
-                info.setAllowOverflowX(
-                        record.isSet("allowOverflowX") ? Boolean.parseBoolean(record.get("allowOverflowX")) : true);
-                info.setAllowOverflowY(
-                        record.isSet("allowOverflowY") ? Boolean.parseBoolean(record.get("allowOverflowY"))
-                                : allowOverflow);
+                final boolean allowOverflow = booleanOrDefault(record, "useCustomScroll", false);
+                info.setAllowOverflowX(booleanOrDefault(record, "allowOverflowX", true));
+                info.setAllowOverflowY(booleanOrDefault(record, "allowOverflowY", allowOverflow));
+                info.setShowFavoritesButton(booleanOrDefault(record, "showFavorites", true));
+                info.setShowOverlayButton(booleanOrDefault(record, "showOverlay", true));
+                info.setShowBadge(booleanOrDefault(record, "showBadge", false));
                 handlerMap.put(handler, info);
                 NEIClientConfig.logger.info("Loaded " + handler);
             }
@@ -304,6 +303,11 @@ public abstract class GuiRecipeTab extends Widget {
         final HandlerInfo info = new HandlerInfo("Unknown", "Unknown", "Unknown", false, "");
         info.setHandlerDimensions(HandlerInfo.DEFAULT_WIDTH, HandlerInfo.DEFAULT_HEIGHT);
         return info;
+    }
+
+    private static boolean booleanOrDefault(CSVRecord record, String name, boolean defaultValue) {
+        final String str = record.isSet(name) ? record.get(name) : null;
+        return str == null || str.isEmpty() ? defaultValue : Boolean.parseBoolean(str);
     }
 
     private static int intOrDefault(String str, int defaultValue) {
