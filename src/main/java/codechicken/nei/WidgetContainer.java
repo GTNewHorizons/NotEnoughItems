@@ -56,7 +56,7 @@ public class WidgetContainer extends Widget {
         final Rectangle4i bounds = bounds();
 
         for (Widget widget : this.widgets) {
-            if (widget.bounds().intersects(bounds)) {
+            if (widget.isVisible() && widget.bounds().intersects(bounds)) {
                 widget.draw(mousex, mousey);
             }
         }
@@ -80,7 +80,7 @@ public class WidgetContainer extends Widget {
 
         for (int index = this.widgets.size() - 1; index >= 0; index--) {
             final Widget widget = this.widgets.get(index);
-            if (widget.contains(mousex, mousey)) {
+            if (widget.isVisible() && widget.contains(mousex, mousey)) {
                 return widget;
             }
         }
@@ -113,7 +113,8 @@ public class WidgetContainer extends Widget {
 
         for (int index = this.widgets.size() - 1; index >= 0; index--) {
             final Widget widget = this.widgets.get(index);
-            if (!widget.contains(mousex, mousey) && widget.handleClickExt(mousex, mousey, button)) {
+            if (widget.isVisible() && !widget.contains(mousex, mousey)
+                    && widget.handleClickExt(mousex, mousey, button)) {
                 return true;
             }
         }
@@ -126,7 +127,7 @@ public class WidgetContainer extends Widget {
 
         for (int index = this.widgets.size() - 1; index >= 0; index--) {
             final Widget widget = this.widgets.get(index);
-            widget.mouseDragged(mousex, mousey, button, heldTime);
+            if (widget.isVisible()) widget.mouseDragged(mousex, mousey, button, heldTime);
         }
     }
 
@@ -135,7 +136,7 @@ public class WidgetContainer extends Widget {
 
         for (int index = this.widgets.size() - 1; index >= 0; index--) {
             final Widget widget = this.widgets.get(index);
-            widget.mouseUp(mousex, mousey, button);
+            if (widget.isVisible()) widget.mouseUp(mousex, mousey, button);
         }
     }
 
@@ -144,7 +145,7 @@ public class WidgetContainer extends Widget {
 
         for (int index = this.widgets.size() - 1; index >= 0; index--) {
             final Widget widget = this.widgets.get(index);
-            if (widget.handleKeyPress(keyCode, keyChar)) {
+            if (widget.isVisible() && widget.handleKeyPress(keyCode, keyChar)) {
                 return true;
             }
         }
@@ -157,7 +158,7 @@ public class WidgetContainer extends Widget {
 
         for (int index = this.widgets.size() - 1; index >= 0; index--) {
             final Widget widget = this.widgets.get(index);
-            widget.lastKeyTyped(keyID, keyChar);
+            if (widget.isVisible()) widget.lastKeyTyped(keyID, keyChar);
         }
 
     }
@@ -227,7 +228,7 @@ public class WidgetContainer extends Widget {
     public void postDraw(int mousex, int mousey) {
 
         for (Widget widget : this.widgets) {
-            widget.postDraw(mousex, mousey);
+            if (widget.isVisible()) widget.postDraw(mousex, mousey);
         }
 
     }
@@ -237,7 +238,7 @@ public class WidgetContainer extends Widget {
 
         for (int index = this.widgets.size() - 1; index >= 0; index--) {
             final Widget widget = this.widgets.get(index);
-            widget.onGuiClick(mousex, mousey);
+            if (widget.isVisible()) widget.onGuiClick(mousex, mousey);
         }
 
     }
@@ -248,6 +249,17 @@ public class WidgetContainer extends Widget {
 
         if (widget != null) {
             return widget.handleTooltip(mousex, mousey, tooltip);
+        }
+
+        return tooltip;
+    }
+
+    @Override
+    public List<String> handleItemTooltip(ItemStack itemstack, int mousex, int mousey, List<String> tooltip) {
+        final Widget widget = getWidgetUnderMouse(mousex, mousey);
+
+        if (widget != null) {
+            return widget.handleItemTooltip(itemstack, mousex, mousey, tooltip);
         }
 
         return tooltip;
