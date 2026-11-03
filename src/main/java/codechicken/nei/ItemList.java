@@ -207,6 +207,33 @@ public class ItemList {
         return filters;
     }
 
+    public static ItemStack[] expandPermutations(ItemStack[] items) {
+        List<ItemStack> stacks = new ArrayList<>();
+        for (ItemStack item : items) {
+            if (item == null || item.getItem() == null) continue;
+
+            if (item.getItemDamage() == Short.MAX_VALUE) {
+                List<ItemStack> permutations = itemMap.get(item.getItem());
+                if (!permutations.isEmpty()) {
+                    for (ItemStack stack : permutations) {
+                        ItemStack toAdd = stack.copy();
+                        toAdd.stackSize = item.stackSize;
+                        stacks.add(toAdd);
+                    }
+                } else {
+                    ItemStack base = new ItemStack(item.getItem(), item.stackSize);
+                    base.stackTagCompound = item.stackTagCompound;
+                    stacks.add(base);
+                }
+                continue;
+            }
+
+            stacks.add(item.copy());
+        }
+
+        return stacks.toArray(new ItemStack[0]);
+    }
+
     public static ForkJoinPool forkJoinPool;
 
     static {
