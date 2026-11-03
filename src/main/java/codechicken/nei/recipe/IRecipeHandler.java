@@ -1,5 +1,6 @@
 package codechicken.nei.recipe;
 
+import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -77,19 +78,48 @@ public interface IRecipeHandler {
     List<PositionedStack> getIngredientStacks(int recipe);
 
     /**
+     * Callers should read {@link #getResultStacks(int)} and {@link #getAuxiliaryStacks(int)} instead.
      *
      * @param recipe The recipe index to get items for.
-     * @return A list of the other {@link PositionedStack}s in this recipe relative to the top left corner of your
-     *         recipe drawing space. For example fuel in furnaces.
+     * @return The fuel or catalysts when {@link #getResultStack(int)} is present, otherwise all the results of the
+     *         recipe. Relative to the top left corner of your recipe drawing space.
      */
-    List<PositionedStack> getOtherStacks(int recipe);
+    default List<PositionedStack> getOtherStacks(int recipe) {
+        return Collections.emptyList();
+    }
 
     /**
+     * Callers should read {@link #getResultStacks(int)} instead.
      *
      * @param recipe The recipe index to get the result for.
-     * @return The recipe result {@link PositionedStack} relative to the top left corner of your recipe drawing space.
+     * @return The single result, or {@code null} when the recipe has several results and returns them from
+     *         {@link #getOtherStacks(int)}. Relative to the top left corner of your recipe drawing space.
      */
-    PositionedStack getResultStack(int recipe);
+    default PositionedStack getResultStack(int recipe) {
+        return null;
+    }
+
+    /**
+     * Built from {@link #getResultStack(int)} and {@link #getOtherStacks(int)}. Don't override it, return the results
+     * from those methods so mods that still read them see the same results.
+     *
+     * @return The results: the result stack when present, otherwise the other stacks.
+     */
+    default List<PositionedStack> getResultStacks(int recipe) {
+        final PositionedStack result = getResultStack(recipe);
+        return result != null ? Collections.singletonList(result) : getOtherStacks(recipe);
+    }
+
+    /**
+     * Override it only when the recipe has several results and also fuel or catalysts: the results then go to
+     * {@link #getOtherStacks(int)} and the catalysts can't be returned from the old methods.
+     *
+     * @return The stacks that are neither ingredients nor results (fuel, catalysts): the other stacks when a result
+     *         stack is present.
+     */
+    default List<PositionedStack> getAuxiliaryStacks(int recipe) {
+        return getResultStack(recipe) != null ? getOtherStacks(recipe) : Collections.emptyList();
+    }
 
     /**
      * @param recipe The recipe index to get the group id for.

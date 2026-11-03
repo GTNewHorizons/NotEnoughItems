@@ -20,6 +20,10 @@ public class SearchTextFormatter implements TextFormatter {
         this.contextToken = contextToken;
     }
 
+    protected String getContextToken() {
+        return this.contextToken;
+    }
+
     @Override
     public String format(String text) {
         final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
@@ -32,13 +36,14 @@ public class SearchTextFormatter implements TextFormatter {
             return SearchExpressionUtils.visitRecipeSearchExpression(text, visitor);
         } else {
             final StringBuilder formattedText = new StringBuilder();
+            final String contextToken = getContextToken();
 
             for (String[] orQuery : searchParser.splitByDelimiters(text, "|", false)) {
                 final String filterText = orQuery[1];
 
                 formattedText.append(SearchExpressionUtils.HIGHLIGHTS.OR + orQuery[0]);
 
-                for (String[] contextPart : searchParser.splitByDelimiters(filterText, this.contextToken, false)) {
+                for (String[] contextPart : searchParser.splitByDelimiters(filterText, contextToken, false)) {
 
                     if (!contextPart[0].isEmpty()) {
                         formattedText.append(
@@ -74,7 +79,11 @@ public class SearchTextFormatter implements TextFormatter {
                             formattedText.append(SearchExpressionUtils.HIGHLIGHTS.QUOTED + "\"");
                         }
 
-                        if (!token.rawText.isEmpty()) {
+                        if (patternMode == 1 && !token.quotes && isRegexToken(token.rawText)) {
+                            formattedText.append(SearchExpressionUtils.HIGHLIGHTS.REGEX + token.rawText.substring(0, 2))
+                                    .append(tokenColor + token.rawText.substring(2, token.rawText.length() - 1))
+                                    .append(SearchExpressionUtils.HIGHLIGHTS.REGEX + "/");
+                        } else if (!token.rawText.isEmpty()) {
                             formattedText.append(tokenColor + token.rawText);
                         }
 
@@ -92,5 +101,9 @@ public class SearchTextFormatter implements TextFormatter {
 
             return formattedText.toString();
         }
+    }
+
+    private static boolean isRegexToken(String search) {
+        return search.length() >= 3 && search.regionMatches(true, 0, "r/", 0, 2) && search.endsWith("/");
     }
 }

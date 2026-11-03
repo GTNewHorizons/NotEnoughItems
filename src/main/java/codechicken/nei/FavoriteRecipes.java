@@ -9,7 +9,6 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,7 +32,6 @@ import codechicken.nei.api.API;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.ICraftingHandler;
-import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.RecipeHandlerRef;
 import codechicken.nei.recipe.StackInfo;
@@ -94,7 +92,7 @@ public class FavoriteRecipes {
                 for (int i = 0; i < handler.numRecipes(); i++) {
                     RecipeHandlerRef ref = null;
 
-                    for (PositionedStack result : getOutputs(handler, i)) {
+                    for (PositionedStack result : handler.getResultStacks(i)) {
                         ItemStack stack = StackInfo.getItemStackWithMinimumDamage(result.items);
                         final FastKey key = new FastKey(stack);
 
@@ -127,11 +125,6 @@ public class FavoriteRecipes {
 
             FavoriteRecipes.autoFavorites = storage;
             updateSubsetVisibility();
-        }
-
-        protected List<PositionedStack> getOutputs(IRecipeHandler handler, int recipeIndex) {
-            final PositionedStack pStackResult = handler.getResultStack(recipeIndex);
-            return pStackResult != null ? Collections.singletonList(pStackResult) : handler.getOtherStacks(recipeIndex);
         }
 
     };
