@@ -24,7 +24,13 @@ public abstract class RecipeSearchField extends TextField implements ItemFilterP
         field.setMaxStringLength(maxSearchLength);
         field.setCursorPositionZero();
         field.setSkipRecipeTokens(true);
-        ((SearchTextFormatter) field.getFormatter()).setContextToken("<>");
+        field.setFormatter(new SearchTextFormatter(SearchField.searchParser) {
+
+            @Override
+            protected String getContextToken() {
+                return this.searchParser.getRecipeContextTokens();
+            }
+        });
         this.field = field;
     }
 

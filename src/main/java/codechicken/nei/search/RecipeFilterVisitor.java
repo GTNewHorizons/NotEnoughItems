@@ -2,15 +2,12 @@ package codechicken.nei.search;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 import codechicken.nei.ItemList.EverythingItemFilter;
 import codechicken.nei.SearchTokenParser;
 import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.filter.AllMultiRecipeFilter;
-import codechicken.nei.filter.AllOthersRecipeFilter;
-import codechicken.nei.filter.AnyOthersRecipeFilter;
 import codechicken.nei.filter.RecipeFilter;
 import codechicken.nei.filter.RecipeFilter.FilterContext;
 
@@ -51,25 +48,12 @@ public class RecipeFilterVisitor extends AbstractSearchExpressionVisitor<IRecipe
             case 1:
                 return new RecipeFilter(FilterContext.OUTPUT, !ctx.allRecipe, itemFilter);
             case 2:
-                return getAllOrAnyFilter(
-                        ctx.allRecipe,
-                        itemFilter,
-                        AnyOthersRecipeFilter::new,
-                        AllOthersRecipeFilter::new);
+                return new RecipeFilter(FilterContext.AUXILIARY, !ctx.allRecipe, itemFilter);
             // Doesn't support all by default
             case 3:
                 return new RecipeFilter(FilterContext.ANY, !ctx.allRecipe, itemFilter);
             default:
                 return defaultResult();
-        }
-    }
-
-    private IRecipeFilter getAllOrAnyFilter(boolean allRecipe, ItemFilter itemFilter,
-            Function<ItemFilter, IRecipeFilter> createAnyFilter, Function<ItemFilter, IRecipeFilter> createAllFilter) {
-        if (allRecipe) {
-            return createAllFilter.apply(itemFilter);
-        } else {
-            return createAnyFilter.apply(itemFilter);
         }
     }
 

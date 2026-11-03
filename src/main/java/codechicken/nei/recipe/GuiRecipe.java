@@ -200,6 +200,22 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                                 "recipe.search.tooltip.output",
                                 SearchExpressionUtils.HIGHLIGHTS.RECIPE + ">"));
 
+                final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
+
+                if (patternMode != 2) {
+                    tooltip.add(
+                            NEIClientUtils.translate(
+                                    "recipe.search.tooltip.auxiliary",
+                                    SearchExpressionUtils.HIGHLIGHTS.RECIPE + "^"));
+                }
+
+                if (patternMode == 3) {
+                    tooltip.add(
+                            NEIClientUtils.translate(
+                                    "recipe.search.tooltip.all",
+                                    SearchExpressionUtils.HIGHLIGHTS.RECIPE + "<&"));
+                }
+
                 for (ISearchParserProvider provider : SearchField.searchParser.getProviders()) {
                     if (provider.getSearchMode() == SearchMode.PREFIX) {
                         addPrefixTooltip(tooltip, provider);
@@ -222,6 +238,14 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                                 "recipe.search.tooltip.exact",
                                 SearchExpressionUtils.HIGHLIGHTS.QUOTED + "\"",
                                 SearchExpressionUtils.HIGHLIGHTS.QUOTED + "\""));
+
+                if (patternMode == 1 || patternMode == 3) {
+                    tooltip.add(
+                            NEIClientUtils.translate(
+                                    "recipe.search.tooltip.regex",
+                                    SearchExpressionUtils.HIGHLIGHTS.REGEX + "r/",
+                                    SearchExpressionUtils.HIGHLIGHTS.REGEX + "/"));
+                }
             } else {
                 tooltip.add(NEIClientUtils.translate("recipe.search.tooltip.shift"));
             }

@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -174,6 +175,16 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
          */
         public PositionedStack getOtherStack() {
             return null;
+        }
+
+        /**
+         * Read only when {@link #getResult()} is {@code null} and {@link #getOtherStacks()} returns the results, see
+         * {@link IRecipeHandler#getAuxiliaryStacks(int)}.
+         *
+         * @return The fuel or catalysts of a recipe with several results.
+         */
+        public List<PositionedStack> getAuxiliaries() {
+            return Collections.emptyList();
         }
 
         @Deprecated
@@ -639,6 +650,16 @@ public abstract class TemplateRecipeHandler implements ICraftingHandler, IUsageH
 
     public List<PositionedStack> getOtherStacks(int recipe) {
         return arecipes.get(recipe).getOtherStacks();
+    }
+
+    @Override
+    public List<PositionedStack> getAuxiliaryStacks(int recipe) {
+        // goes through the handler methods, subclasses may override them instead of the cached recipe ones
+        if (getResultStack(recipe) != null) {
+            return getOtherStacks(recipe);
+        }
+
+        return arecipes.get(recipe).getAuxiliaries();
     }
 
     public void onUpdate() {
