@@ -26,6 +26,7 @@ import codechicken.nei.ColorUtils;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.Widget;
+import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.event.NEIRegisterHandlerInfosEvent;
 import codechicken.nei.guihook.GuiContainerManager;
@@ -43,26 +44,29 @@ public abstract class GuiRecipeTab extends Widget {
     protected final String handlerName;
     protected final String handlerID;
 
+    public static final int TAB_WIDTH = 24;
+    public static final int TAB_HEIGHT = 24;
+    private static final DrawableResource selectedTabImage = new DrawableBuilder(
+            "nei:textures/nei_tabbed_sprites.png",
+            0,
+            16,
+            24,
+            24).build();
+    private static final DrawableResource unselectedTabImage = new DrawableBuilder(
+            "nei:textures/nei_tabbed_sprites.png",
+            24,
+            16,
+            24,
+            24).build();
+
     private boolean selected;
-
-    public abstract int getWidth();
-
-    public abstract int getHeight();
-
-    public abstract DrawableResource getSelectedTabImage();
-
-    public abstract DrawableResource getUnselectedTabImage();
-
-    protected abstract int getForegroundIconX();
-
-    protected abstract int getForegroundIconY();
 
     public GuiRecipeTab(IRecipeHandler handler, int x, int y) {
         super();
         this.x = x;
         this.y = y;
-        this.w = getWidth();
-        this.h = getHeight();
+        this.w = TAB_WIDTH;
+        this.h = TAB_HEIGHT;
         this.handler = handler;
         this.handlerName = handler.getHandlerId();
         this.selected = false;
@@ -83,21 +87,16 @@ public abstract class GuiRecipeTab extends Widget {
     public void drawBackground(int mouseX, int mouseY) {
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glColor4f(1, 1, 1, 1);
-        final DrawableResource image;
-        if (selected) image = getSelectedTabImage();
-        else image = getUnselectedTabImage();
-
-        final int iconX = x + (w - image.getWidth()) / 2;
-        final int iconY = y + (h - image.getHeight()) / 2;
-        image.draw(iconX, iconY);
+        final DrawableResource image = this.selected ? selectedTabImage : unselectedTabImage;
+        image.draw(this.x, this.y);
     }
 
     public void drawForeground(int mouseX, int mouseY) {
-        final int iconX = getForegroundIconX();
-        final int iconY = getForegroundIconY();
+        final int iconX = this.x + 4;
+        final int iconY = this.y + 4;
 
         final FontRenderer fontRenderer = GuiDraw.fontRenderer;
-        final HandlerInfo handlerInfo = getHandlerInfo(handlerName, handlerID);
+        final HandlerInfo handlerInfo = getHandlerInfo(this.handlerName, this.handlerID);
         final DrawableResource icon = handlerInfo != null ? handlerInfo.getImage() : null;
         final ItemStack itemStack = handlerInfo != null ? handlerInfo.getItemStack() : null;
 
@@ -112,7 +111,7 @@ public abstract class GuiRecipeTab extends Widget {
             if (!isEnabled) GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         } else {
             // Text fallback
-            String text = handler.getRecipeName();
+            String text = this.handler.getRecipeName();
             if (text != null && text.length() > 0) {
                 if (text.length() > 2) {
                     text = text.substring(0, 2);
@@ -121,9 +120,10 @@ public abstract class GuiRecipeTab extends Widget {
                 text = "??";
             }
 
-            int textCenterX = x + (int) (getWidth() / 2f);
-            int textCenterY = y + (int) (getHeight() / 2f) - 3;
-            int color = selected ? ColorUtils.buttonLabelHover.getColor() : ColorUtils.buttonLabelNormal.getColor();
+            int textCenterX = this.x + (int) (this.w / 2f);
+            int textCenterY = this.y + (int) (this.h / 2f) - 3;
+            int color = this.selected ? ColorUtils.buttonLabelHover.getColor()
+                    : ColorUtils.buttonLabelNormal.getColor();
             fontRenderer.drawStringWithShadow(
                     text,
                     textCenterX - (int) (fontRenderer.getStringWidth(text) / 2f),
