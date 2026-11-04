@@ -28,6 +28,10 @@ import codechicken.nei.util.NBTHelper;
 
 public class StackInfo {
 
+    /// Prefix of the MaterialLib reference form `ml:<MaterialName>:<shapeToken>`, which config entries carry in
+    /// place of an id and metadata.
+    public static final String MATERIALLIB_PREFIX = "ml:";
+
     private static final FluidStack NULL_FLUID = new FluidStack(FluidRegistry.WATER, 0);
     public static final List<IStackStringifyHandler> stackStringifyHandlers = new ArrayList<>();
     private static final Map<String, HashMap<String, String[]>> guidfilters = new HashMap<>();
