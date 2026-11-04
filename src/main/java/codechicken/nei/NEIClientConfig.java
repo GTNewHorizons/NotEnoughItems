@@ -256,10 +256,6 @@ public class NEIClientConfig {
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.guirecipe.cycledIngredientsTooltip", true));
 
-        tag.getTag("inventory.guirecipe.creativeTabStyle").setComment("Creative or JEI style tabs")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.guirecipe.creativeTabStyle", true));
-
         tag.getTag("inventory.guirecipe.itemPresenceOverlay").setComment("Item presence overlay on ?-hover")
                 .getIntValue(1);
         API.addOption(new OptionCycled("inventory.guirecipe.itemPresenceOverlay", 3, true));
@@ -1154,10 +1150,6 @@ public class NEIClientConfig {
 
     public static int getJEIStyleRecipeCatalysts() {
         return getIntSetting("inventory.guirecipe.jeiStyleRecipeCatalyst");
-    }
-
-    public static boolean useCreativeTabStyle() {
-        return getBooleanSetting("inventory.guirecipe.creativeTabStyle");
     }
 
     public static boolean ignorePotionOverlap() {
