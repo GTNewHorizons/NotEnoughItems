@@ -47,11 +47,11 @@ public class GuiRecipeTabs {
     };
 
     public static int getTabWidth() {
-        return NEIClientConfig.useCreativeTabStyle() ? GuiRecipeTabCreative.TAB_WIDTH : GuiRecipeTabJEI.TAB_WIDTH;
+        return GuiRecipeTab.TAB_WIDTH;
     }
 
     public static int getTabHeight() {
-        return NEIClientConfig.useCreativeTabStyle() ? GuiRecipeTabCreative.TAB_HEIGHT : GuiRecipeTabJEI.TAB_HEIGHT;
+        return GuiRecipeTab.TAB_HEIGHT;
     }
 
     public void update(GuiRecipe<?> guiRecipe) {
@@ -85,27 +85,15 @@ public class GuiRecipeTabs {
             final IRecipeHandler handler = this.currenthandlers.get(index);
             final int tabX = this.area.x + (i * tabWidth);
 
-            if (NEIClientConfig.useCreativeTabStyle()) {
-                tabs.add(new GuiRecipeTabCreative(handler, tabX, this.area.y) {
+            this.tabs.add(new GuiRecipeTab(handler, tabX, this.area.y) {
 
-                    @Override
-                    public boolean onButtonPress(boolean rightclick) {
-                        setRecipePage(index);
-                        return true;
-                    }
+                @Override
+                public boolean onButtonPress(boolean rightclick) {
+                    setRecipePage(index);
+                    return true;
+                }
 
-                });
-            } else {
-                tabs.add(new GuiRecipeTabJEI(handler, tabX, this.area.y) {
-
-                    @Override
-                    public boolean onButtonPress(boolean rightclick) {
-                        setRecipePage(index);
-                        return true;
-                    }
-
-                });
-            }
+            });
         }
     }
 
