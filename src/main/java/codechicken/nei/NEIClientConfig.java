@@ -444,8 +444,7 @@ public class NEIClientConfig {
         API.addOption(new OptionToggleButton("world.overlays.lock", true));
 
         tag.getTag("world.overlays.mobSpawnStyle")
-                .setComment(
-                        "Mark on each block of the mob spawn overlay: x, connected, square, gtnh_logo or pufferfish")
+                .setComment("Mark on each block of the mob spawn overlay: " + MobSpawnOverlayStyle.formatAllNames())
                 .getValue(MobSpawnOverlayStyle.DEFAULT.formatName());
         API.addOption(new OptionCycled("world.overlays.mobSpawnStyle", MobSpawnOverlayStyle.values().length, true) {
 

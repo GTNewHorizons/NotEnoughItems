@@ -7,7 +7,6 @@ import java.util.concurrent.Callable;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSnow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
@@ -32,12 +31,9 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     public static int chunkOverlay = 0;
 
     public static int mobOverlay = 0;
-    private static final MobSpawnScan mobSpawnScan = new MobSpawnScan();
-    private static final MobSpawnMarkedFace markedFace = new MobSpawnMarkedFace();
-    // display list of the overlay quads, compiled when the scan or the style changes
-    private static int mobSpawnList = -1;
-    private static int mobSpawnListChange;
-    private static MobSpawnOverlayStyle mobSpawnListStyle;
+    private static final MobSpawnScan MOB_SPAWN_SCAN = new MobSpawnScan();
+    private static final MobSpawnMarkedFace MARKED_FACE = new MobSpawnMarkedFace();
+    private static final MobSpawnDisplayList MOB_SPAWN_LIST = new MobSpawnDisplayList();
 
     public static void reset() {
         mobOverlay = 0;
@@ -95,27 +91,31 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         return 0.02;
     }
 
+    /**
+     * The model view matrix is relative to ({@code intOffsetX}, {@code intOffsetY}, {@code intOffsetZ}), the camera
+     * position cast to {@code int}.
+     */
     private static void renderMobSpawnOverlay(Entity entity, int intOffsetX, int intOffsetY, int intOffsetZ) {
         if (mobOverlay == 0) {
-            mobSpawnScan.clear();
-            deleteMobSpawnList();
+            MOB_SPAWN_SCAN.clear();
+            MOB_SPAWN_LIST.delete();
             return;
         }
 
-        mobSpawnScan.update(entity, NEIClientConfig.getIntSetting("world.overlays.mobSpawnRadius"));
+        MOB_SPAWN_SCAN.update(entity, NEIClientConfig.getIntSetting("world.overlays.mobSpawnRadius"));
         final MobSpawnOverlayStyle style = MobSpawnOverlayStyle
                 .parseStyle(NEIClientConfig.getSetting("world.overlays.mobSpawnStyle").getValue());
-        if (!(mobSpawnList >= 0 && mobSpawnListChange == mobSpawnScan.getChangeCount() && mobSpawnListStyle == style)) {
+        if (!MOB_SPAWN_LIST.isCompiled(MOB_SPAWN_SCAN.getModesVersion(), style)) {
             compileMobSpawnList(entity.worldObj, style);
         }
 
         beginMobSpawnDraw(style);
         GL11.glPushMatrix();
         GL11.glTranslated(
-                mobSpawnScan.getMinX() - intOffsetX,
-                mobSpawnScan.getMinY() - intOffsetY,
-                mobSpawnScan.getMinZ() - intOffsetZ);
-        GL11.glCallList(mobSpawnList);
+                MOB_SPAWN_SCAN.getMinX() - intOffsetX,
+                MOB_SPAWN_SCAN.getMinY() - intOffsetY,
+                MOB_SPAWN_SCAN.getMinZ() - intOffsetZ);
+        MOB_SPAWN_LIST.draw();
         GL11.glPopMatrix();
         endMobSpawnDraw(style);
     }
@@ -125,43 +125,32 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
      * {@link MobSpawnScan#getMinZ}).
      */
     private static void compileMobSpawnList(World world, MobSpawnOverlayStyle style) {
-        if (mobSpawnList < 0) mobSpawnList = GLAllocation.generateDisplayLists(1);
-        mobSpawnListChange = mobSpawnScan.getChangeCount();
-        mobSpawnListStyle = style;
-
-        GL11.glNewList(mobSpawnList, GL11.GL_COMPILE);
+        MOB_SPAWN_LIST.beginCompile(MOB_SPAWN_SCAN.getModesVersion(), style);
         final float alpha = style.computeAlpha();
         final Tessellator tess = Tessellator.instance;
         tess.startDrawing(style.glMode);
-        final int span = mobSpawnScan.getSpan();
+        final int span = MOB_SPAWN_SCAN.getSpan();
         for (int i = 0; i < span; i++) {
             for (int j = 0; j < span; j++) {
                 final int column = i * span + j;
 
-                for (int k = 0; k < mobSpawnScan.getColumnEnd(column); k++) {
-                    if (mobSpawnScan.readSpawnMode(column, k) == 0) continue;
+                for (int k = 0; k < MOB_SPAWN_SCAN.getColumnEnd(column); k++) {
+                    if (MOB_SPAWN_SCAN.readSpawnMode(column, k) == 0) continue;
 
                     final double yOffset = getOverlayYOffset(
                             world,
-                            mobSpawnScan.getMinX() + i,
-                            mobSpawnScan.getMinY() + k,
-                            mobSpawnScan.getMinZ() + j);
-                    markedFace.moveTo(i, k + yOffset, j);
+                            MOB_SPAWN_SCAN.getMinX() + i,
+                            MOB_SPAWN_SCAN.getMinY() + k,
+                            MOB_SPAWN_SCAN.getMinZ() + j);
+                    MARKED_FACE.moveTo(i, k + yOffset, j);
                     loadNeighbourModes(column, k);
-                    markedFace.applyColor(style.colouring, alpha);
-                    style.addVertices(markedFace);
+                    MARKED_FACE.applyColor(style.colouring, alpha);
+                    style.addVertices(MARKED_FACE);
                 }
             }
         }
         tess.draw();
-        GL11.glEndList();
-    }
-
-    private static void deleteMobSpawnList() {
-        if (mobSpawnList < 0) return;
-
-        GLAllocation.deleteDisplayLists(mobSpawnList);
-        mobSpawnList = -1;
+        MOB_SPAWN_LIST.endCompile();
     }
 
     /** {@link #endMobSpawnDraw} undoes every change here except the texture binding. */
@@ -181,14 +170,11 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
             // a translucent quad that writes depth hides the overlay behind the quad. Turn depth writes off
             GL11.glDepthMask(false);
             GL11.glDisable(GL11.GL_CULL_FACE);
-            // `EntityRenderer` leaves the alpha test on at GL_GREATER 0.1. Turn the test off, or a faint tint is
-            // discarded
-            GL11.glDisable(GL11.GL_ALPHA_TEST);
         }
     }
 
     private static void loadNeighbourModes(int column, int k) {
-        final int span = mobSpawnScan.getSpan();
+        final int span = MOB_SPAWN_SCAN.getSpan();
         final int i = column / span;
         final int j = column % span;
         for (int offsetX = -1; offsetX <= 1; offsetX++) {
@@ -196,16 +182,15 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
                 final int neighbourI = i + offsetX;
                 final int neighbourJ = j + offsetZ;
                 final boolean isInScan = neighbourI >= 0 && neighbourI < span && neighbourJ >= 0 && neighbourJ < span;
-                final byte spawnMode = isInScan ? mobSpawnScan.readSpawnMode(neighbourI * span + neighbourJ, k)
+                final byte spawnMode = isInScan ? MOB_SPAWN_SCAN.readSpawnMode(neighbourI * span + neighbourJ, k)
                         : MobSpawnMarkedFace.OUTSIDE_SCAN;
-                markedFace.setNeighbourMode(offsetX, offsetZ, spawnMode);
+                MARKED_FACE.setNeighbourMode(offsetX, offsetZ, spawnMode);
             }
         }
     }
 
     private static void endMobSpawnDraw(MobSpawnOverlayStyle style) {
         if (style.isFilled()) {
-            GL11.glEnable(GL11.GL_ALPHA_TEST);
             GL11.glEnable(GL11.GL_CULL_FACE);
             GL11.glDepthMask(true);
         }
@@ -217,7 +202,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     private static final Entity dummyEntity = new EntityPig(null);
     private static final AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(0, 0, 0, 0, 0, 0);
 
-    static byte getSpawnMode(Chunk chunk, int x, int y, int z) {
+    public static byte getSpawnMode(Chunk chunk, int x, int y, int z) {
         if (y >= chunk.worldObj.getHeight()) {
             return 0;
         }

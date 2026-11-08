@@ -36,7 +36,8 @@ public final class MobSpawnMarkedFace {
     }
 
     /**
-     * True when the neighbour has this block's spawn mode, or is outside the scan. The edge of the scan gets no band.
+     * True when the neighbour has this block's spawn mode. A neighbour outside the scan counts as joined, so no band is
+     * drawn along the edge of the scan.
      */
     public boolean isJoined(int offsetX, int offsetZ) {
         final byte neighbourMode = neighbourModes[indexNeighbour(offsetX, offsetZ)];
@@ -50,10 +51,7 @@ public final class MobSpawnMarkedFace {
         addVertex(1, 0);
     }
 
-    /**
-     * Add one cell of a 3 x 3 grid over the face. Edge cells are {@code width} wide, and the middle cell fills the
-     * rest.
-     */
+    /** Add one cell of a 3 x 3 grid over the face. The outer rows and columns of the grid are {@code width} wide. */
     public void addCell(int offsetX, int offsetZ, double width) {
         final double west = computeCellStart(offsetX, width);
         final double east = 1 - computeCellStart(-offsetX, width);

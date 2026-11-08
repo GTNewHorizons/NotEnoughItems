@@ -1,6 +1,7 @@
 package codechicken.nei;
 
 import java.util.Locale;
+import java.util.StringJoiner;
 
 import javax.annotation.Nullable;
 
@@ -105,6 +106,15 @@ public enum MobSpawnOverlayStyle {
             if (candidate.formatName().equalsIgnoreCase(rawStyle)) return candidate;
         }
         return DEFAULT;
+    }
+
+    /** @return the {@link #formatName} of every style, separated by commas */
+    public static String formatAllNames() {
+        final StringJoiner names = new StringJoiner(", ");
+        for (MobSpawnOverlayStyle style : values()) {
+            names.add(style.formatName());
+        }
+        return names.toString();
     }
 
     public String formatName() {

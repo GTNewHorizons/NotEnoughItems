@@ -35,7 +35,7 @@ public final class MobSpawnScan {
     // columns of `back` below this index are scanned in the pass in progress
     private int nextColumn;
     private boolean hasDirtyColumns;
-    private int changeCount;
+    private int modesVersion;
     private boolean hasModes;
     private long scannedTick;
     // world of `front`, with `changeListener` added
@@ -54,7 +54,7 @@ public final class MobSpawnScan {
 
     /**
      * Rescan the columns of changed blocks, and scan the next slice of columns, at most once per tick. After
-     * {@link #clear}, a radius change or a world change, scan every column at once. {@code newRadius} is clamped
+     * {@link #clear}, a radius change or a world change, scan every column in this call. {@code newRadius} is clamped
      * between {@link #MIN_RADIUS} and {@link #MAX_RADIUS}.
      */
     public void update(Entity entity, int newRadius) {
@@ -82,9 +82,8 @@ public final class MobSpawnScan {
         }
     }
 
-    /** Changes each time the modes of {@link #readSpawnMode} change. */
-    public int getChangeCount() {
-        return changeCount;
+    public int getModesVersion() {
+        return modesVersion;
     }
 
     public int getSpan() {
@@ -123,12 +122,7 @@ public final class MobSpawnScan {
     private void scanFullPass(Entity entity) {
         final long startNanos = System.nanoTime();
         final World world = entity.worldObj;
-        if (world != scannedWorld) {
-            if (scannedWorld != null) scannedWorld.removeWorldAccess(changeListener);
-            world.addWorldAccess(changeListener);
-            scannedWorld = world;
-        }
-
+        if (world != scannedWorld) watchWorld(world);
         startPass(entity);
         for (; nextColumn < span * span; nextColumn++) {
             back.scanColumn(world, nextColumn, span);
@@ -142,6 +136,12 @@ public final class MobSpawnScan {
                 span * span,
                 (System.nanoTime() - startNanos) / 1000);
         startPass(entity);
+    }
+
+    private void watchWorld(World world) {
+        if (scannedWorld != null) scannedWorld.removeWorldAccess(changeListener);
+        world.addWorldAccess(changeListener);
+        scannedWorld = world;
     }
 
     private void startPass(Entity entity) {
@@ -160,7 +160,7 @@ public final class MobSpawnScan {
             if (front.dirty[column]) {
                 front.scanColumn(world, column, span);
                 front.dirty[column] = false;
-                changeCount++;
+                modesVersion++;
             }
             if (back.dirty[column]) {
                 back.scanColumn(world, column, span);
@@ -173,31 +173,7 @@ public final class MobSpawnScan {
         final Buffer scanned = back;
         back = front;
         front = scanned;
-        changeCount++;
-    }
-
-    /**
-     * Mark the column of a changed block. A block's spawn mode depends on the block below and the block above, so a
-     * change 1 block below or above the scanned height counts too.
-     */
-    private void markChanged(int x, int y, int z) {
-        final int lowestY = Math.min(front.minY, back.minY) - 1;
-        final int highestY = Math.max(front.minY, back.minY) + HEIGHT;
-        if (y >= lowestY && y <= highestY) markColumn(x, z);
-    }
-
-    private void markColumn(int x, int z) {
-        final int frontColumn = front.findColumn(x, z, span);
-        if (frontColumn >= 0) {
-            front.dirty[frontColumn] = true;
-            hasDirtyColumns = true;
-        }
-        // a column at or above `nextColumn` is scanned later in this pass
-        final int backColumn = back.findColumn(x, z, span);
-        if (backColumn >= 0 && backColumn < nextColumn) {
-            back.dirty[backColumn] = true;
-            hasDirtyColumns = true;
-        }
+        modesVersion++;
     }
 
     /** The spawn modes of one square of columns. */
@@ -278,8 +254,8 @@ public final class MobSpawnScan {
                 float volume, float pitch) {}
 
         @Override
-        public void spawnParticle(String particleName, double x, double y, double z, double velocityX,
-                double velocityY, double velocityZ) {}
+        public void spawnParticle(String particleName, double x, double y, double z, double velocityX, double velocityY,
+                double velocityZ) {}
 
         @Override
         public void onEntityCreate(Entity entity) {}
@@ -301,5 +277,25 @@ public final class MobSpawnScan {
 
         @Override
         public void onStaticEntitiesChanged() {}
+
+        private void markChanged(int x, int y, int z) {
+            // spawn modes depend on the block below and the block above
+            final int lowestY = Math.min(front.minY, back.minY) - 1;
+            final int highestY = Math.max(front.minY, back.minY) + HEIGHT;
+            if (y >= lowestY && y <= highestY) markColumn(x, z);
+        }
+
+        private void markColumn(int x, int z) {
+            final int frontColumn = front.findColumn(x, z, span);
+            if (frontColumn >= 0) {
+                front.dirty[frontColumn] = true;
+                hasDirtyColumns = true;
+            }
+            final int backColumn = back.findColumn(x, z, span);
+            if (backColumn >= 0 && backColumn < nextColumn) {
+                back.dirty[backColumn] = true;
+                hasDirtyColumns = true;
+            }
+        }
     }
 }
