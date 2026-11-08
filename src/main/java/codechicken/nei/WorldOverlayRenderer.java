@@ -24,6 +24,10 @@ import org.lwjgl.opengl.GL11;
 import com.cardinalstar.cubicchunks.world.api.IMinMaxHeight;
 
 import codechicken.nei.KeyManager.IKeyStateTracker;
+import codechicken.nei.moboverlay.MobOverlayDisplayList;
+import codechicken.nei.moboverlay.MobOverlayFace;
+import codechicken.nei.moboverlay.MobOverlayScan;
+import codechicken.nei.moboverlay.MobOverlayStyle;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class WorldOverlayRenderer implements IKeyStateTracker {

@@ -11,6 +11,8 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 
 import codechicken.lib.math.MathHelper;
+import codechicken.nei.NEIClientConfig;
+import codechicken.nei.WorldOverlayRenderer;
 
 /**
  * Spawn modes around the player, scanned a slice per tick into a back buffer. When a pass is done, the back buffer
