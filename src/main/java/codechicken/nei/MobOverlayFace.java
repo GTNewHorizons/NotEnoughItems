@@ -60,7 +60,7 @@ public final class MobOverlayFace {
         addVertex(east, north);
     }
 
-    /** The texture is upright to a player facing south (+z). */
+    /** The texture is upright to a player facing north (-z). */
     public void addTexturedFace() {
         addTexturedVertex(0, 0);
         addTexturedVertex(0, 1);
@@ -74,7 +74,7 @@ public final class MobOverlayFace {
     }
 
     private void addTexturedVertex(double offsetX, double offsetZ) {
-        Tessellator.instance.setTextureUV(1 - offsetX, 1 - offsetZ);
+        Tessellator.instance.setTextureUV(offsetX, offsetZ);
         addVertex(offsetX, offsetZ);
     }
 
