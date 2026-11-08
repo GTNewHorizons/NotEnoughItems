@@ -7,8 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTBase.NBTPrimitive;
@@ -35,6 +38,7 @@ public class CollapsibleItems {
         public ItemFilter filter;
         public boolean expanded = false;
         public String displayName = "";
+        public String unlocalizedName;
 
         public void setFilter(String filter) {
             this.filter = ItemStackFilterParser.parse(filter.trim());
@@ -46,6 +50,18 @@ public class CollapsibleItems {
             this.guid = guid;
         }
 
+        public String getDisplayName() {
+            if (this.unlocalizedName != null && !this.unlocalizedName.isEmpty()) {
+                final String translated = StatCollector.translateToLocal(this.unlocalizedName);
+
+                if (!translated.equals(this.unlocalizedName)) {
+                    return translated;
+                }
+            }
+
+            return this.displayName;
+        }
+
         public boolean matches(ItemStack stack) {
             return this.filter.matches(stack);
         }
@@ -55,6 +71,7 @@ public class CollapsibleItems {
 
     protected static File statesFile;
     protected static final List<GroupItem> groups = new ArrayList<>();
+    protected static final List<Supplier<GroupItem>> apiGroups = new CopyOnWriteArrayList<>();
     protected static final Map<ItemStack, Integer> cache = new ConcurrentHashMap<>();
 
     private CollapsibleItems() {}
@@ -77,9 +94,49 @@ public class CollapsibleItems {
             ClientHandler.loadSettingsFile(
                     "collapsibleitems.cfg",
                     lines -> parseFile(lines.collect(Collectors.toCollection(ArrayList::new))));
+
+            for (Supplier<GroupItem> apiGroup : CollapsibleItems.apiGroups) {
+                try {
+                    addGroup(apiGroup.get());
+                } catch (Exception e) {
+                    NEIClientConfig.logger.error("Failed to add API group", e);
+                }
+            }
         }
 
         loadStates();
+    }
+
+    public static void registerGroup(String unlocalizedName, String filter) {
+        CollapsibleItems.apiGroups.add(() -> {
+            GroupItem group = new GroupItem();
+            group.setFilter(filter);
+            group.unlocalizedName = unlocalizedName;
+            return group;
+        });
+    }
+
+    public static void registerGroup(String unlocalizedName, Iterable<ItemStack> items) {
+        final ItemStackSet filter = new ItemStackSet();
+
+        for (ItemStack stack : items) {
+            if (stack != null) filter.add(stack.copy());
+        }
+
+        if (filter.isEmpty()) return;
+
+        final String key = unlocalizedName + ";"
+                + filter.keys().stream()
+                        .map(stack -> Item.itemRegistry.getNameForObject(stack.getItem()) + ":" + stack.getItemDamage())
+                        .sorted().collect(Collectors.joining(","));
+        final String guid = UUID.nameUUIDFromBytes(key.getBytes()).toString();
+
+        CollapsibleItems.apiGroups.add(() -> {
+            GroupItem group = new GroupItem();
+            group.setFilter(filter, guid);
+            group.unlocalizedName = unlocalizedName;
+            return group;
+        });
     }
 
     private static void parseFile(List<String> itemStrings) {
@@ -92,17 +149,8 @@ public class CollapsibleItems {
                 if (itemStr.startsWith("; ")) {
                     JsonObject settings = parser.parse(itemStr.substring(2)).getAsJsonObject();
 
-                    if (settings.get("displayName") != null) {
-                        group.displayName = settings.get("displayName").getAsString();
-                    }
-
                     if (settings.get("unlocalizedName") != null) {
-                        String unlocalizedName = settings.get("unlocalizedName").getAsString();
-                        String displayName = StatCollector.translateToLocal(unlocalizedName);
-
-                        if (!displayName.equals(unlocalizedName)) {
-                            group.displayName = displayName;
-                        }
+                        group.unlocalizedName = settings.get("unlocalizedName").getAsString();
                     }
 
                     if (settings.get("expanded") != null) {
@@ -176,7 +224,7 @@ public class CollapsibleItems {
     public static String getDisplayName(int groupIndex) {
 
         if (groupIndex < CollapsibleItems.groups.size()) {
-            return CollapsibleItems.groups.get(groupIndex).displayName;
+            return CollapsibleItems.groups.get(groupIndex).getDisplayName();
         }
 
         return null;
