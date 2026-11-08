@@ -4,7 +4,7 @@ import net.minecraft.client.renderer.GLAllocation;
 
 import org.lwjgl.opengl.GL11;
 
-/** A GL display list of the mob spawn overlay. */
+/** The mob spawn overlay quads, compiled into a GL display list. */
 public final class MobOverlayDisplayList {
 
     private int listId = -1;

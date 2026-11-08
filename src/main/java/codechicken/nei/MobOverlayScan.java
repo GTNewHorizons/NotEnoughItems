@@ -13,8 +13,8 @@ import net.minecraft.world.chunk.Chunk;
 import codechicken.lib.math.MathHelper;
 
 /**
- * The mob spawn modes of the blocks around the player, scanned a slice per tick into a back buffer. The buffers swap
- * when a pass is done. The column of a block or light change is rescanned on the next tick. The modes come from
+ * Spawn modes around the player, scanned a slice per tick into a back buffer. The buffers swap when a pass is done. The
+ * column of a block or light change is rescanned on the next tick. The modes come from
  * {@link WorldOverlayRenderer#getSpawnMode}: 0 for no spawns, 1 for night only and 2 for any time.
  */
 public final class MobOverlayScan {
@@ -176,7 +176,6 @@ public final class MobOverlayScan {
         modesVersion++;
     }
 
-    /** The spawn modes of one square of columns. */
     private static final class Buffer {
 
         // `modes[column * HEIGHT + k]`, valid for `k < columnEnds[column]`

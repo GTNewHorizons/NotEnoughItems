@@ -117,7 +117,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
                 MOB_OVERLAY_SCAN.getMinZ() - intOffsetZ);
         MOB_OVERLAY_LIST.draw();
         GL11.glPopMatrix();
-        endMobOverlayDraw(style);
+        endMobOverlayDraw();
     }
 
     /**
@@ -166,11 +166,9 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glLineWidth(1.5F);
-        if (style.isFilled()) {
-            // a translucent quad that writes depth hides the overlay behind the quad. Turn depth writes off
-            GL11.glDepthMask(false);
-            GL11.glDisable(GL11.GL_CULL_FACE);
-        }
+        // the band of `MobOverlayStyle.CONNECTED` lies in the plane of the tint. With depth writes on, the depth test
+        // discards most of the band
+        GL11.glDepthMask(false);
     }
 
     private static void loadNeighbourModes(int column, int k) {
@@ -189,11 +187,8 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         }
     }
 
-    private static void endMobOverlayDraw(MobOverlayStyle style) {
-        if (style.isFilled()) {
-            GL11.glEnable(GL11.GL_CULL_FACE);
-            GL11.glDepthMask(true);
-        }
+    private static void endMobOverlayDraw() {
+        GL11.glDepthMask(true);
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_BLEND);

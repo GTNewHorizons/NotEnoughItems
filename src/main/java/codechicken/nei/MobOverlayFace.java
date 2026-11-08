@@ -2,7 +2,7 @@ package codechicken.nei;
 
 import net.minecraft.client.renderer.Tessellator;
 
-/** The vertices of the mob spawn overlay on the top face of one block. */
+/** Vertex builder for one block's top face in the mob spawn overlay. */
 public final class MobOverlayFace {
 
     public static final byte OUTSIDE_SCAN = -2;

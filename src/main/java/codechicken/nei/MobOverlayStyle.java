@@ -9,7 +9,10 @@ import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.GL11;
 
-/** A mark of the mob spawn overlay. {@code world.overlays.mobOverlayStyle} is saved as {@link #formatName()}. */
+/**
+ * Each style is a mark drawn on every block where mobs can spawn. {@code world.overlays.mobOverlayStyle} is saved as
+ * {@link #formatName()}.
+ */
 public enum MobOverlayStyle {
 
     /** NEI's original cross from corner to corner. */
@@ -129,10 +132,6 @@ public enum MobOverlayStyle {
             case GTNH_LOGO -> "nei.options.world.overlays.mobOverlayStyle.gtnh_logo";
             case PUFFERFISH -> "nei.options.world.overlays.mobOverlayStyle.pufferfish";
         };
-    }
-
-    public boolean isFilled() {
-        return glMode == GL11.GL_QUADS;
     }
 
     public float computeAlpha() {
