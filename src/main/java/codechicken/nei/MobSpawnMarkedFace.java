@@ -50,7 +50,10 @@ public final class MobSpawnMarkedFace {
         addVertex(1, 0);
     }
 
-    /** Add one cell of a 3 x 3 grid over the face. Edge cells are {@code width} wide, and the middle cell fills the rest. */
+    /**
+     * Add one cell of a 3 x 3 grid over the face. Edge cells are {@code width} wide, and the middle cell fills the
+     * rest.
+     */
     public void addCell(int offsetX, int offsetZ, double width) {
         final double west = computeCellStart(offsetX, width);
         final double east = 1 - computeCellStart(-offsetX, width);

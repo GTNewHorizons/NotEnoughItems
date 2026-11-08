@@ -7,6 +7,7 @@ import java.util.concurrent.Callable;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSnow;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
@@ -33,6 +34,10 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     public static int mobOverlay = 0;
     private static final MobSpawnScan mobSpawnScan = new MobSpawnScan();
     private static final MobSpawnMarkedFace markedFace = new MobSpawnMarkedFace();
+    // display list of the overlay quads, compiled when the scan or the style changes
+    private static int mobSpawnList = -1;
+    private static int mobSpawnListPass;
+    private static MobSpawnOverlayStyle mobSpawnListStyle;
 
     public static void reset() {
         mobOverlay = 0;
@@ -93,18 +98,41 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     private static void renderMobSpawnOverlay(Entity entity, int intOffsetX, int intOffsetY, int intOffsetZ) {
         if (mobOverlay == 0) {
             mobSpawnScan.clear();
+            deleteMobSpawnList();
             return;
         }
 
         mobSpawnScan.update(entity, NEIClientConfig.getIntSetting("world.overlays.mobSpawnRadius"));
         final MobSpawnOverlayStyle style = MobSpawnOverlayStyle
                 .parseStyle(NEIClientConfig.getSetting("world.overlays.mobSpawnStyle").getValue());
+        if (!(mobSpawnList >= 0 && mobSpawnListPass == mobSpawnScan.getPassCount() && mobSpawnListStyle == style)) {
+            compileMobSpawnList(entity.worldObj, style);
+        }
+
         beginMobSpawnDraw(style);
+        GL11.glPushMatrix();
+        GL11.glTranslated(
+                mobSpawnScan.getMinX() - intOffsetX,
+                mobSpawnScan.getMinY() - intOffsetY,
+                mobSpawnScan.getMinZ() - intOffsetZ);
+        GL11.glCallList(mobSpawnList);
+        GL11.glPopMatrix();
+        endMobSpawnDraw(style);
+    }
+
+    /**
+     * Quad positions are relative to ({@link MobSpawnScan#getMinX}, {@link MobSpawnScan#getMinY},
+     * {@link MobSpawnScan#getMinZ}).
+     */
+    private static void compileMobSpawnList(World world, MobSpawnOverlayStyle style) {
+        if (mobSpawnList < 0) mobSpawnList = GLAllocation.generateDisplayLists(1);
+        mobSpawnListPass = mobSpawnScan.getPassCount();
+        mobSpawnListStyle = style;
+
+        GL11.glNewList(mobSpawnList, GL11.GL_COMPILE);
         final float alpha = style.computeAlpha();
-        final World world = entity.worldObj;
         final Tessellator tess = Tessellator.instance;
         tess.startDrawing(style.glMode);
-
         final int span = mobSpawnScan.getSpan();
         for (int i = 0; i < span; i++) {
             for (int j = 0; j < span; j++) {
@@ -113,20 +141,27 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
                 for (int k = 0; k < mobSpawnScan.getColumnEnd(column); k++) {
                     if (mobSpawnScan.readSpawnMode(column, k) == 0) continue;
 
-                    final int x = mobSpawnScan.getMinX() + i;
-                    final int y = mobSpawnScan.getMinY() + k;
-                    final int z = mobSpawnScan.getMinZ() + j;
-                    final double yOffset = getOverlayYOffset(world, x, y, z);
-                    markedFace.moveTo(x - intOffsetX, y - intOffsetY + yOffset, z - intOffsetZ);
+                    final double yOffset = getOverlayYOffset(
+                            world,
+                            mobSpawnScan.getMinX() + i,
+                            mobSpawnScan.getMinY() + k,
+                            mobSpawnScan.getMinZ() + j);
+                    markedFace.moveTo(i, k + yOffset, j);
                     loadNeighbourModes(column, k);
                     markedFace.applyColor(style.colouring, alpha);
                     style.addVertices(markedFace);
                 }
             }
         }
-
         tess.draw();
-        endMobSpawnDraw(style);
+        GL11.glEndList();
+    }
+
+    private static void deleteMobSpawnList() {
+        if (mobSpawnList < 0) return;
+
+        GLAllocation.deleteDisplayLists(mobSpawnList);
+        mobSpawnList = -1;
     }
 
     /** {@link #endMobSpawnDraw} undoes every change here except the texture binding. */

@@ -38,6 +38,7 @@ public final class MobSpawnScan {
     private int nextMinY;
     private int nextMinZ;
     private int nextColumn;
+    private int passCount;
     private boolean hasModes;
     private long scannedTick;
     // world of the front buffer
@@ -81,6 +82,11 @@ public final class MobSpawnScan {
             swapBuffers();
             startPass(entity);
         }
+    }
+
+    /** Changes each time the front buffer changes. */
+    public int getPassCount() {
+        return passCount;
     }
 
     public int getSpan() {
@@ -174,5 +180,6 @@ public final class MobSpawnScan {
         minX = nextMinX;
         minY = nextMinY;
         minZ = nextMinZ;
+        passCount++;
     }
 }

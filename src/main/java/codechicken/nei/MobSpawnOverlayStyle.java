@@ -23,7 +23,9 @@ public enum MobSpawnOverlayStyle {
         }
     },
 
-    /** A light tint, with a stronger band along the outline of each area of one spawn mode, like a connected texture. */
+    /**
+     * A light tint, with a stronger band along the outline of each area of one spawn mode, like a connected texture.
+     */
     CONNECTED(GL11.GL_QUADS) {
 
         @Override
