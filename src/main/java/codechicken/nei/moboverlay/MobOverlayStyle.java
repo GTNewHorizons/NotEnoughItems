@@ -1,4 +1,4 @@
-package codechicken.nei;
+package codechicken.nei.moboverlay;
 
 import java.util.Locale;
 import java.util.StringJoiner;

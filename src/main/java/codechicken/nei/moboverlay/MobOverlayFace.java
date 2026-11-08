@@ -1,4 +1,4 @@
-package codechicken.nei;
+package codechicken.nei.moboverlay;
 
 import net.minecraft.client.renderer.Tessellator;
 
