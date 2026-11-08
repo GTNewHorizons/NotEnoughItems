@@ -1,7 +1,5 @@
 package codechicken.nei.moboverlay;
 
-import java.util.Arrays;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.player.EntityPlayer;
@@ -15,10 +13,11 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.WorldOverlayRenderer;
 
 /**
- * Spawn modes around the player, scanned a slice per tick into a back buffer. When a pass is done, the back buffer
- * becomes the buffer that {@link #readSpawnMode} reads, and the next pass refills the other buffer. The column of a
- * block or light change is rescanned on the next tick. The modes come from {@link WorldOverlayRenderer#getSpawnMode}: 0
- * for no spawns, 1 for night only and 2 for any time.
+ * Spawn modes in a box around the player, from {@link WorldOverlayRenderer#getSpawnMode}: 0 for no spawns, 1 for night
+ * only and 2 for any time. The box moves with the player once the player is a few blocks from the box's centre, and
+ * {@link #update} scans only the blocks that enter the box. {@link #update} rescans the column of a block or light
+ * change on the next tick. On each tick, {@link #update} also rescans a slice of the columns, for changes with no block
+ * update, such as a boat that moves into the box.
  */
 public final class MobOverlayScan {
 
@@ -28,43 +27,57 @@ public final class MobOverlayScan {
     public static final int DEFAULT_RADIUS = 32;
     public static final int VERTICAL_RADIUS = 16;
     public static final int HEIGHT = 2 * VERTICAL_RADIUS + 1;
-    private static final int REFRESH_TICKS = 10;
+    private static final int RECENTRE_DISTANCE = 4;
+    private static final int VERTICAL_RECENTRE_DISTANCE = 2;
+    private static final int RESCAN_TICKS = 40;
 
     private final IWorldAccess changeListener = new ChangeListener();
+    private final Column column = new Column();
     private int radius;
     private int span;
-    private Buffer front = new Buffer();
-    private Buffer back = new Buffer();
-    // columns of `back` below this index are scanned in the pass in progress
-    private int nextColumn;
+    // a ring buffer over the box, indexed by `findCell()`
+    private byte[] modes = new byte[0];
+    // indexed by `findColumn(x, z)`
+    private boolean[] dirty = new boolean[0];
     private boolean hasDirtyColumns;
+    private int minX;
+    private int minY;
+    private int minZ;
+    // the slice rescan of `update()` continues from this column, numbered `(x - minX) * span + (z - minZ)`
+    private int nextRescanColumn;
     private int modesVersion;
     private boolean hasModes;
     private long scannedTick;
-    // world of `front`, with `changeListener` added
+    // world of `modes`, with `changeListener` added
     private World scannedWorld;
 
-    /** Free the buffers. The next {@link #update} does a full scan. */
     public void clear() {
         if (scannedWorld != null) scannedWorld.removeWorldAccess(changeListener);
         radius = 0;
         span = 0;
-        front = new Buffer();
-        back = new Buffer();
+        modes = new byte[0];
+        dirty = new boolean[0];
         hasModes = false;
         scannedWorld = null;
     }
 
     /**
-     * Scan every column in this call after {@link #clear}, a radius change or a world change. {@code newRadius} is
-     * clamped between {@link #MIN_RADIUS} and {@link #MAX_RADIUS}.
+     * Scan every column in this call after {@link #clear}, a radius change, a world change, or a move of
+     * {@link #getSpan} blocks or more. {@code newRadius} is clamped between {@link #MIN_RADIUS} and
+     * {@link #MAX_RADIUS}.
      */
     public void update(Entity entity, int newRadius) {
         final World world = entity.worldObj;
         final int clampedRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, newRadius));
         if (radius != clampedRadius) resize(clampedRadius);
-        if (!(hasModes && world == scannedWorld)) {
-            scanFullPass(entity);
+        final int centreX = MathHelper.floor_double(entity.posX);
+        final int centreY = (int) MathHelper.clip(entity.posY, VERTICAL_RADIUS, world.getHeight() - VERTICAL_RADIUS);
+        final int centreZ = MathHelper.floor_double(entity.posZ);
+        final boolean isNearBox = Math.abs(centreX - radius - minX) < span && Math.abs(centreZ - radius - minZ) < span
+                && Math.abs(centreY - VERTICAL_RADIUS - minY) < HEIGHT;
+        if (!(hasModes && world == scannedWorld && isNearBox)) {
+            if (world != scannedWorld) watchWorld(world);
+            scanFullBox(centreX, centreY, centreZ);
             return;
         }
 
@@ -72,18 +85,13 @@ public final class MobOverlayScan {
         if (worldTicks == scannedTick) return;
 
         scannedTick = worldTicks;
-        if (hasDirtyColumns) rescanDirtyColumns(world);
-        final int columnCount = span * span;
-        final int sliceEnd = Math.min(columnCount, nextColumn + (columnCount + REFRESH_TICKS - 1) / REFRESH_TICKS);
-        for (; nextColumn < sliceEnd; nextColumn++) {
-            back.scanColumn(world, nextColumn, span);
-        }
-        if (nextColumn == columnCount) {
-            swapBuffers();
-            startPass(entity);
-        }
+        boolean isChanged = moveBox(centreX, centreY, centreZ);
+        if (hasDirtyColumns) isChanged |= rescanDirtyColumns();
+        isChanged |= rescanSlice();
+        if (isChanged) modesVersion++;
     }
 
+    /** The version changes when a spawn mode changes or the box moves. */
     public int getModesVersion() {
         return modesVersion;
     }
@@ -93,51 +101,48 @@ public final class MobOverlayScan {
     }
 
     public int getMinX() {
-        return front.minX;
+        return minX;
     }
 
     public int getMinY() {
-        return front.minY;
+        return minY;
     }
 
     public int getMinZ() {
-        return front.minZ;
+        return minZ;
     }
 
-    public int getColumnEnd(int column) {
-        return front.columnEnds[column];
-    }
-
-    /** @return 0 at or above {@link #getColumnEnd} */
-    public byte readSpawnMode(int column, int k) {
-        return k < front.columnEnds[column] ? front.modes[column * HEIGHT + k] : 0;
+    /** {@code i} and {@code j} are from 0 to {@link #getSpan}, and {@code k} is from 0 to {@link #HEIGHT}. */
+    public byte readSpawnMode(int i, int k, int j) {
+        return modes[findCell(minX + i, minY + k, minZ + j)];
     }
 
     private void resize(int newRadius) {
         radius = newRadius;
         span = 2 * newRadius + 1;
-        front.allocate(span * span);
-        back.allocate(span * span);
+        modes = new byte[span * span * HEIGHT];
+        dirty = new boolean[span * span];
         hasModes = false;
     }
 
-    private void scanFullPass(Entity entity) {
+    private void scanFullBox(int centreX, int centreY, int centreZ) {
         final long startNanos = System.nanoTime();
-        final World world = entity.worldObj;
-        if (world != scannedWorld) watchWorld(world);
-        startPass(entity);
-        for (; nextColumn < span * span; nextColumn++) {
-            back.scanColumn(world, nextColumn, span);
+        minX = centreX - radius;
+        minY = centreY - VERTICAL_RADIUS;
+        minZ = centreZ - radius;
+        for (int x = minX; x < minX + span; x++) {
+            for (int z = minZ; z < minZ + span; z++) {
+                scanColumn(x, z);
+            }
         }
-        swapBuffers();
         hasModes = true;
-        scannedTick = world.getTotalWorldTime();
+        modesVersion++;
+        scannedTick = scannedWorld.getTotalWorldTime();
         NEIClientConfig.logger.info(
                 "moboverlay.scan.full radius={} columns={} micros={}",
                 radius,
                 span * span,
                 (System.nanoTime() - startNanos) / 1000);
-        startPass(entity);
     }
 
     private void watchWorld(World world) {
@@ -146,78 +151,120 @@ public final class MobOverlayScan {
         scannedWorld = world;
     }
 
-    private void startPass(Entity entity) {
-        final int centreY = (int) MathHelper
-                .clip(entity.posY, VERTICAL_RADIUS, entity.worldObj.getHeight() - VERTICAL_RADIUS);
-        back.minX = (int) entity.posX - radius;
-        back.minY = centreY - VERTICAL_RADIUS;
-        back.minZ = (int) entity.posZ - radius;
-        Arrays.fill(back.dirty, false);
-        nextColumn = 0;
+    /** @return whether the box moved */
+    private boolean moveBox(int centreX, int centreY, int centreZ) {
+        boolean isMoved = false;
+        final int offsetX = centreX - radius - minX;
+        if (Math.abs(offsetX) > RECENTRE_DISTANCE) {
+            final int enteringX = offsetX > 0 ? minX + span : minX + offsetX;
+            minX += offsetX;
+            for (int x = enteringX; x < enteringX + Math.abs(offsetX); x++) {
+                for (int z = minZ; z < minZ + span; z++) {
+                    scanColumn(x, z);
+                }
+            }
+            isMoved = true;
+        }
+
+        final int offsetZ = centreZ - radius - minZ;
+        if (Math.abs(offsetZ) > RECENTRE_DISTANCE) {
+            final int enteringZ = offsetZ > 0 ? minZ + span : minZ + offsetZ;
+            minZ += offsetZ;
+            for (int x = minX; x < minX + span; x++) {
+                for (int z = enteringZ; z < enteringZ + Math.abs(offsetZ); z++) {
+                    scanColumn(x, z);
+                }
+            }
+            isMoved = true;
+        }
+
+        final int offsetY = centreY - VERTICAL_RADIUS - minY;
+        if (Math.abs(offsetY) > VERTICAL_RECENTRE_DISTANCE) {
+            final int enteringY = offsetY > 0 ? minY + HEIGHT : minY + offsetY;
+            minY += offsetY;
+            for (int x = minX; x < minX + span; x++) {
+                for (int z = minZ; z < minZ + span; z++) {
+                    column.moveTo(x, z);
+                    column.scan(enteringY, enteringY + Math.abs(offsetY));
+                }
+            }
+            isMoved = true;
+        }
+        return isMoved;
     }
 
-    private void rescanDirtyColumns(World world) {
+    private boolean rescanDirtyColumns() {
         hasDirtyColumns = false;
-        for (int column = 0; column < span * span; column++) {
-            if (front.dirty[column]) {
-                front.scanColumn(world, column, span);
-                front.dirty[column] = false;
-                modesVersion++;
-            }
-            if (back.dirty[column]) {
-                back.scanColumn(world, column, span);
-                back.dirty[column] = false;
+        boolean isChanged = false;
+        for (int x = minX; x < minX + span; x++) {
+            for (int z = minZ; z < minZ + span; z++) {
+                if (dirty[findColumn(x, z)]) isChanged |= scanColumn(x, z);
             }
         }
+        return isChanged;
     }
 
-    private void swapBuffers() {
-        final Buffer scanned = back;
-        back = front;
-        front = scanned;
-        modesVersion++;
+    private boolean rescanSlice() {
+        final int columnCount = span * span;
+        final int sliceEnd = Math.min(columnCount, nextRescanColumn + (columnCount + RESCAN_TICKS - 1) / RESCAN_TICKS);
+        boolean isChanged = false;
+        for (; nextRescanColumn < sliceEnd; nextRescanColumn++) {
+            final int x = minX + nextRescanColumn / span;
+            final int z = minZ + nextRescanColumn % span;
+            isChanged |= scanColumn(x, z);
+        }
+        if (nextRescanColumn == columnCount) nextRescanColumn = 0;
+        return isChanged;
     }
 
-    private static final class Buffer {
+    /** @return whether a spawn mode changed */
+    private boolean scanColumn(int x, int z) {
+        column.moveTo(x, z);
+        dirty[findColumn(x, z)] = false;
+        return column.scan(minY, minY + HEIGHT);
+    }
 
-        // `modes[column * HEIGHT + k]`, valid for `k < columnEnds[column]`
-        private byte[] modes = new byte[0];
-        private int[] columnEnds = new int[0];
-        private boolean[] dirty = new boolean[0];
-        private int minX;
-        private int minY;
-        private int minZ;
+    private int findColumn(int x, int z) {
+        return Math.floorMod(x, span) * span + Math.floorMod(z, span);
+    }
 
-        private void allocate(int columnCount) {
-            modes = new byte[columnCount * HEIGHT];
-            columnEnds = new int[columnCount];
-            dirty = new boolean[columnCount];
+    private int findCell(int x, int y, int z) {
+        return findColumn(x, z) * HEIGHT + Math.floorMod(y, HEIGHT);
+    }
+
+    /**
+     * {@link #moveTo} reads the chunk, the height map and the biome of a column, and {@link #scan} reads the column's
+     * blocks.
+     */
+    private final class Column {
+
+        private int x;
+        private int z;
+        private Chunk chunk;
+        private int topY;
+        private boolean canBiomeSpawn;
+
+        private void moveTo(int newX, int newZ) {
+            x = newX;
+            z = newZ;
+            final BiomeGenBase biome = scannedWorld.getBiomeGenForCoords(x, z);
+            canBiomeSpawn = !biome.getSpawnableList(EnumCreatureType.monster).isEmpty()
+                    && biome.getSpawningChance() > 0;
+            chunk = scannedWorld.getChunkFromBlockCoords(x, z);
+            topY = Math.min(scannedWorld.getHeight() - 1, scannedWorld.getHeightValue(x, z));
         }
 
-        /** @return -1 outside this buffer's square */
-        private int findColumn(int x, int z, int span) {
-            final int i = x - minX;
-            final int j = z - minZ;
-            return i >= 0 && i < span && j >= 0 && j < span ? i * span + j : -1;
-        }
-
-        private void scanColumn(World world, int column, int span) {
-            final int x = minX + column / span;
-            final int z = minZ + column % span;
-            final BiomeGenBase biome = world.getBiomeGenForCoords(x, z);
-            if (biome.getSpawnableList(EnumCreatureType.monster).isEmpty() || biome.getSpawningChance() <= 0) {
-                columnEnds[column] = 0;
-                return;
+        /** @return whether a spawn mode changed */
+        private boolean scan(int fromY, int toY) {
+            boolean isChanged = false;
+            for (int y = fromY; y < toY; y++) {
+                final byte spawnMode = canBiomeSpawn && y <= topY ? WorldOverlayRenderer.getSpawnMode(chunk, x, y, z)
+                        : 0;
+                final int cell = findCell(x, y, z);
+                isChanged |= modes[cell] != spawnMode;
+                modes[cell] = spawnMode;
             }
-
-            final Chunk chunk = world.getChunkFromBlockCoords(x, z);
-            final int topY = Math.min(world.getHeight() - 1, world.getHeightValue(x, z));
-            int end = 0;
-            while (end < HEIGHT && minY + end <= topY) {
-                modes[column * HEIGHT + end] = WorldOverlayRenderer.getSpawnMode(chunk, x, minY + end, z);
-                end++;
-            }
-            columnEnds[column] = end;
+            return isChanged;
         }
     }
 
@@ -236,12 +283,8 @@ public final class MobOverlayScan {
 
         @Override
         public void markBlockRangeForRenderUpdate(int fromX, int fromY, int fromZ, int toX, int toY, int toZ) {
-            final int startX = Math.max(fromX, Math.min(front.minX, back.minX));
-            final int endX = Math.min(toX, Math.max(front.minX, back.minX) + span - 1);
-            final int startZ = Math.max(fromZ, Math.min(front.minZ, back.minZ));
-            final int endZ = Math.min(toZ, Math.max(front.minZ, back.minZ) + span - 1);
-            for (int x = startX; x <= endX; x++) {
-                for (int z = startZ; z <= endZ; z++) {
+            for (int x = Math.max(fromX, minX); x <= Math.min(toX, minX + span - 1); x++) {
+                for (int z = Math.max(fromZ, minZ); z <= Math.min(toZ, minZ + span - 1); z++) {
                     markColumn(x, z);
                 }
             }
@@ -281,22 +324,13 @@ public final class MobOverlayScan {
 
         private void markChanged(int x, int y, int z) {
             // spawn modes depend on the block below and the block above
-            final int lowestY = Math.min(front.minY, back.minY) - 1;
-            final int highestY = Math.max(front.minY, back.minY) + HEIGHT;
-            if (y >= lowestY && y <= highestY) markColumn(x, z);
+            final boolean isInBox = x >= minX && x < minX + span && z >= minZ && z < minZ + span;
+            if (isInBox && y >= minY - 1 && y <= minY + HEIGHT) markColumn(x, z);
         }
 
         private void markColumn(int x, int z) {
-            final int frontColumn = front.findColumn(x, z, span);
-            if (frontColumn >= 0) {
-                front.dirty[frontColumn] = true;
-                hasDirtyColumns = true;
-            }
-            final int backColumn = back.findColumn(x, z, span);
-            if (backColumn >= 0 && backColumn < nextColumn) {
-                back.dirty[backColumn] = true;
-                hasDirtyColumns = true;
-            }
+            dirty[findColumn(x, z)] = true;
+            hasDirtyColumns = true;
         }
     }
 }

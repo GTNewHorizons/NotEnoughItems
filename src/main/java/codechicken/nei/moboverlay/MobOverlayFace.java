@@ -21,7 +21,6 @@ public final class MobOverlayFace {
         this.z = z;
     }
 
-    /** An offset of -1 is west or north, and 1 is east or south. Offset {@code (0, 0)} is this block. */
     public void setNeighbourMode(int offsetX, int offsetZ, byte spawnMode) {
         neighbourModes[indexNeighbour(offsetX, offsetZ)] = spawnMode;
     }
