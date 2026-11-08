@@ -164,8 +164,8 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glLineWidth(1.5F);
-        // the band of `MobOverlayStyle.CONNECTED` lies in the plane of the tint. With depth writes on, the depth test
-        // discards most of the band
+        // the outline of `MobOverlayStyle.CONNECTED` lies in the plane of the tint. With depth writes on, the depth
+        // test discards most of the outline
         GL11.glDepthMask(false);
     }
 

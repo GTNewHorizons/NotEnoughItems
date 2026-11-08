@@ -36,7 +36,7 @@ public final class MobOverlayFace {
 
     public boolean isJoined(int offsetX, int offsetZ) {
         final byte neighbourMode = neighbourModes[indexNeighbour(offsetX, offsetZ)];
-        // no band along the edge of the scan
+        // no outline along the edge of the scan
         return neighbourMode == neighbourModes[indexNeighbour(0, 0)] || neighbourMode == OUTSIDE_SCAN;
     }
 

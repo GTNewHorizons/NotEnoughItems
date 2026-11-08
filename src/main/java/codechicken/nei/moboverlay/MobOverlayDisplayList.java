@@ -16,9 +16,9 @@ public final class MobOverlayDisplayList {
     private long compiledTicks;
 
     /**
-     * After a style change, a compile is due at once. After a {@link MobOverlayScan#getModesVersion} change, a compile
-     * is due {@code MIN_COMPILE_TICKS} or more ticks after the last compile. A compile takes a millisecond or more, and
-     * the version changes several times per second while the player moves fast.
+     * Compiles after a {@link MobOverlayScan#getModesVersion} change are debounced to one per {@code MIN_COMPILE_TICKS}
+     * ticks, because the version changes several times per second while the player moves fast, and a compile takes a
+     * millisecond or more.
      */
     public boolean isCompileDue(int currentModesVersion, MobOverlayStyle currentStyle, long worldTicks) {
         final int MIN_COMPILE_TICKS = 5;

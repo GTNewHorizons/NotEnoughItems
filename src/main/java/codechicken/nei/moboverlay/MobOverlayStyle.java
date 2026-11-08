@@ -28,21 +28,21 @@ public enum MobOverlayStyle {
     },
 
     /**
-     * A light tint, with a stronger band along the outline of each area of one spawn mode, like a connected texture.
+     * A light tint, with a stronger outline around each area of one spawn mode, like a connected texture.
      */
     CONNECTED(GL11.GL_QUADS) {
 
         @Override
         public void addVertices(MobOverlayFace face) {
-            final double BAND_WIDTH = 1.0 / 16;
+            final double OUTLINE_WIDTH = 1.0 / 16;
             face.addFullFace();
             face.applyColor(Colouring.OVERLAY, MARK_ALPHA);
             for (int offsetX = -1; offsetX <= 1; offsetX++) {
                 for (int offsetZ = -1; offsetZ <= 1; offsetZ++) {
-                    // a corner cell is drawn when either edge next to the corner has a band, and on an inside corner
-                    final boolean isBand = !(face.isJoined(offsetX, offsetZ) && face.isJoined(offsetX, 0)
+                    // a corner cell is drawn when either edge next to the corner is outlined, and on an inside corner
+                    final boolean isOutline = !(face.isJoined(offsetX, offsetZ) && face.isJoined(offsetX, 0)
                             && face.isJoined(0, offsetZ));
-                    if (isBand) face.addCell(offsetX, offsetZ, BAND_WIDTH);
+                    if (isOutline) face.addCell(offsetX, offsetZ, OUTLINE_WIDTH);
                 }
             }
         }
@@ -83,7 +83,7 @@ public enum MobOverlayStyle {
     public static final MobOverlayStyle DEFAULT = CONNECTED;
 
     private static final float TINT_ALPHA = 0.15F;
-    // at the tint's opacity, a small mark is too faint to see
+    // the square and the outline cover a small part of the block and need more opacity than the tint to stay visible
     private static final float MARK_ALPHA = 0.45F;
 
     public final int glMode;
