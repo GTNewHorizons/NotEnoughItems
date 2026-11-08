@@ -36,7 +36,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     private static final MobSpawnMarkedFace markedFace = new MobSpawnMarkedFace();
     // display list of the overlay quads, compiled when the scan or the style changes
     private static int mobSpawnList = -1;
-    private static int mobSpawnListPass;
+    private static int mobSpawnListChange;
     private static MobSpawnOverlayStyle mobSpawnListStyle;
 
     public static void reset() {
@@ -105,7 +105,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         mobSpawnScan.update(entity, NEIClientConfig.getIntSetting("world.overlays.mobSpawnRadius"));
         final MobSpawnOverlayStyle style = MobSpawnOverlayStyle
                 .parseStyle(NEIClientConfig.getSetting("world.overlays.mobSpawnStyle").getValue());
-        if (!(mobSpawnList >= 0 && mobSpawnListPass == mobSpawnScan.getPassCount() && mobSpawnListStyle == style)) {
+        if (!(mobSpawnList >= 0 && mobSpawnListChange == mobSpawnScan.getChangeCount() && mobSpawnListStyle == style)) {
             compileMobSpawnList(entity.worldObj, style);
         }
 
@@ -126,7 +126,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
      */
     private static void compileMobSpawnList(World world, MobSpawnOverlayStyle style) {
         if (mobSpawnList < 0) mobSpawnList = GLAllocation.generateDisplayLists(1);
-        mobSpawnListPass = mobSpawnScan.getPassCount();
+        mobSpawnListChange = mobSpawnScan.getChangeCount();
         mobSpawnListStyle = style;
 
         GL11.glNewList(mobSpawnList, GL11.GL_COMPILE);
