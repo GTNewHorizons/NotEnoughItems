@@ -4,20 +4,18 @@ import net.minecraft.client.renderer.GLAllocation;
 
 import org.lwjgl.opengl.GL11;
 
-/**
- * The display list of the mob spawn overlay quads, and the scan version and the style that the list was compiled from.
- */
-public final class MobSpawnDisplayList {
+/** A GL display list of the mob spawn overlay. */
+public final class MobOverlayDisplayList {
 
     private int listId = -1;
     private int modesVersion;
-    private MobSpawnOverlayStyle style;
+    private MobOverlayStyle style;
 
-    public boolean isCompiled(int currentModesVersion, MobSpawnOverlayStyle currentStyle) {
+    public boolean isCompiled(int currentModesVersion, MobOverlayStyle currentStyle) {
         return listId >= 0 && modesVersion == currentModesVersion && style == currentStyle;
     }
 
-    public void beginCompile(int newModesVersion, MobSpawnOverlayStyle newStyle) {
+    public void beginCompile(int newModesVersion, MobOverlayStyle newStyle) {
         if (listId < 0) listId = GLAllocation.generateDisplayLists(1);
         modesVersion = newModesVersion;
         style = newStyle;

@@ -9,14 +9,14 @@ import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.GL11;
 
-/** A mark of the mob spawn overlay. {@code world.overlays.mobSpawnStyle} is saved as {@link #formatName()}. */
-public enum MobSpawnOverlayStyle {
+/** A mark of the mob spawn overlay. {@code world.overlays.mobOverlayStyle} is saved as {@link #formatName()}. */
+public enum MobOverlayStyle {
 
     /** NEI's original cross from corner to corner. */
     X(GL11.GL_LINES) {
 
         @Override
-        public void addVertices(MobSpawnMarkedFace face) {
+        public void addVertices(MobOverlayFace face) {
             face.addVertex(0, 0);
             face.addVertex(1, 1);
             face.addVertex(1, 0);
@@ -30,7 +30,7 @@ public enum MobSpawnOverlayStyle {
     CONNECTED(GL11.GL_QUADS) {
 
         @Override
-        public void addVertices(MobSpawnMarkedFace face) {
+        public void addVertices(MobOverlayFace face) {
             final double BAND_WIDTH = 1.0 / 16;
             face.addFullFace();
             face.applyColor(Colouring.OVERLAY, MARK_ALPHA);
@@ -49,7 +49,7 @@ public enum MobSpawnOverlayStyle {
     SQUARE(GL11.GL_QUADS) {
 
         @Override
-        public void addVertices(MobSpawnMarkedFace face) {
+        public void addVertices(MobOverlayFace face) {
             final double CENTRE = 0.5;
             final double HALF_SIDE = 7.0 / 64;
             face.addVertex(CENTRE - HALF_SIDE, CENTRE - HALF_SIDE);
@@ -63,7 +63,7 @@ public enum MobSpawnOverlayStyle {
     GTNH_LOGO("gtnh_logo", Colouring.OVERLAY) {
 
         @Override
-        public void addVertices(MobSpawnMarkedFace face) {
+        public void addVertices(MobOverlayFace face) {
             face.addTexturedFace();
         }
     },
@@ -72,12 +72,12 @@ public enum MobSpawnOverlayStyle {
     PUFFERFISH("pufferfish", Colouring.STICKER) {
 
         @Override
-        public void addVertices(MobSpawnMarkedFace face) {
+        public void addVertices(MobOverlayFace face) {
             face.addTexturedFace();
         }
     };
 
-    public static final MobSpawnOverlayStyle DEFAULT = CONNECTED;
+    public static final MobOverlayStyle DEFAULT = CONNECTED;
 
     private static final float TINT_ALPHA = 0.15F;
     // at the tint's opacity, a small mark is too faint to see
@@ -88,21 +88,21 @@ public enum MobSpawnOverlayStyle {
     public final ResourceLocation texture;
     public final Colouring colouring;
 
-    MobSpawnOverlayStyle(int glMode) {
+    MobOverlayStyle(int glMode) {
         this.glMode = glMode;
         this.texture = null;
         this.colouring = Colouring.OVERLAY;
     }
 
-    MobSpawnOverlayStyle(String textureName, Colouring colouring) {
+    MobOverlayStyle(String textureName, Colouring colouring) {
         this.glMode = GL11.GL_QUADS;
         this.texture = new ResourceLocation("nei", "textures/overlay/" + textureName + ".png");
         this.colouring = colouring;
     }
 
     /** Case-insensitive. Returns {@link #DEFAULT} for an unknown name. */
-    public static MobSpawnOverlayStyle parseStyle(String rawStyle) {
-        for (MobSpawnOverlayStyle candidate : values()) {
+    public static MobOverlayStyle parseStyle(String rawStyle) {
+        for (MobOverlayStyle candidate : values()) {
             if (candidate.formatName().equalsIgnoreCase(rawStyle)) return candidate;
         }
         return DEFAULT;
@@ -111,7 +111,7 @@ public enum MobSpawnOverlayStyle {
     /** @return the {@link #formatName} of every style, separated by commas */
     public static String formatAllNames() {
         final StringJoiner names = new StringJoiner(", ");
-        for (MobSpawnOverlayStyle style : values()) {
+        for (MobOverlayStyle style : values()) {
             names.add(style.formatName());
         }
         return names.toString();
@@ -123,11 +123,11 @@ public enum MobSpawnOverlayStyle {
 
     public String getLangKey() {
         return switch (this) {
-            case X -> "nei.options.world.overlays.mobSpawnStyle.x";
-            case CONNECTED -> "nei.options.world.overlays.mobSpawnStyle.connected";
-            case SQUARE -> "nei.options.world.overlays.mobSpawnStyle.square";
-            case GTNH_LOGO -> "nei.options.world.overlays.mobSpawnStyle.gtnh_logo";
-            case PUFFERFISH -> "nei.options.world.overlays.mobSpawnStyle.pufferfish";
+            case X -> "nei.options.world.overlays.mobOverlayStyle.x";
+            case CONNECTED -> "nei.options.world.overlays.mobOverlayStyle.connected";
+            case SQUARE -> "nei.options.world.overlays.mobOverlayStyle.square";
+            case GTNH_LOGO -> "nei.options.world.overlays.mobOverlayStyle.gtnh_logo";
+            case PUFFERFISH -> "nei.options.world.overlays.mobOverlayStyle.pufferfish";
         };
     }
 
@@ -144,7 +144,7 @@ public enum MobSpawnOverlayStyle {
         };
     }
 
-    public abstract void addVertices(MobSpawnMarkedFace face);
+    public abstract void addVertices(MobOverlayFace face);
 
     public enum Colouring {
         /** Yellow where mobs spawn only at night, red where mobs spawn at any time. */

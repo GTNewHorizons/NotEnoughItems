@@ -31,9 +31,9 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     public static int chunkOverlay = 0;
 
     public static int mobOverlay = 0;
-    private static final MobSpawnScan MOB_SPAWN_SCAN = new MobSpawnScan();
-    private static final MobSpawnMarkedFace MARKED_FACE = new MobSpawnMarkedFace();
-    private static final MobSpawnDisplayList MOB_SPAWN_LIST = new MobSpawnDisplayList();
+    private static final MobOverlayScan MOB_OVERLAY_SCAN = new MobOverlayScan();
+    private static final MobOverlayFace MARKED_FACE = new MobOverlayFace();
+    private static final MobOverlayDisplayList MOB_OVERLAY_LIST = new MobOverlayDisplayList();
 
     public static void reset() {
         mobOverlay = 0;
@@ -97,51 +97,51 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
      */
     private static void renderMobSpawnOverlay(Entity entity, int intOffsetX, int intOffsetY, int intOffsetZ) {
         if (mobOverlay == 0) {
-            MOB_SPAWN_SCAN.clear();
-            MOB_SPAWN_LIST.delete();
+            MOB_OVERLAY_SCAN.clear();
+            MOB_OVERLAY_LIST.delete();
             return;
         }
 
-        MOB_SPAWN_SCAN.update(entity, NEIClientConfig.getIntSetting("world.overlays.mobSpawnRadius"));
-        final MobSpawnOverlayStyle style = MobSpawnOverlayStyle
-                .parseStyle(NEIClientConfig.getSetting("world.overlays.mobSpawnStyle").getValue());
-        if (!MOB_SPAWN_LIST.isCompiled(MOB_SPAWN_SCAN.getModesVersion(), style)) {
-            compileMobSpawnList(entity.worldObj, style);
+        MOB_OVERLAY_SCAN.update(entity, NEIClientConfig.getIntSetting("world.overlays.mobOverlayRadius"));
+        final MobOverlayStyle style = MobOverlayStyle
+                .parseStyle(NEIClientConfig.getSetting("world.overlays.mobOverlayStyle").getValue());
+        if (!MOB_OVERLAY_LIST.isCompiled(MOB_OVERLAY_SCAN.getModesVersion(), style)) {
+            compileMobOverlayList(entity.worldObj, style);
         }
 
-        beginMobSpawnDraw(style);
+        beginMobOverlayDraw(style);
         GL11.glPushMatrix();
         GL11.glTranslated(
-                MOB_SPAWN_SCAN.getMinX() - intOffsetX,
-                MOB_SPAWN_SCAN.getMinY() - intOffsetY,
-                MOB_SPAWN_SCAN.getMinZ() - intOffsetZ);
-        MOB_SPAWN_LIST.draw();
+                MOB_OVERLAY_SCAN.getMinX() - intOffsetX,
+                MOB_OVERLAY_SCAN.getMinY() - intOffsetY,
+                MOB_OVERLAY_SCAN.getMinZ() - intOffsetZ);
+        MOB_OVERLAY_LIST.draw();
         GL11.glPopMatrix();
-        endMobSpawnDraw(style);
+        endMobOverlayDraw(style);
     }
 
     /**
-     * Quad positions are relative to ({@link MobSpawnScan#getMinX}, {@link MobSpawnScan#getMinY},
-     * {@link MobSpawnScan#getMinZ}).
+     * Quad positions are relative to ({@link MobOverlayScan#getMinX}, {@link MobOverlayScan#getMinY},
+     * {@link MobOverlayScan#getMinZ}).
      */
-    private static void compileMobSpawnList(World world, MobSpawnOverlayStyle style) {
-        MOB_SPAWN_LIST.beginCompile(MOB_SPAWN_SCAN.getModesVersion(), style);
+    private static void compileMobOverlayList(World world, MobOverlayStyle style) {
+        MOB_OVERLAY_LIST.beginCompile(MOB_OVERLAY_SCAN.getModesVersion(), style);
         final float alpha = style.computeAlpha();
         final Tessellator tess = Tessellator.instance;
         tess.startDrawing(style.glMode);
-        final int span = MOB_SPAWN_SCAN.getSpan();
+        final int span = MOB_OVERLAY_SCAN.getSpan();
         for (int i = 0; i < span; i++) {
             for (int j = 0; j < span; j++) {
                 final int column = i * span + j;
 
-                for (int k = 0; k < MOB_SPAWN_SCAN.getColumnEnd(column); k++) {
-                    if (MOB_SPAWN_SCAN.readSpawnMode(column, k) == 0) continue;
+                for (int k = 0; k < MOB_OVERLAY_SCAN.getColumnEnd(column); k++) {
+                    if (MOB_OVERLAY_SCAN.readSpawnMode(column, k) == 0) continue;
 
                     final double yOffset = getOverlayYOffset(
                             world,
-                            MOB_SPAWN_SCAN.getMinX() + i,
-                            MOB_SPAWN_SCAN.getMinY() + k,
-                            MOB_SPAWN_SCAN.getMinZ() + j);
+                            MOB_OVERLAY_SCAN.getMinX() + i,
+                            MOB_OVERLAY_SCAN.getMinY() + k,
+                            MOB_OVERLAY_SCAN.getMinZ() + j);
                     MARKED_FACE.moveTo(i, k + yOffset, j);
                     loadNeighbourModes(column, k);
                     MARKED_FACE.applyColor(style.colouring, alpha);
@@ -150,11 +150,11 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
             }
         }
         tess.draw();
-        MOB_SPAWN_LIST.endCompile();
+        MOB_OVERLAY_LIST.endCompile();
     }
 
-    /** {@link #endMobSpawnDraw} undoes every change here except the texture binding. */
-    private static void beginMobSpawnDraw(MobSpawnOverlayStyle style) {
+    /** {@link #endMobOverlayDraw} undoes every change here except the texture binding. */
+    private static void beginMobOverlayDraw(MobOverlayStyle style) {
         final ResourceLocation texture = style.texture;
         if (texture == null) {
             GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -174,7 +174,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     }
 
     private static void loadNeighbourModes(int column, int k) {
-        final int span = MOB_SPAWN_SCAN.getSpan();
+        final int span = MOB_OVERLAY_SCAN.getSpan();
         final int i = column / span;
         final int j = column % span;
         for (int offsetX = -1; offsetX <= 1; offsetX++) {
@@ -182,14 +182,14 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
                 final int neighbourI = i + offsetX;
                 final int neighbourJ = j + offsetZ;
                 final boolean isInScan = neighbourI >= 0 && neighbourI < span && neighbourJ >= 0 && neighbourJ < span;
-                final byte spawnMode = isInScan ? MOB_SPAWN_SCAN.readSpawnMode(neighbourI * span + neighbourJ, k)
-                        : MobSpawnMarkedFace.OUTSIDE_SCAN;
+                final byte spawnMode = isInScan ? MOB_OVERLAY_SCAN.readSpawnMode(neighbourI * span + neighbourJ, k)
+                        : MobOverlayFace.OUTSIDE_SCAN;
                 MARKED_FACE.setNeighbourMode(offsetX, offsetZ, spawnMode);
             }
         }
     }
 
-    private static void endMobSpawnDraw(MobSpawnOverlayStyle style) {
+    private static void endMobOverlayDraw(MobOverlayStyle style) {
         if (style.isFilled()) {
             GL11.glEnable(GL11.GL_CULL_FACE);
             GL11.glDepthMask(true);

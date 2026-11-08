@@ -17,7 +17,7 @@ import codechicken.lib.math.MathHelper;
  * when a pass is done. The column of a block or light change is rescanned on the next tick. The modes come from
  * {@link WorldOverlayRenderer#getSpawnMode}: 0 for no spawns, 1 for night only and 2 for any time.
  */
-public final class MobSpawnScan {
+public final class MobOverlayScan {
 
     public static final byte NIGHT_ONLY = 1;
     public static final int MIN_RADIUS = 8;

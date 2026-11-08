@@ -3,7 +3,7 @@ package codechicken.nei;
 import net.minecraft.client.renderer.Tessellator;
 
 /** The vertices of the mob spawn overlay on the top face of one block. */
-public final class MobSpawnMarkedFace {
+public final class MobOverlayFace {
 
     public static final byte OUTSIDE_SCAN = -2;
 
@@ -26,8 +26,8 @@ public final class MobSpawnMarkedFace {
         neighbourModes[indexNeighbour(offsetX, offsetZ)] = spawnMode;
     }
 
-    public void applyColor(MobSpawnOverlayStyle.Colouring colouring, float alpha) {
-        final boolean isNightOnly = neighbourModes[indexNeighbour(0, 0)] == MobSpawnScan.NIGHT_ONLY;
+    public void applyColor(MobOverlayStyle.Colouring colouring, float alpha) {
+        final boolean isNightOnly = neighbourModes[indexNeighbour(0, 0)] == MobOverlayScan.NIGHT_ONLY;
         final int rgb = switch (colouring) {
             case OVERLAY -> isNightOnly ? 0xFFFF00 : 0xFF0000;
             case STICKER -> isNightOnly ? 0xFFFFFF : 0xFF7373;

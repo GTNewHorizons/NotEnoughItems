@@ -443,36 +443,36 @@ public class NEIClientConfig {
         tag.getTag("world.overlays.lock").getBooleanValue(true);
         API.addOption(new OptionToggleButton("world.overlays.lock", true));
 
-        tag.getTag("world.overlays.mobSpawnStyle")
-                .setComment("Mark on each block of the mob spawn overlay: " + MobSpawnOverlayStyle.formatAllNames())
-                .getValue(MobSpawnOverlayStyle.DEFAULT.formatName());
-        API.addOption(new OptionCycled("world.overlays.mobSpawnStyle", MobSpawnOverlayStyle.values().length, true) {
+        tag.getTag("world.overlays.mobOverlayStyle")
+                .setComment("Mark on each block of the mob spawn overlay: " + MobOverlayStyle.formatAllNames())
+                .getValue(MobOverlayStyle.DEFAULT.formatName());
+        API.addOption(new OptionCycled("world.overlays.mobOverlayStyle", MobOverlayStyle.values().length, true) {
 
             @Override
             public int value() {
-                return MobSpawnOverlayStyle.parseStyle(getTag().getValue()).ordinal();
+                return MobOverlayStyle.parseStyle(getTag().getValue()).ordinal();
             }
 
             @Override
             public void setValue(int value) {
-                getTag().setValue(MobSpawnOverlayStyle.values()[value].formatName());
+                getTag().setValue(MobOverlayStyle.values()[value].formatName());
             }
 
             @Override
             public String getButtonText() {
-                final MobSpawnOverlayStyle style = MobSpawnOverlayStyle.parseStyle(getTag().getValue());
+                final MobOverlayStyle style = MobOverlayStyle.parseStyle(getTag().getValue());
                 return StatCollector.translateToLocal(style.getLangKey());
             }
         });
 
-        tag.getTag("world.overlays.mobSpawnRadius")
+        tag.getTag("world.overlays.mobOverlayRadius")
                 .setComment("Blocks scanned on each side of the player by the mob spawn overlay")
-                .getIntValue(MobSpawnScan.DEFAULT_RADIUS);
+                .getIntValue(MobOverlayScan.DEFAULT_RADIUS);
         API.addOption(
                 new OptionIntegerField(
-                        "world.overlays.mobSpawnRadius",
-                        MobSpawnScan.MIN_RADIUS,
-                        MobSpawnScan.MAX_RADIUS));
+                        "world.overlays.mobOverlayRadius",
+                        MobOverlayScan.MIN_RADIUS,
+                        MobOverlayScan.MAX_RADIUS));
 
         tag.getTag("inventory.itempanelScale").getIntValue(100);
         ItemsPanelGrid.updateScale();
