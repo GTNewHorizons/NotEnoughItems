@@ -67,6 +67,16 @@ public class CollapsibleItems {
         }
     }
 
+    public static class ApiGroup {
+
+        private String unlocalizedName;
+
+        public ApiGroup setName(String unlocalizedName) {
+            this.unlocalizedName = unlocalizedName;
+            return this;
+        }
+    }
+
     private static final String STATE_KEY = "collapsibleitems";
 
     protected static File statesFile;
@@ -107,36 +117,42 @@ public class CollapsibleItems {
         loadStates();
     }
 
-    public static void registerGroup(String unlocalizedName, String filter) {
+    public static ApiGroup registerGroup(String filter) {
+        final ApiGroup apiGroup = new ApiGroup();
+
         CollapsibleItems.apiGroups.add(() -> {
             GroupItem group = new GroupItem();
             group.setFilter(filter);
-            group.unlocalizedName = unlocalizedName;
+            group.unlocalizedName = apiGroup.unlocalizedName;
             return group;
         });
+
+        return apiGroup;
     }
 
-    public static void registerGroup(String unlocalizedName, Iterable<ItemStack> items) {
+    public static ApiGroup registerGroup(Iterable<ItemStack> items) {
+        final ApiGroup apiGroup = new ApiGroup();
         final ItemStackSet filter = new ItemStackSet();
 
         for (ItemStack stack : items) {
             if (stack != null) filter.add(stack.copy());
         }
 
-        if (filter.isEmpty()) return;
+        if (filter.isEmpty()) return apiGroup;
 
-        final String key = unlocalizedName + ";"
-                + filter.keys().stream()
-                        .map(stack -> Item.itemRegistry.getNameForObject(stack.getItem()) + ":" + stack.getItemDamage())
-                        .sorted().collect(Collectors.joining(","));
+        final String key = filter.keys().stream()
+                .map(stack -> Item.itemRegistry.getNameForObject(stack.getItem()) + ":" + stack.getItemDamage())
+                .sorted().collect(Collectors.joining(","));
         final String guid = UUID.nameUUIDFromBytes(key.getBytes()).toString();
 
         CollapsibleItems.apiGroups.add(() -> {
             GroupItem group = new GroupItem();
             group.setFilter(filter, guid);
-            group.unlocalizedName = unlocalizedName;
+            group.unlocalizedName = apiGroup.unlocalizedName;
             return group;
         });
+
+        return apiGroup;
     }
 
     private static void parseFile(List<String> itemStrings) {
