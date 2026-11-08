@@ -347,23 +347,23 @@ public class API {
      * the lowest priority: an item that matches a preset or a collapsibleitems.cfg group stays there. They are active
      * only while the Collapsible Items option is enabled. Must be called while plugins are loading.
      *
-     * @param unlocalizedName Translation key of the name shown for the group
-     * @param filter          A search string for matching items that belong to this group. Also identifies the group
-     *                        when its expanded state is saved, so changing it resets the saved state.
+     * @param filter A search string for matching items that belong to this group. Also identifies the group when its
+     *               expanded state is saved, so changing it resets the saved state.
+     * @return A handle to optionally set the name shown for the group
      */
-    public static void addCollapsibleGroup(String unlocalizedName, String filter) {
-        CollapsibleItems.registerGroup(unlocalizedName, filter);
+    public static CollapsibleItems.ApiGroup addCollapsibleGroup(String filter) {
+        return CollapsibleItems.registerGroup(filter);
     }
 
     /**
-     * Same as {@link #addCollapsibleGroup(String, String)}, but the group is given as a list of item stacks. The stacks
+     * Same as {@link #addCollapsibleGroup(String)}, but the group is given as a list of item stacks. The stacks
      * identify the group when its expanded state is saved, so changing them resets the saved state.
      *
-     * @param unlocalizedName Translation key of the name shown for the group
-     * @param items           Item stacks that belong to this group
+     * @param items Item stacks that belong to this group
+     * @return A handle to optionally set the name shown for the group
      */
-    public static void addCollapsibleGroup(String unlocalizedName, Iterable<ItemStack> items) {
-        CollapsibleItems.registerGroup(unlocalizedName, items);
+    public static CollapsibleItems.ApiGroup addCollapsibleGroup(Iterable<ItemStack> items) {
+        return CollapsibleItems.registerGroup(items);
     }
 
     @Deprecated
