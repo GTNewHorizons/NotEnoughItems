@@ -9,11 +9,9 @@ import net.minecraft.world.chunk.Chunk;
 import codechicken.lib.math.MathHelper;
 
 /**
- * The spawn modes of the blocks around the render view entity, in a square that reaches the radius of {@link #update}
- * on each side of the entity, and {@link #VERTICAL_RADIUS} blocks above and below. Once per tick, {@link #update}
- * rescans {@code 1 / REFRESH_TICKS} of the columns into a second buffer, and after a full pass the second buffer
- * becomes the drawn buffer. A block's mode is 0 where mobs can't spawn, {@link #NIGHT_ONLY} where mobs spawn only at
- * night and 2 where mobs spawn at any time.
+ * The mob spawn modes of the blocks around the player, scanned a slice per tick into a back buffer. The buffers swap
+ * when a pass is done. The modes come from {@link WorldOverlayRenderer#getSpawnMode}: 0 for no spawns, 1 for night only
+ * and 2 for any time.
  */
 public final class MobSpawnScan {
 
@@ -27,13 +25,13 @@ public final class MobSpawnScan {
 
     private int radius;
     private int span;
-    // the drawn buffer: `modes[column * HEIGHT + k]`, valid for `k < columnEnds[column]`
+    // front buffer: `modes[column * HEIGHT + k]`, valid for `k < columnEnds[column]`
     private byte[] modes = new byte[0];
     private int[] columnEnds = new int[0];
     private int minX;
     private int minY;
     private int minZ;
-    // the buffer of the pass in progress
+    // back buffer
     private byte[] nextModes = new byte[0];
     private int[] nextColumnEnds = new int[0];
     private int nextMinX;
@@ -42,10 +40,10 @@ public final class MobSpawnScan {
     private int nextColumn;
     private boolean hasModes;
     private long scannedTick;
-    // the world of the drawn modes
+    // world of the front buffer
     private World scannedWorld;
 
-    /** Drop the scanned modes and free the buffers, so that the next call of {@link #update} is a full scan. */
+    /** Free the buffers. The next {@link #update} does a full scan. */
     public void clear() {
         radius = 0;
         span = 0;
@@ -58,9 +56,8 @@ public final class MobSpawnScan {
     }
 
     /**
-     * Scan the next slice of columns once per tick. On the first call after {@link #clear}, a change of
-     * {@code newRadius} or a change of world, scan every column at once and log the time of the scan. {@code newRadius}
-     * is clamped to {@link #MIN_RADIUS} and {@link #MAX_RADIUS}.
+     * Scan the next slice of columns, at most once per tick. After {@link #clear}, a radius change or a world change,
+     * scan every column at once. {@code newRadius} is clamped between {@link #MIN_RADIUS} and {@link #MAX_RADIUS}.
      */
     public void update(Entity entity, int newRadius) {
         final World world = entity.worldObj;
@@ -106,7 +103,7 @@ public final class MobSpawnScan {
         return columnEnds[column];
     }
 
-    /** @return the spawn mode of the block at height index {@code k} of {@code column}, 0 above the column's end */
+    /** @return 0 at or above {@link #getColumnEnd} */
     public byte readSpawnMode(int column, int k) {
         return k < columnEnds[column] ? modes[column * HEIGHT + k] : 0;
     }

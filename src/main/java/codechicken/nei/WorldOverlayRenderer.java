@@ -129,10 +129,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         endMobSpawnDraw(style);
     }
 
-    /**
-     * Set the GL state for the draw of {@code style}. For a style with a texture, the texture is bound, and stays bound
-     * after {@link #endMobSpawnDraw}. {@link #endMobSpawnDraw} resets each other setting.
-     */
+    /** {@link #endMobSpawnDraw} undoes every change here except the texture binding. */
     private static void beginMobSpawnDraw(MobSpawnOverlayStyle style) {
         final ResourceLocation texture = style.texture;
         if (texture == null) {
@@ -146,11 +143,11 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glLineWidth(1.5F);
         if (style.isFilled()) {
-            // a translucent quad that writes depth hides the overlay quads behind the quad
+            // a translucent quad that writes depth hides the overlay behind the quad. Turn depth writes off
             GL11.glDepthMask(false);
             GL11.glDisable(GL11.GL_CULL_FACE);
-            // `EntityRenderer` leaves the alpha test on at GL_GREATER 0.1. The test discards a tint of opacity 0.1 or
-            // less
+            // `EntityRenderer` leaves the alpha test on at GL_GREATER 0.1. Turn the test off, or a faint tint is
+            // discarded
             GL11.glDisable(GL11.GL_ALPHA_TEST);
         }
     }
