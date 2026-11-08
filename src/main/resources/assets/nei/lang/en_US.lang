@@ -572,8 +572,10 @@ nei.options.world.overlays.mobOverlayStyle.connected=Connected
 nei.options.world.overlays.mobOverlayStyle.square=Square
 nei.options.world.overlays.mobOverlayStyle.gtnh_logo=GTNH Logo
 nei.options.world.overlays.mobOverlayStyle.pufferfish=Pufferfish
-nei.options.world.overlays.mobOverlayRadius=Mob Spawn Overlay Radius
-nei.options.world.overlays.mobOverlayRadius.tip=Block radius scanned around you. Range 8-64 blocks
+nei.options.world.overlays.mobOverlayRadius=Mob Spawn Overlay Horizontal Radius
+nei.options.world.overlays.mobOverlayRadius.tip=Horizontal block radius scanned around you. Range 8-64 blocks
+nei.options.world.overlays.mobOverlayVerticalRadius=Mob Spawn Overlay Vertical Radius
+nei.options.world.overlays.mobOverlayVerticalRadius.tip=Blocks scanned above and below you. Range 4-64 blocks
 
 nei.options.tools=Tools
 nei.options.tools.export_configs=Default Config Files

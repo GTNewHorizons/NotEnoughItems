@@ -475,6 +475,14 @@ public class NEIClientConfig {
                         "world.overlays.mobOverlayRadius",
                         MobOverlayScan.MIN_RADIUS,
                         MobOverlayScan.MAX_RADIUS));
+        tag.getTag("world.overlays.mobOverlayVerticalRadius")
+                .setComment("Blocks scanned above and below the player by the mob spawn overlay")
+                .getIntValue(MobOverlayScan.DEFAULT_VERTICAL_RADIUS);
+        API.addOption(
+                new OptionIntegerField(
+                        "world.overlays.mobOverlayVerticalRadius",
+                        MobOverlayScan.MIN_VERTICAL_RADIUS,
+                        MobOverlayScan.MAX_VERTICAL_RADIUS));
 
         tag.getTag("inventory.itempanelScale").getIntValue(100);
         ItemsPanelGrid.updateScale();

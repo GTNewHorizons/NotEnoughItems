@@ -25,8 +25,9 @@ public final class MobOverlayScan {
     public static final int MIN_RADIUS = 8;
     public static final int MAX_RADIUS = 64;
     public static final int DEFAULT_RADIUS = 32;
-    public static final int VERTICAL_RADIUS = 16;
-    public static final int HEIGHT = 2 * VERTICAL_RADIUS + 1;
+    public static final int MIN_VERTICAL_RADIUS = 4;
+    public static final int MAX_VERTICAL_RADIUS = 64;
+    public static final int DEFAULT_VERTICAL_RADIUS = 16;
     private static final int RECENTRE_DISTANCE = 4;
     private static final int VERTICAL_RECENTRE_DISTANCE = 2;
     private static final int RESCAN_TICKS = 40;
@@ -34,7 +35,9 @@ public final class MobOverlayScan {
     private final IWorldAccess changeListener = new ChangeListener();
     private final Column column = new Column();
     private int radius;
+    private int verticalRadius;
     private int span;
+    private int height;
     // a ring buffer over the box, indexed by `findCell()`
     private byte[] modes = new byte[0];
     // indexed by `findColumn(x, z)`
@@ -54,7 +57,9 @@ public final class MobOverlayScan {
     public void clear() {
         if (scannedWorld != null) scannedWorld.removeWorldAccess(changeListener);
         radius = 0;
+        verticalRadius = 0;
         span = 0;
+        height = 0;
         modes = new byte[0];
         dirty = new boolean[0];
         hasModes = false;
@@ -62,19 +67,24 @@ public final class MobOverlayScan {
     }
 
     /**
-     * Scan every column in this call after {@link #clear}, a radius change, a world change, or a move of
-     * {@link #getSpan} blocks or more. {@code newRadius} is clamped between {@link #MIN_RADIUS} and
-     * {@link #MAX_RADIUS}.
+     * Scan every column in this call after {@link #clear}, a change of either radius, a world change, or a move of
+     * {@link #getSpan} blocks or more across or {@link #getHeight} blocks or more up or down. {@code newRadius} is
+     * clamped between {@link #MIN_RADIUS} and {@link #MAX_RADIUS}, and {@code newVerticalRadius} between
+     * {@link #MIN_VERTICAL_RADIUS} and {@link #MAX_VERTICAL_RADIUS}.
      */
-    public void update(Entity entity, int newRadius) {
+    public void update(Entity entity, int newRadius, int newVerticalRadius) {
         final World world = entity.worldObj;
-        final int clampedRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, newRadius));
-        if (radius != clampedRadius) resize(clampedRadius);
+        final int clampedRadius = (int) MathHelper.clip(newRadius, MIN_RADIUS, MAX_RADIUS);
+        final int clampedVerticalRadius = (int) MathHelper
+                .clip(newVerticalRadius, MIN_VERTICAL_RADIUS, MAX_VERTICAL_RADIUS);
+        if (radius != clampedRadius || verticalRadius != clampedVerticalRadius) {
+            resize(clampedRadius, clampedVerticalRadius);
+        }
         final int centreX = MathHelper.floor_double(entity.posX);
-        final int centreY = (int) MathHelper.clip(entity.posY, VERTICAL_RADIUS, world.getHeight() - VERTICAL_RADIUS);
+        final int centreY = (int) MathHelper.clip(entity.posY, verticalRadius, world.getHeight() - verticalRadius);
         final int centreZ = MathHelper.floor_double(entity.posZ);
         final boolean isNearBox = Math.abs(centreX - radius - minX) < span && Math.abs(centreZ - radius - minZ) < span
-                && Math.abs(centreY - VERTICAL_RADIUS - minY) < HEIGHT;
+                && Math.abs(centreY - verticalRadius - minY) < height;
         if (!(hasModes && world == scannedWorld && isNearBox)) {
             if (world != scannedWorld) watchWorld(world);
             scanFullBox(centreX, centreY, centreZ);
@@ -100,6 +110,10 @@ public final class MobOverlayScan {
         return span;
     }
 
+    public int getHeight() {
+        return height;
+    }
+
     public int getMinX() {
         return minX;
     }
@@ -112,15 +126,17 @@ public final class MobOverlayScan {
         return minZ;
     }
 
-    /** {@code i} and {@code j} are from 0 to {@link #getSpan}, and {@code k} is from 0 to {@link #HEIGHT}. */
+    /** {@code i} and {@code j} are from 0 to {@link #getSpan}, and {@code k} is from 0 to {@link #getHeight}. */
     public byte readSpawnMode(int i, int k, int j) {
         return modes[findCell(minX + i, minY + k, minZ + j)];
     }
 
-    private void resize(int newRadius) {
+    private void resize(int newRadius, int newVerticalRadius) {
         radius = newRadius;
+        verticalRadius = newVerticalRadius;
         span = 2 * newRadius + 1;
-        modes = new byte[span * span * HEIGHT];
+        height = 2 * newVerticalRadius + 1;
+        modes = new byte[span * span * height];
         dirty = new boolean[span * span];
         hasModes = false;
     }
@@ -128,7 +144,7 @@ public final class MobOverlayScan {
     private void scanFullBox(int centreX, int centreY, int centreZ) {
         final long startNanos = System.nanoTime();
         minX = centreX - radius;
-        minY = centreY - VERTICAL_RADIUS;
+        minY = centreY - verticalRadius;
         minZ = centreZ - radius;
         for (int x = minX; x < minX + span; x++) {
             for (int z = minZ; z < minZ + span; z++) {
@@ -139,8 +155,9 @@ public final class MobOverlayScan {
         modesVersion++;
         scannedTick = scannedWorld.getTotalWorldTime();
         NEIClientConfig.logger.info(
-                "moboverlay.scan.full radius={} columns={} micros={}",
+                "moboverlay.scan.full radius={} verticalRadius={} columns={} micros={}",
                 radius,
+                verticalRadius,
                 span * span,
                 (System.nanoTime() - startNanos) / 1000);
     }
@@ -178,9 +195,9 @@ public final class MobOverlayScan {
             isMoved = true;
         }
 
-        final int offsetY = centreY - VERTICAL_RADIUS - minY;
+        final int offsetY = centreY - verticalRadius - minY;
         if (Math.abs(offsetY) > VERTICAL_RECENTRE_DISTANCE) {
-            final int enteringY = offsetY > 0 ? minY + HEIGHT : minY + offsetY;
+            final int enteringY = offsetY > 0 ? minY + height : minY + offsetY;
             minY += offsetY;
             for (int x = minX; x < minX + span; x++) {
                 for (int z = minZ; z < minZ + span; z++) {
@@ -221,7 +238,7 @@ public final class MobOverlayScan {
     private boolean scanColumn(int x, int z) {
         column.moveTo(x, z);
         dirty[findColumn(x, z)] = false;
-        return column.scan(minY, minY + HEIGHT);
+        return column.scan(minY, minY + height);
     }
 
     private int findColumn(int x, int z) {
@@ -229,7 +246,7 @@ public final class MobOverlayScan {
     }
 
     private int findCell(int x, int y, int z) {
-        return findColumn(x, z) * HEIGHT + Math.floorMod(y, HEIGHT);
+        return findColumn(x, z) * height + Math.floorMod(y, height);
     }
 
     /**
@@ -325,7 +342,7 @@ public final class MobOverlayScan {
         private void markChanged(int x, int y, int z) {
             // spawn modes depend on the block below and the block above
             final boolean isInBox = x >= minX && x < minX + span && z >= minZ && z < minZ + span;
-            if (isInBox && y >= minY - 1 && y <= minY + HEIGHT) markColumn(x, z);
+            if (isInBox && y >= minY - 1 && y <= minY + height) markColumn(x, z);
         }
 
         private void markColumn(int x, int z) {

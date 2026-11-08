@@ -106,7 +106,10 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
             return;
         }
 
-        MOB_OVERLAY_SCAN.update(entity, NEIClientConfig.getIntSetting("world.overlays.mobOverlayRadius"));
+        MOB_OVERLAY_SCAN.update(
+                entity,
+                NEIClientConfig.getIntSetting("world.overlays.mobOverlayRadius"),
+                NEIClientConfig.getIntSetting("world.overlays.mobOverlayVerticalRadius"));
         final MobOverlayStyle style = MobOverlayStyle
                 .parseStyle(NEIClientConfig.getSetting("world.overlays.mobOverlayStyle").getValue());
         final long worldTicks = entity.worldObj.getTotalWorldTime();
@@ -130,7 +133,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         final int span = MOB_OVERLAY_SCAN.getSpan();
         for (int i = 0; i < span; i++) {
             for (int j = 0; j < span; j++) {
-                for (int k = 0; k < MobOverlayScan.HEIGHT; k++) {
+                for (int k = 0; k < MOB_OVERLAY_SCAN.getHeight(); k++) {
                     if (MOB_OVERLAY_SCAN.readSpawnMode(i, k, j) == 0) continue;
 
                     final double yOffset = getOverlayYOffset(
