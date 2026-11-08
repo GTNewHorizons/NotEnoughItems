@@ -13,9 +13,10 @@ import net.minecraft.world.chunk.Chunk;
 import codechicken.lib.math.MathHelper;
 
 /**
- * Spawn modes around the player, scanned a slice per tick into a back buffer. The buffers swap when a pass is done. The
- * column of a block or light change is rescanned on the next tick. The modes come from
- * {@link WorldOverlayRenderer#getSpawnMode}: 0 for no spawns, 1 for night only and 2 for any time.
+ * Spawn modes around the player, scanned a slice per tick into a back buffer. When a pass is done, the back buffer
+ * becomes the buffer that {@link #readSpawnMode} reads, and the next pass refills the other buffer. The column of a
+ * block or light change is rescanned on the next tick. The modes come from {@link WorldOverlayRenderer#getSpawnMode}: 0
+ * for no spawns, 1 for night only and 2 for any time.
  */
 public final class MobOverlayScan {
 
@@ -53,9 +54,8 @@ public final class MobOverlayScan {
     }
 
     /**
-     * Rescan the columns of changed blocks, and scan the next slice of columns, at most once per tick. After
-     * {@link #clear}, a radius change or a world change, scan every column in this call. {@code newRadius} is clamped
-     * between {@link #MIN_RADIUS} and {@link #MAX_RADIUS}.
+     * Scan every column in this call after {@link #clear}, a radius change or a world change. {@code newRadius} is
+     * clamped between {@link #MIN_RADIUS} and {@link #MAX_RADIUS}.
      */
     public void update(Entity entity, int newRadius) {
         final World world = entity.worldObj;

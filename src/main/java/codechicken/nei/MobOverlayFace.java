@@ -35,12 +35,9 @@ public final class MobOverlayFace {
         Tessellator.instance.setColorRGBA_I(rgb, Math.round(alpha * 255));
     }
 
-    /**
-     * True when the neighbour has this block's spawn mode. A neighbour outside the scan counts as joined, so no band is
-     * drawn along the edge of the scan.
-     */
     public boolean isJoined(int offsetX, int offsetZ) {
         final byte neighbourMode = neighbourModes[indexNeighbour(offsetX, offsetZ)];
+        // no band along the edge of the scan
         return neighbourMode == neighbourModes[indexNeighbour(0, 0)] || neighbourMode == OUTSIDE_SCAN;
     }
 
