@@ -566,6 +566,14 @@ nei.options.world.overlays=Overlays Settings
 nei.options.world.overlays.lock=Lock overlays between dimensions
 nei.options.world.overlays.lock.true=Enabled
 nei.options.world.overlays.lock.false=Disabled
+nei.options.world.overlays.mobSpawnStyle=Mob Spawn Overlay Style
+nei.options.world.overlays.mobSpawnStyle.x=X
+nei.options.world.overlays.mobSpawnStyle.connected=Connected
+nei.options.world.overlays.mobSpawnStyle.square=Square
+nei.options.world.overlays.mobSpawnStyle.gtnh_logo=GTNH Logo
+nei.options.world.overlays.mobSpawnStyle.pufferfish=Pufferfish
+nei.options.world.overlays.mobSpawnRadius=Mob Spawn Overlay Radius
+nei.options.world.overlays.mobSpawnRadius.tip=Block radius scanned around you. Range 8-64 blocks
 
 nei.options.tools=Tools
 nei.options.tools.export_configs=Default Config Files

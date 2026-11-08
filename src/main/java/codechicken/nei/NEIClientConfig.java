@@ -17,6 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.storage.SaveFormatComparator;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -441,6 +442,37 @@ public class NEIClientConfig {
 
         tag.getTag("world.overlays.lock").getBooleanValue(true);
         API.addOption(new OptionToggleButton("world.overlays.lock", true));
+
+        tag.getTag("world.overlays.mobSpawnStyle").setComment(
+                "Mark on each block of the mob spawn overlay: x, connected, square, gtnh_logo or pufferfish")
+                .getValue(MobSpawnOverlayStyle.DEFAULT.formatName());
+        API.addOption(new OptionCycled("world.overlays.mobSpawnStyle", MobSpawnOverlayStyle.values().length, true) {
+
+            @Override
+            public int value() {
+                return MobSpawnOverlayStyle.parseStyle(getTag().getValue()).ordinal();
+            }
+
+            @Override
+            public void setValue(int value) {
+                getTag().setValue(MobSpawnOverlayStyle.values()[value].formatName());
+            }
+
+            @Override
+            public String getButtonText() {
+                final MobSpawnOverlayStyle style = MobSpawnOverlayStyle.parseStyle(getTag().getValue());
+                return StatCollector.translateToLocal(style.getLangKey());
+            }
+        });
+
+        tag.getTag("world.overlays.mobSpawnRadius")
+                .setComment("Blocks scanned on each side of the player by the mob spawn overlay")
+                .getIntValue(MobSpawnScan.DEFAULT_RADIUS);
+        API.addOption(
+                new OptionIntegerField(
+                        "world.overlays.mobSpawnRadius",
+                        MobSpawnScan.MIN_RADIUS,
+                        MobSpawnScan.MAX_RADIUS));
 
         tag.getTag("inventory.itempanelScale").getIntValue(100);
         ItemsPanelGrid.updateScale();
