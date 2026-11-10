@@ -137,7 +137,11 @@ public class ItemCraftablesPanel
 
         @Override
         public void execute() {
-            pendingResult.set(generateCraftables(ItemCraftablesPanel.this.pendingSnapshot));
+            final CraftablesSnapshot snapshot = ItemCraftablesPanel.this.pendingSnapshot;
+
+            if (snapshot != null) {
+                pendingResult.set(generateCraftables(snapshot));
+            }
         }
     };
 
@@ -296,6 +300,11 @@ public class ItemCraftablesPanel
             this.lastPlayerInventory = null;
             this.grid.onGridChanged();
         }
+    }
+
+    public void clearGuiReferences() {
+        this.lastGuiContainer = null;
+        this.pendingSnapshot = null;
     }
 
     private GuiContainer getGuiContainer() {
