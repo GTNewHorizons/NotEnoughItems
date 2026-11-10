@@ -733,6 +733,10 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
         });
     }
 
+    public void clearGuiReferences() {
+        this.hoveredRecipe = null;
+    }
+
     public void loadHandlerInfoPatch() {
 
         ClientHandler.loadSettingsFile("handlers.patch", lines -> {

@@ -35,7 +35,6 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
 
     protected long lastUpdate = System.currentTimeMillis();
     protected String recipeName = "";
-    protected GuiRecipe<?> gui = null;
     protected RecipeHandlerRef handlerRef = null;
     protected RecipeWidget widget = null;
     protected RecipeId recipeId = null;
