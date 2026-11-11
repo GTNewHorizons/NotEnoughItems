@@ -282,6 +282,8 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
 
     protected boolean[] invalidSlotMap;
 
+    private final GridOverlapScanner overlapScanner = new GridOverlapScanner();
+
     protected ScreenCapture screenCapture = null;
 
     public ArrayList<ItemStack> getItems() {
@@ -359,12 +361,13 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
         width = newWidth;
         height = newHeight;
 
-        columns = width / SLOT_SIZE;
-        rows = height / SLOT_SIZE;
+        this.columns = newWidth / SLOT_SIZE;
+        this.rows = newHeight / SLOT_SIZE;
 
         paddingLeft = (width % SLOT_SIZE) / 2;
 
         if (changed) {
+            this.overlapScanner.invalidate();
             onGridChanged();
         }
     }
@@ -405,52 +408,39 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
     }
 
     public void refresh(GuiContainer gui) {
-        final int gridRenderingCacheMode = getGridRenderingCacheMode();
-        if (gridRenderingCacheMode <= 0 || screenCapture == null || screenCapture.needRefresh(gridRenderingCacheMode)) {
+        if (this.overlapScanner.shouldRefresh()) {
             updateGuiOverlapSlots(gui);
         }
         shiftPage(0);
     }
 
     protected void updateGuiOverlapSlots(GuiContainer gui) {
-        final boolean[] oldSlotMap = invalidSlotMap;
-        final int oldRows = rows;
-        final int oldColumns = columns;
+        final boolean[] oldSlotMap = this.invalidSlotMap;
+        final int size = this.rows * this.columns;
+        final boolean[] slotMap = new boolean[size];
 
-        invalidSlotMap = new boolean[rows * columns];
-        perPage = columns * rows;
+        this.perPage = size;
 
-        if (gui != null) {
+        if (gui != null && size > 0) {
             final INEIGuiHandler[] handlers = GuiInfo.getGuiHandlersSnapshot();
-            if (NEIClientConfig.optimizeGuiOverlapComputation()) {
-                checkGuiOverlap(gui, handlers, 0, columns - 2, 1);
-                checkGuiOverlap(gui, handlers, columns - 1, 1, -1);
-            } else {
-                checkGuiOverlap(gui, handlers, 0, columns, 1);
-            }
+            final Rectangle4i origin = getSlotRect(0, 0);
+
+            this.perPage -= this.overlapScanner.scan(
+                    rect -> GuiInfo.hideItemPanelSlot(gui, rect, handlers),
+                    origin.x,
+                    origin.y,
+                    SLOT_SIZE,
+                    this.rows,
+                    this.columns,
+                    origin.x + this.columns * SLOT_SIZE > gui.guiLeft,
+                    origin.x < gui.guiLeft + gui.xSize,
+                    slotMap);
         }
 
-        if (oldRows != rows || oldColumns != columns || !Arrays.equals(oldSlotMap, invalidSlotMap)) {
+        this.invalidSlotMap = slotMap;
+
+        if (!Arrays.equals(oldSlotMap, slotMap)) {
             onGridChanged();
-        }
-    }
-
-    private void checkGuiOverlap(GuiContainer gui, INEIGuiHandler[] handlers, int start, int end, int dir) {
-        boolean validColumn = false;
-
-        for (int c = start; c != end && (!NEIClientConfig.optimizeGuiOverlapComputation() || !validColumn); c += dir) {
-            validColumn = true;
-
-            for (int r = 0; r < rows; r++) {
-                final int idx = columns * r + c;
-                if (idx >= 0 && idx < invalidSlotMap.length
-                        && !invalidSlotMap[idx]
-                        && GuiInfo.hideItemPanelSlot(gui, getSlotRect(r, c), handlers)) {
-                    invalidSlotMap[idx] = true;
-                    validColumn = false;
-                    perPage--;
-                }
-            }
         }
     }
 

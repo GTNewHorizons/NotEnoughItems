@@ -8,6 +8,7 @@ import org.lwjgl.opengl.GL11;
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.api.GuiInfo;
+import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.api.ShortcutInputHandler;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
@@ -55,12 +56,14 @@ public abstract class AbstractSubpanel<T extends ItemsGrid<? extends ItemsGridSl
     }
 
     protected void updateLinePadding() {
-        GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
+        final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
+        final INEIGuiHandler[] handlers = GuiInfo.getGuiHandlersSnapshot();
+        final Rectangle4i rect = new Rectangle4i(this.x, this.y - 1, 10, 2);
         this.linePaddingStart = 0;
 
-        while (GuiInfo
-                .hideItemPanelSlot(guiContainer, new Rectangle4i(this.x + this.linePaddingStart, this.y - 1, 10, 2))) {
+        while (this.linePaddingStart < this.w && GuiInfo.hideItemPanelSlot(guiContainer, rect, handlers)) {
             this.linePaddingStart += 10;
+            rect.x += 10;
         }
 
     }
