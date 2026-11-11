@@ -498,10 +498,6 @@ public class NEIClientConfig {
         tag.getTag("inventory.showItemQuantityWidget").setComment("Show Item Quantity Widget").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.showItemQuantityWidget", true));
 
-        tag.getTag("inventory.optimize_gui_overlap_computation").setComment("Optimize computation for GUI overlap")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.optimize_gui_overlap_computation", true));
-
         tag.getTag("inventory.autocrafting").setComment("Autocrafting").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.autocrafting", true));
 
@@ -1158,10 +1154,6 @@ public class NEIClientConfig {
 
     public static boolean craftingTreeZoomWithoutModifier() {
         return getBooleanSetting("inventory.bookmarks.craftingTreeZoomWithoutModifier");
-    }
-
-    public static boolean optimizeGuiOverlapComputation() {
-        return getBooleanSetting("inventory.optimize_gui_overlap_computation");
     }
 
     public static boolean showCycledIngredientsTooltip() {
