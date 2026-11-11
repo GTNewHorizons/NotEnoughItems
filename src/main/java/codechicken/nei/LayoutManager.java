@@ -388,6 +388,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     }
 
     public static void layout(GuiContainer gui) {
+        GridOverlapScanner.beginFrame(gui, GuiContainerManager.shouldShowTooltip(gui));
+
         VisiblityData visiblity = new VisiblityData();
         visiblity.showNEI = !isHidden();
         visiblity.showBookmarkPanel = !isBookmarkPanelHidden();
@@ -821,6 +823,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
         if (!isEnabled()) return;
 
+        GridOverlapScanner.requestScan();
         AutoFocusWidget.instance.guiTick();
 
         for (Widget widget : drawWidgets) widget.update();
