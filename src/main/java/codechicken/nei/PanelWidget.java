@@ -29,6 +29,9 @@ public abstract class PanelWidget<T extends ItemsGrid<? extends ItemsGridSlot, ?
 
     protected T grid;
 
+    private int headerPaddingLeft;
+    private int headerPaddingRight;
+
     public ArrayList<ItemStack> getItems() {
         return this.grid.getItems();
     }
@@ -105,26 +108,15 @@ public abstract class PanelWidget<T extends ItemsGrid<? extends ItemsGridSlot, ?
 
     protected int resizeHeader(GuiContainer gui) {
         final int BUTTON_SIZE = 16;
-        int paddingLeft = 0;
-        int paddingRight = 0;
 
-        while (paddingLeft < w && GuiInfo.hideItemPanelSlot(
-                gui,
-                new Rectangle4i(x + paddingLeft, y, ItemsGrid.SLOT_SIZE, ItemsGrid.SLOT_SIZE))) {
-            paddingLeft += ItemsGrid.SLOT_SIZE;
+        if (GridOverlapScanner.isScanFrame()) {
+            updateHeaderPadding(gui);
         }
 
-        while (paddingRight < w && GuiInfo.hideItemPanelSlot(
-                gui,
-                new Rectangle4i(
-                        x + w - paddingRight - ItemsGrid.SLOT_SIZE,
-                        y,
-                        ItemsGrid.SLOT_SIZE,
-                        ItemsGrid.SLOT_SIZE))) {
-            paddingRight += ItemsGrid.SLOT_SIZE;
-        }
+        final int paddingLeft = this.headerPaddingLeft;
+        final int paddingRight = this.headerPaddingRight;
 
-        if (paddingLeft + paddingRight >= w) {
+        if (paddingLeft + paddingRight >= this.w) {
             return 0;
         }
 
@@ -132,14 +124,33 @@ public abstract class PanelWidget<T extends ItemsGrid<? extends ItemsGridSlot, ?
         pagePrev.h = pageNext.h = BUTTON_SIZE;
         pagePrev.y = pageNext.y = y;
 
-        pagePrev.x = x + paddingLeft;
-        pageNext.x = x + w - pageNext.w - paddingRight;
+        pagePrev.x = this.x + paddingLeft;
+        pageNext.x = this.x + this.w - pageNext.w - paddingRight;
 
-        pageLabel.x = x + paddingLeft + (w - paddingLeft - paddingRight) / 2;
-        pageLabel.y = y + 5;
+        pageLabel.x = this.x + paddingLeft + (this.w - paddingLeft - paddingRight) / 2;
+        pageLabel.y = this.y + 5;
         pageLabel.text = getLabelText();
 
         return BUTTON_SIZE + 2;
+    }
+
+    private void updateHeaderPadding(GuiContainer gui) {
+        final INEIGuiHandler[] handlers = GuiInfo.getGuiHandlersSnapshot();
+        final Rectangle4i slot = new Rectangle4i(this.x, this.y, ItemsGrid.SLOT_SIZE, ItemsGrid.SLOT_SIZE);
+        this.headerPaddingLeft = 0;
+        this.headerPaddingRight = 0;
+
+        while (this.headerPaddingLeft < this.w && GuiInfo.hideItemPanelSlot(gui, slot, handlers)) {
+            this.headerPaddingLeft += ItemsGrid.SLOT_SIZE;
+            slot.x += ItemsGrid.SLOT_SIZE;
+        }
+
+        slot.x = this.x + this.w - ItemsGrid.SLOT_SIZE;
+
+        while (this.headerPaddingRight < this.w && GuiInfo.hideItemPanelSlot(gui, slot, handlers)) {
+            this.headerPaddingRight += ItemsGrid.SLOT_SIZE;
+            slot.x -= ItemsGrid.SLOT_SIZE;
+        }
     }
 
     protected abstract int resizeFooter(GuiContainer gui);
