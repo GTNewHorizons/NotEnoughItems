@@ -26,6 +26,9 @@ public class FavoriteStorage {
     protected final Map<RecipeId, Long> recipeIdToItemHash = new HashMap<>();
     protected final Map<Long, ItemStack> itemHashToItemStack = new HashMap<>();
 
+    /** The key of the last looked up stack. Its NBT copies the whole stack, which is looked up every frame. */
+    private static volatile LookupKey lastLookupKey = null;
+
     public void clear() {
         this.itemStackToRecipeId.clear();
         this.fluidToRecipeId.clear();
@@ -95,7 +98,7 @@ public class FavoriteStorage {
         RecipeId recipeId = this.itemHashToRecipeId.get(getItemKey(stack));
 
         if (recipeId == null) {
-            recipeId = this.itemStackToRecipeId.get(StackInfo.itemStackToNBT(stack, false));
+            recipeId = this.itemStackToRecipeId.get(getLookupKey(stack));
         }
 
         if (recipeId == null) {
@@ -103,6 +106,28 @@ public class FavoriteStorage {
         }
 
         return recipeId;
+    }
+
+    private static NBTTagCompound getLookupKey(ItemStack stack) {
+        LookupKey key = lastLookupKey;
+
+        if (key == null || !key.stack.isItemEqual(stack) || !ItemStack.areItemStackTagsEqual(key.stack, stack)) {
+            key = new LookupKey(stack.copy(), StackInfo.itemStackToNBT(stack, false));
+            lastLookupKey = key;
+        }
+
+        return key.nbt;
+    }
+
+    private static class LookupKey {
+
+        private final ItemStack stack;
+        private final NBTTagCompound nbt;
+
+        private LookupKey(ItemStack stack, NBTTagCompound nbt) {
+            this.stack = stack;
+            this.nbt = nbt;
+        }
     }
 
     public ItemStack getItemStack(RecipeId recipeId) {
