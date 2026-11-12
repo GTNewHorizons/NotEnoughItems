@@ -127,7 +127,12 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
                 this.displayName = "Unnamed";
             }
 
-            this.stack = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack), 0);
+            // Copying the stack copies its whole NBT, so it is only done when the hovered stack changes
+            final boolean sameStack = this.stack != null && this.stack.isItemEqual(stack)
+                    && ItemStack.areItemStackTagsEqual(this.stack, stack);
+            if (!sameStack) {
+                this.stack = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack), 0);
+            }
         } else {
             this.stack = null;
             this.displayName = "";
