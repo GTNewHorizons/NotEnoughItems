@@ -17,6 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.storage.SaveFormatComparator;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -57,6 +58,8 @@ import codechicken.nei.config.OptionToggleButtonBoubs;
 import codechicken.nei.config.OptionUtilities;
 import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
+import codechicken.nei.moboverlay.MobOverlayScan;
+import codechicken.nei.moboverlay.MobOverlayStyle;
 import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
@@ -441,6 +444,45 @@ public class NEIClientConfig {
 
         tag.getTag("world.overlays.lock").getBooleanValue(true);
         API.addOption(new OptionToggleButton("world.overlays.lock", true));
+
+        tag.getTag("world.overlays.mobOverlayStyle")
+                .setComment("Mark on each block of the mob spawn overlay: " + MobOverlayStyle.formatAllNames())
+                .getValue(MobOverlayStyle.DEFAULT.formatName());
+        API.addOption(new OptionCycled("world.overlays.mobOverlayStyle", MobOverlayStyle.values().length, true) {
+
+            @Override
+            public int value() {
+                return MobOverlayStyle.parseStyle(getTag().getValue()).ordinal();
+            }
+
+            @Override
+            public void setValue(int value) {
+                getTag().setValue(MobOverlayStyle.values()[value].formatName());
+            }
+
+            @Override
+            public String getButtonText() {
+                final MobOverlayStyle style = MobOverlayStyle.parseStyle(getTag().getValue());
+                return StatCollector.translateToLocal(style.getLangKey());
+            }
+        });
+
+        tag.getTag("world.overlays.mobOverlayRadius")
+                .setComment("Blocks scanned on each side of the player by the mob spawn overlay")
+                .getIntValue(MobOverlayScan.DEFAULT_RADIUS);
+        API.addOption(
+                new OptionIntegerField(
+                        "world.overlays.mobOverlayRadius",
+                        MobOverlayScan.MIN_RADIUS,
+                        MobOverlayScan.MAX_RADIUS));
+        tag.getTag("world.overlays.mobOverlayVerticalRadius")
+                .setComment("Blocks scanned above and below the player by the mob spawn overlay")
+                .getIntValue(MobOverlayScan.DEFAULT_VERTICAL_RADIUS);
+        API.addOption(
+                new OptionIntegerField(
+                        "world.overlays.mobOverlayVerticalRadius",
+                        MobOverlayScan.MIN_VERTICAL_RADIUS,
+                        MobOverlayScan.MAX_VERTICAL_RADIUS));
 
         tag.getTag("inventory.itempanelScale").getIntValue(100);
         ItemsPanelGrid.updateScale();

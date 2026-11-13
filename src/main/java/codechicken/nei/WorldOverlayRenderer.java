@@ -13,18 +13,21 @@ import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.SpawnerAnimals;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 
 import org.lwjgl.opengl.GL11;
 
 import com.cardinalstar.cubicchunks.world.api.IMinMaxHeight;
 
-import codechicken.lib.math.MathHelper;
 import codechicken.nei.KeyManager.IKeyStateTracker;
+import codechicken.nei.moboverlay.MobOverlayDisplayList;
+import codechicken.nei.moboverlay.MobOverlayFace;
+import codechicken.nei.moboverlay.MobOverlayScan;
+import codechicken.nei.moboverlay.MobOverlayStyle;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class WorldOverlayRenderer implements IKeyStateTracker {
@@ -32,8 +35,9 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     public static int chunkOverlay = 0;
 
     public static int mobOverlay = 0;
-    private static byte[] mobSpawnCache;
-    private static long mobOverlayUpdateTime;
+    private static final MobOverlayScan MOB_OVERLAY_SCAN = new MobOverlayScan();
+    private static final MobOverlayFace MARKED_FACE = new MobOverlayFace();
+    private static final MobOverlayDisplayList MOB_OVERLAY_LIST = new MobOverlayDisplayList();
 
     public static void reset() {
         mobOverlay = 0;
@@ -82,51 +86,6 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glPopAttrib();
     }
 
-    private static void buildMobSpawnOverlay(Entity entity) {
-        if (mobSpawnCache == null) {
-            mobSpawnCache = new byte[33 * 33 * 33]; // 35kB
-        }
-
-        World world = entity.worldObj;
-        int worldHeight = world.getHeight();
-
-        int x1 = (int) entity.posX;
-        int z1 = (int) entity.posZ;
-        int y1 = (int) MathHelper.clip(entity.posY, 16, worldHeight - 16);
-
-        for (int i = 0; i <= 32; i++) {
-            int x = x1 - 16 + i;
-            for (int j = 0; j <= 32; j++) {
-                int z = z1 - 16 + j;
-                int bufIndex = (i * 33 + j) * 33;
-
-                Chunk chunk = world.getChunkFromBlockCoords(x, z);
-                BiomeGenBase biome = world.getBiomeGenForCoords(x, z);
-                if (biome.getSpawnableList(EnumCreatureType.monster).isEmpty() || biome.getSpawningChance() <= 0) {
-                    mobSpawnCache[bufIndex] = -1;
-                    continue;
-                }
-
-                int maxHeight = chunk.worldObj.getHeightValue(x, z);
-
-                for (int k = 0; k <= 32; k++) {
-                    int y = y1 - 16 + k;
-
-                    if (y >= worldHeight) {
-                        mobSpawnCache[bufIndex + k] = -1;
-                        continue;
-                    }
-
-                    if (y > maxHeight) {
-                        mobSpawnCache[bufIndex + k] = -1;
-                        break;
-                    }
-                    mobSpawnCache[bufIndex + k] = getSpawnMode(chunk, x, y, z);
-                }
-            }
-        }
-    }
-
     private static double getOverlayYOffset(World world, int x, int y, int z) {
         Block block = world.getBlock(x, y, z);
         if (block instanceof BlockSnow) {
@@ -136,72 +95,97 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         return 0.02;
     }
 
+    /**
+     * The model view matrix is relative to ({@code intOffsetX}, {@code intOffsetY}, {@code intOffsetZ}), the camera
+     * position cast to {@code int}.
+     */
     private static void renderMobSpawnOverlay(Entity entity, int intOffsetX, int intOffsetY, int intOffsetZ) {
         if (mobOverlay == 0) {
-            if (mobSpawnCache != null) {
-                mobSpawnCache = null;
-            }
+            MOB_OVERLAY_SCAN.clear();
+            MOB_OVERLAY_LIST.delete();
             return;
         }
 
-        long worldTime = entity.worldObj.getTotalWorldTime();
-        if (mobSpawnCache == null || mobOverlayUpdateTime != worldTime) {
-            mobOverlayUpdateTime = worldTime;
-            buildMobSpawnOverlay(entity);
+        MOB_OVERLAY_SCAN.update(
+                entity,
+                NEIClientConfig.getIntSetting("world.overlays.mobOverlayRadius"),
+                NEIClientConfig.getIntSetting("world.overlays.mobOverlayVerticalRadius"));
+        final MobOverlayStyle style = MobOverlayStyle
+                .parseStyle(NEIClientConfig.getSetting("world.overlays.mobOverlayStyle").getValue());
+        final long worldTicks = entity.worldObj.getTotalWorldTime();
+        if (MOB_OVERLAY_LIST.isCompileDue(MOB_OVERLAY_SCAN.getModesVersion(), style, worldTicks)) {
+            compileMobOverlayList(entity.worldObj, style, worldTicks);
         }
 
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        beginMobOverlayDraw(style);
+        MOB_OVERLAY_LIST.draw(intOffsetX, intOffsetY, intOffsetZ);
+        endMobOverlayDraw();
+    }
+
+    /**
+     * Add a marked face to {@link #MOB_OVERLAY_LIST} for each block of {@link #MOB_OVERLAY_SCAN} where mobs can spawn.
+     */
+    private static void compileMobOverlayList(World world, MobOverlayStyle style, long worldTicks) {
+        MOB_OVERLAY_LIST.beginCompile(MOB_OVERLAY_SCAN, style, worldTicks);
+        final float alpha = style.computeAlpha();
+        final Tessellator tess = Tessellator.instance;
+        tess.startDrawing(style.glMode);
+        final int span = MOB_OVERLAY_SCAN.getSpan();
+        for (int i = 0; i < span; i++) {
+            for (int j = 0; j < span; j++) {
+                for (int k = 0; k < MOB_OVERLAY_SCAN.getHeight(); k++) {
+                    if (MOB_OVERLAY_SCAN.readSpawnMode(i, k, j) == 0) continue;
+
+                    final double yOffset = getOverlayYOffset(
+                            world,
+                            MOB_OVERLAY_SCAN.getMinX() + i,
+                            MOB_OVERLAY_SCAN.getMinY() + k,
+                            MOB_OVERLAY_SCAN.getMinZ() + j);
+                    MARKED_FACE.moveTo(i, k + yOffset, j);
+                    loadNeighbourModes(i, k, j);
+                    MARKED_FACE.applyColor(style.colouring, alpha);
+                    style.addVertices(MARKED_FACE);
+                }
+            }
+        }
+        tess.draw();
+        MOB_OVERLAY_LIST.endCompile();
+    }
+
+    private static void beginMobOverlayDraw(MobOverlayStyle style) {
+        final ResourceLocation texture = style.texture;
+        if (texture == null) {
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
+        } else {
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
+        }
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glLineWidth(1.5F);
+        // the outline of `MobOverlayStyle.CONNECTED` lies in the plane of the tint. With depth writes on, the depth
+        // test discards most of the outline
+        GL11.glDepthMask(false);
+    }
 
-        int curSpawnMode = 2;
-
-        World world = entity.worldObj;
-        int x1 = (int) entity.posX - intOffsetX;
-        int z1 = (int) entity.posZ - intOffsetZ;
-        int y1 = (int) MathHelper.clip(entity.posY, 16, world.getHeight() - 16) - intOffsetY;
-
-        final Tessellator tess = Tessellator.instance;
-        tess.startDrawing(GL11.GL_LINES);
-        tess.setColorOpaque(255, 0, 0);
-
-        for (int i = 0; i <= 32; i++) {
-            int x = x1 - 16 + i;
-            for (int j = 0; j <= 32; j++) {
-                int z = z1 - 16 + j;
-                int cacheIndex = (i * 33 + j) * 33;
-
-                for (int k = 0; k <= 32; k++) {
-                    int y = y1 - 16 + k;
-                    int spawnMode = mobSpawnCache[cacheIndex + k];
-                    if (spawnMode == 0) {
-                        continue;
-                    } else if (spawnMode == -1) {
-                        break;
-                    }
-
-                    if (spawnMode != curSpawnMode) {
-                        if (spawnMode == 1) {
-                            tess.setColorOpaque(255, 255, 0);
-                        } else {
-                            tess.setColorOpaque(255, 0, 0);
-                        }
-                        curSpawnMode = spawnMode;
-                    }
-
-                    double yOff = getOverlayYOffset(world, x + intOffsetX, y + intOffsetY, z + intOffsetZ);
-
-                    tess.addVertex(x, y + yOff, z);
-                    tess.addVertex(x + 1, y + yOff, z + 1);
-                    tess.addVertex(x + 1, y + yOff, z);
-                    tess.addVertex(x, y + yOff, z + 1);
-                }
+    private static void loadNeighbourModes(int i, int k, int j) {
+        final int span = MOB_OVERLAY_SCAN.getSpan();
+        for (int offsetX = -1; offsetX <= 1; offsetX++) {
+            for (int offsetZ = -1; offsetZ <= 1; offsetZ++) {
+                final int neighbourI = i + offsetX;
+                final int neighbourJ = j + offsetZ;
+                final boolean isInScan = neighbourI >= 0 && neighbourI < span && neighbourJ >= 0 && neighbourJ < span;
+                final byte spawnMode = isInScan ? MOB_OVERLAY_SCAN.readSpawnMode(neighbourI, k, neighbourJ)
+                        : MobOverlayFace.OUTSIDE_SCAN;
+                MARKED_FACE.setNeighbourMode(offsetX, offsetZ, spawnMode);
             }
         }
+    }
 
-        tess.draw();
+    /** Undo the GL state changes of {@link #beginMobOverlayDraw}, except the texture binding. */
+    private static void endMobOverlayDraw() {
+        GL11.glDepthMask(true);
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_BLEND);
@@ -210,7 +194,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     private static final Entity dummyEntity = new EntityPig(null);
     private static final AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(0, 0, 0, 0, 0, 0);
 
-    private static byte getSpawnMode(Chunk chunk, int x, int y, int z) {
+    public static byte getSpawnMode(Chunk chunk, int x, int y, int z) {
         if (y >= chunk.worldObj.getHeight()) {
             return 0;
         }
