@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -16,7 +17,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
 import codechicken.nei.ClientHandler;
-import codechicken.nei.ItemStackMap;
+import codechicken.nei.ItemStackMap.StackMetaKey;
 import codechicken.nei.LRUCache;
 import codechicken.nei.api.IStackStringifyHandler;
 import codechicken.nei.api.ItemInfo;
@@ -31,7 +32,7 @@ public class StackInfo {
     private static final FluidStack NULL_FLUID = new FluidStack(FluidRegistry.WATER, 0);
     public static final List<IStackStringifyHandler> stackStringifyHandlers = new ArrayList<>();
     private static final Map<String, HashMap<String, String[]>> guidfilters = new HashMap<>();
-    private static final ItemStackMap<String> guidcache = new ItemStackMap<>();
+    private static final Map<Item, Map<StackMetaKey, String>> guidcache = new ConcurrentHashMap<>();
     private static final LRUCache<ItemStackKey, FluidStack> fluidcache = new LRUCache<>(200);
     private static boolean isPausedItemDamageSound = false;
 
@@ -182,7 +183,9 @@ public class StackInfo {
     }
 
     public static String getItemStackGUID(ItemStack stack) {
-        String guid = guidcache.get(stack);
+        final Item stackItem = stack.getItem();
+        final Map<StackMetaKey, String> itemGuids = stackItem != null ? guidcache.get(stackItem) : null;
+        String guid = itemGuids != null ? itemGuids.get(new StackMetaKey(stack)) : null;
 
         if (guid != null) {
             return guid;
@@ -190,7 +193,7 @@ public class StackInfo {
 
         final NBTTagCompound nbTag = itemStackToNBT(stack, false);
 
-        if (nbTag == null) {
+        if (nbTag == null || stack.getItem() == null) {
             return "unknown";
         }
 
@@ -239,16 +242,15 @@ public class StackInfo {
                 }
             });
 
-            synchronized (guidcache) {
-                guidcache.put(stack, keys.toString());
-            }
+            guid = keys.toString();
         } else {
-            synchronized (guidcache) {
-                guidcache.put(stack, NBTHelper.toString(nbTag));
-            }
+            guid = NBTHelper.toString(nbTag);
         }
 
-        return guidcache.get(stack);
+        guidcache.computeIfAbsent(stack.getItem(), item -> new ConcurrentHashMap<>())
+                .put(new StackMetaKey(stack.copy()), guid);
+
+        return guid;
     }
 
     public static void loadGuidFilters() {
