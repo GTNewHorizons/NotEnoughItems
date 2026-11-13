@@ -37,8 +37,8 @@ public class SortableItem {
                 && (group.viewMode == BookmarkViewMode.TODO_LIST || group.crafting != null);
         this.crossGroup = !group.collapsed && group.viewMode == BookmarkViewMode.TODO_LIST
                 && bookmarkItem.type != BookmarkItemType.INGREDIENT;
-        this.isCollapsedRecipe = group.crafting != null && group.crafting.itemToRecipe.values().stream()
-                .anyMatch(recipeId -> this.bookmarkItem.equalsRecipe(recipeId, this.bookmarkItem.groupId));
+        this.isCollapsedRecipe = group.crafting != null && this.bookmarkItem.recipeId != null
+                && group.crafting.recipeToItems.containsKey(this.bookmarkItem.recipeId);
 
         this.update();
     }

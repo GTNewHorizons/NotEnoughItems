@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.ItemSorter;
@@ -132,7 +131,7 @@ public class BookmarkGridGenerator {
                     itemIndex++;
                 }
 
-            } else if (group.crafting != null && group.crafting.itemToRecipe.values().contains(bookmarkItem.recipeId)) {
+            } else if (group.crafting != null && group.crafting.recipeToItems.containsKey(bookmarkItem.recipeId)) {
                 absoluteSlotIndex = generateCollapsedRecipe(prevBookmarkItem, itemIndex, absoluteSlotIndex, borderGrid);
                 prevBookmarkItem = bookmarkItem;
 
@@ -218,8 +217,7 @@ public class BookmarkGridGenerator {
     }
 
     private List<Integer> getShadows(BookmarkGroup group, RecipeId recipeId) {
-        return group.crafting.itemToRecipe.entrySet().stream().filter(entry -> recipeId.equals(entry.getValue()))
-                .map(entry -> entry.getKey()).collect(Collectors.toList());
+        return new ArrayList<>(group.crafting.recipeToItems.getOrDefault(recipeId, Collections.emptyList()));
     }
 
     private int nextSlotIndex(int index, BookmarkItem previousMeta, BookmarkItem meta, BookmarkViewMode viewMode) {

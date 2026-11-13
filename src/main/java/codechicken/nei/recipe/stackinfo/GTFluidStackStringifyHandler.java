@@ -10,6 +10,9 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+
 import codechicken.nei.api.IStackStringifyHandler;
 import codechicken.nei.item.ItemFluidDisplay;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -21,6 +24,11 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
     protected static Method getFluidFromDisplayStack = null;
     protected static Class<?> gtMetaGeneratedTool = null;
     protected static Field playSound = null;
+
+    private static final Supplier<Item> AE2FC_FLUID_PACKET = Suppliers
+            .memoize(() -> GameRegistry.findItem("ae2fc", "fluid_packet"));
+    private static final Supplier<Item> AE2FC_FLUID_DROP = Suppliers
+            .memoize(() -> GameRegistry.findItem("ae2fc", "fluid_drop"));
 
     static {
         try {
@@ -94,11 +102,11 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
                     return new FluidStack(fluid, 0);
                 }
 
-            } else if (item == GameRegistry.findItem("ae2fc", "fluid_packet")) {
+            } else if (item == AE2FC_FLUID_PACKET.get()) {
                 NBTTagCompound nbtTag = stack.getTagCompound();
 
                 return FluidStack.loadFluidStackFromNBT((NBTTagCompound) nbtTag.getTag("FluidStack"));
-            } else if (item == GameRegistry.findItem("ae2fc", "fluid_drop")) {
+            } else if (item == AE2FC_FLUID_DROP.get()) {
                 NBTTagCompound nbtTag = stack.getTagCompound();
                 Fluid fluid = FluidRegistry.getFluid(nbtTag.getString("Fluid").toLowerCase());
 
@@ -113,9 +121,9 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
 
     @Override
     public ItemStack normalizeRecipeQueryStack(ItemStack stack) {
+        final Item item = stack.getItem();
 
-        if (stack.getItem() == GameRegistry.findItem("ae2fc", "fluid_drop")
-                || stack.getItem() == GameRegistry.findItem("ae2fc", "fluid_packet")) {
+        if (item == AE2FC_FLUID_DROP.get() || item == AE2FC_FLUID_PACKET.get()) {
             final FluidStack fluidStack = getFluid(stack);
 
             if (fluidStack != null) {
@@ -139,8 +147,7 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
     @Override
     public boolean isFluidDisplayItem(ItemStack stack) {
         final Item item = stack.getItem();
-        return (itemFluidDisplay != null && itemFluidDisplay.isInstance(item))
-                || item == GameRegistry.findItem("ae2fc", "fluid_packet");
+        return (itemFluidDisplay != null && itemFluidDisplay.isInstance(item)) || item == AE2FC_FLUID_PACKET.get();
     }
 
 }

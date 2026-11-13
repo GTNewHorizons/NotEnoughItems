@@ -131,7 +131,7 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
             final boolean sameStack = this.stack != null && this.stack.isItemEqual(stack)
                     && ItemStack.areItemStackTagsEqual(this.stack, stack);
             if (!sameStack) {
-                this.stack = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack), 0);
+                this.stack = StackInfo.withAmount(stack, 0);
             }
         } else {
             this.stack = null;
