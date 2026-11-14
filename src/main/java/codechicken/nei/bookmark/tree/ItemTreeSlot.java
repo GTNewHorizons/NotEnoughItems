@@ -58,6 +58,11 @@ class ItemTreeSlot {
         this.isContainerItem = isContainerItem(this.emptyStack);
     }
 
+    /** The amount shown on the node. */
+    public long neededCount() {
+        return this.ingrItem.getStackSize(this.requestedAmount);
+    }
+
     private static HandlerInfo handlerInfo(String handlerName) {
         final HandlerInfo info = GuiRecipeTab.getHandlerInfo(handlerName, null);
         return info != null ? info : GuiRecipeTab.DEFAULT_HANDLER_INFO;
