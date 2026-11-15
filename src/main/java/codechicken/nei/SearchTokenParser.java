@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import net.minecraft.client.Minecraft;
@@ -21,6 +22,7 @@ import codechicken.nei.filter.AllMultiRecipeFilter;
 import codechicken.nei.filter.AnyMultiRecipeFilter;
 import codechicken.nei.filter.RecipeFilter;
 import codechicken.nei.filter.RecipeFilter.FilterContext;
+import codechicken.nei.filter.RecipeTextFilter;
 import codechicken.nei.search.ItemFilterVisitor;
 import codechicken.nei.search.RecipeFilterVisitor;
 import codechicken.nei.search.SearchExpressionUtils;
@@ -207,7 +209,8 @@ public class SearchTokenParser {
                     for (String[] contextQuery : splitByDelimiters(subQuery[1], contextTokens, false)) {
 
                         if (contextQuery[1].isEmpty() || contextQuery[0].startsWith(">")
-                                || contextQuery[0].startsWith("^")) {
+                                || contextQuery[0].startsWith("^")
+                                || contextQuery[0].startsWith("~")) {
                             continue;
                         }
 
@@ -286,6 +289,7 @@ public class SearchTokenParser {
                         }
 
                         final List<IRecipeFilter> tokens = new ArrayList<>();
+                        final boolean recipeText = contextQuery[0].startsWith("~");
                         FilterContext context = FilterContext.ANY;
 
                         if (!contextQuery[0].isEmpty()) {
@@ -293,12 +297,26 @@ public class SearchTokenParser {
                             contextQuery[0] = contextQuery[0].substring(1);
                         }
 
-                        for (SearchToken token : splitSearchText(contextQuery[0] + contextQuery[1])) {
-                            final ItemFilter result = token.getFilter(this);
-                            if (result != null) {
-                                tokens.add(
-                                        new RecipeFilter(context, token.ignore == null || token.ignore != '!', result));
+                        for (SearchToken token : splitSearchText(
+                                contextQuery[0] + contextQuery[1],
+                                recipeText ? "" : getPrefixes())) {
+
+                            if (recipeText) {
+                                final IRecipeFilter text = recipeTextFilter(token);
+                                if (text != null) {
+                                    tokens.add(text);
+                                }
+                            } else {
+                                final ItemFilter result = token.getFilter(this);
+                                if (result != null) {
+                                    tokens.add(
+                                            new RecipeFilter(
+                                                    context,
+                                                    token.ignore == null || token.ignore != '!',
+                                                    result));
+                                }
                             }
+
                         }
 
                         if (tokens.size() == 1) {
@@ -338,14 +356,31 @@ public class SearchTokenParser {
 
     }
 
+    private static IRecipeFilter recipeTextFilter(SearchToken token) {
+        if (token.rawText.isEmpty()) return null;
+        final List<Predicate<List<String>>> words = new ArrayList<>();
+
+        for (String word : token.words) {
+            final Pattern pattern = SearchField.getPattern(word);
+            if (pattern != null) words.add(RecipeTextFilter.matching(pattern));
+        }
+
+        if (words.isEmpty()) return null;
+        final Predicate<List<String>> text = lines -> words.stream().allMatch(word -> word.test(lines));
+        return new RecipeTextFilter(token.ignore == null ? text : text.negate());
+    }
+
     public List<SearchToken> splitSearchText(String filterText) {
+        return splitSearchText(filterText, getPrefixes());
+    }
+
+    public List<SearchToken> splitSearchText(String filterText, String prefixes) {
         if (filterText.isEmpty()) {
             return Collections.emptyList();
         }
 
         final List<SearchToken> tokens = new ArrayList<>();
         final int spaceMode = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
-        final String prefixes = getPrefixes();
         SearchToken lastToken = null;
         int lastEnd = 0;
 
@@ -514,7 +549,7 @@ public class SearchTokenParser {
 
     public String getRecipeContextTokens() {
         // '^' is the start anchor and the negated class in regex mode
-        return NEIClientConfig.getIntSetting("inventory.search.patternMode") == 2 ? "<>" : "<>^";
+        return NEIClientConfig.getIntSetting("inventory.search.patternMode") == 2 ? "<>~" : "<>~^";
     }
 
     public char getRedefinedPrefix(char prefix) {
