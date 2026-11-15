@@ -54,7 +54,10 @@ import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiUsageRecipe;
 import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.RecipeHandlerRef;
+import codechicken.nei.recipe.RecipeItemInputHandler;
 import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.recipe.debug.DebugHandlerWidget;
 import cpw.mods.fml.client.CustomModLoadingErrorDisplayException;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
@@ -445,6 +448,11 @@ public class ClientHandler {
             NEIClientConfig.unloadWorld();
             ItemMobSpawner.clearEntityReferences();
             WorldOverlayRenderer.onWorldUnload();
+            RecipeItemInputHandler.instance.clearTooltipCache();
+            RecipeHandlerRef.clearCache();
+            ItemPanels.itemPanel.craftablesPanel.clearGuiReferences();
+            DebugHandlerWidget.instance.clearGuiReferences();
+            NEIController.manager = null;
         }
     }
 
