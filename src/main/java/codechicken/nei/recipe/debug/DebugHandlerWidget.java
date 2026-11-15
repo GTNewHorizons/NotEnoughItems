@@ -536,11 +536,7 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
     @Override
     public boolean handleKeyPress(int keyID, char keyChar) {
 
-        if (NEIClientConfig.getBooleanSetting("inventory.guirecipe.handlerInfo") && keyID == Keyboard.KEY_D
-                && NEIClientUtils.shiftKey()) {
-            this.showWidget = !this.showWidget;
-            return true;
-        } else if (this.record != null) {
+        if (this.record != null) {
 
             if (this.container.handleKeyPress(keyID, keyChar)) {
                 return true;
@@ -556,6 +552,13 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
 
     @Override
     public boolean onHotkeyPressed() {
+
+        if (NEIClientConfig.getBooleanSetting("inventory.guirecipe.handlerInfo") && Keyboard.isKeyDown(Keyboard.KEY_D)
+                && NEIClientUtils.shiftKey()) {
+            this.showWidget = !this.showWidget;
+            return true;
+        }
+
         return this.record != null && this.container.onHotkeyPressed();
     }
 
