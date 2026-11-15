@@ -2,6 +2,7 @@ package codechicken.nei.search;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import codechicken.nei.ItemList.EverythingItemFilter;
 import codechicken.nei.SearchTokenParser;
@@ -10,6 +11,7 @@ import codechicken.nei.api.ItemFilter;
 import codechicken.nei.filter.AllMultiRecipeFilter;
 import codechicken.nei.filter.RecipeFilter;
 import codechicken.nei.filter.RecipeFilter.FilterContext;
+import codechicken.nei.filter.RecipeTextFilter;
 
 public class RecipeFilterVisitor extends AbstractSearchExpressionVisitor<IRecipeFilter> {
 
@@ -40,6 +42,10 @@ public class RecipeFilterVisitor extends AbstractSearchExpressionVisitor<IRecipe
     private IRecipeFilter createRecipeFilter(SearchExpressionParser.SearchExpressionContext ctx) {
         if (ctx == null) {
             return defaultResult();
+        }
+        if (ctx.type == 4) {
+            final Predicate<List<String>> text = new RecipeTextVisitor(this.searchParser).visitSearchExpression(ctx);
+            return text == null ? defaultResult() : new RecipeTextFilter(text);
         }
         final ItemFilter itemFilter = itemFilterVisitor.visitSearchExpression(ctx);
         switch (ctx.type) {

@@ -19,6 +19,7 @@ recipeClauseExpression
     : ingredientsPrefix=RECIPE_INGREDIENTS searchExpression[0, $ingredientsPrefix.getText().length() > 1]
     | resultPrefix=RECIPE_RESULT searchExpression[1, $resultPrefix.getText().length() > 1]
     | othersPrefix=RECIPE_OTHERS searchExpression[2, $othersPrefix.getText().length() > 1]
+    | RECIPE_TEXT searchExpression[4, false]
     | searchExpression[3, false]
     ;
 

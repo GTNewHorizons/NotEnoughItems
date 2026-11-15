@@ -2,6 +2,7 @@ package codechicken.nei.search;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import net.minecraft.util.EnumChatFormatting;
 
@@ -13,6 +14,11 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.SearchTokenParser;
 
 public class SearchExpressionUtils {
+
+    static final Pattern REGEX_ESCAPED_SPACE_PATTERN = Pattern.compile("([^\\\\](?:\\\\\\\\)+)?\\\\ ");
+    private static final Pattern ESCAPED_SYMBOL_PATTERN = Pattern.compile("\\\\(.)");
+    private static final Pattern ESCAPED_QUOTE_PATTERN = Pattern.compile("\\\\\"");
+    static final Pattern ESCAPED_SPACE_PATTERN = Pattern.compile("\\\\ ");
 
     private static final Map<Integer, EnumChatFormatting> HIGHLIGHT_MAP = new HashMap<>();
     static {
@@ -26,7 +32,8 @@ public class SearchExpressionUtils {
     public static enum HIGHLIGHTS {
 
         RECIPE(EnumChatFormatting.GREEN, SearchExpressionParser.RECIPE_INGREDIENTS,
-                SearchExpressionParser.RECIPE_RESULT, SearchExpressionParser.RECIPE_OTHERS),
+                SearchExpressionParser.RECIPE_RESULT, SearchExpressionParser.RECIPE_OTHERS,
+                SearchExpressionParser.RECIPE_TEXT),
         OR(EnumChatFormatting.GRAY, SearchExpressionParser.OR),
         BRACKETS(EnumChatFormatting.GRAY, SearchExpressionParser.LEFT_BRACKET, SearchExpressionParser.RIGHT_BRACKET),
         NEGATE(EnumChatFormatting.BLUE, SearchExpressionParser.DASH),
@@ -65,6 +72,38 @@ public class SearchExpressionUtils {
     public static <T> T visitRecipeSearchExpression(String text, AbstractSearchExpressionVisitor<T> visitor) {
         SearchExpressionParser parser = createSearchExpressionParser(text, visitor.getSearchParser(), visitor);
         return visitor.visitRecipeSearchExpression(parser.recipeSearchExpression());
+    }
+
+    public static String getCleanPattern(SearchExpressionParser.TokenContext ctx) {
+        String cleanPattern = null;
+        if (ctx.plainText() != null) {
+            cleanPattern = Pattern.quote(
+                    ESCAPED_SYMBOL_PATTERN.matcher(ctx.plainText().getText())
+                            // Unescape everything in search expression
+                            .replaceAll("$1"));
+        } else if (ctx.regex() != null) {
+            if (ctx.regex().REGEX_CONTENT() != null) {
+                cleanPattern = ctx.regex().REGEX_CONTENT().getSymbol().getText();
+                final int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+                // Unescape spaces
+                if (spaceModeEnabled == 1) {
+                    cleanPattern = REGEX_ESCAPED_SPACE_PATTERN.matcher(cleanPattern).replaceAll("$1 ");
+                }
+            }
+        } else if (ctx.quoted() != null) {
+            if (ctx.quoted().QUOTED_CONTENT() != null) {
+                cleanPattern = ctx.quoted().QUOTED_CONTENT().getSymbol().getText();
+                // Unescape quotes
+                cleanPattern = ESCAPED_QUOTE_PATTERN.matcher(cleanPattern).replaceAll("\"");
+                cleanPattern = Pattern.quote(cleanPattern);
+                final int spaceModeEnabled = NEIClientConfig.getIntSetting("inventory.search.spaceMode");
+                // Unescape spaces
+                if (spaceModeEnabled == 1) {
+                    cleanPattern = ESCAPED_SPACE_PATTERN.matcher(cleanPattern).replaceAll(" ");
+                }
+            }
+        }
+        return cleanPattern;
     }
 
     private static <T> SearchExpressionParser createSearchExpressionParser(String text, SearchTokenParser searchParser,
