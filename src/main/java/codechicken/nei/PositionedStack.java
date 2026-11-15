@@ -88,23 +88,20 @@ public class PositionedStack implements Cloneable {
         return this.acceptsLabel;
     }
 
-    public PositionedStack setBadges(List<Badge> badges) {
+    public void setBadges(List<Badge> badges) {
         this.badges = badges;
-        return this;
     }
 
     public List<Badge> getBadges() {
         return this.badges;
     }
 
-    public PositionedStack setTooltip(List<String> tooltip) {
+    public void setTooltip(List<String> tooltip) {
         this.tooltip = tooltip == null ? null : item -> tooltip;
-        return this;
     }
 
-    public PositionedStack setTooltipProvider(Function<ItemStack, List<String>> provider) {
+    public void setTooltipProvider(Function<ItemStack, List<String>> provider) {
         this.tooltip = provider;
-        return this;
     }
 
     public List<String> getTooltip() {
@@ -115,9 +112,8 @@ public class PositionedStack implements Cloneable {
         return this.chance;
     }
 
-    public PositionedStack setChance(int chance) {
+    public void setChance(int chance) {
         this.chance = chance;
-        return this;
     }
 
     public PositionedStack copy() {

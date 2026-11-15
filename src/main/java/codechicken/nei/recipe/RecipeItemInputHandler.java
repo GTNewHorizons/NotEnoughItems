@@ -19,12 +19,21 @@ import codechicken.nei.recipe.Recipe.RecipeId;
 
 public class RecipeItemInputHandler implements IContainerInputHandler, IContainerTooltipHandler {
 
+    public static final RecipeItemInputHandler instance = new RecipeItemInputHandler();
+
     protected RecipeTooltipLineHandler recipeTooltipLineHandler = null;
 
+    protected RecipeItemInputHandler() {
+
+    }
+
     public static void load() {
-        RecipeItemInputHandler recipeHandler = new RecipeItemInputHandler();
-        GuiContainerManager.addInputHandler(recipeHandler);
-        GuiContainerManager.addTooltipHandler(recipeHandler);
+        GuiContainerManager.addInputHandler(instance);
+        GuiContainerManager.addTooltipHandler(instance);
+    }
+
+    public void clearTooltipCache() {
+        this.recipeTooltipLineHandler = null;
     }
 
     @Override
@@ -64,16 +73,17 @@ public class RecipeItemInputHandler implements IContainerInputHandler, IContaine
                     : null;
 
             if (recipeId == null) {
-                recipeTooltipLineHandler = null;
-            } else if (recipeTooltipLineHandler == null || !recipeTooltipLineHandler.getRecipeId().equals(recipeId)) {
-                recipeTooltipLineHandler = new RecipeTooltipLineHandler(recipeId);
-            }
+                clearTooltipCache();
+            } else if (this.recipeTooltipLineHandler == null
+                    || !this.recipeTooltipLineHandler.getRecipeId().equals(recipeId)) {
+                        this.recipeTooltipLineHandler = new RecipeTooltipLineHandler(recipeId);
+                    }
 
-            if (recipeTooltipLineHandler != null) {
-                currenttip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(recipeTooltipLineHandler));
+            if (this.recipeTooltipLineHandler != null) {
+                currenttip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(this.recipeTooltipLineHandler));
             }
         } else {
-            recipeTooltipLineHandler = null;
+            clearTooltipCache();
         }
 
         return currenttip;
