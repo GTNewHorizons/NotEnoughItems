@@ -17,7 +17,7 @@ public final class MobOverlayDisplayList {
 
     /**
      * Compiles after a {@link MobOverlayScan#getModesVersion} change are debounced to one per {@code MIN_COMPILE_TICKS}
-     * ticks, because the version changes several times per second while the player moves fast, and a compile takes a
+     * ticks, because the version changes several times per second while the player moves fast, and a compile runs for a
      * millisecond or more.
      */
     public boolean isCompileDue(int currentModesVersion, MobOverlayStyle currentStyle, long worldTicks) {

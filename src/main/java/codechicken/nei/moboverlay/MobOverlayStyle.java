@@ -62,15 +62,6 @@ public enum MobOverlayStyle {
         }
     },
 
-    /** The GTNH logo without the globe. */
-    GTNH_LOGO("gtnh_logo", Colouring.OVERLAY) {
-
-        @Override
-        public void addVertices(MobOverlayFace face) {
-            face.addTexturedFace();
-        }
-    },
-
     /** The pufferfish sticker. */
     PUFFERFISH("pufferfish", Colouring.STICKER) {
 
@@ -124,22 +115,12 @@ public enum MobOverlayStyle {
         return name().toLowerCase(Locale.ROOT);
     }
 
-    public String getLangKey() {
-        return switch (this) {
-            case X -> "nei.options.world.overlays.mobOverlayStyle.x";
-            case CONNECTED -> "nei.options.world.overlays.mobOverlayStyle.connected";
-            case SQUARE -> "nei.options.world.overlays.mobOverlayStyle.square";
-            case GTNH_LOGO -> "nei.options.world.overlays.mobOverlayStyle.gtnh_logo";
-            case PUFFERFISH -> "nei.options.world.overlays.mobOverlayStyle.pufferfish";
-        };
-    }
-
     public float computeAlpha() {
         return switch (this) {
             case CONNECTED -> TINT_ALPHA;
             case SQUARE -> MARK_ALPHA;
-            // the alpha is in the PNGs
-            case X, GTNH_LOGO, PUFFERFISH -> 1.0F;
+            // opaque lines for X, and the alpha of the PNG for PUFFERFISH
+            case X, PUFFERFISH -> 1.0F;
         };
     }
 

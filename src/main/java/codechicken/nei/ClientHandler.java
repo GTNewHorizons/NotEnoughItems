@@ -444,6 +444,7 @@ public class ClientHandler {
         if (event.world == mc.theWorld) {
             NEIClientConfig.unloadWorld();
             ItemMobSpawner.clearEntityReferences();
+            WorldOverlayRenderer.onWorldUnload();
         }
     }
 

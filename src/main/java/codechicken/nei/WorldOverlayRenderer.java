@@ -4,20 +4,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockSnow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EnumCreatureType;
-import net.minecraft.entity.passive.EntityPig;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.EnumSkyBlock;
-import net.minecraft.world.SpawnerAnimals;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
 
 import org.lwjgl.opengl.GL11;
 
@@ -42,6 +34,11 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     public static void reset() {
         mobOverlay = 0;
         chunkOverlay = 0;
+    }
+
+    public static void onWorldUnload() {
+        MOB_OVERLAY_SCAN.clear();
+        MOB_OVERLAY_LIST.delete();
     }
 
     @Override
@@ -86,15 +83,6 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glPopAttrib();
     }
 
-    private static double getOverlayYOffset(World world, int x, int y, int z) {
-        Block block = world.getBlock(x, y, z);
-        if (block instanceof BlockSnow) {
-            int meta = world.getBlockMetadata(x, y, z) & 7;
-            return (1 + meta) / 8.0 + 0.02;
-        }
-        return 0.02;
-    }
-
     /**
      * The model view matrix is relative to ({@code intOffsetX}, {@code intOffsetY}, {@code intOffsetZ}), the camera
      * position cast to {@code int}.
@@ -114,7 +102,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
                 .parseStyle(NEIClientConfig.getSetting("world.overlays.mobOverlayStyle").getValue());
         final long worldTicks = entity.worldObj.getTotalWorldTime();
         if (MOB_OVERLAY_LIST.isCompileDue(MOB_OVERLAY_SCAN.getModesVersion(), style, worldTicks)) {
-            compileMobOverlayList(entity.worldObj, style, worldTicks);
+            compileMobOverlayList(style, worldTicks);
         }
 
         beginMobOverlayDraw(style);
@@ -125,7 +113,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     /**
      * Add a marked face to {@link #MOB_OVERLAY_LIST} for each block of {@link #MOB_OVERLAY_SCAN} where mobs can spawn.
      */
-    private static void compileMobOverlayList(World world, MobOverlayStyle style, long worldTicks) {
+    private static void compileMobOverlayList(MobOverlayStyle style, long worldTicks) {
         MOB_OVERLAY_LIST.beginCompile(MOB_OVERLAY_SCAN, style, worldTicks);
         final float alpha = style.computeAlpha();
         final Tessellator tess = Tessellator.instance;
@@ -136,12 +124,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
                 for (int k = 0; k < MOB_OVERLAY_SCAN.getHeight(); k++) {
                     if (MOB_OVERLAY_SCAN.readSpawnMode(i, k, j) == 0) continue;
 
-                    final double yOffset = getOverlayYOffset(
-                            world,
-                            MOB_OVERLAY_SCAN.getMinX() + i,
-                            MOB_OVERLAY_SCAN.getMinY() + k,
-                            MOB_OVERLAY_SCAN.getMinZ() + j);
-                    MARKED_FACE.moveTo(i, k + yOffset, j);
+                    MARKED_FACE.moveTo(i, k + MOB_OVERLAY_SCAN.readOverlayYOffset(i, k, j), j);
                     loadNeighbourModes(i, k, j);
                     MARKED_FACE.applyColor(style.colouring, alpha);
                     style.addVertices(MARKED_FACE);
@@ -189,33 +172,6 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_BLEND);
-    }
-
-    private static final Entity dummyEntity = new EntityPig(null);
-    private static final AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(0, 0, 0, 0, 0, 0);
-
-    public static byte getSpawnMode(Chunk chunk, int x, int y, int z) {
-        if (y >= chunk.worldObj.getHeight()) {
-            return 0;
-        }
-
-        if (chunk.getSavedLightValue(EnumSkyBlock.Block, x & 15, y, z & 15) >= 8
-                || !SpawnerAnimals.canCreatureTypeSpawnAtLocation(EnumCreatureType.monster, chunk.worldObj, x, y, z)) {
-            return 0;
-        }
-
-        aabb.minX = x + 0.2;
-        aabb.maxX = x + 0.8;
-        aabb.minY = y + 0.01;
-        aabb.maxY = y + 1.8;
-        aabb.minZ = z + 0.2;
-        aabb.maxZ = z + 0.8;
-        if (!chunk.worldObj.getCollidingBoundingBoxes(dummyEntity, aabb).isEmpty()
-                || chunk.worldObj.isAnyLiquid(aabb)) {
-            return 0;
-        }
-
-        return (byte) (chunk.getSavedLightValue(EnumSkyBlock.Sky, x & 15, y, z & 15) >= 8 ? 1 : 2);
     }
 
     private static void renderChunkBounds(Entity entity, int intOffsetX, int intOffsetY, int intOffsetZ) {

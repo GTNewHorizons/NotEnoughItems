@@ -17,7 +17,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.StatCollector;
 import net.minecraft.world.storage.SaveFormatComparator;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -462,8 +461,9 @@ public class NEIClientConfig {
 
             @Override
             public String getButtonText() {
-                final MobOverlayStyle style = MobOverlayStyle.parseStyle(getTag().getValue());
-                return StatCollector.translateToLocal(style.getLangKey());
+                return translateN(
+                        "world.overlays.mobOverlayStyle."
+                                + MobOverlayStyle.parseStyle(getTag().getValue()).formatName());
             }
         });
 

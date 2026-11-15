@@ -1,23 +1,27 @@
 package codechicken.nei.moboverlay;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockSnow;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
+import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IWorldAccess;
+import net.minecraft.world.SpawnerAnimals;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 
 import codechicken.lib.math.MathHelper;
-import codechicken.nei.NEIClientConfig;
-import codechicken.nei.WorldOverlayRenderer;
 
 /**
- * Spawn modes in a box around the player, from {@link WorldOverlayRenderer#getSpawnMode}: 0 for no spawns, 1 for night
- * only and 2 for any time. The box moves with the player once the player is a few blocks from the box's centre, and
- * {@link #update} scans only the blocks that enter the box. {@link #update} rescans the column of a block or light
- * change on the next tick. On each tick, {@link #update} also rescans a slice of the columns, for changes with no block
- * update, such as a boat that moves into the box.
+ * Spawn modes and snow layers in a box around the player. The spawn modes are from {@link Column#getSpawnMode}: 0 for
+ * no spawns, 1 for night only and 2 for any time. The box moves with the player once the player is a few blocks from
+ * the box's centre, and {@link #update} scans only the blocks that enter the box. {@link #update} rescans the column of
+ * a block or light change on the next tick. On each tick, {@link #update} also rescans a slice of the columns, for
+ * changes with no block update, such as a boat that moves into the box.
  */
 public final class MobOverlayScan {
 
@@ -31,6 +35,8 @@ public final class MobOverlayScan {
     private static final int RECENTRE_DISTANCE = 4;
     private static final int VERTICAL_RECENTRE_DISTANCE = 2;
     private static final int RESCAN_TICKS = 40;
+    private static final int SPAWN_MODE_MASK = 3;
+    private static final int SNOW_LAYERS_SHIFT = 2;
 
     private final IWorldAccess changeListener = new ChangeListener();
     private final Column column = new Column();
@@ -38,7 +44,8 @@ public final class MobOverlayScan {
     private int verticalRadius;
     private int span;
     private int height;
-    // a ring buffer over the box, indexed by `findCell()`
+    // a ring buffer over the box, indexed by `findCell()`. A cell has the spawn mode in the bits of `SPAWN_MODE_MASK`,
+    // and the block's snow layers shifted left by `SNOW_LAYERS_SHIFT`
     private byte[] modes = new byte[0];
     // indexed by `findColumn(x, z)`
     private boolean[] dirty = new boolean[0];
@@ -55,6 +62,8 @@ public final class MobOverlayScan {
     private World scannedWorld;
 
     public void clear() {
+        if (scannedWorld == null && span == 0) return;
+
         if (scannedWorld != null) scannedWorld.removeWorldAccess(changeListener);
         radius = 0;
         verticalRadius = 0;
@@ -64,6 +73,8 @@ public final class MobOverlayScan {
         dirty = new boolean[0];
         hasModes = false;
         scannedWorld = null;
+        // `Chunk.worldObj` references the world
+        column.chunk = null;
     }
 
     /**
@@ -101,7 +112,7 @@ public final class MobOverlayScan {
         if (isChanged) modesVersion++;
     }
 
-    /** The version changes when a spawn mode changes or the box moves. */
+    /** The version changes when a spawn mode or a snow layer changes, or the box moves. */
     public int getModesVersion() {
         return modesVersion;
     }
@@ -128,7 +139,18 @@ public final class MobOverlayScan {
 
     /** {@code i} and {@code j} are from 0 to {@link #getSpan}, and {@code k} is from 0 to {@link #getHeight}. */
     public byte readSpawnMode(int i, int k, int j) {
-        return modes[findCell(minX + i, minY + k, minZ + j)];
+        return (byte) (modes[findCell(minX + i, minY + k, minZ + j)] & SPAWN_MODE_MASK);
+    }
+
+    /**
+     * Height of the overlay above the bottom of the block, so that a snow layer does not cover the overlay. The indices
+     * are those of {@link #readSpawnMode}.
+     */
+    public double readOverlayYOffset(int i, int k, int j) {
+        final int SNOW_LAYERS_PER_BLOCK = 8;
+        final double OVERLAY_GAP = 0.02;
+        final int snowLayers = modes[findCell(minX + i, minY + k, minZ + j)] >> SNOW_LAYERS_SHIFT;
+        return (double) snowLayers / SNOW_LAYERS_PER_BLOCK + OVERLAY_GAP;
     }
 
     private void resize(int newRadius, int newVerticalRadius) {
@@ -139,10 +161,10 @@ public final class MobOverlayScan {
         modes = new byte[span * span * height];
         dirty = new boolean[span * span];
         hasModes = false;
+        nextRescanColumn = 0;
     }
 
     private void scanFullBox(int centreX, int centreY, int centreZ) {
-        final long startNanos = System.nanoTime();
         minX = centreX - radius;
         minY = centreY - verticalRadius;
         minZ = centreZ - radius;
@@ -154,12 +176,6 @@ public final class MobOverlayScan {
         hasModes = true;
         modesVersion++;
         scannedTick = scannedWorld.getTotalWorldTime();
-        NEIClientConfig.logger.info(
-                "moboverlay.scan.full radius={} verticalRadius={} columns={} micros={}",
-                radius,
-                verticalRadius,
-                span * span,
-                (System.nanoTime() - startNanos) / 1000);
     }
 
     private void watchWorld(World world) {
@@ -230,11 +246,11 @@ public final class MobOverlayScan {
             final int z = minZ + nextRescanColumn % span;
             isChanged |= scanColumn(x, z);
         }
-        if (nextRescanColumn == columnCount) nextRescanColumn = 0;
+        if (nextRescanColumn >= columnCount) nextRescanColumn = 0;
         return isChanged;
     }
 
-    /** @return whether a spawn mode changed */
+    /** @return whether a spawn mode or a snow layer changed */
     private boolean scanColumn(int x, int z) {
         column.moveTo(x, z);
         dirty[findColumn(x, z)] = false;
@@ -255,6 +271,8 @@ public final class MobOverlayScan {
      */
     private final class Column {
 
+        private final Entity dummyEntity = new EntityPig(null);
+        private final AxisAlignedBB spawnBox = AxisAlignedBB.getBoundingBox(0, 0, 0, 0, 0, 0);
         private int x;
         private int z;
         private Chunk chunk;
@@ -268,20 +286,59 @@ public final class MobOverlayScan {
             canBiomeSpawn = !biome.getSpawnableList(EnumCreatureType.monster).isEmpty()
                     && biome.getSpawningChance() > 0;
             chunk = scannedWorld.getChunkFromBlockCoords(x, z);
-            topY = Math.min(scannedWorld.getHeight() - 1, scannedWorld.getHeightValue(x, z));
+            // on the client, `Chunk.generateHeightMap()` never tests the top layer of the highest non-empty section.
+            // `getHeightValue()` can then be below a block on that layer, so test that layer here
+            final int topLayerY = chunk.getTopFilledSegment() + 15;
+            final boolean isTopLayerFilled = !chunk.isEmpty() && chunk.func_150808_b(x & 15, topLayerY, z & 15) != 0;
+            final int heightValue = isTopLayerFilled ? topLayerY + 1 : scannedWorld.getHeightValue(x, z);
+            topY = Math.min(scannedWorld.getHeight() - 1, heightValue);
         }
 
-        /** @return whether a spawn mode changed */
+        /** @return whether a spawn mode or a snow layer changed */
         private boolean scan(int fromY, int toY) {
             boolean isChanged = false;
             for (int y = fromY; y < toY; y++) {
-                final byte spawnMode = canBiomeSpawn && y <= topY ? WorldOverlayRenderer.getSpawnMode(chunk, x, y, z)
-                        : 0;
+                final int spawnMode = canBiomeSpawn && y <= topY ? getSpawnMode(y) : 0;
+                final byte cellValue = (byte) (spawnMode == 0 ? 0
+                        : spawnMode | (readSnowLayers(y) << SNOW_LAYERS_SHIFT));
                 final int cell = findCell(x, y, z);
-                isChanged |= modes[cell] != spawnMode;
-                modes[cell] = spawnMode;
+                isChanged |= modes[cell] != cellValue;
+                modes[cell] = cellValue;
             }
             return isChanged;
+        }
+
+        /** The spawn mode of the block at height {@code y} in this column. */
+        private byte getSpawnMode(int y) {
+            if (y >= chunk.worldObj.getHeight()) {
+                return 0;
+            }
+
+            if (chunk.getSavedLightValue(EnumSkyBlock.Block, x & 15, y, z & 15) >= 8 || !SpawnerAnimals
+                    .canCreatureTypeSpawnAtLocation(EnumCreatureType.monster, chunk.worldObj, x, y, z)) {
+                return 0;
+            }
+
+            spawnBox.minX = x + 0.2;
+            spawnBox.maxX = x + 0.8;
+            spawnBox.minY = y + 0.01;
+            spawnBox.maxY = y + 1.8;
+            spawnBox.minZ = z + 0.2;
+            spawnBox.maxZ = z + 0.8;
+            if (!chunk.worldObj.getCollidingBoundingBoxes(dummyEntity, spawnBox).isEmpty()
+                    || chunk.worldObj.isAnyLiquid(spawnBox)) {
+                return 0;
+            }
+
+            return (byte) (chunk.getSavedLightValue(EnumSkyBlock.Sky, x & 15, y, z & 15) >= 8 ? 1 : 2);
+        }
+
+        private int readSnowLayers(int y) {
+            final Block block = chunk.getBlock(x & 15, y, z & 15);
+            if (!(block instanceof BlockSnow)) return 0;
+
+            // snow metadata 0 is one layer
+            return (chunk.getBlockMetadata(x & 15, y, z & 15) & 7) + 1;
         }
     }
 
