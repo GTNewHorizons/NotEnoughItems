@@ -290,7 +290,10 @@ public final class MobOverlayScan {
             final int topLayerY = chunk.getTopFilledSegment() + 15;
             final boolean isTopLayerFilled = !chunk.isEmpty() && chunk.func_150808_b(x & 15, topLayerY, z & 15) != 0;
             final int heightValue = isTopLayerFilled ? topLayerY + 1 : scannedWorld.getHeightValue(x, z);
-            topY = Math.min(scannedWorld.getHeight() - 1, heightValue);
+            // `getHeightValue()` is the height above the highest block with a light opacity above 0. A snow layer and a
+            // hopper have a light opacity of 0, and a mob can spawn on top of a full snow block or a hopper, so scan
+            // one block above the height value
+            topY = Math.min(scannedWorld.getHeight() - 1, heightValue + 1);
         }
 
         /** @return whether a spawn mode or the top of a flat block changed */
