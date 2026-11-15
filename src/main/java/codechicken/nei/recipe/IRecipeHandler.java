@@ -122,6 +122,26 @@ public interface IRecipeHandler {
     }
 
     /**
+     * Override it to let the recipe search see stacks that the recipe doesn't draw and doesn't give to the overlay.
+     *
+     * @return The stacks of the role the recipe search looks at; called from the search threads.
+     */
+    default List<PositionedStack> getSearchStacks(int recipe, RecipeRole role) {
+        return switch (role) {
+            case INPUT -> getIngredientStacks(recipe);
+            case OUTPUT -> getResultStacks(recipe);
+            case AUXILIARY -> getAuxiliaryStacks(recipe);
+        };
+    }
+
+    /**
+     * @return The text the recipe text search looks at, none by default; called from the search threads.
+     */
+    default List<String> getSearchText(int recipe) {
+        return Collections.emptyList();
+    }
+
+    /**
      * @param recipe The recipe index to get the group id for.
      * @return An id shared by every recipe in this recipe's group, or {@code null} if this recipe isn't grouped.
      */

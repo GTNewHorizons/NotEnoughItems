@@ -199,6 +199,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                         NEIClientUtils.translate(
                                 "recipe.search.tooltip.output",
                                 SearchExpressionUtils.HIGHLIGHTS.RECIPE + ">"));
+                tooltip.add(
+                        NEIClientUtils.translate(
+                                "recipe.search.tooltip.text",
+                                SearchExpressionUtils.HIGHLIGHTS.RECIPE + "~"));
 
                 final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
 

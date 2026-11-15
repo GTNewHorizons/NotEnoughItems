@@ -9,6 +9,7 @@ import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.RecipeRole;
 
 public class RecipeFilter implements IRecipeFilter {
 
@@ -47,17 +48,17 @@ public class RecipeFilter implements IRecipeFilter {
     public boolean matches(IRecipeHandler handler, int recipeIndex) {
 
         if ((this.context == FilterContext.ANY || this.context == FilterContext.INPUT)
-                && matchPositionedStack(handler.getIngredientStacks(recipeIndex), this.anyMatch)) {
+                && matchPositionedStack(handler.getSearchStacks(recipeIndex, RecipeRole.INPUT), this.anyMatch)) {
             return this.anyMatch;
         }
 
         if ((this.context == FilterContext.ANY || this.context == FilterContext.OUTPUT)
-                && matchPositionedStack(handler.getResultStacks(recipeIndex), this.anyMatch)) {
+                && matchPositionedStack(handler.getSearchStacks(recipeIndex, RecipeRole.OUTPUT), this.anyMatch)) {
             return this.anyMatch;
         }
 
         if ((this.context == FilterContext.ANY || this.context == FilterContext.AUXILIARY)
-                && matchPositionedStack(handler.getAuxiliaryStacks(recipeIndex), this.anyMatch)) {
+                && matchPositionedStack(handler.getSearchStacks(recipeIndex, RecipeRole.AUXILIARY), this.anyMatch)) {
             return this.anyMatch;
         }
 
