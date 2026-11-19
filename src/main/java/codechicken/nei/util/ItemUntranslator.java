@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import net.minecraft.creativetab.CreativeTabs;
@@ -128,8 +129,8 @@ public class ItemUntranslator {
     private static final String CONFIG_FILE = "untranslator.cfg";
     private static final ItemUntranslator instance = new ItemUntranslator();
 
-    private final Map<String, String> secondNames = new HashMap<>();
-    private final Map<String, String> processedNames = new HashMap<>();
+    private final Map<String, String> secondNames = new ConcurrentHashMap<>();
+    private final Map<String, String> processedNames = new ConcurrentHashMap<>();
 
     private ItemUntranslator() {}
 
@@ -241,14 +242,19 @@ public class ItemUntranslator {
         return EnumChatFormatting.getTextWithoutFormattingCodes(name).trim();
     }
 
-    public synchronized String getItemStackDisplayName(ItemStack stack) {
+    public String getItemStackDisplayName(ItemStack stack) {
 
         if (stack == null || this.secondNames.isEmpty()) {
             return "";
         }
 
         final String guidKey = StackInfo.getItemStackGUID(stack);
+        final String displayName = this.processedNames.get(guidKey);
 
+        return displayName != null ? displayName : processDisplayName(stack, guidKey);
+    }
+
+    private synchronized String processDisplayName(ItemStack stack, String guidKey) {
         return this.processedNames.computeIfAbsent(guidKey, stackKey -> {
             String displayName = this.secondNames.get(stackKey);
 
