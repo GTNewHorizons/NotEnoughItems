@@ -80,11 +80,6 @@ nei.chat.chunkoverlay.3=Chunk Overlay: GT Ore Veins
 nei.options=NEI选项
 nei.options.back=后退
 nei.options.world=世界
-nei.options.global=全局
-nei.options.global.tip.0=选项适用于所有世界
-nei.options.global.tip.1=点击选项左侧W按钮可覆写该世界设置
-nei.options.wbutton.tip.0=使用全局设置
-nei.options.wbutton.tip.1=覆写全局设置
 
 nei.options.keys=按键绑定
 nei.options.keys.showenchant=显示附魔值

@@ -445,14 +445,14 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 if (!rightclick) {
                     if (Keyboard.getEventKeyState() && getIsAccessibleControlEventKey()
                             && NEIClientConfig.canChangeCheatMode()) {
-                        NEIClientConfig.cycleSetting("inventory.cheatmode", 3);
+                        NEIClientConfig.setCheatMode((NEIClientConfig.getCheatMode() + 1) % 3);
                     } else {
                         if (Keyboard.getEventKeyState() && (Keyboard.getEventKey() == Keyboard.KEY_LSHIFT
                                 || Keyboard.getEventKey() == Keyboard.KEY_RSHIFT)) {
                             GuiRecipeTab.loadHandlerInfo();
                             RecipeCatalysts.loadCatalystInfo();
                         }
-                        getOptionList().openGui(getGuiContainer(), false);
+                        getOptionList().openGui(getGuiContainer());
                     }
                     return true;
                 }
