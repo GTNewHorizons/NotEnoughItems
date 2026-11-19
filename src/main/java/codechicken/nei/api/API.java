@@ -19,6 +19,7 @@ import org.lwjgl.input.Keyboard;
 import com.google.common.collect.Sets;
 
 import codechicken.nei.BookmarkContainerInfo;
+import codechicken.nei.CollapsibleItems;
 import codechicken.nei.ItemList;
 import codechicken.nei.ItemSorter;
 import codechicken.nei.ItemStackSet;
@@ -339,6 +340,30 @@ public class API {
      */
     public static void addSubset(SubsetTag tag) {
         SubsetWidget.addTag(tag);
+    }
+
+    /**
+     * Registers a group of items that is collapsed into a single entry in the item panel. Groups registered here have
+     * the lowest priority: an item that matches a preset or a collapsibleitems.cfg group stays there. They are active
+     * only while the Collapsible Items option is enabled. Must be called while plugins are loading.
+     *
+     * @param unlocalizedName Translation key of the name shown for the group
+     * @param filter          A search string for matching items that belong to this group. Also identifies the group
+     *                        when its expanded state is saved, so changing it resets the saved state.
+     */
+    public static void addCollapsibleGroup(String unlocalizedName, String filter) {
+        CollapsibleItems.registerGroup(unlocalizedName, filter);
+    }
+
+    /**
+     * Same as {@link #addCollapsibleGroup(String, String)}, but the group is given as a list of item stacks. The stacks
+     * identify the group when its expanded state is saved, so changing them resets the saved state.
+     *
+     * @param unlocalizedName Translation key of the name shown for the group
+     * @param items           Item stacks that belong to this group
+     */
+    public static void addCollapsibleGroup(String unlocalizedName, Iterable<ItemStack> items) {
+        CollapsibleItems.registerGroup(unlocalizedName, items);
     }
 
     @Deprecated
