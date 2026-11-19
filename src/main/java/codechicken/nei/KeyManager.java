@@ -32,6 +32,9 @@ public class KeyManager {
     private static volatile boolean pendingOptionsReload = false;
     private static int clickedButton = -1;
 
+    private static final int NO_KEY_EVENT = Integer.MIN_VALUE;
+    private static int typedKey = NO_KEY_EVENT;
+
     static {
         // Aliases for legacy keybinds
         keyAliases.put("gui.recipe", "recipe.recipe");
@@ -78,6 +81,11 @@ public class KeyManager {
                 final int button = keyCode + 100;
                 return Mouse.isButtonDown(button) || button == clickedButton;
             } else if (keyCode > Keyboard.KEY_NONE && keyCode < Keyboard.KEYBOARD_SIZE) {
+                // Only report the key associated with the current typedKey event as held down
+                if (typedKey != NO_KEY_EVENT) {
+                    return keyCode == typedKey;
+                }
+
                 return Keyboard.isKeyDown(keyCode);
             }
         }
@@ -95,6 +103,17 @@ public class KeyManager {
             }
         }
         return false;
+    }
+
+    public static void handleKeyEvent(int keyCode, Runnable handler) {
+        final int previousKeyState = typedKey;
+
+        try {
+            typedKey = keyCode;
+            handler.run();
+        } finally {
+            typedKey = previousKeyState;
+        }
     }
 
     /**
