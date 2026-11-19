@@ -269,20 +269,30 @@ public class StackInfo {
     public static ItemStack getItemStackWithMinimumDamage(ItemStack[] stacks) {
         ItemStack result = stacks[0];
 
-        if (stacks.length > 1) {
-            for (ItemStack stack : stacks) {
-                // to optimize compare recipes from permutation, an item with a minimum strId and damage is taken so as
-                // not to check everything permutation items
-                if (stack.getItem() != null && !ItemInfo.isHidden(stack)
-                        && (stack.getItemDamage() < result.getItemDamage()
-                                || stack.getItemDamage() == result.getItemDamage()
-                                        && Item.itemRegistry.getNameForObject(stack.getItem())
-                                                .compareTo(Item.itemRegistry.getNameForObject(result.getItem())) < 0)) {
-                    result = stack;
-                }
+        for (int i = 1; i < stacks.length; i++) {
+            final ItemStack stack = stacks[i];
+            if (stack.getItem() != null && isLess(stack, result) && !ItemInfo.isHidden(stack)) {
+                result = stack;
             }
         }
 
         return result.copy();
+    }
+
+    private static boolean isLess(ItemStack stack, ItemStack other) {
+        if (stack.getItemDamage() != other.getItemDamage()) {
+            return stack.getItemDamage() < other.getItemDamage();
+        }
+
+        final String name = getItemName(stack);
+        if (name == null) return false;
+
+        final String otherName = getItemName(other);
+        return otherName == null || name.compareTo(otherName) < 0;
+    }
+
+    private static String getItemName(ItemStack stack) {
+        final Item item = stack.getItem();
+        return item == null ? null : Item.itemRegistry.getNameForObject(item);
     }
 }
