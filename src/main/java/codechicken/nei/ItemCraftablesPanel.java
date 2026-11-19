@@ -13,7 +13,6 @@ import java.util.stream.IntStream;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.FluidContainerRegistry;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
@@ -24,6 +23,7 @@ import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.ICraftingHandler;
 import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.RecipeInfo;
 import codechicken.nei.recipe.StackInfo;
@@ -378,48 +378,19 @@ public class ItemCraftablesPanel
     }
 
     private static ItemStack getCheapResultItem(IRecipeHandler handler, int recipeIndex) {
-        final PositionedStack resultStack = handler.getResultStack(recipeIndex);
-
-        if (resultStack != null) {
-            return resultStack.item;
-        }
-
-        final List<PositionedStack> otherStacks = handler.getOtherStacks(recipeIndex);
-
-        for (PositionedStack otherStack : otherStacks) {
-            if (!FluidContainerRegistry.isContainer(otherStack.items[0])
-                    || StackInfo.getFluid(otherStack.items[0]) != null) {
-                return otherStack.item;
-            }
-        }
-
-        return otherStacks.isEmpty() ? null : otherStacks.get(0).item;
+        final PositionedStack result = Recipe
+                .getMainResult(handler.getResultStacks(recipeIndex), pStack -> pStack.items[0]);
+        return result != null ? result.item : null;
     }
 
     private static ItemStack getCheapResult(IRecipeHandler handler, int recipeIndex) {
-        final PositionedStack resultStack = handler.getResultStack(recipeIndex);
-        final List<PositionedStack> results = resultStack != null ? Collections.singletonList(resultStack)
-                : handler.getOtherStacks(recipeIndex);
+        final List<PositionedStack> results = handler.getResultStacks(recipeIndex);
 
         if (results.isEmpty()) {
             return null;
         }
 
-        ItemStack stack = null;
-
-        if (results.size() > 1) {
-            for (PositionedStack result : results) {
-                if (!FluidContainerRegistry.isContainer(result.item) || StackInfo.getFluid(result.item) != null) {
-                    stack = result.item;
-                    break;
-                }
-            }
-        }
-
-        if (stack == null) {
-            stack = results.get(0).item;
-        }
-
+        final ItemStack stack = Recipe.getMainResult(results, pStack -> pStack.items[0]).item;
         int stackSize = 0;
 
         for (PositionedStack result : results) {

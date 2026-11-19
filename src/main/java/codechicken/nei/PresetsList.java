@@ -89,19 +89,19 @@ public class PresetsList {
                 return false;
             }
 
-            final PositionedStack result = handler.getResultStack(recipeIndex);
+            final List<PositionedStack> outputs = handler.getResultStacks(recipeIndex);
 
-            if (result != null && matchPositionedStack(result)) {
+            if (matchPositionedStack(outputs, true)) {
                 return true;
             }
 
-            final List<PositionedStack> others = handler.getOtherStacks(recipeIndex);
+            final List<PositionedStack> auxiliaries = handler.getAuxiliaryStacks(recipeIndex);
 
-            if (!others.isEmpty() && matchPositionedStack(others, true)) {
+            if (matchPositionedStack(auxiliaries, true)) {
                 return true;
             }
 
-            return result == null && others.isEmpty();
+            return outputs.isEmpty() && auxiliaries.isEmpty();
         }
 
         private boolean matchPositionedStack(List<PositionedStack> items, boolean dir) {

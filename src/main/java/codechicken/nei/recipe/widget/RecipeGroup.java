@@ -225,15 +225,10 @@ public class RecipeGroup {
 
     protected MemberStacks loadStacks(int member) {
         final int recipeIndex = getRecipeIndex(member);
-        final List<PositionedStack> inputs = new ArrayList<>(this.handler.getIngredientStacks(recipeIndex));
-        final PositionedStack pStackResult = this.handler.getResultStack(recipeIndex);
-        final List<PositionedStack> others = new ArrayList<>(this.handler.getOtherStacks(recipeIndex));
-
-        if (pStackResult != null) {
-            return new MemberStacks(inputs, Collections.singletonList(pStackResult), others);
-        }
-
-        return new MemberStacks(inputs, others, Collections.emptyList());
+        return new MemberStacks(
+                new ArrayList<>(this.handler.getIngredientStacks(recipeIndex)),
+                new ArrayList<>(this.handler.getResultStacks(recipeIndex)),
+                new ArrayList<>(this.handler.getAuxiliaryStacks(recipeIndex)));
     }
 
     // re-reads the member stacks from the handler, keeps the cached instances when nothing changed
