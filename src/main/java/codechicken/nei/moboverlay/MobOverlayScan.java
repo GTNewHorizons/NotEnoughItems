@@ -265,8 +265,8 @@ public final class MobOverlayScan {
     }
 
     /**
-     * {@link #moveTo} reads the chunk, the height map and the biome of a column, and {@link #scan} reads the column's
-     * blocks.
+     * {@link #moveTo} reads a column's chunk, biome and highest non-air block in the box, and {@link #scan} reads the
+     * column's blocks.
      */
     private final class Column {
 
@@ -285,15 +285,14 @@ public final class MobOverlayScan {
             canBiomeSpawn = !biome.getSpawnableList(EnumCreatureType.monster).isEmpty()
                     && biome.getSpawningChance() > 0;
             chunk = scannedWorld.getChunkFromBlockCoords(x, z);
-            // on the client, `Chunk.generateHeightMap()` never tests the top layer of the highest non-empty section.
-            // `getHeightValue()` can then be below a block on that layer, so test that layer here
-            final int topLayerY = chunk.getTopFilledSegment() + 15;
-            final boolean isTopLayerFilled = !chunk.isEmpty() && chunk.func_150808_b(x & 15, topLayerY, z & 15) != 0;
-            final int heightValue = isTopLayerFilled ? topLayerY + 1 : scannedWorld.getHeightValue(x, z);
-            // `getHeightValue()` is the height above the highest block with a light opacity above 0. A snow layer and a
-            // hopper have a light opacity of 0, and a mob can spawn on top of a full snow block or a hopper, so scan
-            // one block above the height value
-            topY = Math.min(scannedWorld.getHeight() - 1, heightValue + 1);
+            // `getHeightValue()` is the height above the highest block with a light opacity above 0. A block with a
+            // light opacity of 0 can be higher: Tinkers' Construct slime grass, a hopper or a snow layer. A mob can
+            // spawn on top of slime grass, a hopper or a full snow block. Search the blocks for the highest non-air
+            // block
+            final int SECTION_HEIGHT = 16;
+            int y = Math.min(minY + height - 1, chunk.getTopFilledSegment() + SECTION_HEIGHT - 1);
+            while (y >= minY && chunk.getBlock(x & 15, y, z & 15).isAir(chunk.worldObj, x, y, z)) y--;
+            topY = y + 1;
         }
 
         /** @return whether a spawn mode or the top of a flat block changed */
