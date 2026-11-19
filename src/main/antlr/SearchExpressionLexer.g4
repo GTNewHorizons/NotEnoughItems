@@ -24,6 +24,7 @@ DASH               : '-' ;
 RECIPE_INGREDIENTS : '<&' | '<' ;
 RECIPE_RESULT      : '>&' | '>' ;
 RECIPE_OTHERS      : '^&' | '^' ;
+RECIPE_TEXT        : '~' ;
 
 OR                 : '|' ;
 LEFT_BRACKET       : '{' ;
@@ -33,7 +34,7 @@ SPACE              : ' ' ;
 ESCAPED_SYMBOL     : '\\' . ;
 
 PREFIX             : CLEAN_SYMBOL {searchParser.hasRedefinedPrefix(getText().charAt(0))}? ;
-CLEAN_SYMBOL       : ~[-<>^{}|/\\ "] ;
+CLEAN_SYMBOL       : ~[-<>^~{}|/\\ "] ;
 
 mode REGEX;
 

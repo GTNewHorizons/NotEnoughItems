@@ -58,7 +58,9 @@ public class SearchTextFormatter implements TextFormatter {
 
                     int startIndex = 0;
 
-                    for (SearchToken token : searchParser.splitSearchText(contextPart[1])) {
+                    final String prefixes = contextPart[0].startsWith("~") ? "" : searchParser.getPrefixes();
+
+                    for (SearchToken token : searchParser.splitSearchText(contextPart[1], prefixes)) {
                         formattedText.append(contextPart[1].substring(startIndex, token.start));
                         EnumChatFormatting tokenColor = EnumChatFormatting.RESET;
 
