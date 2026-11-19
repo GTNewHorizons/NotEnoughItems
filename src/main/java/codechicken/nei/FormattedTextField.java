@@ -9,6 +9,8 @@ import net.minecraft.util.EnumChatFormatting;
 
 import org.lwjgl.opengl.GL11;
 
+import codechicken.nei.util.GTNHLibTextFields;
+
 public class FormattedTextField extends GuiTextField {
 
     public static interface TextFormatter {
@@ -32,6 +34,9 @@ public class FormattedTextField extends GuiTextField {
     public FormattedTextField(FontRenderer fontRenderer, int xPosition, int yPosition, int width, int height) {
         super(fontRenderer, xPosition, yPosition, width, height);
         this.fontRenderer = fontRenderer;
+        // The ampersand ('&') character serves syntactical roles in fields using this base class
+        // Such as NEI search, AE2 filtering and naming, etc.
+        GTNHLibTextFields.disableAmpCodeHandling(this);
     }
 
     public void setFormatter(TextFormatter formatter) {
