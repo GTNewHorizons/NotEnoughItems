@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import codechicken.nei.NEIClientConfig;
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.recipe.IRecipeHandler;
 
@@ -30,7 +30,10 @@ public class AllMultiRecipeFilter implements IRecipeFilter {
             try {
                 if (filter != null && !filter.matches(handler, recipeIndex)) return false;
             } catch (Exception e) {
-                NEIClientConfig.logger.error("Exception filtering " + handler + " with " + filter, e);
+                NEIClientUtils.errorOnce(
+                        "filter:" + handler.getHandlerId() + ":" + filter.getClass().getName(),
+                        "Exception filtering " + handler.getHandlerId() + " with " + filter,
+                        e);
             }
         }
         return true;

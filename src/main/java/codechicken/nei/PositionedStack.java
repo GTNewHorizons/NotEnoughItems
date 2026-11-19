@@ -14,12 +14,8 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 
-import org.lwjgl.opengl.GL11;
-
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
-import codechicken.nei.drawable.DrawableBuilder;
-import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.item.FluidDrawer;
 import codechicken.nei.item.FluidDrawer.FillDirection;
@@ -70,31 +66,11 @@ public class PositionedStack implements Cloneable {
     public void generatePermutations() {
         if (permutated) return;
 
-        List<ItemStack> stacks = new ArrayList<>();
-        for (ItemStack item : items) {
-            if (item == null || item.getItem() == null) continue;
+        items = ItemList.expandPermutations(items);
 
-            if (item.getItemDamage() == Short.MAX_VALUE) {
-                List<ItemStack> permutations = ItemList.itemMap.get(item.getItem());
-                if (!permutations.isEmpty()) {
-                    for (ItemStack stack : permutations) {
-                        ItemStack toAdd = stack.copy();
-                        toAdd.stackSize = item.stackSize;
-                        stacks.add(toAdd);
-                    }
-                } else {
-                    ItemStack base = new ItemStack(item.getItem(), item.stackSize);
-                    base.stackTagCompound = item.stackTagCompound;
-                    stacks.add(base);
-                }
-                continue;
-            }
-
-            stacks.add(item.copy());
+        if (items.length == 0) {
+            items = new ItemStack[] { new ItemStack(Blocks.fire) };
         }
-        items = stacks.toArray(new ItemStack[0]);
-
-        if (items.length == 0) items = new ItemStack[] { new ItemStack(Blocks.fire) };
 
         permutated = true;
         setPermutationToRender(0);
@@ -112,20 +88,23 @@ public class PositionedStack implements Cloneable {
         return this.acceptsLabel;
     }
 
-    public void setBadges(List<Badge> badges) {
+    public PositionedStack setBadges(List<Badge> badges) {
         this.badges = badges;
+        return this;
     }
 
     public List<Badge> getBadges() {
         return this.badges;
     }
 
-    public void setTooltip(List<String> tooltip) {
+    public PositionedStack setTooltip(List<String> tooltip) {
         this.tooltip = tooltip == null ? null : item -> tooltip;
+        return this;
     }
 
-    public void setTooltipProvider(Function<ItemStack, List<String>> provider) {
+    public PositionedStack setTooltipProvider(Function<ItemStack, List<String>> provider) {
         this.tooltip = provider;
+        return this;
     }
 
     public List<String> getTooltip() {
@@ -136,8 +115,9 @@ public class PositionedStack implements Cloneable {
         return this.chance;
     }
 
-    public void setChance(int chance) {
+    public PositionedStack setChance(int chance) {
         this.chance = chance;
+        return this;
     }
 
     public PositionedStack copy() {
@@ -263,7 +243,6 @@ public class PositionedStack implements Cloneable {
         protected int capacity = 0;
         protected boolean flowingTexture = false;
         protected FillDirection fillDirection = FillDirection.AUTO;
-        protected DrawableResource overlay;
 
         private ItemStack cachedFluidItem;
         private FluidStack cachedFluidStack;
@@ -310,19 +289,6 @@ public class PositionedStack implements Cloneable {
             return this;
         }
 
-        public DrawableResource getOverlay() {
-            return this.overlay;
-        }
-
-        public Tank setOverlay(String resourceLocation, int u, int v, int width, int height) {
-            return setOverlay(new DrawableBuilder(resourceLocation, u, v, width, height).build());
-        }
-
-        public Tank setOverlay(DrawableResource overlay) {
-            this.overlay = overlay;
-            return this;
-        }
-
         protected FluidStack getFluidStack() {
 
             if (this.item != this.cachedFluidItem) {
@@ -339,7 +305,7 @@ public class PositionedStack implements Cloneable {
             final List<String> customTooltip = super.getTooltip();
             final FluidStack fluidStack = getFluidStack();
 
-            if (fluidStack != null) {
+            if (fluidStack != null && this.capacity > 0) {
                 tooltip.add(
                         EnumChatFormatting.GRAY + NEIClientUtils
                                 .translate("recipe.fluid.tank.amount", NEIClientUtils.formatFluid(fluidStack.amount)));
@@ -370,15 +336,6 @@ public class PositionedStack implements Cloneable {
                     fluidStack,
                     this.flowingTexture,
                     this.fillDirection);
-
-            if (this.overlay != null) {
-                GL11.glEnable(GL11.GL_BLEND);
-                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                GL11.glDisable(GL11.GL_LIGHTING);
-                this.overlay.draw(this.relx, this.rely);
-                GL11.glEnable(GL11.GL_LIGHTING);
-                GL11.glDisable(GL11.GL_BLEND);
-            }
         }
     }
 }
