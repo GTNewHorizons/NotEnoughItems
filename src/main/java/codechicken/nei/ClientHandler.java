@@ -2,8 +2,6 @@ package codechicken.nei;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -12,7 +10,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -37,8 +36,10 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import codechicken.core.ClassDiscoverer;
@@ -50,7 +51,9 @@ import codechicken.nei.api.IConfigureNEI;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.bookmark.tree.GuiCraftingTree;
 import codechicken.nei.guihook.GuiContainerManager;
-import codechicken.nei.recipe.GuiRecipeTab;
+import codechicken.nei.recipe.GuiCraftingRecipe;
+import codechicken.nei.recipe.GuiUsageRecipe;
+import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.StackInfo;
 import cpw.mods.fml.client.CustomModLoadingErrorDisplayException;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -67,6 +70,22 @@ public class ClientHandler {
 
     private static ClientHandler instance;
     private final ArrayList<EntityItem> SMPmagneticItems = new ArrayList<>();
+    private static final String HANDLER_ORDERING = "handlerordering.csv";
+    public static final List<String> DEFAULT_CONFIGS = ImmutableList.of(
+            "serialhandlers.cfg",
+            "heighthackhandlers.cfg",
+            "hiddenhandlers.cfg",
+            "enableautofocus.cfg",
+            "guicraftablesblacklist.cfg",
+            "defaultbookmarkcontainers.cfg",
+            "hiddenitems.cfg",
+            "guidfilters.cfg",
+            "informationpages.cfg",
+            "collapsibleitems.cfg",
+            "recipeidblacklist.cfg",
+            "handlers.csv",
+            "catalysts.csv",
+            HANDLER_ORDERING);
     private World lastworld;
 
     public void addSMPMagneticItem(int i, World world) {
@@ -160,17 +179,30 @@ public class ClientHandler {
         StackInfo.loadGuidFilters();
     }
 
-    public static void loadSettingsFile(String resource, Consumer<Stream<String>> callback) {
-        loadSettingsFile(resource, (file, writer) -> {
-            String folder = resource.substring(resource.lastIndexOf(".") + 1);
-            URL defaultResource = ClientHandler.class.getResource("/assets/nei/" + folder + "/" + resource);
+    private static URL getDefaultResource(String resource) {
+        final String folder = resource.substring(resource.lastIndexOf(".") + 1);
+        return ClientHandler.class.getResource("/assets/nei/" + folder + "/" + resource);
+    }
 
-            if (defaultResource != null) {
-                try {
-                    IOUtils.copy(defaultResource.openStream(), writer);
-                } catch (IOException e) {}
-            }
-        }, callback);
+    public static boolean exportDefaultConfig(String resource) {
+        final File file = new File(NEIClientConfig.configDir, resource);
+        if (file.exists() && !NEIClientUtils.backupFile(file)) return false;
+
+        if (HANDLER_ORDERING.equals(resource)) {
+            return writeDefaultHandlerOrdering();
+        }
+
+        final URL url = getDefaultResource(resource);
+        if (url == null) return false;
+
+        try {
+            FileUtils.copyURLToFile(url, file);
+            NEIClientConfig.logger.info("Exported default '{}' to {}", resource, file);
+            return true;
+        } catch (IOException e) {
+            NEIClientConfig.logger.error("Failed to export default '{}' to file {}", resource, file, e);
+            return false;
+        }
     }
 
     public static boolean loadSettingsResource(String resource, Consumer<Stream<String>> callback) {
@@ -196,30 +228,24 @@ public class ClientHandler {
         return false;
     }
 
-    public static boolean loadSettingsFile(String resource, BiConsumer<File, FileWriter> createDefault,
-            Consumer<Stream<String>> callback) {
-        File file = new File(NEIClientConfig.configDir, resource);
+    public static boolean loadSettingsFile(String resource, Consumer<Stream<String>> callback) {
+        final File file = new File(NEIClientConfig.configDir, resource);
+        final boolean fromJar = !file.exists();
 
-        if (!file.exists() && createDefault != null) {
-            try (FileWriter writer = new FileWriter(file)) {
-                NEIClientConfig.logger.info("Creating default '{}' {}", resource, file);
-                createDefault.accept(file, writer);
-            } catch (IOException e) {
-                NEIClientConfig.logger.error("Failed to save default '{}' to file {}", resource, file, e);
-            }
-        }
+        try {
+            final URL url = fromJar ? getDefaultResource(resource) : file.toURI().toURL();
+            if (url == null) return false;
 
-        if (file.exists()) {
-            try (FileReader reader = new FileReader(file)) {
-                NEIClientConfig.logger.info("Loading '{}' file {}", resource, file);
+            try (InputStreamReader reader = new InputStreamReader(url.openStream(), StandardCharsets.UTF_8)) {
+                NEIClientConfig.logger.info("Loading '{}' from {}", resource, fromJar ? "JAR" : file);
                 callback.accept(
                         IOUtils.readLines(reader).stream()
                                 .map(line -> line.contains("#") ? line.substring(0, line.indexOf('#')) : line)
                                 .map(String::trim).filter(line -> !line.isEmpty()));
                 return true;
-            } catch (IOException e) {
-                NEIClientConfig.logger.error("Failed to load '{}' file {}", resource, file, e);
             }
+        } catch (IOException e) {
+            NEIClientConfig.logger.error("Failed to load '{}' file {}", resource, file, e);
         }
 
         return false;
@@ -292,26 +318,46 @@ public class ClientHandler {
     }
 
     public static void loadHandlerOrdering() {
-        final String COMMA_DELIMITER = ",";
-        final String[] defaultHandlerOrdering = {
+        loadSettingsFile(
+                HANDLER_ORDERING,
+                lines -> lines.map(line -> line.split(",")).filter(parts -> parts.length == 2).forEach(parts -> {
+                    String handlerId = parts[0];
+                    int ordering = Integer.parseInt(parts[1]);
+                    NEIClientConfig.handlerOrdering.put(handlerId, ordering);
+                }));
+    }
+
+    private static boolean writeDefaultHandlerOrdering() {
+        final File file = new File(NEIClientConfig.configDir, HANDLER_ORDERING);
+        final List<String> lines = Lists.newArrayList(
                 "# Each line in this file should either be a comment (starts with '#') or an ordering.",
                 "# Ordering lines are <handler ID>,<ordering number>.",
                 "# Handlers will be sorted in order of number ascending, so smaller numbers first.",
-                "# Any handlers that are missing from this file will be assigned to 0.", "# Negative numbers are fine.",
-                "# If you delete this file, it will be regenerated with all registered handler IDs.", };
+                "# Any handlers that are missing from this file keep their own order, 0 for most of them.",
+                "# Negative numbers are fine.");
+        final Map<String, Integer> orders = new TreeMap<>();
+        final List<IRecipeHandler> handlers = new ArrayList<>();
+        handlers.addAll(GuiCraftingRecipe.craftinghandlers);
+        handlers.addAll(GuiCraftingRecipe.serialCraftingHandlers);
+        handlers.addAll(GuiUsageRecipe.usagehandlers);
+        handlers.addAll(GuiUsageRecipe.serialUsageHandlers);
 
-        loadSettingsFile("handlerordering.csv", (file, writer) -> {
-            List<String> toWrite = Lists.newArrayList(defaultHandlerOrdering);
-            GuiRecipeTab.handlerMap.keySet().stream().sorted()
-                    .forEach(handlerId -> toWrite.add(String.format("%s" + COMMA_DELIMITER + "0", handlerId)));
-            try {
-                IOUtils.writeLines(toWrite, "\n", writer);
-            } catch (IOException e) {}
-        }, lines -> lines.map(line -> line.split(COMMA_DELIMITER)).filter(parts -> parts.length == 2).forEach(parts -> {
-            String handlerId = parts[0];
-            int ordering = Integer.parseInt(parts[1]);
-            NEIClientConfig.handlerOrdering.put(handlerId, ordering);
-        }));
+        for (IRecipeHandler handler : handlers) {
+            orders.putIfAbsent(
+                    NEIClientConfig.HANDLER_ID_FUNCTION.apply(handler),
+                    NEIClientConfig.getHandlerOrder(handler));
+        }
+
+        orders.forEach((handlerId, order) -> lines.add(handlerId + "," + order));
+
+        try {
+            NEIClientConfig.logger.info("Creating default '{}' {}", HANDLER_ORDERING, file);
+            FileUtils.writeLines(file, StandardCharsets.UTF_8.name(), lines, "\n");
+            return true;
+        } catch (IOException e) {
+            NEIClientConfig.logger.error("Failed to save default '{}' to file {}", HANDLER_ORDERING, file, e);
+            return false;
+        }
     }
 
     public static void loadPluginsList() {

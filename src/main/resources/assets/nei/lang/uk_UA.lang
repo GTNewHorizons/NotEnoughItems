@@ -500,12 +500,6 @@ nei.options.world.overlays.lock.true=Увімкнено
 nei.options.world.overlays.lock.false=Вимкнено
 
 nei.options.tools=Інструменти
-nei.options.tools.handler_load_from_config=Завантажувати обробники з конфігураційного файлу
-nei.options.tools.handler_load_from_config.true=Конфігурація
-nei.options.tools.handler_load_from_config.false=JAR
-nei.options.tools.catalyst_load_from_config=Завантажувати каталізатори з конфігураційного файлу
-nei.options.tools.catalyst_load_from_config.true=Конфігурація
-nei.options.tools.catalyst_load_from_config.false=JAR
 nei.options.tools.dump=Дампи даних
 nei.options.tools.dump.dump=Створити дамп
 nei.options.tools.dump.dumped=ID %s збережено в %s
