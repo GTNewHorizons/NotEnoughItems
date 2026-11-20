@@ -24,13 +24,26 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
     private static Set<String> existingHandlers = new HashSet<>();
 
     public static boolean openRecipeGui(String outputId, Object... results) {
-        return createRecipeGui(outputId, true, results) != null;
+        return createRecipeGui(outputId, true, false, results) != null;
+    }
+
+    public static boolean openLockedRecipeGui(String outputId, Object... results) {
+        return createRecipeGui(outputId, true, true, results) != null;
     }
 
     public static GuiRecipe<?> createRecipeGui(String outputId, boolean open, Object... results) {
+        return createRecipeGui(outputId, open, false, results);
+    }
+
+    private static GuiRecipe<?> createRecipeGui(String outputId, boolean open, boolean navigationLocked,
+            Object[] results) {
         final Minecraft mc = NEIClientUtils.mc();
         final RecipeId recipeId;
         List<ItemStack> pinnedIngredients = null;
+
+        if (GuiRecipe.isNavigationLocked(mc.currentScreen)) {
+            return null;
+        }
 
         for (int i = 0; i < results.length; i++) {
             if (results[i] instanceof ItemStack stack) {
@@ -55,7 +68,7 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         final ArrayList<ICraftingHandler> handlers = getCraftingHandlers(outputId, results);
 
         if (!handlers.isEmpty()) {
-            final GuiCraftingRecipe gui = new GuiCraftingRecipe(handlers);
+            final GuiCraftingRecipe gui = new GuiCraftingRecipe(handlers, navigationLocked);
 
             if (open) {
 
@@ -136,8 +149,8 @@ public class GuiCraftingRecipe extends GuiRecipe<ICraftingHandler> {
         return hovered != null ? hovered.recipeId : null;
     }
 
-    private GuiCraftingRecipe(ArrayList<ICraftingHandler> handlers) {
-        super(NEIClientUtils.mc().currentScreen);
+    private GuiCraftingRecipe(ArrayList<ICraftingHandler> handlers, boolean navigationLocked) {
+        super(NEIClientUtils.mc().currentScreen, navigationLocked);
         this.currenthandlers = handlers;
     }
 

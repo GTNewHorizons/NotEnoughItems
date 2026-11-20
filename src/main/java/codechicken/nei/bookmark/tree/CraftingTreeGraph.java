@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import codechicken.nei.bookmark.BookmarkGroup.ProgressKey;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.recipe.StackInfo;
 
 public class CraftingTreeGraph {
 
@@ -20,9 +22,12 @@ public class CraftingTreeGraph {
     public final Set<ItemTreeSlot> subtreeMissingCache = new HashSet<>();
     public final Set<ItemTreeSlot> childrenNeedCraftingCache = new HashSet<>();
 
+    private final Map<ItemTreeSlot, ProgressKey> progressKeys = new HashMap<>();
+
     public void rebuild(CraftingTreeMath math) {
         this.subtreeMissingCache.clear();
         this.childrenNeedCraftingCache.clear();
+        this.progressKeys.clear();
 
         math.refresh();
 
@@ -44,6 +49,23 @@ public class CraftingTreeGraph {
                 this.childrenNeedCraftingCache.add(entry.getKey());
             }
         }
+    }
+
+    /** The key under which the done count of the node is saved in the bookmark group. */
+    public ProgressKey getProgressKey(ItemTreeSlot node) {
+        ProgressKey key = this.progressKeys.get(node);
+
+        if (key == null) {
+            final ItemTreeSlot parent = this.parentOf.get(node);
+
+            key = new ProgressKey(
+                    parent != null ? getProgressKey(parent) : null,
+                    node.ingrItem.recipeId,
+                    StackInfo.getItemStackGUID(node.ingrItem.itemStack));
+            this.progressKeys.put(node, key);
+        }
+
+        return key;
     }
 
     public Set<RecipeId> collectUnusedRecipes(ItemTreeSlot node) {

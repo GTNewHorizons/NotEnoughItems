@@ -22,6 +22,10 @@ public class GuiUsageRecipe extends GuiRecipe<IUsageHandler> {
 
     public static boolean openRecipeGui(String inputId, Object... ingredients) {
 
+        if (GuiRecipe.isNavigationLocked(NEIClientUtils.mc().currentScreen)) {
+            return false;
+        }
+
         for (int i = 0; i < ingredients.length; i++) {
             if (ingredients[i] instanceof ItemStack stack) {
                 ingredients[i] = StackInfo.normalizeRecipeQueryStack(stack.copy());
