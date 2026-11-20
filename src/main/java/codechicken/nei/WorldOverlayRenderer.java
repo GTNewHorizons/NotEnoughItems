@@ -30,6 +30,8 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     private static final MobOverlayScan MOB_OVERLAY_SCAN = new MobOverlayScan();
     private static final MobOverlayFace MARKED_FACE = new MobOverlayFace();
     private static final MobOverlayDisplayList MOB_OVERLAY_LIST = new MobOverlayDisplayList();
+    // the cells of one column, reused by each compile
+    private static final byte[] COLUMN_CELLS = new byte[2 * MobOverlayScan.MAX_VERTICAL_RADIUS + 1];
 
     public static void reset() {
         mobOverlay = 0;
@@ -111,28 +113,58 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     }
 
     /**
-     * Add a marked face to {@link #MOB_OVERLAY_LIST} for each block of {@link #MOB_OVERLAY_SCAN} where mobs can spawn.
+     * Add a marked face to {@link #MOB_OVERLAY_LIST} for each block of {@link #MOB_OVERLAY_SCAN} where mobs can spawn,
+     * in the chunk columns whose cells changed.
      */
     private static void compileMobOverlayList(MobOverlayStyle style, long worldTicks) {
         MOB_OVERLAY_LIST.beginCompile(MOB_OVERLAY_SCAN, style, worldTicks);
+        final int minX = MOB_OVERLAY_SCAN.getMinX();
+        final int minZ = MOB_OVERLAY_SCAN.getMinZ();
+        final int span = MOB_OVERLAY_SCAN.getSpan();
+        final int toChunkX = (minX + span - 1) >> MobOverlayScan.CHUNK_SHIFT;
+        final int toChunkZ = (minZ + span - 1) >> MobOverlayScan.CHUNK_SHIFT;
+        for (int chunkX = minX >> MobOverlayScan.CHUNK_SHIFT; chunkX <= toChunkX; chunkX++) {
+            for (int chunkZ = minZ >> MobOverlayScan.CHUNK_SHIFT; chunkZ <= toChunkZ; chunkZ++) {
+                if (!MOB_OVERLAY_LIST.beginChunk(MOB_OVERLAY_SCAN, chunkX, chunkZ)) continue;
+
+                MOB_OVERLAY_LIST.endChunk(compileChunkFaces(style, chunkX, chunkZ));
+            }
+        }
+        MOB_OVERLAY_LIST.endCompile();
+    }
+
+    /** @return whether the chunk column has a marked face */
+    private static boolean compileChunkFaces(MobOverlayStyle style, int chunkX, int chunkZ) {
+        final int CHUNK_WIDTH = 1 << MobOverlayScan.CHUNK_SHIFT;
         final float alpha = style.computeAlpha();
         final Tessellator tess = Tessellator.instance;
-        tess.startDrawing(style.glMode);
+        final int cornerX = chunkX << MobOverlayScan.CHUNK_SHIFT;
+        final int cornerZ = chunkZ << MobOverlayScan.CHUNK_SHIFT;
+        final int minX = MOB_OVERLAY_SCAN.getMinX();
+        final int minZ = MOB_OVERLAY_SCAN.getMinZ();
         final int span = MOB_OVERLAY_SCAN.getSpan();
-        for (int i = 0; i < span; i++) {
-            for (int j = 0; j < span; j++) {
-                for (int k = 0; k < MOB_OVERLAY_SCAN.getHeight(); k++) {
-                    if (MOB_OVERLAY_SCAN.readSpawnMode(i, k, j) == 0) continue;
+        final int height = MOB_OVERLAY_SCAN.getHeight();
+        boolean hasFaces = false;
+        tess.startDrawing(style.glMode);
+        for (int i = Math.max(cornerX - minX, 0); i < Math.min(cornerX + CHUNK_WIDTH - minX, span); i++) {
+            for (int j = Math.max(cornerZ - minZ, 0); j < Math.min(cornerZ + CHUNK_WIDTH - minZ, span); j++) {
+                MOB_OVERLAY_SCAN.readColumn(i, j, COLUMN_CELLS);
+                for (int k = 0; k < height; k++) {
+                    if (MobOverlayScan.extractSpawnMode(COLUMN_CELLS[k]) == 0) continue;
 
-                    MARKED_FACE.moveTo(i, k + MOB_OVERLAY_SCAN.readOverlayYOffset(i, k, j), j);
+                    MARKED_FACE.moveTo(
+                            minX + i - cornerX,
+                            k + MobOverlayScan.computeOverlayYOffset(COLUMN_CELLS[k]),
+                            minZ + j - cornerZ);
                     loadNeighbourModes(i, k, j);
                     MARKED_FACE.applyColor(style.colouring, alpha);
                     style.addVertices(MARKED_FACE);
+                    hasFaces = true;
                 }
             }
         }
         tess.draw();
-        MOB_OVERLAY_LIST.endCompile();
+        return hasFaces;
     }
 
     private static void beginMobOverlayDraw(MobOverlayStyle style) {
