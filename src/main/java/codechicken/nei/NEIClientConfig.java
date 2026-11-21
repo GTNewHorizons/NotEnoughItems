@@ -47,6 +47,7 @@ import codechicken.nei.config.GuiPanelSettings;
 import codechicken.nei.config.OptionButton;
 import codechicken.nei.config.OptionCycled;
 import codechicken.nei.config.OptionExportConfig;
+import codechicken.nei.config.OptionFloatField;
 import codechicken.nei.config.OptionGamemodes;
 import codechicken.nei.config.OptionIntegerField;
 import codechicken.nei.config.OptionList;
@@ -57,6 +58,9 @@ import codechicken.nei.config.OptionToggleButtonBoubs;
 import codechicken.nei.config.OptionUtilities;
 import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
+import codechicken.nei.item.ItemNameOverlayMode;
+import codechicken.nei.item.ItemNameOverlayRenderer;
+import codechicken.nei.item.ItemNameOverlaySettings;
 import codechicken.nei.moboverlay.MobOverlayScan;
 import codechicken.nei.moboverlay.MobOverlayStyle;
 import codechicken.nei.recipe.IRecipeHandler;
@@ -72,6 +76,7 @@ public class NEIClientConfig {
     private static boolean enabledOverride;
     private static String worldPath;
     private static final String CHEAT_MODE_KEY = "cheatmode";
+    private static ItemNameOverlaySettings itemNameOverlaySettings = ItemNameOverlaySettings.defaults();
 
     public static Logger logger = LogManager.getLogger("NotEnoughItems");
     public static File configDir = new File(CommonUtils.getMinecraftDir(), "config/NEI/");
@@ -422,6 +427,8 @@ public class NEIClientConfig {
         tag.getTag("inventory.itemIDs").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemIDs", 3, true));
 
+        setItemNameOverlayDefaults(tag);
+
         tag.getTag("world.highlight_tips").getBooleanValue(false);
         tag.getTag("world.highlight_tips.x").getIntValue(5000);
         tag.getTag("world.highlight_tips.y").getIntValue(100);
@@ -589,6 +596,99 @@ public class NEIClientConfig {
         ClientHandler.DEFAULT_CONFIGS.forEach(fileName -> API.addOption(new OptionExportConfig(fileName)));
 
         setDefaultKeyBindings();
+    }
+
+    private static void setItemNameOverlayDefaults(ConfigTagParent tag) {
+        final ConfigTag overlay = tag.getTag("inventory.itemNameOverlay");
+        final int previousMode = overlay.getValue() != null ? overlay.getIntValue(3) : 3;
+        tag.getTag("inventory.itemNameOverlay.mode")
+                .setComment("Icon name labels: 0 = items, 1 = fluids, 2 = all, 3 = off").getIntValue(previousMode);
+        // Move the old scalar value into the new settings page without losing the selection.
+        if (overlay.getValue() != null) {
+            overlay.setValue(null);
+        }
+        API.addOption(new OptionCycled("inventory.itemNameOverlay.mode", 4, true) {
+
+            @Override
+            public void setValue(int value) {
+                super.setValue(value);
+                reloadItemNameOverlaySettings();
+            }
+        });
+
+        addItemNameScaleOption(tag, "fontScale", "Preferred scale for ordinary fonts", 0.5f);
+        addItemNameScaleOption(tag, "unicodeFontScale", "Preferred scale for Unicode text and fonts", 0.5625f);
+        addItemNameScaleOption(tag, "minimumScale", "Minimum scale for fitting a name into its label", 0.3f);
+        addItemNameIntegerOption(tag, "width", "Total label width in icon coordinates", 18, 4, 32);
+        addItemNameIntegerOption(tag, "maxCharacters", "Maximum characters per line; 0 means automatic", 0, 0, 256);
+        addItemNameIntegerOption(tag, "maxLines", "Maximum number of name lines", 2, 1, 4);
+
+        tag.getTag("inventory.itemNameOverlay.outline").setComment("Draw a one-screen-pixel outline around names")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.itemNameOverlay.outline", true) {
+
+            @Override
+            public boolean onClick(int button) {
+                final boolean changed = super.onClick(button);
+                reloadItemNameOverlaySettings();
+                return changed;
+            }
+        });
+        reloadItemNameOverlaySettings();
+    }
+
+    private static void addItemNameScaleOption(ConfigTagParent tag, String name, String comment, float defaultValue) {
+        final String path = "inventory.itemNameOverlay." + name;
+        tag.getTag(path).setComment(comment).setDefaultValue(Float.toString(defaultValue));
+        API.addOption(new OptionFloatField(path, 0.1f, 2f) {
+
+            @Override
+            public void onTextChange(String text) {
+                reloadItemNameOverlaySettings();
+            }
+        });
+    }
+
+    private static void addItemNameIntegerOption(ConfigTagParent tag, String name, String comment, int defaultValue,
+            int min, int max) {
+        final String path = "inventory.itemNameOverlay." + name;
+        tag.getTag(path).setComment(comment).getIntValue(defaultValue);
+        API.addOption(new OptionIntegerField(path, min, max) {
+
+            @Override
+            public void onTextChange(String text) {
+                reloadItemNameOverlaySettings();
+            }
+        });
+    }
+
+    private static float readItemNameScale(String name, float fallback) {
+        try {
+            final float value = Float
+                    .parseFloat(getSetting("inventory.itemNameOverlay." + name).getValue(Float.toString(fallback)));
+            return Float.isFinite(value) ? value : fallback;
+        } catch (NumberFormatException ignored) {
+            return fallback;
+        }
+    }
+
+    public static void reloadItemNameOverlaySettings() {
+        itemNameOverlaySettings = new ItemNameOverlaySettings(
+                ItemNameOverlayMode.fromConfigValue(getIntSetting("inventory.itemNameOverlay.mode")),
+                readItemNameScale("fontScale", 0.5f),
+                readItemNameScale("unicodeFontScale", 0.5625f),
+                readItemNameScale("minimumScale", 0.3f),
+                getIntSetting("inventory.itemNameOverlay.width"),
+                getIntSetting("inventory.itemNameOverlay.maxCharacters"),
+                getIntSetting("inventory.itemNameOverlay.maxLines"),
+                getBooleanSetting("inventory.itemNameOverlay.outline"));
+        ItemNameOverlayRenderer.INSTANCE.setSettings(itemNameOverlaySettings);
+    }
+
+    private static void refreshItemNameOverlaySetting(String setting) {
+        if (setting.startsWith("inventory.itemNameOverlay.")) {
+            reloadItemNameOverlaySettings();
+        }
     }
 
     private static void linkOptionList() {
@@ -1273,11 +1373,13 @@ public class NEIClientConfig {
     public static void toggleBooleanSetting(String setting) {
         ConfigTag tag = getSetting(setting);
         tag.setBooleanValue(!tag.getBooleanValue());
+        refreshItemNameOverlaySetting(setting);
     }
 
     public static void cycleSetting(String setting, int max) {
         ConfigTag tag = getSetting(setting);
         tag.setIntValue((tag.getIntValue() + 1) % max);
+        refreshItemNameOverlaySetting(setting);
     }
 
     public static int getIntSetting(String setting) {
@@ -1286,6 +1388,7 @@ public class NEIClientConfig {
 
     public static void setIntSetting(String setting, int val) {
         getSetting(setting).setIntValue(val);
+        refreshItemNameOverlaySetting(setting);
     }
 
     public static String getSearchExpression() {
@@ -1314,6 +1417,14 @@ public class NEIClientConfig {
 
     public static int getGridRenderingCacheMode() {
         return OpenGlHelper.framebufferSupported ? getIntSetting("inventory.gridRenderingCacheMode") : 0;
+    }
+
+    public static ItemNameOverlayMode getItemNameOverlayMode() {
+        return itemNameOverlaySettings.mode;
+    }
+
+    public static ItemNameOverlaySettings getItemNameOverlaySettings() {
+        return itemNameOverlaySettings;
     }
 
     public static boolean enableCollapsibleItems() {

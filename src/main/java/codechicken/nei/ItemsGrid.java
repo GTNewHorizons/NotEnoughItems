@@ -21,6 +21,8 @@ import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.api.GuiInfo;
 import codechicken.nei.api.INEIGuiHandler;
 import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.item.ItemNameOverlayMode;
+import codechicken.nei.item.ItemNameOverlayRenderer;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.StackInfo;
 
@@ -29,6 +31,8 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
     protected static class ScreenCapture {
 
         private long nextCacheRefresh = 0;
+        private ItemNameOverlayMode itemNameOverlayMode;
+        private long itemNameOverlayRevision;
         private final Framebuffer framebuffer;
 
         public ScreenCapture() {
@@ -45,6 +49,8 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
             final Minecraft minecraft = Minecraft.getMinecraft();
             return this.nextCacheRefresh == 0 || this.framebuffer.framebufferWidth != minecraft.displayWidth
                     || framebuffer.framebufferHeight != minecraft.displayHeight
+                    || this.itemNameOverlayMode != NEIClientConfig.getItemNameOverlayMode()
+                    || this.itemNameOverlayRevision != ItemNameOverlayRenderer.INSTANCE.getCacheRevision()
                     || getGridRenderingCacheFPS(mode) > 0 && this.nextCacheRefresh < System.currentTimeMillis();
         }
 
@@ -69,6 +75,9 @@ public abstract class ItemsGrid<T extends ItemsGrid.ItemsGridSlot, M extends Ite
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 
             callback.run();
+
+            this.itemNameOverlayMode = NEIClientConfig.getItemNameOverlayMode();
+            this.itemNameOverlayRevision = ItemNameOverlayRenderer.INSTANCE.getCacheRevision();
 
             GL11.glPopAttrib();
 

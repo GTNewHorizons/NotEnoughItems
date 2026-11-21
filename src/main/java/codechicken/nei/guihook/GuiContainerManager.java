@@ -50,6 +50,8 @@ import codechicken.nei.KeyManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIModContainer;
+import codechicken.nei.item.ItemNameOverlayMode;
+import codechicken.nei.item.ItemNameOverlayRenderer;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.ItemUntranslator;
 import codechicken.nei.util.ReadableNumberConverter;
@@ -62,6 +64,7 @@ public class GuiContainerManager {
         @Override
         public void onResourceManagerReload(IResourceManager p_110549_1_) {
             renderingErrorItems.clear();
+            ItemNameOverlayRenderer.INSTANCE.clearCache();
             ItemList.loadItems.restart();
 
             if (NEIClientConfig.enableItemUntranslator()) {
@@ -348,12 +351,28 @@ public class GuiContainerManager {
 
             drawItems.renderItemAndEffectIntoGUI(fontRenderer, renderEngine, itemstack, offsetX, offsetY);
 
+            final ItemNameOverlayMode nameMode = NEIClientConfig.getItemNameOverlayMode();
+            int nameHeight = 0;
+            if (nameMode != ItemNameOverlayMode.OFF) {
+                nameHeight = stackSize.isEmpty() ? 11
+                        : Math.max(
+                                0,
+                                (int) (16
+                                        - (Math.max(fontRenderer.FONT_HEIGHT, GuiDraw.fontRenderer.FONT_HEIGHT) - 1)
+                                                * scale
+                                        - 1));
+            }
+
             if (scale != 1f && !stackSize.isEmpty()) {
                 drawBigStackSize(offsetX, offsetY, stackSize, scale);
                 stackSize = "";
             }
 
             drawItems.renderItemOverlayIntoGUI(fontRenderer, renderEngine, itemstack, offsetX, offsetY, stackSize);
+            if (nameMode != ItemNameOverlayMode.OFF) {
+                ItemNameOverlayRenderer.INSTANCE
+                        .render(nameMode, itemstack, fontRenderer, offsetX, offsetY, nameHeight);
+            }
         });
     }
 
@@ -620,6 +639,9 @@ public class GuiContainerManager {
      * Called at the start of drawScreen
      */
     public void preDraw() {
+        if (NEIClientConfig.getItemNameOverlayMode() != ItemNameOverlayMode.OFF) {
+            ItemNameOverlayRenderer.INSTANCE.refreshFontState();
+        }
         for (IContainerDrawHandler drawHandler : drawHandlers) drawHandler.onPreDraw(window);
     }
 
