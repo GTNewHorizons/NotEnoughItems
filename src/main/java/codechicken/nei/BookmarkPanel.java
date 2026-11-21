@@ -1073,6 +1073,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                     }
 
                     this.grid.shiftGroupAmount(groupId, multiplier * shift);
+                    clearTooltips();
                     return true;
                 }
             }
@@ -1226,6 +1227,8 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                 if (helmStackIndex != -1) {
                     FastTransferManager.clickSlot(guiContainer, helmStackIndex, 0, 0);
                 }
+
+                clearTooltips();
             }
         }
 
