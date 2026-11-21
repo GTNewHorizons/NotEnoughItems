@@ -64,6 +64,10 @@ public abstract class GuiRecipeButton extends GuiNEIButton {
 
     public abstract void lastKeyTyped(char keyChar, int keyID);
 
+    public boolean onHotkeyPressed() {
+        return false;
+    }
+
     public abstract void drawItemOverlay();
 
     public void update() {

@@ -346,14 +346,21 @@ public class GuiOverlayButton extends GuiRecipeButton {
     }
 
     @Override
-    public void lastKeyTyped(char keyChar, int keyID) {
+    public void lastKeyTyped(char keyChar, int keyID) {}
+
+    @Override
+    public boolean onHotkeyPressed() {
         if (KeyManager.isKeyDown("bookmark.add") && NEIClientUtils.shiftKey()) {
             saveRecipeInBookmark();
+            return true;
         }
 
         if (KeyManager.isKeyDown("bookmark.chat_link") && NEIClientUtils.controlKey() && NEIClientUtils.shiftKey()) {
             sendRecipeChatLink();
+            return true;
         }
+
+        return false;
     }
 
     public void saveRecipeInBookmark() {

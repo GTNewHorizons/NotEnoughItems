@@ -56,18 +56,24 @@ public class NEIKeyboardUtils {
         return keyText.toString();
     }
 
-    public static String getKeyName(int keyBind) {
-        keyBind = keyHashMap.getOrDefault(keyBind, keyBind);
-        StringJoiner keyText = new StringJoiner(" + ");
-        String hashText = getHashName(keyBind);
-        int keyID = unhash(keyBind);
+    /**
+     * Mouse buttons are negative key codes, so the hash can not be packed into them and is passed separately.
+     */
+    public static String getKeyName(int keyCode, int hash) {
+        if (hash == 0 && keyHashMap.containsKey(keyCode)) {
+            hash = keyHashMap.get(keyCode);
+            keyCode = Keyboard.CHAR_NONE;
+        }
+
+        final StringJoiner keyText = new StringJoiner(" + ");
+        final String hashText = getHashName(hash);
 
         if (!hashText.isEmpty()) {
             keyText.add(hashText);
         }
 
-        if (keyID != Keyboard.CHAR_NONE || hashText.isEmpty()) {
-            keyText.add(keyID < 0 ? NEIMouseUtils.getKeyName(keyID + 100) : Keyboard.getKeyName(keyID));
+        if (keyCode != Keyboard.CHAR_NONE || hashText.isEmpty()) {
+            keyText.add(keyCode < 0 ? NEIMouseUtils.getKeyName(keyCode + 100) : Keyboard.getKeyName(keyCode));
         }
 
         return keyText.toString();

@@ -29,6 +29,10 @@ public abstract class Widget {
 
     public void lastKeyTyped(int keyID, char keyChar) {}
 
+    public boolean onHotkeyPressed() {
+        return false;
+    }
+
     public boolean handleClickExt(int mx, int my, int button) {
         return false;
     }
@@ -49,6 +53,10 @@ public abstract class Widget {
 
     public boolean contains(int px, int py) {
         return bounds().contains(px, py);
+    }
+
+    public boolean isVisible() {
+        return true;
     }
 
     public ItemStack getStackMouseOver(int mx, int my) {

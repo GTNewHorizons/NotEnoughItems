@@ -2,14 +2,10 @@ package codechicken.nei.recipe;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -97,43 +93,30 @@ public class RecipeCatalysts {
     }
 
     public static void loadCatalystInfo() {
-        final boolean fromJar = NEIClientConfig.loadCatalystsFromJar();
-        final URL handlerUrl = RecipeCatalysts.class.getResource("/assets/nei/csv/catalysts.csv");
+        final File catalystFile = NEIClientConfig.catalystFile;
+        final boolean fromJar = !catalystFile.exists();
         final Map<String, CatalystInfoList> calculatedCatalysts = new HashMap<>();
         NEIClientConfig.logger.info("Loading catalyst info from " + (fromJar ? "JAR" : "Config"));
 
         resolveAdderQueue(calculatedCatalysts);
 
-        URL url;
-        if (fromJar) {
-            url = handlerUrl;
-            if (url == null) {
-                NEIClientConfig.logger.warn("Invalid URL for catalysts csv.");
-                return;
-            }
-        } else {
-            File catalystFile = NEIClientConfig.catalystFile;
-            if (!catalystFile.exists()) {
-                NEIClientConfig.logger.info("Config file doesn't exist, creating");
-                try (FileOutputStream fileOutputStream = new FileOutputStream(catalystFile.getAbsoluteFile())) {
-                    assert handlerUrl != null;
-                    ReadableByteChannel readableByteChannel = Channels.newChannel(handlerUrl.openStream());
-                    FileChannel fileChannel = fileOutputStream.getChannel();
-                    fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return;
-                }
-            }
-            try {
-                url = NEIClientConfig.catalystFile.toURI().toURL();
-            } catch (MalformedURLException e) {
-                NEIClientConfig.logger.warn("Invalid URL for catalysts csv (via config).");
-                e.printStackTrace();
-                return;
-            }
+        final URL url;
+        try {
+            url = fromJar ? RecipeCatalysts.class.getResource("/assets/nei/csv/catalysts.csv")
+                    : catalystFile.toURI().toURL();
+        } catch (MalformedURLException e) {
+            NEIClientConfig.logger.warn("Invalid URL for catalysts csv (via config).");
+            e.printStackTrace();
+            return;
         }
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+
+        if (url == null) {
+            NEIClientConfig.logger.warn("Invalid URL for catalysts csv.");
+            return;
+        }
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
             CSVParser csvParser = CSVFormat.EXCEL.builder().setHeader().setSkipHeaderRecord(true).build().parse(reader);
             for (CSVRecord record : csvParser) {
                 final String handler = record.get("handler");
@@ -141,10 +124,6 @@ public class RecipeCatalysts {
                 final boolean requiresMod = Boolean.parseBoolean(record.get("modRequired"));
                 final String excludedModId = record.get("excludedModId");
                 final int priority = intOrDefault(record.get("priority"), 0);
-                // todo
-                final String minVersion = record.get("minVersion");
-                final String maxVersion = record.get("maxVersion");
-                //
                 final boolean forceClassName = Boolean.parseBoolean(record.get("forceClassName"));
 
                 if (requiresMod && !Loader.isModLoaded(modId)) continue;

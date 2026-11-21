@@ -79,19 +79,24 @@ public class RightPanel extends GuiWidget {
         }
 
         @Override
-        public void lastKeyTyped(int keyID, char keyChar) {
+        public boolean onHotkeyPressed() {
 
             if (!focused() && KeyManager.isHashDown("gui.search")) {
                 setFocus(true);
+                return true;
             }
 
             if (focused() && KeyManager.isKeyDown("gui.getprevioussearch")) {
                 handleNavigateHistory(TextHistory.Direction.PREVIOUS);
+                return true;
             }
 
             if (focused() && KeyManager.isKeyDown("gui.getnextsearch")) {
                 handleNavigateHistory(TextHistory.Direction.NEXT);
+                return true;
             }
+
+            return false;
         }
 
         @Override

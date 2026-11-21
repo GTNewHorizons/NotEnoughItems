@@ -10,6 +10,8 @@ import java.util.Map;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 
 import org.lwjgl.input.Mouse;
@@ -205,9 +207,24 @@ public abstract class ShortcutInputHandler {
 
     private static boolean copyItemStackID(ItemStack stackover) {
         if (stackover == null || stackover.getItem() == null) return false;
-        GuiScreen.setClipboardString(
-                stackover.getItem().delegate.name()
-                        + (stackover.getItemDamage() != 0 ? "/" + stackover.getItemDamage() : ""));
+
+        String clipboard;
+
+        if (StackInfo.isFluidDisplayItem(stackover)) {
+            final FluidStack fluid = StackInfo.getFluid(stackover);
+
+            if (fluid == null) {
+                return false;
+            }
+
+            clipboard = FluidRegistry.getDefaultFluidName(fluid.getFluid());
+        } else {
+            clipboard = stackover.getItem().delegate.name()
+                    + (stackover.getItemDamage() != 0 ? "/" + stackover.getItemDamage() : "");
+        }
+
+        GuiScreen.setClipboardString(clipboard);
+
         return true;
     }
 
@@ -343,7 +360,6 @@ public abstract class ShortcutInputHandler {
             if (handlerRef != null) {
                 final GuiFavoriteButton button = new GuiFavoriteButton(handlerRef, 0, 0);
                 button.saveRecipeInBookmark();
-                return true;
             }
 
             return true;

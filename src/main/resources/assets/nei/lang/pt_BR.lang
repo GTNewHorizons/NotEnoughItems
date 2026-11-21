@@ -52,11 +52,6 @@ nei.chat.chunkoverlay.3=Chunk Overlay: GT Ore Veins
 nei.options=Opções do NEI
 nei.options.back=Voltar
 nei.options.world=Mundo
-nei.options.global=Global
-nei.options.global.tip.0=Opções se aplicam a todos os mundos
-nei.options.global.tip.1=Clique no W do lado de uma:opção para permitir uma :ultrapassagem para esse mundo.
-nei.options.wbutton.tip.0=Usando configurações globais
-nei.options.wbutton.tip.1=Substituindo configurações globais
 
 nei.options.keys=Atalhos de Teclado
 nei.options.keys.gui=NEI Inventário

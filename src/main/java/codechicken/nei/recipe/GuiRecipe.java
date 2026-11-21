@@ -51,6 +51,7 @@ import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerTooltipHandler;
 import codechicken.nei.guihook.IGuiClientSide;
 import codechicken.nei.guihook.IGuiHandleMouseWheel;
+import codechicken.nei.guihook.IGuiHotkeyListener;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.widget.RecipeWidget;
 import codechicken.nei.scroll.ScrollBar;
@@ -62,7 +63,7 @@ import codechicken.nei.util.EmptyContainer;
 import codechicken.nei.util.SlotInaccessible;
 
 public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer implements IGuiContainerOverlay,
-        IGuiClientSide, IGuiHandleMouseWheel, IContainerTooltipHandler, INEIGuiHandler {
+        IGuiClientSide, IGuiHandleMouseWheel, IGuiHotkeyListener, IContainerTooltipHandler, INEIGuiHandler {
 
     private static final int BORDER_PADDING = 5;
     private static final int TRANSPARENCY_BORDER = 4;
@@ -198,6 +199,26 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                         NEIClientUtils.translate(
                                 "recipe.search.tooltip.output",
                                 SearchExpressionUtils.HIGHLIGHTS.RECIPE + ">"));
+                tooltip.add(
+                        NEIClientUtils.translate(
+                                "recipe.search.tooltip.text",
+                                SearchExpressionUtils.HIGHLIGHTS.RECIPE + "~"));
+
+                final int patternMode = NEIClientConfig.getIntSetting("inventory.search.patternMode");
+
+                if (patternMode != 2) {
+                    tooltip.add(
+                            NEIClientUtils.translate(
+                                    "recipe.search.tooltip.auxiliary",
+                                    SearchExpressionUtils.HIGHLIGHTS.RECIPE + "^"));
+                }
+
+                if (patternMode == 3) {
+                    tooltip.add(
+                            NEIClientUtils.translate(
+                                    "recipe.search.tooltip.all",
+                                    SearchExpressionUtils.HIGHLIGHTS.RECIPE + "<&"));
+                }
 
                 for (ISearchParserProvider provider : SearchField.searchParser.getProviders()) {
                     if (provider.getSearchMode() == SearchMode.PREFIX) {
@@ -221,6 +242,14 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                                 "recipe.search.tooltip.exact",
                                 SearchExpressionUtils.HIGHLIGHTS.QUOTED + "\"",
                                 SearchExpressionUtils.HIGHLIGHTS.QUOTED + "\""));
+
+                if (patternMode == 1 || patternMode == 3) {
+                    tooltip.add(
+                            NEIClientUtils.translate(
+                                    "recipe.search.tooltip.regex",
+                                    SearchExpressionUtils.HIGHLIGHTS.REGEX + "r/",
+                                    SearchExpressionUtils.HIGHLIGHTS.REGEX + "/"));
+                }
             } else {
                 tooltip.add(NEIClientUtils.translate("recipe.search.tooltip.shift"));
             }
@@ -681,6 +710,10 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         return this.handlerPages.getRecipeIndices();
     }
 
+    public List<Integer> getFilteredRecipes() {
+        return this.handler.getFilteredRecipes();
+    }
+
     @Override
     public void keyTyped(char c, int i) {
 
@@ -697,6 +730,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
         if (GuiRecipe.searchField.isVisible() && GuiRecipe.searchField.focused()) {
             GuiRecipe.searchField.lastKeyTyped(i, c);
+            GuiRecipe.searchField.onHotkeyPressed();
             return;
         }
 
@@ -721,7 +755,24 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         if (i == mc.gameSettings.keyBindInventory.getKeyCode()) {
             this.mc.displayGuiScreen(getFirstScreenGeneral());
             NEICPH.sendRequestContainer();
-        } else if (KeyManager.isKeyDown("recipe.back")) {
+        }
+    }
+
+    @Override
+    public boolean onHotkeyPressed() {
+        if (GuiRecipe.searchField.isVisible() && GuiRecipe.searchField.onHotkeyPressed()
+                || this.recipeCatalyst.isShowWidget() && this.recipeCatalyst.onHotkeyPressed()
+                || this.container.onHotkeyPressed()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean onScreenHotkeyPressed() {
+
+        if (KeyManager.isKeyDown("recipe.back")) {
             this.mc.displayGuiScreen(this.prevGui);
         } else if (KeyManager.isKeyDown("recipe.prev_machine")) {
             prevType();
@@ -731,7 +782,11 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             prevPage();
         } else if (KeyManager.isKeyDown("recipe.next_recipe")) {
             nextPage();
+        } else {
+            return false;
         }
+
+        return true;
     }
 
     @Override

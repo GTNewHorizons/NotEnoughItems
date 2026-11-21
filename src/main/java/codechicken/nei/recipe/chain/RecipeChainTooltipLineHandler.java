@@ -3,11 +3,9 @@ package codechicken.nei.recipe.chain;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
@@ -23,7 +21,6 @@ import codechicken.nei.ItemSorter;
 import codechicken.nei.ItemStackAmount;
 import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.ItemsTooltipLineHandler.AmountRenderer;
-import codechicken.nei.ItemsTooltipLineHandler.StacksAmountRenderer;
 import codechicken.nei.ItemsTooltipLineHandler.TotalAmountRenderer;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
@@ -38,25 +35,6 @@ import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.StackInfo;
 
 public class RecipeChainTooltipLineHandler extends CompositeTooltipLineHandler {
-
-    protected static class MissingStacksAmountRenderer extends StacksAmountRenderer {
-
-        protected static final int MISSING_COLOR = 0xFF5555;
-
-        protected final Set<NBTTagCompound> missing;
-        private final Map<ItemStack, Boolean> cache = new IdentityHashMap<>();
-
-        public MissingStacksAmountRenderer(Set<NBTTagCompound> missing) {
-            this.missing = missing;
-        }
-
-        @Override
-        protected int getColor(ItemStack stack) {
-            return this.cache.computeIfAbsent(stack, key -> this.missing.contains(StackInfo.itemStackToNBT(key, false)))
-                    ? MISSING_COLOR
-                    : super.getColor(stack);
-        }
-    }
 
     protected static class HandlerIconRenderer extends TotalAmountRenderer {
 
@@ -285,34 +263,14 @@ public class RecipeChainTooltipLineHandler extends CompositeTooltipLineHandler {
             }
         }
 
-        final Set<NBTTagCompound> missing = new HashSet<>();
-
-        if (this.lastShiftKey) {
-            for (ItemStack stack : inputs) {
-                missing.add(StackInfo.itemStackToNBT(stack, false));
-            }
-        }
-
-        // items with a shortage are already in the inputs list, holding the missing amount instead of the required one
-        final List<ItemStack> covered = new ArrayList<>();
-
-        for (ItemStack stack : available) {
-            if (!missing.contains(StackInfo.itemStackToNBT(stack, false))) {
-                covered.add(stack);
-            }
-        }
-
         final Comparator<ItemStack> comparator = Comparator
                 .comparing((ItemStack stack) -> StackInfo.getFluid(stack) != null)
                 .thenComparingInt(stack -> -1 * stack.stackSize).thenComparing(ItemSorter.instance);
 
         inputs.sort(comparator);
-        covered.sort(comparator);
+        available.sort(comparator);
         outputs.sort(comparator);
         remainder.sort(comparator);
-
-        // missing items stay on top of the list
-        inputs.addAll(covered);
 
         if (this.lastShiftKey) {
             outputs.addAll(remainder);
@@ -332,12 +290,21 @@ public class RecipeChainTooltipLineHandler extends CompositeTooltipLineHandler {
                 EnumChatFormatting.BLUE,
                 new HandlerIconRenderer(craftingHandlers));
 
+        if (this.lastShiftKey) {
+            addLine(
+                    NEIClientUtils.translate("bookmark.crafting_chain.missing"),
+                    inputs,
+                    true,
+                    EnumChatFormatting.RED,
+                    new TotalAmountRenderer());
+        }
+
         addLine(
                 NEIClientUtils.translate("bookmark.crafting_chain.input"),
-                inputs,
+                this.lastShiftKey ? available : inputs,
                 this.lastShiftKey,
                 EnumChatFormatting.YELLOW,
-                this.lastShiftKey ? new MissingStacksAmountRenderer(missing) : new TotalAmountRenderer());
+                new TotalAmountRenderer());
     }
 
     protected static void putHandlerInfo(Map<NBTTagCompound, HandlerInfo> handlers, ItemStack stack,

@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Named.named;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -32,6 +34,9 @@ import codechicken.nei.ItemList.AnyMultiItemFilter;
 import codechicken.nei.ItemList.PatternItemFilter;
 import codechicken.nei.SearchField.SearchParserProvider;
 import codechicken.nei.api.ItemFilter;
+import codechicken.nei.api.ItemInfo;
+import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.RecipeRole;
 import codechicken.nei.search.IdentifierFilter;
 
 @DisplayName("Search expression")
@@ -65,6 +70,7 @@ public class SearchTokenParserTest {
     private static final ModeValue[] extendedPlusPatternMode = { patternModes[3] };
     private static final ModeValue[] extendedPatternModes = { patternModes[1], patternModes[3] };
     private static final ModeValue[] nonGrammarPatternModes = { patternModes[0], patternModes[1], patternModes[2] };
+    private static final ModeValue[] nonRegexPatternModes = { patternModes[0], patternModes[1], patternModes[3] };
 
     private static final SearchParserProvider defaultParserProvider = parserProvider(
             '\0',
@@ -140,6 +146,18 @@ public class SearchTokenParserTest {
             spaceModes,
             extendedPatternModes);
 
+    private static final List<Arguments> extendedOnlyAllSpaceModesTestProvider = combinationsProvider(
+            spaceModes,
+            new ModeValue[] { patternModes[1] });
+
+    private static final List<Arguments> nonRegexAllSpaceModesTestProvider = combinationsProvider(
+            spaceModes,
+            nonRegexPatternModes);
+
+    private static final List<Arguments> regexAllSpaceModesTestProvider = combinationsProvider(
+            spaceModes,
+            new ModeValue[] { patternModes[2] });
+
     private static final List<Arguments> spaceIsAndExtendedPlusModeTestProvider = combinationsProvider(
             spaceIsAndMode,
             extendedPlusPatternMode);
@@ -176,6 +194,7 @@ public class SearchTokenParserTest {
         config.when(() -> NEIClientConfig.getBooleanSetting(eq("inventory.search.logSearchExceptions")))
                 .thenReturn(false);
 
+        mockStatic(ItemInfo.class);
     }
 
     // All modes tests
@@ -321,6 +340,140 @@ public class SearchTokenParserTest {
         assertTrue(matchedItems.contains(itemABC));
     }
 
+    @DisplayName("Regex with delimiters")
+    @ParameterizedTest(name = "{argumentsWithNames}")
+    @FieldSource("extendedOnlyAllSpaceModesTestProvider")
+    public void testRegexWithDelimiters(int spaceMode, int patternMode) {
+        SearchTokenParser searchParser = new SearchTokenParser();
+        searchParser.addProvider(defaultParserProvider);
+        Set<ItemStack> matchedItems = testFilterAgainstAllItems(
+                spaceMode,
+                patternMode,
+                searchParser,
+                "r/^" + itemA.getDisplayName() + "|^" + itemC.getDisplayName() + "/",
+                true);
+
+        assertEquals(4, matchedItems.size());
+        assertTrue(matchedItems.contains(itemA));
+        assertTrue(matchedItems.contains(itemC));
+        assertTrue(matchedItems.contains(itemAB));
+        assertTrue(matchedItems.contains(itemABC));
+    }
+
+    @DisplayName("Regex followed by delimiter")
+    @ParameterizedTest(name = "{argumentsWithNames}")
+    @FieldSource("extendedAllSpaceModesTestProvider")
+    public void testRegexFollowedByDelimiter(int spaceMode, int patternMode) {
+        SearchTokenParser searchParser = new SearchTokenParser();
+        searchParser.addProvider(defaultParserProvider);
+        Set<ItemStack> matchedItems = testFilterAgainstAllItems(
+                spaceMode,
+                patternMode,
+                searchParser,
+                "r/^" + itemA.getDisplayName() + "$/|" + itemC.getDisplayName());
+
+        assertEquals(3, matchedItems.size());
+        assertTrue(matchedItems.contains(itemA));
+        assertTrue(matchedItems.contains(itemC));
+        assertTrue(matchedItems.contains(itemABC));
+    }
+
+    @DisplayName("Recipe context")
+    @ParameterizedTest(name = "{argumentsWithNames}")
+    @FieldSource("nonRegexAllSpaceModesTestProvider")
+    public void testRecipeContext(int spaceMode, int patternMode) {
+        SearchTokenParser searchParser = new SearchTokenParser();
+        searchParser.addProvider(defaultParserProvider);
+        IRecipeHandler handler = mock(IRecipeHandler.class);
+        when(handler.getSearchStacks(0, RecipeRole.INPUT)).thenReturn(positionedStacks(itemA));
+        when(handler.getSearchStacks(0, RecipeRole.OUTPUT)).thenReturn(positionedStacks(itemB));
+        when(handler.getSearchStacks(0, RecipeRole.AUXILIARY)).thenReturn(positionedStacks(itemC));
+
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "<" + itemA.getDisplayName(), handler));
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, ">" + itemB.getDisplayName(), handler));
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "^" + itemC.getDisplayName(), handler));
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "^" + itemB.getDisplayName(), handler));
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, ">" + itemC.getDisplayName(), handler));
+    }
+
+    @DisplayName("Recipe text")
+    @ParameterizedTest(name = "{argumentsWithNames}")
+    @FieldSource("nonRegexAllSpaceModesTestProvider")
+    public void testRecipeText(int spaceMode, int patternMode) {
+        SearchTokenParser searchParser = new SearchTokenParser();
+        searchParser.addProvider(defaultParserProvider);
+        IRecipeHandler handler = recipeTextHandler(Arrays.asList("Foo", "xyz"));
+
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "~foo", handler));
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "~xyz", handler));
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "~zzz", handler));
+        // the text search does not look at the stacks
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "~a", handler));
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "a", handler));
+        // the plain search does not look at the text
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "foo", handler));
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "~-foo", handler));
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "~-zzz", handler));
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "<a~foo", handler));
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "<a~zzz", handler));
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "<b~foo", handler));
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, ">b~xyz", handler));
+    }
+
+    @DisplayName("Recipe text of a recipe without text")
+    @ParameterizedTest(name = "{argumentsWithNames}")
+    @FieldSource("nonRegexAllSpaceModesTestProvider")
+    public void testRecipeTextWithoutText(int spaceMode, int patternMode) {
+        SearchTokenParser searchParser = new SearchTokenParser();
+        searchParser.addProvider(defaultParserProvider);
+        IRecipeHandler handler = recipeTextHandler(Collections.emptyList());
+
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "~a", handler));
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "~-a", handler));
+    }
+
+    @DisplayName("Recipe text with wildcards and regex in Extended mode")
+    @ParameterizedTest(name = "{argumentsWithNames}")
+    @FieldSource("extendedOnlyAllSpaceModesTestProvider")
+    public void testRecipeTextExtended(int spaceMode, int patternMode) {
+        SearchTokenParser searchParser = new SearchTokenParser();
+        searchParser.addProvider(defaultParserProvider);
+        IRecipeHandler handler = recipeTextHandler(Arrays.asList("Foo", "xyz"));
+
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "~f?o", handler));
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "~x*z", handler));
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "~x?z?", handler));
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "~r/^fo+$/", handler));
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "~r/^o+$/", handler));
+    }
+
+    @DisplayName("Recipe text in Regex mode")
+    @ParameterizedTest(name = "{argumentsWithNames}")
+    @FieldSource("regexAllSpaceModesTestProvider")
+    public void testRecipeTextRegex(int spaceMode, int patternMode) {
+        SearchTokenParser searchParser = new SearchTokenParser();
+        searchParser.addProvider(defaultParserProvider);
+        IRecipeHandler handler = recipeTextHandler(Arrays.asList("Foo", "xyz"));
+
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "~f.o", handler));
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "~x[y]z", handler));
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "~x[^y]z", handler));
+    }
+
+    @DisplayName("Recipe text with brackets in Extended+ mode")
+    @ParameterizedTest(name = "{argumentsWithNames}")
+    @FieldSource("extendedPlusAllSpaceModesTestProvider")
+    public void testRecipeTextBrackets(int spaceMode, int patternMode) {
+        SearchTokenParser searchParser = new SearchTokenParser();
+        searchParser.addProvider(defaultParserProvider);
+        IRecipeHandler handler = recipeTextHandler(Arrays.asList("Foo", "xyz"));
+
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "~{foo|zzz}", handler));
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "~{zzz|qqq}", handler));
+        assertTrue(testRecipeFilter(spaceMode, patternMode, searchParser, "~-{zzz|qqq}", handler));
+        assertFalse(testRecipeFilter(spaceMode, patternMode, searchParser, "~-{foo|qqq}", handler));
+    }
+
     // Extended+ specific tests
 
     @DisplayName("Sequence")
@@ -403,16 +556,46 @@ public class SearchTokenParserTest {
 
     private static Set<ItemStack> testFilterAgainstAllItems(int spaceMode, int patternMode,
             SearchTokenParser searchParser, String search) {
-        config.when(() -> NEIClientConfig.getIntSetting(eq("inventory.search.patternMode"))).thenReturn(patternMode);
-        config.when(() -> NEIClientConfig.getIntSetting(eq("inventory.search.spaceMode"))).thenReturn(spaceMode);
+        return testFilterAgainstAllItems(spaceMode, patternMode, searchParser, search, false);
+    }
 
-        ItemFilter filter = searchParser.getFilter(search);
+    private static Set<ItemStack> testFilterAgainstAllItems(int spaceMode, int patternMode,
+            SearchTokenParser searchParser, String search, boolean skipRecipeTokens) {
+        setModes(spaceMode, patternMode);
+
+        ItemFilter filter = searchParser.getFilter(search, skipRecipeTokens);
         if (filter instanceof SearchTokenParser.IsRegisteredItemFilter) {
             filter = ((SearchTokenParser.IsRegisteredItemFilter) filter).filter;
         }
         Set<ItemStack> matchedItems = Stream.of(itemA, itemB, itemC, itemAB, itemABC, itemQuestionMark)
                 .filter(filter::matches).collect(Collectors.toSet());
         return matchedItems;
+    }
+
+    private static IRecipeHandler recipeTextHandler(List<String> text) {
+        IRecipeHandler handler = mock(IRecipeHandler.class);
+        when(handler.getSearchStacks(0, RecipeRole.INPUT)).thenReturn(positionedStacks(itemA));
+        when(handler.getSearchStacks(0, RecipeRole.OUTPUT)).thenReturn(positionedStacks(itemB));
+        when(handler.getSearchStacks(0, RecipeRole.AUXILIARY)).thenReturn(Collections.emptyList());
+        when(handler.getSearchText(0)).thenReturn(text);
+        return handler;
+    }
+
+    private static boolean testRecipeFilter(int spaceMode, int patternMode, SearchTokenParser searchParser,
+            String search, IRecipeHandler handler) {
+        setModes(spaceMode, patternMode);
+        return searchParser.getRecipeFilter(search).matches(handler, 0);
+    }
+
+    private static void setModes(int spaceMode, int patternMode) {
+        config.when(() -> NEIClientConfig.getIntSetting(eq("inventory.search.patternMode"))).thenReturn(patternMode);
+        config.when(() -> NEIClientConfig.getIntSetting(eq("inventory.search.spaceMode"))).thenReturn(spaceMode);
+    }
+
+    private static List<PositionedStack> positionedStacks(ItemStack stack) {
+        PositionedStack pStack = mock(PositionedStack.class);
+        pStack.items = new ItemStack[] { stack };
+        return Collections.singletonList(pStack);
     }
 
     private static SearchParserProvider parserProvider(char prefix, String name,

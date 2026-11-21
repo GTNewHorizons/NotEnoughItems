@@ -449,6 +449,7 @@ public class GuiContainerManager {
     }
 
     private int clickHandled = 0;
+    private int hotkeyHandled = 0;
     public final List<IContainerTooltipHandler> instanceTooltipHandlers;
 
     public GuiContainerManager(GuiContainer screen) {
@@ -483,6 +484,7 @@ public class GuiContainerManager {
 
     public void load() {
         clickHandled = 0;
+        hotkeyHandled = 0;
         for (IContainerObjectHandler objectHandler : objectHandlers) objectHandler.load(window);
     }
 
@@ -499,8 +501,59 @@ public class GuiContainerManager {
     public boolean lastKeyTyped(int keyID, char keyChar) {
         if (keyID == 1) return false;
 
+        // hotkeys go before lastKeyTyped, otherwise a third-party handler that consumes every key blocks them
+        if (handleHotkeys()) return true;
+
         for (IContainerInputHandler inputhander : inputHandlers)
             if (inputhander.lastKeyTyped(window, keyChar, keyID)) return true;
+
+        return handleScreenHotkeys();
+    }
+
+    public boolean onHotkeyPressed() {
+        return handleHotkeys() || handleScreenHotkeys();
+    }
+
+    private boolean handleHotkeys() {
+
+        if (window instanceof IGuiHotkeyListener && ((IGuiHotkeyListener) window).onHotkeyPressed()) {
+            return true;
+        }
+
+        for (IContainerInputHandler inputhander : inputHandlers) {
+            if (inputhander.onHotkeyPressed(window)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean handleScreenHotkeys() {
+        return window instanceof IGuiHotkeyListener && ((IGuiHotkeyListener) window).onScreenHotkeyPressed();
+    }
+
+    public boolean handleMouseHotkey() {
+        final int button = Mouse.getEventButton();
+
+        if (button < 0) {
+            return false;
+        }
+
+        if (!Mouse.getEventButtonState()) {
+            // the press has been consumed, so the release must not reach the screen either
+            if ((hotkeyHandled & 1 << button) == 0) {
+                return false;
+            }
+
+            hotkeyHandled &= ~(1 << button);
+            return true;
+        }
+
+        if (KeyManager.handleMouseHotkey(button, this::onHotkeyPressed)) {
+            hotkeyHandled |= 1 << button;
+            return true;
+        }
 
         return false;
     }

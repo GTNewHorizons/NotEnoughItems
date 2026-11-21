@@ -43,6 +43,10 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
         }
     }
 
+    protected static List<IRecipe> getCraftingRecipesSnapshot() {
+        return new ArrayList<>(CraftingManager.getInstance().getRecipeList());
+    }
+
     public class CachedShapedRecipe extends CachedRecipe {
 
         public ArrayList<PositionedStack> ingredients;
@@ -102,7 +106,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
     @Override
     public void loadCraftingRecipes(String outputId, Object... results) {
         if (outputId.equals("crafting") && getClass() == ShapedRecipeHandler.class) {
-            for (IRecipe irecipe : CraftingManager.getInstance().getRecipeList()) {
+            for (IRecipe irecipe : getCraftingRecipesSnapshot()) {
                 CachedShapedRecipe recipe = null;
 
                 if (irecipe instanceof ShapedRecipes shaped) {
@@ -117,7 +121,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
                 }
             }
         } else if (outputId.equals("crafting2x2") && getClass() == ShapedRecipeHandler.class) {
-            for (IRecipe irecipe : CraftingManager.getInstance().getRecipeList()) {
+            for (IRecipe irecipe : getCraftingRecipesSnapshot()) {
 
                 if (irecipe instanceof ShapedRecipes shaped && shaped.recipeWidth <= 2 && shaped.recipeHeight <= 2) {
                     CachedShapedRecipe recipe = new CachedShapedRecipe(shaped);
@@ -133,7 +137,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
 
     @Override
     public void loadCraftingRecipes(ItemStack result) {
-        for (IRecipe irecipe : CraftingManager.getInstance().getRecipeList()) {
+        for (IRecipe irecipe : getCraftingRecipesSnapshot()) {
             if (NEIServerUtils.areStacksSameTypeCrafting(irecipe.getRecipeOutput(), result)) {
                 CachedShapedRecipe recipe = null;
                 if (irecipe instanceof ShapedRecipes) recipe = new CachedShapedRecipe((ShapedRecipes) irecipe);
@@ -149,7 +153,7 @@ public class ShapedRecipeHandler extends TemplateRecipeHandler {
 
     @Override
     public void loadUsageRecipes(ItemStack ingredient) {
-        for (IRecipe irecipe : CraftingManager.getInstance().getRecipeList()) {
+        for (IRecipe irecipe : getCraftingRecipesSnapshot()) {
             CachedShapedRecipe recipe = null;
             if (irecipe instanceof ShapedRecipes) recipe = new CachedShapedRecipe((ShapedRecipes) irecipe);
             else if (irecipe instanceof ShapedOreRecipe) recipe = forgeShapedRecipe((ShapedOreRecipe) irecipe);

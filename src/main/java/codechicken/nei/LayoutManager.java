@@ -220,6 +220,20 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyID) {
 
+        if (isEnabled() && !isHidden()) {
+            for (Widget widget : controlWidgets) {
+                if (inputFocused == null) {
+                    widget.lastKeyTyped(keyID, keyChar);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean onHotkeyPressed(GuiContainer gui) {
+
         if (KeyManager.isKeyDown("gui.hide")) {
             toggleBooleanSetting("inventory.hidden");
             return true;
@@ -234,8 +248,12 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             return true;
         }
 
-        if (isEnabled() && !isHidden()) {
-            for (Widget widget : controlWidgets) if (inputFocused == null) widget.lastKeyTyped(keyID, keyChar);
+        if (isEnabled() && !isHidden() && inputFocused == null) {
+            for (Widget widget : controlWidgets) {
+                if (widget.onHotkeyPressed()) {
+                    return true;
+                }
+            }
         }
 
         return false;
@@ -370,6 +388,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     }
 
     public static void layout(GuiContainer gui) {
+        GridOverlapScanner.beginFrame(gui, GuiContainerManager.shouldShowTooltip(gui));
+
         VisiblityData visiblity = new VisiblityData();
         visiblity.showNEI = !isHidden();
         visiblity.showBookmarkPanel = !isBookmarkPanelHidden();
@@ -427,14 +447,14 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
                 if (!rightclick) {
                     if (Keyboard.getEventKeyState() && getIsAccessibleControlEventKey()
                             && NEIClientConfig.canChangeCheatMode()) {
-                        NEIClientConfig.cycleSetting("inventory.cheatmode", 3);
+                        NEIClientConfig.setCheatMode((NEIClientConfig.getCheatMode() + 1) % 3);
                     } else {
                         if (Keyboard.getEventKeyState() && (Keyboard.getEventKey() == Keyboard.KEY_LSHIFT
                                 || Keyboard.getEventKey() == Keyboard.KEY_RSHIFT)) {
                             GuiRecipeTab.loadHandlerInfo();
                             RecipeCatalysts.loadCatalystInfo();
                         }
-                        getOptionList().openGui(getGuiContainer(), false);
+                        getOptionList().openGui(getGuiContainer());
                     }
                     return true;
                 }
@@ -693,6 +713,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     @Override
     public void load(GuiContainer gui) {
+        NEIController.load(gui);
+
         if (isEnabled()) {
             setInputFocused(null);
 
@@ -705,8 +727,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             layout(gui);
             AutoFocusWidget.instance.load(gui);
         }
-
-        NEIController.load(gui);
 
         if (checkCreativeInv(gui) && gui.mc.currentScreen instanceof GuiContainerCreative) // override creative with
                                                                                            // creative+
@@ -803,6 +823,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
         if (!isEnabled()) return;
 
+        GridOverlapScanner.requestScan();
         AutoFocusWidget.instance.guiTick();
 
         for (Widget widget : drawWidgets) widget.update();

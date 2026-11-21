@@ -127,7 +127,12 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
                 this.displayName = "Unnamed";
             }
 
-            this.stack = StackInfo.loadFromNBT(StackInfo.itemStackToNBT(stack), 0);
+            // Copying the stack copies its whole NBT, so it is only done when the hovered stack changes
+            final boolean sameStack = this.stack != null && this.stack.isItemEqual(stack)
+                    && ItemStack.areItemStackTagsEqual(this.stack, stack);
+            if (!sameStack) {
+                this.stack = StackInfo.withAmount(stack, 0);
+            }
         } else {
             this.stack = null;
             this.displayName = "";
@@ -219,6 +224,11 @@ public class ItemZoom extends Widget implements IContainerInputHandler {
 
     @Override
     public boolean lastKeyTyped(GuiContainer gui, char keyChar, int keyID) {
+        return false;
+    }
+
+    @Override
+    public boolean onHotkeyPressed(GuiContainer gui) {
 
         if (KeyManager.isHashDown("itemzoom.toggle", NEIClientUtils.SHIFT_HASH)) {
             NEIClientConfig.getSetting("inventory.itemzoom.enabled")

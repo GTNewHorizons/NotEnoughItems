@@ -1,15 +1,10 @@
 package codechicken.nei.recipe;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +26,7 @@ import codechicken.nei.ColorUtils;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.Widget;
+import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.event.NEIRegisterHandlerInfosEvent;
 import codechicken.nei.guihook.GuiContainerManager;
@@ -48,26 +44,29 @@ public abstract class GuiRecipeTab extends Widget {
     protected final String handlerName;
     protected final String handlerID;
 
+    public static final int TAB_WIDTH = 24;
+    public static final int TAB_HEIGHT = 24;
+    private static final DrawableResource selectedTabImage = new DrawableBuilder(
+            "nei:textures/nei_tabbed_sprites.png",
+            0,
+            16,
+            24,
+            24).build();
+    private static final DrawableResource unselectedTabImage = new DrawableBuilder(
+            "nei:textures/nei_tabbed_sprites.png",
+            24,
+            16,
+            24,
+            24).build();
+
     private boolean selected;
-
-    public abstract int getWidth();
-
-    public abstract int getHeight();
-
-    public abstract DrawableResource getSelectedTabImage();
-
-    public abstract DrawableResource getUnselectedTabImage();
-
-    protected abstract int getForegroundIconX();
-
-    protected abstract int getForegroundIconY();
 
     public GuiRecipeTab(IRecipeHandler handler, int x, int y) {
         super();
         this.x = x;
         this.y = y;
-        this.w = getWidth();
-        this.h = getHeight();
+        this.w = TAB_WIDTH;
+        this.h = TAB_HEIGHT;
         this.handler = handler;
         this.handlerName = handler.getHandlerId();
         this.selected = false;
@@ -88,21 +87,16 @@ public abstract class GuiRecipeTab extends Widget {
     public void drawBackground(int mouseX, int mouseY) {
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glColor4f(1, 1, 1, 1);
-        final DrawableResource image;
-        if (selected) image = getSelectedTabImage();
-        else image = getUnselectedTabImage();
-
-        final int iconX = x + (w - image.getWidth()) / 2;
-        final int iconY = y + (h - image.getHeight()) / 2;
-        image.draw(iconX, iconY);
+        final DrawableResource image = this.selected ? selectedTabImage : unselectedTabImage;
+        image.draw(this.x, this.y);
     }
 
     public void drawForeground(int mouseX, int mouseY) {
-        final int iconX = getForegroundIconX();
-        final int iconY = getForegroundIconY();
+        final int iconX = this.x + 4;
+        final int iconY = this.y + 4;
 
         final FontRenderer fontRenderer = GuiDraw.fontRenderer;
-        final HandlerInfo handlerInfo = getHandlerInfo(handlerName, handlerID);
+        final HandlerInfo handlerInfo = getHandlerInfo(this.handlerName, this.handlerID);
         final DrawableResource icon = handlerInfo != null ? handlerInfo.getImage() : null;
         final ItemStack itemStack = handlerInfo != null ? handlerInfo.getItemStack() : null;
 
@@ -117,7 +111,7 @@ public abstract class GuiRecipeTab extends Widget {
             if (!isEnabled) GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         } else {
             // Text fallback
-            String text = handler.getRecipeName();
+            String text = this.handler.getRecipeName();
             if (text != null && text.length() > 0) {
                 if (text.length() > 2) {
                     text = text.substring(0, 2);
@@ -126,9 +120,10 @@ public abstract class GuiRecipeTab extends Widget {
                 text = "??";
             }
 
-            int textCenterX = x + (int) (getWidth() / 2f);
-            int textCenterY = y + (int) (getHeight() / 2f) - 3;
-            int color = selected ? ColorUtils.buttonLabelHover.getColor() : ColorUtils.buttonLabelNormal.getColor();
+            int textCenterX = this.x + (int) (this.w / 2f);
+            int textCenterY = this.y + (int) (this.h / 2f) - 3;
+            int color = this.selected ? ColorUtils.buttonLabelHover.getColor()
+                    : ColorUtils.buttonLabelNormal.getColor();
             fontRenderer.drawStringWithShadow(
                     text,
                     textCenterX - (int) (fontRenderer.getStringWidth(text) / 2f),
@@ -207,41 +202,27 @@ public abstract class GuiRecipeTab extends Widget {
     }
 
     public static void loadHandlerInfo() {
-        final boolean fromJar = NEIClientConfig.loadHandlersFromJar();
+        final boolean fromJar = !NEIClientConfig.handlerFile.exists();
         NEIClientConfig.logger.info("Loading handler info from " + (fromJar ? "JAR" : "Config"));
         handlerMap.clear();
-        URL handlerUrl = GuiRecipeTab.class.getResource("/assets/nei/csv/handlers.csv");
 
         URL url;
-        if (fromJar) {
-            url = handlerUrl;
-            if (url == null) {
-                NEIClientConfig.logger.info("Invalid URL for handlers csv.");
-                return;
-            }
-        } else {
-            File handlerFile = NEIClientConfig.handlerFile;
-            if (!handlerFile.exists()) {
-                NEIClientConfig.logger.info("Config file doesn't exist, creating");
-                try (FileOutputStream fileOutputStream = new FileOutputStream(handlerFile.getAbsoluteFile())) {
-                    assert handlerUrl != null;
-                    ReadableByteChannel readableByteChannel = Channels.newChannel(handlerUrl.openStream());
-                    FileChannel fileChannel = fileOutputStream.getChannel();
-                    fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return;
-                }
-            }
-            try {
-                url = NEIClientConfig.handlerFile.toURI().toURL();
-            } catch (MalformedURLException e) {
-                NEIClientConfig.logger.info("Invalid URL for handlers csv (via config).");
-                e.printStackTrace();
-                return;
-            }
+        try {
+            url = fromJar ? GuiRecipeTab.class.getResource("/assets/nei/csv/handlers.csv")
+                    : NEIClientConfig.handlerFile.toURI().toURL();
+        } catch (MalformedURLException e) {
+            NEIClientConfig.logger.info("Invalid URL for handlers csv (via config).");
+            e.printStackTrace();
+            return;
         }
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+
+        if (url == null) {
+            NEIClientConfig.logger.info("Invalid URL for handlers csv.");
+            return;
+        }
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
             CSVParser csvParser = CSVFormat.EXCEL.builder().setHeader().setSkipHeaderRecord(true).build().parse(reader);
             for (CSVRecord record : csvParser) {
                 final String handler = record.get("handler");
@@ -282,13 +263,12 @@ public abstract class GuiRecipeTab extends Widget {
                     NEIClientConfig.logger.info("Error setting handler dimensions for " + handler);
                 }
 
-                final boolean allowOverflow = record.isSet("useCustomScroll")
-                        && Boolean.parseBoolean(record.get("useCustomScroll"));
-                info.setAllowOverflowX(
-                        record.isSet("allowOverflowX") ? Boolean.parseBoolean(record.get("allowOverflowX")) : true);
-                info.setAllowOverflowY(
-                        record.isSet("allowOverflowY") ? Boolean.parseBoolean(record.get("allowOverflowY"))
-                                : allowOverflow);
+                final boolean allowOverflow = booleanOrDefault(record, "useCustomScroll", false);
+                info.setAllowOverflowX(booleanOrDefault(record, "allowOverflowX", true));
+                info.setAllowOverflowY(booleanOrDefault(record, "allowOverflowY", allowOverflow));
+                info.setShowFavoritesButton(booleanOrDefault(record, "showFavorites", true));
+                info.setShowOverlayButton(booleanOrDefault(record, "showOverlay", true));
+                info.setShowBadge(booleanOrDefault(record, "showBadge", false));
                 handlerMap.put(handler, info);
                 NEIClientConfig.logger.info("Loaded " + handler);
             }
@@ -323,6 +303,11 @@ public abstract class GuiRecipeTab extends Widget {
         final HandlerInfo info = new HandlerInfo("Unknown", "Unknown", "Unknown", false, "");
         info.setHandlerDimensions(HandlerInfo.DEFAULT_WIDTH, HandlerInfo.DEFAULT_HEIGHT);
         return info;
+    }
+
+    private static boolean booleanOrDefault(CSVRecord record, String name, boolean defaultValue) {
+        final String str = record.isSet(name) ? record.get(name) : null;
+        return str == null || str.isEmpty() ? defaultValue : Boolean.parseBoolean(str);
     }
 
     private static int intOrDefault(String str, int defaultValue) {
