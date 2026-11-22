@@ -19,7 +19,8 @@ public class DefaultBookmarkContainerHandler implements IBookmarkContainerHandle
         for (ItemStack bookmarkItem : bookmarkItems) {
             for (int i = 0; i < slots.size() - 4 * 9; i++) {
                 final Slot slot = slots.get(i);
-                if (slot.getHasStack() && bookmarkItem.isItemEqual(slot.getStack())) {
+                if (slot.getHasStack()
+                        && NEIServerUtils.areStacksSameTypeCraftingWithNBT(bookmarkItem, slot.getStack())) {
                     final int transferAmount = Math.min(bookmarkItem.stackSize, slot.getStack().stackSize);
                     manager.transferItems(guiContainer, i, transferAmount);
                     bookmarkItem.stackSize -= transferAmount;
