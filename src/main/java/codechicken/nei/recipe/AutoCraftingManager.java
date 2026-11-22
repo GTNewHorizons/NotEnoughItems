@@ -17,6 +17,8 @@ import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.RestartableTask;
 import codechicken.nei.ServerSync;
+import codechicken.nei.api.IRecipeQueue;
+import codechicken.nei.api.IRecipeQueue.QueuedRecipe;
 import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.chain.RecipeChainIterator;
@@ -100,23 +102,23 @@ public class AutoCraftingManager {
             return interrupted() || guiContainer != NEIClientUtils.getGuiContainer();
         }
 
-        private List<BookmarkItem> prepareInitialItems(RecipeChainMath math, ItemStackAmount inventory) {
-            final List<BookmarkItem> initialItems = new ArrayList<>();
-
-            for (BookmarkItem item : math.initialItems) {
-                final long invStackSize = inventory.getOrDefault(item.itemStack, 0L);
-                final long amount = Math.max(0, item.getAmount() - invStackSize * item.fluidCellAmount);
-                if (amount > 0) {
-                    initialItems.add(item.copyWithAmount(amount));
-                }
-            }
-
-            return initialItems;
-        }
-
     };
 
     private AutoCraftingManager() {}
+
+    private static List<BookmarkItem> prepareInitialItems(RecipeChainMath math, ItemStackAmount inventory) {
+        final List<BookmarkItem> initialItems = new ArrayList<>();
+
+        for (BookmarkItem item : math.initialItems) {
+            final long invStackSize = inventory.getOrDefault(item.itemStack, 0L);
+            final long amount = Math.max(0, item.getAmount() - invStackSize * item.fluidCellAmount);
+            if (amount > 0) {
+                initialItems.add(item.copyWithAmount(amount));
+            }
+        }
+
+        return initialItems;
+    }
 
     public static void runProcessing(RecipeChainMath math) {
         task.stop();
@@ -130,8 +132,54 @@ public class AutoCraftingManager {
 
             ItemPanels.bookmarkPanel.clearTooltips();
             math.createMasterRoot();
+
+            final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
+            if (guiContainer != null && guiContainer.inventorySlots instanceof IRecipeQueue queue
+                    && queueNextRecipe(guiContainer, queue, math)) {
+                AutoCraftingManager.math = null;
+                return;
+            }
+
             task.restart();
         }
+    }
+
+    /**
+     * Machines process recipes over time, so instead of crafting the chain, the machine gets the recipes that still
+     * need crafting, from the bottom of the chain up, and loads the one it can process next.
+     */
+    private static boolean queueNextRecipe(GuiContainer guiContainer, IRecipeQueue queue, RecipeChainMath math) {
+        final List<BookmarkItem> chainInitialItems = new ArrayList<>(math.initialItems);
+        final ItemStackAmount inventory = getInventoryItems(guiContainer);
+        final RecipeChainIterator iterator = new RecipeChainIterator(math, prepareInitialItems(math, inventory));
+        iterator.updateInventory(inventory);
+
+        // The iterator starts from the chain outputs
+        final List<Map<RecipeId, Long>> levels = new ArrayList<>();
+        while (iterator.hasNext()) {
+            levels.add(iterator.next());
+        }
+
+        final List<QueuedRecipe> recipes = new ArrayList<>();
+        for (int level = levels.size() - 1; level >= 0; level--) {
+            for (Map.Entry<RecipeId, Long> entry : levels.get(level).entrySet()) {
+                final RecipeHandlerRef handler = RecipeHandlerRef.of(entry.getKey());
+
+                if (handler != null) {
+                    recipes.add(new QueuedRecipe(handler.handler, handler.recipeIndex, entry.getValue()));
+                }
+            }
+        }
+
+        if (queue.queueRecipes(guiContainer, recipes)) {
+            return true;
+        }
+
+        // The iterator added the inventory to the chain; crafting starts again from the chain as it was
+        math.initialItems.clear();
+        math.initialItems.addAll(chainInitialItems);
+        math.refresh();
+        return false;
     }
 
     public static boolean processing() {
@@ -144,6 +192,12 @@ public class AutoCraftingManager {
         for (Slot slot : guiContainer.inventorySlots.inventorySlots) {
             if (slot.getHasStack() && !(slot instanceof SlotCrafting) && slot.canTakeStack(guiContainer.mc.thePlayer)) {
                 inventory.add(slot.getStack());
+            }
+        }
+
+        if (guiContainer.inventorySlots instanceof IRecipeQueue queue) {
+            for (ItemStack stack : queue.getItemsOutsideSlots()) {
+                inventory.add(stack);
             }
         }
 
