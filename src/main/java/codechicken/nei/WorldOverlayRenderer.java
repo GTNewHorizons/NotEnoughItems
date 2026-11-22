@@ -84,10 +84,6 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glPopAttrib();
     }
 
-    /**
-     * The model view matrix is relative to ({@code intOffsetX}, {@code intOffsetY}, {@code intOffsetZ}). The offsets
-     * are the camera position cast to {@code int}.
-     */
     private static void renderMobSpawnOverlay(Entity entity, int intOffsetX, int intOffsetY, int intOffsetZ) {
         if (mobOverlay == 0) {
             MOB_OVERLAY_SCAN.clear();
@@ -111,9 +107,6 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         endMobOverlayDraw();
     }
 
-    /**
-     * Add a marked face to {@link #MOB_OVERLAY_LIST} for each block of {@link #MOB_OVERLAY_SCAN} where mobs can spawn.
-     */
     private static void compileMobOverlayList(MobOverlayStyle style, long worldTicks) {
         MOB_OVERLAY_LIST.beginCompile(MOB_OVERLAY_SCAN, style, worldTicks);
         for (int chunkX = MOB_OVERLAY_SCAN.getMinChunkX(); chunkX <= MOB_OVERLAY_SCAN.getMaxChunkX(); chunkX++) {

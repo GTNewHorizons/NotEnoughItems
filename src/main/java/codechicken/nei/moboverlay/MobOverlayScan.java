@@ -18,13 +18,8 @@ import net.minecraft.world.chunk.Chunk;
 import codechicken.lib.math.MathHelper;
 
 /**
- * {@code MobOverlayScan} reads the spawn mode and the cover top of each block in a box around the player. The cover top
- * is the top of a flat block such as a carpet. A spawn mode is 0 when monsters can't spawn on the block,
- * {@link #NIGHT_ONLY} when monsters spawn only at night and 2 when monsters spawn at any time. The box moves with the
- * player once the player is a few blocks from the box's centre, and {@link #update} scans only the blocks that enter
- * the box. {@link #update} rescans the column of a block or light change on the next tick. {@link #update} also rescans
- * a slice of the columns on each tick. A change that doesn't cause a block update, such as a boat that moves into the
- * box, shows when the slice rescan reaches the change's column.
+ * Spawn modes of the blocks in a box around the player. {@link #update} scans the blocks that enter the box, the
+ * columns of block and light changes, and a slice of the box on each tick.
  */
 public final class MobOverlayScan {
 
@@ -52,7 +47,6 @@ public final class MobOverlayScan {
     // a ring buffer over the box, indexed by `findCell()`. A cell has the spawn mode in the bits of `SPAWN_MODE_MASK`,
     // and `Column.readCoverTop()` shifted left by `COVER_TOP_SHIFT`
     private byte[] modes = new byte[0];
-    // indexed by `findColumn(x, z)`
     private boolean[] dirty = new boolean[0];
     private boolean hasDirtyColumns;
     private int minX;
@@ -84,15 +78,13 @@ public final class MobOverlayScan {
         chunkVersions = new int[0];
         hasModes = false;
         scannedWorld = null;
-        // `Chunk.worldObj` references the world
+        // a world isn't garbage-collected while `column.chunk` references a chunk of the world
         column.chunk = null;
     }
 
     /**
      * Scan every column in this call after {@link #clear}, a change of either radius, a world change, or a move of
-     * {@link #getSpan} blocks or more across or {@link #getHeight} blocks or more up or down. {@code newRadius} is
-     * clamped between {@link #MIN_RADIUS} and {@link #MAX_RADIUS}, and {@code newVerticalRadius} between
-     * {@link #MIN_VERTICAL_RADIUS} and {@link #MAX_VERTICAL_RADIUS}.
+     * {@link #getSpan} blocks or more across or {@link #getHeight} blocks or more up or down.
      */
     public void update(Entity entity, int newRadius, int newVerticalRadius) {
         final World world = entity.worldObj;
@@ -366,10 +358,6 @@ public final class MobOverlayScan {
         return findColumn(x, z) * height + Math.floorMod(y, height);
     }
 
-    /**
-     * {@link #moveTo} reads a column's chunk, biome and highest non-air block in the box, and {@link #scan} reads the
-     * column's blocks.
-     */
     private final class Column {
 
         private final Entity dummyEntity = new EntityPig(null);
@@ -387,10 +375,8 @@ public final class MobOverlayScan {
             canBiomeSpawn = !biome.getSpawnableList(EnumCreatureType.monster).isEmpty()
                     && biome.getSpawningChance() > 0;
             chunk = scannedWorld.getChunkFromBlockCoords(x, z);
-            // `getHeightValue()` is the height above the highest block with a light opacity above 0. A block with a
-            // light opacity of 0 can be higher: Tinkers' Construct slime grass, a hopper or a snow layer. A mob can
-            // spawn on top of slime grass, a hopper or a full snow block. Search the blocks for the highest non-air
-            // block
+            // `getHeightValue()` skips blocks with a light opacity of 0. A mob can spawn on some of these blocks, such
+            // as Tinkers' Construct slime grass, a hopper or a full snow block. Search for the highest non-air block
             final int SECTION_HEIGHT = 16;
             int y = Math.min(minY + height - 1, chunk.getTopFilledSegment() + SECTION_HEIGHT - 1);
             while (y >= minY && chunk.getBlock(x & 15, y, z & 15).isAir(chunk.worldObj, x, y, z)) y--;
@@ -453,7 +439,6 @@ public final class MobOverlayScan {
         }
     }
 
-    /** Marks the columns of the block and light changes in {@link #scannedWorld}. */
     private final class ChangeListener implements IWorldAccess {
 
         @Override
