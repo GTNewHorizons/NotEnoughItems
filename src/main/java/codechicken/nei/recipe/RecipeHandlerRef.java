@@ -149,6 +149,7 @@ public class RecipeHandlerRef {
         if (overlayHandler != null && overlayHandler.canCraft(firstGui, this.handler, this.recipeIndex)) {
 
             if (!firstGui.equals(firstGui.mc.currentScreen)) {
+                if (!firstGui.mc.func_152345_ab()) return false;
                 firstGui.mc.displayGuiScreen(firstGui);
             }
 

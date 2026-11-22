@@ -713,6 +713,8 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
 
     @Override
     public void load(GuiContainer gui) {
+        NEIController.load(gui);
+
         if (isEnabled()) {
             setInputFocused(null);
 
@@ -725,8 +727,6 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
             layout(gui);
             AutoFocusWidget.instance.load(gui);
         }
-
-        NEIController.load(gui);
 
         if (checkCreativeInv(gui) && gui.mc.currentScreen instanceof GuiContainerCreative) // override creative with
                                                                                            // creative+
