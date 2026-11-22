@@ -85,8 +85,8 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     }
 
     /**
-     * The model view matrix is relative to ({@code intOffsetX}, {@code intOffsetY}, {@code intOffsetZ}), the camera
-     * position cast to {@code int}.
+     * The model view matrix is relative to ({@code intOffsetX}, {@code intOffsetY}, {@code intOffsetZ}). The offsets
+     * are the camera position cast to {@code int}.
      */
     private static void renderMobSpawnOverlay(Entity entity, int intOffsetX, int intOffsetY, int intOffsetZ) {
         if (mobOverlay == 0) {
@@ -171,7 +171,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glLineWidth(1.5F);
-        // the outline of `MobOverlayStyle.CONNECTED` lies in the plane of the tint. With depth writes on, the depth
+        // the outline of `MobOverlayStyle.CONNECTED` lies in the plane of the tint. When depth writes are on, the depth
         // test discards most of the outline
         GL11.glDepthMask(false);
     }

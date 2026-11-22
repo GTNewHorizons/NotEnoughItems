@@ -7,8 +7,8 @@ import net.minecraft.client.renderer.GLAllocation;
 import org.lwjgl.opengl.GL11;
 
 /**
- * The mob spawn overlay quads, in one GL display list for each chunk column of the box of a {@link MobOverlayScan}. A
- * compile rebuilds only the lists whose {@link MobOverlayScan#readChunkVersion} changed.
+ * {@code MobOverlayDisplayList} compiles the overlay quads of each chunk column of a {@link MobOverlayScan} box into
+ * one GL display list. A compile rebuilds only the lists whose {@link MobOverlayScan#readChunkVersion} changed.
  */
 public final class MobOverlayDisplayList {
 
@@ -54,10 +54,10 @@ public final class MobOverlayDisplayList {
     }
 
     /**
-     * Start the list of chunk column ({@code chunkX}, {@code chunkZ}), with quad positions relative to block ({@code
-     * chunkX * 16}, {@link MobOverlayScan#getMinY}, {@code chunkZ * 16}).
+     * Start the list of chunk column ({@code chunkX}, {@code chunkZ}). The quad positions in the list are relative to
+     * block ({@code chunkX * 16}, {@link MobOverlayScan#getMinY}, {@code chunkZ * 16}).
      *
-     * @return false, with no list started, when the chunk column's list is current
+     * @return false when the chunk column's list is current. {@code beginChunk} doesn't start a list then
      */
     public boolean beginChunk(MobOverlayScan scan, int chunkX, int chunkZ) {
         final int chunk = scan.findChunk(chunkX, chunkZ);
@@ -103,16 +103,6 @@ public final class MobOverlayDisplayList {
         GL11.glPopMatrix();
     }
 
-    public void delete() {
-        if (firstListId == NO_LIST) return;
-
-        GLAllocation.deleteDisplayLists(firstListId);
-        firstListId = NO_LIST;
-        parentListId = NO_LIST;
-        chunkSpan = 0;
-        Arrays.fill(isCompiled, false);
-    }
-
     private void resize(int newChunkSpan) {
         delete();
         chunkSpan = newChunkSpan;
@@ -122,5 +112,15 @@ public final class MobOverlayDisplayList {
         isCompiled = new boolean[chunkCount];
         hasFaces = new boolean[chunkCount];
         compiledChunkVersion = new int[chunkCount];
+    }
+
+    public void delete() {
+        if (firstListId == NO_LIST) return;
+
+        GLAllocation.deleteDisplayLists(firstListId);
+        firstListId = NO_LIST;
+        parentListId = NO_LIST;
+        chunkSpan = 0;
+        Arrays.fill(isCompiled, false);
     }
 }

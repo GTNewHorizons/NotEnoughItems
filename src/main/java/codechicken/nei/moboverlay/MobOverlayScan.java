@@ -18,11 +18,13 @@ import net.minecraft.world.chunk.Chunk;
 import codechicken.lib.math.MathHelper;
 
 /**
- * Spawn modes, and the tops of flat blocks such as carpets, in a box around the player. The spawn modes are from
- * {@link Column#getSpawnMode}: 0 for no spawns, 1 for night only and 2 for any time. The box moves with the player once
- * the player is a few blocks from the box's centre, and {@link #update} scans only the blocks that enter the box.
- * {@link #update} rescans the column of a block or light change on the next tick. On each tick, {@link #update} also
- * rescans a slice of the columns, for changes with no block update, such as a boat that moves into the box.
+ * {@code MobOverlayScan} reads the spawn mode and the cover top of each block in a box around the player. The cover top
+ * is the top of a flat block such as a carpet. A spawn mode is 0 when monsters can't spawn on the block,
+ * {@link #NIGHT_ONLY} when monsters spawn only at night and 2 when monsters spawn at any time. The box moves with the
+ * player once the player is a few blocks from the box's centre, and {@link #update} scans only the blocks that enter
+ * the box. {@link #update} rescans the column of a block or light change on the next tick. {@link #update} also rescans
+ * a slice of the columns on each tick. A change that doesn't cause a block update, such as a boat that moves into the
+ * box, shows when the slice rescan reaches the change's column.
  */
 public final class MobOverlayScan {
 
@@ -56,15 +58,16 @@ public final class MobOverlayScan {
     private int minX;
     private int minY;
     private int minZ;
-    // the slice rescan of `update()` continues from this column, numbered `(x - minX) * span + (z - minZ)`
     private int nextRescanColumn;
     private int modesVersion;
     private int chunkSpan;
+    // indexed by `findChunk()`. The version of a chunk column changes when a cell in or beside the chunk column
+    // changes, and when an edge of the box moves into, out of, within or across the chunk column. A full scan and a
+    // vertical move change the version of every chunk column
     private int[] chunkVersions = new int[0];
     private int chunkVersionCount;
     private boolean hasModes;
     private long scannedTick;
-    // world of `modes`, with `changeListener` added
     private World scannedWorld;
 
     public void clear() {
@@ -120,7 +123,6 @@ public final class MobOverlayScan {
         if (isChanged) modesVersion++;
     }
 
-    /** The version changes when a spawn mode or the top of a flat block changes, or the box moves. */
     public int getModesVersion() {
         return modesVersion;
     }
@@ -165,18 +167,16 @@ public final class MobOverlayScan {
         return (minZ + span - 1) >> CHUNK_SHIFT;
     }
 
-    /** The version changes when a cell in or beside the chunk column changes, and when the box moves. */
     public int readChunkVersion(int chunkX, int chunkZ) {
         return chunkVersions[findChunk(chunkX, chunkZ)];
     }
 
-    /** {@code i} and {@code j} are from 0 to {@link #getSpan}, and {@code k} is from 0 to {@link #getHeight}. */
     public byte readSpawnMode(int i, int k, int j) {
         return extractSpawnMode(modes[findCell(minX + i, minY + k, minZ + j)]);
     }
 
     /**
-     * Copy the cells of column ({@code i}, {@code j}) to {@code columnCells}, from the bottom of the box to the top.
+     * Copy the cells of column ({@code i}, {@code j}) to {@code columnCells} in order from the bottom of the box up.
      */
     public void readColumn(int i, int j, byte[] columnCells) {
         final int columnStart = findColumn(minX + i, minZ + j) * height;
@@ -190,8 +190,8 @@ public final class MobOverlayScan {
     }
 
     /**
-     * Height of the overlay above the bottom of the block, so that a flat block such as a carpet does not cover the
-     * overlay.
+     * Return the height of the overlay above the bottom of the block. The overlay is above the top of a flat block such
+     * as a carpet.
      */
     public static double computeOverlayYOffset(byte cell) {
         final double OVERLAY_GAP = 0.02;
@@ -238,7 +238,7 @@ public final class MobOverlayScan {
         final int offsetX = centreX - radius - minX;
         if (Math.abs(offsetX) > RECENTRE_DISTANCE) {
             final int enteringX = offsetX > 0 ? minX + span : minX + offsetX;
-            markMovedEdgeChunks(minX, offsetX, true);
+            markMovedEdgeChunks(minX, offsetX, Axis.X);
             minX += offsetX;
             for (int x = enteringX; x < enteringX + Math.abs(offsetX); x++) {
                 for (int z = minZ; z < minZ + span; z++) {
@@ -251,7 +251,7 @@ public final class MobOverlayScan {
         final int offsetZ = centreZ - radius - minZ;
         if (Math.abs(offsetZ) > RECENTRE_DISTANCE) {
             final int enteringZ = offsetZ > 0 ? minZ + span : minZ + offsetZ;
-            markMovedEdgeChunks(minZ, offsetZ, false);
+            markMovedEdgeChunks(minZ, offsetZ, Axis.Z);
             minZ += offsetZ;
             for (int x = minX; x < minX + span; x++) {
                 for (int z = enteringZ; z < enteringZ + Math.abs(offsetZ); z++) {
@@ -322,26 +322,37 @@ public final class MobOverlayScan {
     }
 
     /**
-     * No outline is drawn between an edge cell of the box and a cell outside the box, so a move changes the outlines of
-     * the edge cells.
+     * A move changes the connected outlines of the edge cells on the trailing and the leading side of the box.
+     * {@link MobOverlayFace#isJoined} doesn't outline a cell's side toward the outside of the box.
      */
-    private void markMovedEdgeChunks(int oldMin, int offset, boolean isAlongX) {
+    private void markMovedEdgeChunks(int oldMin, int offset, Axis moveAxis) {
         final int lowFrom = Math.min(oldMin, oldMin + offset);
         final int lowTo = Math.max(oldMin, oldMin + offset);
-        final int highFrom = lowFrom + span - 1;
-        final int highTo = lowTo + span - 1;
-        if (isAlongX) {
-            markChunks(lowFrom, lowTo, minZ, minZ + span - 1);
-            markChunks(highFrom, highTo, minZ, minZ + span - 1);
-        } else {
-            markChunks(minX, minX + span - 1, lowFrom, lowTo);
-            markChunks(minX, minX + span - 1, highFrom, highTo);
-        }
+        markStripChunks(lowFrom, lowTo, moveAxis);
+        markStripChunks(lowFrom + span - 1, lowTo + span - 1, moveAxis);
     }
 
-    private void markChunks(int fromX, int toX, int fromZ, int toZ) {
-        for (int chunkX = fromX >> CHUNK_SHIFT; chunkX <= toX >> CHUNK_SHIFT; chunkX++) {
-            for (int chunkZ = fromZ >> CHUNK_SHIFT; chunkZ <= toZ >> CHUNK_SHIFT; chunkZ++) {
+    /**
+     * Mark the chunk columns of blocks {@code from} to {@code to} along the move. The marked chunk columns span the box
+     * across the move.
+     */
+    private void markStripChunks(int from, int to, Axis moveAxis) {
+        final int acrossMin = switch (moveAxis) {
+            case X -> minZ;
+            case Z -> minX;
+        };
+        final int minAcrossChunk = acrossMin >> CHUNK_SHIFT;
+        final int maxAcrossChunk = (acrossMin + span - 1) >> CHUNK_SHIFT;
+        for (int alongChunk = from >> CHUNK_SHIFT; alongChunk <= to >> CHUNK_SHIFT; alongChunk++) {
+            for (int acrossChunk = minAcrossChunk; acrossChunk <= maxAcrossChunk; acrossChunk++) {
+                final int chunkX = switch (moveAxis) {
+                    case X -> alongChunk;
+                    case Z -> acrossChunk;
+                };
+                final int chunkZ = switch (moveAxis) {
+                    case X -> acrossChunk;
+                    case Z -> alongChunk;
+                };
                 markChunk(chunkX, chunkZ);
             }
         }
@@ -411,7 +422,6 @@ public final class MobOverlayScan {
             return isChanged;
         }
 
-        /** The spawn mode of the block at height {@code y} in this column. */
         private byte getSpawnMode(int y) {
             if (y >= chunk.worldObj.getHeight()) {
                 return 0;
@@ -445,8 +455,8 @@ public final class MobOverlayScan {
         }
 
         /**
-         * The top of the block at height {@code y}, in fractions of a block with {@link MobOverlayScan#COVER_TOP_STEPS}
-         * as the denominator, or 0 for a tall block.
+         * Return the top of the block at height {@code y} in units of 1 / {@link MobOverlayScan#COVER_TOP_STEPS} block.
+         * Return 0 for a tall block.
          */
         private int readCoverTop(int y) {
             final double MAX_COVER_TOP = 0.25;
@@ -523,5 +533,10 @@ public final class MobOverlayScan {
             dirty[findColumn(x, z)] = true;
             hasDirtyColumns = true;
         }
+    }
+
+    private enum Axis {
+        X,
+        Z
     }
 }
