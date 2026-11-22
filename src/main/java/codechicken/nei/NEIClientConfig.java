@@ -415,6 +415,8 @@ public class NEIClientConfig {
         tag.getTag("inventory.itemzoom.nameColor").getHexValue(0xFFFFFFFF);
         API.addOption(new OptionIntegerField("inventory.itemzoom.nameColor", 0, OptionIntegerField.UNSIGNED_INT_MAX));
 
+        setItemNameOverlayDefaults(tag);
+
         setFavoriteDefaults(tag);
 
         tag.getTag("inventory.tooltip.showFluidTemperature").setComment("Enabled show Fluid Temperature")
@@ -426,8 +428,6 @@ public class NEIClientConfig {
 
         tag.getTag("inventory.itemIDs").getIntValue(1);
         API.addOption(new OptionCycled("inventory.itemIDs", 3, true));
-
-        setItemNameOverlayDefaults(tag);
 
         tag.getTag("world.highlight_tips").getBooleanValue(false);
         tag.getTag("world.highlight_tips.x").getIntValue(5000);
