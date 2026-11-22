@@ -105,7 +105,7 @@ class StatsPanel extends ScrollContainer {
             GuiContainerManager
                     .drawItem(this.x + (SLOT_SIZE - 16) / 2, this.y + (SLOT_SIZE - 16) / 2, this.stack, true, "");
 
-            drawStackSize();
+            SlotAmountLabel.draw(this.stack, this.isFluidDisplay, this.stackSize, "", 0xFFFFFF, this.x, this.y);
 
             if (mx >= this.x && mx < this.x + SLOT_SIZE && my >= this.y && my < this.y + SLOT_SIZE) {
                 NEIClientUtils.gl2DRenderContext(
@@ -140,27 +140,6 @@ class StatsPanel extends ScrollContainer {
             }
 
             GL11.glPopMatrix();
-        }
-
-        private void drawStackSize() {
-            String amountString = stackSize < 10_000 ? String.valueOf(stackSize)
-                    : ReadableNumberConverter.INSTANCE.toWideReadableForm(stackSize);
-
-            if (this.isFluidDisplay) {
-                amountString += "L";
-            }
-
-            NEIClientUtils.drawNEIOverlayText(
-                    amountString,
-                    new Rectangle4i(
-                            x + (SLOT_SIZE - 16) / 2,
-                            y + (SLOT_SIZE - 16) / 2,
-                            SLOT_SIZE - (SLOT_SIZE - 16),
-                            SLOT_SIZE - (SLOT_SIZE - 16)),
-                    1,
-                    0xFFFFFF,
-                    true,
-                    this.isFluidDisplay ? Alignment.BottomLeft : Alignment.BottomRight);
         }
 
     }

@@ -18,10 +18,8 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
-import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ColorUtils;
 import codechicken.nei.NEIClientUtils;
-import codechicken.nei.NEIClientUtils.Alignment;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.bookmark.BookmarkGroup.ProgressKey;
 import codechicken.nei.bookmark.BookmarkItem;
@@ -32,7 +30,6 @@ import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.scroll.GuiHelper;
-import codechicken.nei.util.ReadableNumberConverter;
 
 class CraftingTreeCanvas {
 
@@ -145,7 +142,6 @@ class CraftingTreeCanvas {
     private static final int HOVER_COLOR = 0x66888888;
     private static final Color PROGRESS_FILL = new Color(0xFF55FF55, true);
     private static final Color DONE_TINT = new Color(0x4400AA00, true);
-    private static final int STACK_LINE_HEIGHT = 5;
     private static final float BADGE_SCALE = 0.6f;
 
     public static final int SLOT_SIZE = 18;
@@ -510,40 +506,8 @@ class CraftingTreeCanvas {
                 || node.isContainerItem;
         final String prefix = isApproximate ? "~" : "";
         final int color = resolved ? 0x55FF55 : isApproximate ? 0xFFAA00 : 0xFFFFFF;
-        final int maxStackSize = node.emptyStack.getMaxStackSize();
 
-        if (node.isFluidDisplay) {
-            drawStackSizeLine(node, prefix + formatAmount(stackSize) + "L", x, y, color, 0);
-        } else if (maxStackSize > 1 && stackSize > maxStackSize) {
-            // above a full stack, show "stacks x stack size" with the remainder below it, e.g. 210 -> 3x64 / +18
-            final long remainder = stackSize % maxStackSize;
-            final String stacks = prefix + formatAmount(stackSize / maxStackSize) + "×" + maxStackSize;
-
-            drawStackSizeLine(node, stacks, x, y, color, 0);
-
-            if (remainder > 0) {
-                drawStackSizeLine(node, "+" + remainder, x, y, color, 1);
-            }
-        } else {
-            drawStackSizeLine(node, prefix + formatAmount(stackSize), x, y, color, 0);
-        }
-    }
-
-    private static String formatAmount(long amount) {
-        return amount < 10_000 ? String.valueOf(amount) : ReadableNumberConverter.INSTANCE.toWideReadableForm(amount);
-    }
-
-    /** Draws one line of text in the corner of a slot, with the given number of lines stacked above it. */
-    private void drawStackSizeLine(ItemTreeSlot node, String text, int x, int y, int color, int linesAbove) {
-        final int itemOffset = (SLOT_SIZE - 16) / 2;
-
-        NEIClientUtils.drawNEIOverlayText(
-                text,
-                new Rectangle4i(x + itemOffset, y + itemOffset - linesAbove * STACK_LINE_HEIGHT, 16, 16),
-                1,
-                color,
-                true,
-                node.isFluidDisplay ? Alignment.BottomLeft : Alignment.BottomRight);
+        SlotAmountLabel.draw(node.emptyStack, node.isFluidDisplay, stackSize, prefix, color, x, y);
     }
 
     protected void drawSlotBadge(ItemTreeSlot node, int x, int y) {
