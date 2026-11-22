@@ -167,9 +167,6 @@ public final class MobOverlayScan {
         return extractSpawnMode(modes[findCell(minX + i, minY + k, minZ + j)]);
     }
 
-    /**
-     * Copy the cells of column ({@code i}, {@code j}) to {@code columnCells} in order from the bottom of the box up.
-     */
     public void readColumn(int i, int j, byte[] columnCells) {
         final int columnStart = findColumn(minX + i, minZ + j) * height;
         final int bottomCell = Math.floorMod(minY, height);
