@@ -16,15 +16,12 @@ public final class MobOverlayDisplayList {
 
     private int firstListId = NO_LIST;
     private int parentListId = NO_LIST;
-    private boolean hasParentList;
     private int anchorX;
     private int anchorY;
     private int anchorZ;
     private int chunkSpan;
     private boolean[] isCompiled = new boolean[0];
     private boolean[] hasFaces = new boolean[0];
-    private int[] compiledChunkX = new int[0];
-    private int[] compiledChunkZ = new int[0];
     private int[] compiledChunkVersion = new int[0];
     private int modesVersion;
     private MobOverlayStyle style;
@@ -54,16 +51,6 @@ public final class MobOverlayDisplayList {
         anchorX = scan.getMinX();
         anchorY = scan.getMinY();
         anchorZ = scan.getMinZ();
-        final int fromChunkX = scan.getMinX() >> MobOverlayScan.CHUNK_SHIFT;
-        final int toChunkX = (scan.getMinX() + scan.getSpan() - 1) >> MobOverlayScan.CHUNK_SHIFT;
-        final int fromChunkZ = scan.getMinZ() >> MobOverlayScan.CHUNK_SHIFT;
-        final int toChunkZ = (scan.getMinZ() + scan.getSpan() - 1) >> MobOverlayScan.CHUNK_SHIFT;
-        for (int chunk = 0; chunk < isCompiled.length; chunk++) {
-            final boolean isInBox = compiledChunkX[chunk] >= fromChunkX && compiledChunkX[chunk] <= toChunkX
-                    && compiledChunkZ[chunk] >= fromChunkZ
-                    && compiledChunkZ[chunk] <= toChunkZ;
-            isCompiled[chunk] &= isInBox;
-        }
     }
 
     /**
@@ -73,16 +60,11 @@ public final class MobOverlayDisplayList {
      * @return false, with no list started, when the chunk column's list is current
      */
     public boolean beginChunk(MobOverlayScan scan, int chunkX, int chunkZ) {
-        final int chunk = Math.floorMod(chunkX, chunkSpan) * chunkSpan + Math.floorMod(chunkZ, chunkSpan);
+        final int chunk = scan.findChunk(chunkX, chunkZ);
         final int chunkVersion = scan.readChunkVersion(chunkX, chunkZ);
-        final boolean isCurrent = isCompiled[chunk] && compiledChunkX[chunk] == chunkX
-                && compiledChunkZ[chunk] == chunkZ
-                && compiledChunkVersion[chunk] == chunkVersion;
-        if (isCurrent) return false;
+        if (isCompiled[chunk] && compiledChunkVersion[chunk] == chunkVersion) return false;
 
         isCompiled[chunk] = true;
-        compiledChunkX[chunk] = chunkX;
-        compiledChunkZ[chunk] = chunkZ;
         compiledChunkVersion[chunk] = chunkVersion;
         compilingChunk = chunk;
         GL11.glNewList(firstListId + chunk, GL11.GL_COMPILE);
@@ -94,27 +76,27 @@ public final class MobOverlayDisplayList {
         hasFaces[compilingChunk] = hasChunkFaces;
     }
 
-    public void endCompile() {
+    public void endCompile(MobOverlayScan scan) {
         GL11.glNewList(parentListId, GL11.GL_COMPILE);
-        for (int chunk = 0; chunk < isCompiled.length; chunk++) {
-            if (!(isCompiled[chunk] && hasFaces[chunk])) continue;
+        for (int chunkX = scan.getMinChunkX(); chunkX <= scan.getMaxChunkX(); chunkX++) {
+            for (int chunkZ = scan.getMinChunkZ(); chunkZ <= scan.getMaxChunkZ(); chunkZ++) {
+                final int chunk = scan.findChunk(chunkX, chunkZ);
+                if (!hasFaces[chunk]) continue;
 
-            GL11.glPushMatrix();
-            GL11.glTranslated(
-                    (compiledChunkX[chunk] << MobOverlayScan.CHUNK_SHIFT) - anchorX,
-                    0,
-                    (compiledChunkZ[chunk] << MobOverlayScan.CHUNK_SHIFT) - anchorZ);
-            GL11.glCallList(firstListId + chunk);
-            GL11.glPopMatrix();
+                GL11.glPushMatrix();
+                GL11.glTranslated(
+                        (chunkX << MobOverlayScan.CHUNK_SHIFT) - anchorX,
+                        0,
+                        (chunkZ << MobOverlayScan.CHUNK_SHIFT) - anchorZ);
+                GL11.glCallList(firstListId + chunk);
+                GL11.glPopMatrix();
+            }
         }
         GL11.glEndList();
-        hasParentList = true;
     }
 
     /** The model view matrix is relative to block ({@code cameraX}, {@code cameraY}, {@code cameraZ}). */
     public void draw(int cameraX, int cameraY, int cameraZ) {
-        if (!hasParentList) return;
-
         GL11.glPushMatrix();
         GL11.glTranslated(anchorX - cameraX, anchorY - cameraY, anchorZ - cameraZ);
         GL11.glCallList(parentListId);
@@ -127,7 +109,6 @@ public final class MobOverlayDisplayList {
         GLAllocation.deleteDisplayLists(firstListId);
         firstListId = NO_LIST;
         parentListId = NO_LIST;
-        hasParentList = false;
         chunkSpan = 0;
         Arrays.fill(isCompiled, false);
     }
@@ -140,8 +121,6 @@ public final class MobOverlayDisplayList {
         parentListId = firstListId + chunkCount;
         isCompiled = new boolean[chunkCount];
         hasFaces = new boolean[chunkCount];
-        compiledChunkX = new int[chunkCount];
-        compiledChunkZ = new int[chunkCount];
         compiledChunkVersion = new int[chunkCount];
     }
 }

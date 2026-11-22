@@ -116,19 +116,14 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
      */
     private static void compileMobOverlayList(MobOverlayStyle style, long worldTicks) {
         MOB_OVERLAY_LIST.beginCompile(MOB_OVERLAY_SCAN, style, worldTicks);
-        final int minX = MOB_OVERLAY_SCAN.getMinX();
-        final int minZ = MOB_OVERLAY_SCAN.getMinZ();
-        final int span = MOB_OVERLAY_SCAN.getSpan();
-        final int toChunkX = (minX + span - 1) >> MobOverlayScan.CHUNK_SHIFT;
-        final int toChunkZ = (minZ + span - 1) >> MobOverlayScan.CHUNK_SHIFT;
-        for (int chunkX = minX >> MobOverlayScan.CHUNK_SHIFT; chunkX <= toChunkX; chunkX++) {
-            for (int chunkZ = minZ >> MobOverlayScan.CHUNK_SHIFT; chunkZ <= toChunkZ; chunkZ++) {
+        for (int chunkX = MOB_OVERLAY_SCAN.getMinChunkX(); chunkX <= MOB_OVERLAY_SCAN.getMaxChunkX(); chunkX++) {
+            for (int chunkZ = MOB_OVERLAY_SCAN.getMinChunkZ(); chunkZ <= MOB_OVERLAY_SCAN.getMaxChunkZ(); chunkZ++) {
                 if (!MOB_OVERLAY_LIST.beginChunk(MOB_OVERLAY_SCAN, chunkX, chunkZ)) continue;
 
                 MOB_OVERLAY_LIST.endChunk(compileChunkFaces(style, chunkX, chunkZ));
             }
         }
-        MOB_OVERLAY_LIST.endCompile();
+        MOB_OVERLAY_LIST.endCompile(MOB_OVERLAY_SCAN);
     }
 
     private static boolean compileChunkFaces(MobOverlayStyle style, int chunkX, int chunkZ) {

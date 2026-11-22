@@ -149,6 +149,22 @@ public final class MobOverlayScan {
         return minZ;
     }
 
+    public int getMinChunkX() {
+        return minX >> CHUNK_SHIFT;
+    }
+
+    public int getMaxChunkX() {
+        return (minX + span - 1) >> CHUNK_SHIFT;
+    }
+
+    public int getMinChunkZ() {
+        return minZ >> CHUNK_SHIFT;
+    }
+
+    public int getMaxChunkZ() {
+        return (minZ + span - 1) >> CHUNK_SHIFT;
+    }
+
     /** The version changes when a cell in or beside the chunk column changes, and when the box moves. */
     public int readChunkVersion(int chunkX, int chunkZ) {
         return chunkVersions[findChunk(chunkX, chunkZ)];
@@ -266,7 +282,7 @@ public final class MobOverlayScan {
         boolean isChanged = false;
         for (int x = minX; x < minX + span; x++) {
             for (int z = minZ; z < minZ + span; z++) {
-                if (dirty[findColumn(x, z)]) isChanged |= scanColumn(x, z);
+                if (dirty[findColumn(x, z)]) isChanged |= rescanColumn(x, z);
             }
         }
         return isChanged;
@@ -279,7 +295,7 @@ public final class MobOverlayScan {
         for (; nextRescanColumn < sliceEnd; nextRescanColumn++) {
             final int x = minX + nextRescanColumn / span;
             final int z = minZ + nextRescanColumn % span;
-            isChanged |= scanColumn(x, z);
+            isChanged |= rescanColumn(x, z);
         }
         if (nextRescanColumn >= columnCount) nextRescanColumn = 0;
         return isChanged;
@@ -289,7 +305,11 @@ public final class MobOverlayScan {
     private boolean scanColumn(int x, int z) {
         column.moveTo(x, z);
         dirty[findColumn(x, z)] = false;
-        final boolean isChanged = column.scan(minY, minY + height);
+        return column.scan(minY, minY + height);
+    }
+
+    private boolean rescanColumn(int x, int z) {
+        final boolean isChanged = scanColumn(x, z);
         // the connected outline of a cell depends on the spawn modes of the cells beside the cell
         if (isChanged) {
             for (int offsetX = -1; offsetX <= 1; offsetX++) {
@@ -335,7 +355,7 @@ public final class MobOverlayScan {
         chunkVersions[findChunk(chunkX, chunkZ)] = ++chunkVersionCount;
     }
 
-    private int findChunk(int chunkX, int chunkZ) {
+    public int findChunk(int chunkX, int chunkZ) {
         return Math.floorMod(chunkX, chunkSpan) * chunkSpan + Math.floorMod(chunkZ, chunkSpan);
     }
 
