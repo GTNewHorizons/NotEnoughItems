@@ -2,14 +2,18 @@ package codechicken.nei.item;
 
 import java.lang.reflect.Method;
 import java.nio.FloatBuffer;
+import java.text.BreakIterator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.resources.Language;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -27,15 +31,17 @@ public class ItemNameOverlayRenderer {
 
     public static final ItemNameOverlayRenderer INSTANCE = new ItemNameOverlayRenderer();
 
-    private static final int[] OUTLINE_STEPS = { -1, -1, 1, 0, 1, 0, 0, 1, 0, 1, -1, 0, -1, 0, 0, -1 };
+    public static final int[] OUTLINE_STEPS = { -1, -1, 1, 0, 1, 0, 0, 1, 0, 1, -1, 0, -1, 0, 0, -1 };
 
-    private final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
-    private final LRUCache<LayoutKey, LabelLayout> layouts = new LRUCache<>(2048);
-    private final LayoutKey lookupKey = new LayoutKey(null, "", 0, 0, false);
-    private final GuiScaleCache guiScaleCache = new GuiScaleCache();
-    private ItemNameOverlaySettings settings = ItemNameOverlaySettings.defaults();
-    private Object fontState;
-    private long cacheRevision;
+    public final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
+    public final LRUCache<LayoutKey, LabelLayout> layouts = new LRUCache<>(2048);
+    public final LayoutKey lookupKey = new LayoutKey(null, "", 0, 0, false);
+    public final GuiScaleCache guiScaleCache = new GuiScaleCache();
+    public ItemNameOverlaySettings settings = ItemNameOverlaySettings.defaults();
+    public Object fontState;
+    public String languageCode;
+    public BreakIterator lineBreaker;
+    public long cacheRevision;
 
     public void render(ItemNameOverlayMode mode, ItemStack stack, FontRenderer font, int x, int y,
             int availableHeight) {
@@ -69,16 +75,13 @@ public class ItemNameOverlayRenderer {
                 currentSettings);
     }
 
-    public void drawLabel(FontRenderer font, String text, int x, int y, int width, int height) {
-        drawLabel(font, text, (float) x, (float) y, width, height, settings);
-    }
-
-    private void drawLabel(FontRenderer font, String text, float x, float y, int width, int height,
+    public void drawLabel(FontRenderer font, String text, float x, float y, int width, int height,
             ItemNameOverlaySettings currentSettings) {
         if (text == null || text.isEmpty() || width <= 0 || height <= 0) {
             return;
         }
 
+        refreshLineBreaker();
         lookupKey.set(font, text, width, height, font.getUnicodeFlag());
         LabelLayout layout = layouts.get(lookupKey);
         if (layout == null) {
@@ -143,6 +146,7 @@ public class ItemNameOverlayRenderer {
     }
 
     public void refreshFontState() {
+        refreshLineBreaker();
         final Object currentState = FontAccess.currentState();
         if (!Objects.equals(fontState, currentState)) {
             fontState = currentState;
@@ -153,14 +157,34 @@ public class ItemNameOverlayRenderer {
     public void clearCache() {
         layouts.clear();
         lookupKey.set(null, "", 0, 0, false);
+        if (lineBreaker != null) {
+            lineBreaker.setText("");
+        }
         cacheRevision++;
+    }
+
+    public void refreshLineBreaker() {
+        final Language language = Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage();
+        String currentCode = language != null ? language.getLanguageCode() : "en_US";
+        if (currentCode == null || currentCode.isEmpty()) {
+            currentCode = "en_US";
+        }
+        if (lineBreaker == null || !currentCode.equals(languageCode)) {
+            Locale locale = Locale.forLanguageTag(currentCode.replace('_', '-'));
+            if (locale.getLanguage().isEmpty()) {
+                locale = Locale.ENGLISH;
+            }
+            languageCode = currentCode;
+            lineBreaker = BreakIterator.getLineInstance(locale);
+            clearCache();
+        }
     }
 
     public long getCacheRevision() {
         return cacheRevision;
     }
 
-    private int readRenderTransform() {
+    public int readRenderTransform() {
         final Minecraft minecraft = Minecraft.getMinecraft();
         final int guiScale = guiScaleCache.getScaleFactor(minecraft);
         matrixBuffer.clear();
@@ -168,12 +192,12 @@ public class ItemNameOverlayRenderer {
         return guiScale;
     }
 
-    private float alignToPixel(float coordinate, float translation, float scale, int guiScale) {
+    public float alignToPixel(float coordinate, float translation, float scale, int guiScale) {
         final float screenPosition = (translation + coordinate * scale) * guiScale;
         return (Math.round(screenPosition) / (float) guiScale - translation) / scale;
     }
 
-    private LabelLayout createLayout(LayoutKey key, ItemNameOverlaySettings settings) {
+    public LabelLayout createLayout(LayoutKey key, ItemNameOverlaySettings settings) {
         final FontRenderer font = key.font;
         final String text = sanitizeText(key.text);
         final float minimumScale = settings.minimumScale;
@@ -191,6 +215,8 @@ public class ItemNameOverlayRenderer {
             return new LabelLayout(font, key.width, Collections.singletonList(text), singleLineScale);
         }
 
+        final int maximumWidth = (int) Math.nextUp(key.width / minimumScale);
+        final LineBreaks breaks = createLineBreaks(font, text, maximumWidth, settings.maxCharacters);
         int availableLines = 1;
         for (int lineCount = 2; lineCount <= settings.maxLines; lineCount++) {
             final float wrappedScale = Math.min(preferredScale, key.height / (lineHeight * lineCount + 1));
@@ -198,8 +224,14 @@ public class ItemNameOverlayRenderer {
                 break;
             }
             availableLines = lineCount;
-            final int maximumWidth = (int) (key.width / minimumScale);
-            List<String> completeLines = wrapText(font, text, maximumWidth, lineCount, settings.maxCharacters);
+            List<String> completeLines = wrapText(
+                    font,
+                    text,
+                    maximumWidth,
+                    lineCount,
+                    settings.maxCharacters,
+                    breaks,
+                    false);
             if (fitsWidth(font, completeLines, maximumWidth, settings.maxCharacters)) {
                 // Find the narrowest complete split before reducing the configured multi-line scale.
                 int lowerWidth = 1;
@@ -211,7 +243,9 @@ public class ItemNameOverlayRenderer {
                             text,
                             candidateWidth,
                             lineCount,
-                            settings.maxCharacters);
+                            settings.maxCharacters,
+                            breaks,
+                            false);
                     if (fitsWidth(font, candidateLines, candidateWidth, settings.maxCharacters)) {
                         upperWidth = candidateWidth;
                         completeLines = candidateLines;
@@ -237,7 +271,7 @@ public class ItemNameOverlayRenderer {
 
         final int textWidth = (int) (key.width / croppedScale);
         final List<String> shortenedLines = new ArrayList<>(
-                wrapText(font, text, textWidth, availableLines, settings.maxCharacters));
+                wrapText(font, text, textWidth, availableLines, settings.maxCharacters, breaks, true));
         if (shortenedLines.isEmpty()) {
             final String line = ellipsize(font, text, textWidth, settings.maxCharacters);
             if (!line.isEmpty()) {
@@ -251,21 +285,27 @@ public class ItemNameOverlayRenderer {
         return new LabelLayout(font, key.width, shortenedLines, croppedScale);
     }
 
-    private List<String> wrapText(FontRenderer font, String text, int width, int maxLines, int maxCharacters) {
-        if (text.indexOf(' ') >= 0) {
-            final List<String> wordLines = wrapText(font, text, width, maxLines, maxCharacters, true);
-            if (fitsWidth(font, wordLines, width, maxCharacters)) {
-                return wordLines;
-            }
+    public LineBreaks createLineBreaks(FontRenderer font, String text, int maximumWidth, int maxCharacters) {
+        lineBreaker.setText(text);
+        final int[] boundaries = new int[text.length() + 1];
+        int count = 0;
+        for (int boundary = lineBreaker.first(); boundary != BreakIterator.DONE; boundary = lineBreaker.next()) {
+            boundaries[count++] = boundary;
         }
-        return wrapText(font, text, width, maxLines, maxCharacters, false);
+        final boolean[] splittable = new boolean[count - 1];
+        for (int index = 0; index < splittable.length; index++) {
+            final String token = text.substring(boundaries[index], boundaries[index + 1]).trim();
+            splittable[index] = getTextWidth(font, token) > maximumWidth || !fitsCharacterLimit(token, maxCharacters);
+        }
+        return new LineBreaks(boundaries, count, splittable);
     }
 
-    private List<String> wrapText(FontRenderer font, String text, int width, int maxLines, int maxCharacters,
-            boolean wordBreaks) {
+    public List<String> wrapText(FontRenderer font, String text, int width, int maxLines, int maxCharacters,
+            LineBreaks breaks, boolean forceFit) {
         final List<String> lines = new ArrayList<>(maxLines);
-        String remainder = text;
-        while (!remainder.isEmpty()) {
+        int start = 0;
+        while (start < text.length()) {
+            final String remainder = text.substring(start);
             if (lines.size() == maxLines - 1) {
                 lines.add(remainder);
                 break;
@@ -277,20 +317,22 @@ public class ItemNameOverlayRenderer {
             if (prefix.isEmpty()) {
                 return Collections.emptyList();
             }
-            int split = prefix.length();
-            if (wordBreaks && split < remainder.length()) {
-                final int lastSpace = prefix.lastIndexOf(' ');
-                if (lastSpace > 0) {
-                    split = lastSpace;
-                }
+            int fittedEnd = start + prefix.length();
+            // Trailing spaces do not consume visible line width or the character limit.
+            while (fittedEnd < text.length() && text.charAt(fittedEnd) <= ' ') {
+                fittedEnd++;
             }
-            lines.add(remainder.substring(0, split).trim());
-            remainder = remainder.substring(split).trim();
+            final int split = breaks.select(start, fittedEnd, forceFit);
+            lines.add(text.substring(start, split).trim());
+            start = split;
+            while (start < text.length() && text.charAt(start) <= ' ') {
+                start++;
+            }
         }
         return lines;
     }
 
-    private boolean fitsWidth(FontRenderer font, List<String> lines, int width, int maxCharacters) {
+    public boolean fitsWidth(FontRenderer font, List<String> lines, int width, int maxCharacters) {
         if (lines.isEmpty()) {
             return false;
         }
@@ -302,7 +344,7 @@ public class ItemNameOverlayRenderer {
         return true;
     }
 
-    private String sanitizeText(String text) {
+    public String sanitizeText(String text) {
         text = FontAccess.preprocess(text);
         if (text.indexOf('\u00a7') >= 0) {
             final StringBuilder plain = new StringBuilder(text.length());
@@ -318,7 +360,7 @@ public class ItemNameOverlayRenderer {
         return text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ').trim();
     }
 
-    private String ellipsize(FontRenderer font, String text, int width, int maxCharacters) {
+    public String ellipsize(FontRenderer font, String text, int width, int maxCharacters) {
         if (getTextWidth(font, text) <= width && fitsCharacterLimit(text, maxCharacters)) {
             return text;
         }
@@ -340,7 +382,7 @@ public class ItemNameOverlayRenderer {
         return shortened;
     }
 
-    private String trimToWidth(FontRenderer font, String text, int width) {
+    public String trimToWidth(FontRenderer font, String text, int width) {
         if (width <= 0) {
             return "";
         }
@@ -351,20 +393,20 @@ public class ItemNameOverlayRenderer {
                 : trimmed;
     }
 
-    private static int getTextWidth(FontRenderer font, String text) {
+    public static int getTextWidth(FontRenderer font, String text) {
         return FontAccess.width(font, text);
     }
 
-    private static boolean fitsCharacterLimit(String text, int limit) {
+    public static boolean fitsCharacterLimit(String text, int limit) {
         return limit == 0 || text.codePointCount(0, text.length()) <= limit;
     }
 
-    private static String trimCharacters(String text, int limit) {
+    public static String trimCharacters(String text, int limit) {
         final int count = Math.min(limit, text.codePointCount(0, text.length()));
         return text.substring(0, text.offsetByCodePoints(0, count));
     }
 
-    private boolean hasUnicodeCharacters(String text) {
+    public boolean hasUnicodeCharacters(String text) {
         for (int index = 0; index < text.length(); index++) {
             if (text.charAt(index) > 255) {
                 return true;
@@ -373,7 +415,7 @@ public class ItemNameOverlayRenderer {
         return false;
     }
 
-    private void drawOutlinedLine(FontRenderer font, String text, float pixelWidth, float pixelHeight) {
+    public void drawOutlinedLine(FontRenderer font, String text, float pixelWidth, float pixelHeight) {
         // Visit each neighboring screen pixel once, then return to the center.
         for (int index = 0; index < OUTLINE_STEPS.length; index += 2) {
             GL11.glTranslatef(OUTLINE_STEPS[index] * pixelWidth, OUTLINE_STEPS[index + 1] * pixelHeight, 0);
@@ -383,12 +425,40 @@ public class ItemNameOverlayRenderer {
         font.drawString(text, 0, 0, 0xFFFFFFFF);
     }
 
-    private static class LabelLayout {
+    public static class LineBreaks {
 
-        private final LabelLine[] lines;
-        private final float scale;
+        public final int[] boundaries;
+        public final int count;
+        public final boolean[] splittable;
 
-        private LabelLayout(FontRenderer font, int width, List<String> texts, float scale) {
+        public LineBreaks(int[] boundaries, int count, boolean[] splittable) {
+            this.boundaries = boundaries;
+            this.count = count;
+            this.splittable = splittable;
+        }
+
+        public int select(int start, int fittedEnd, boolean forceFit) {
+            final int boundary = boundaries[atOrBefore(fittedEnd)];
+            if (boundary > start) {
+                return boundary;
+            }
+            final int token = atOrBefore(start);
+            // Keep normal tokens whole during scale selection; split only when constraints require it.
+            return forceFit || splittable[token] ? fittedEnd : boundaries[token + 1];
+        }
+
+        public int atOrBefore(int offset) {
+            final int index = Arrays.binarySearch(boundaries, 0, count, offset);
+            return index >= 0 ? index : -index - 2;
+        }
+    }
+
+    public static class LabelLayout {
+
+        public final LabelLine[] lines;
+        public final float scale;
+
+        public LabelLayout(FontRenderer font, int width, List<String> texts, float scale) {
             this.lines = new LabelLine[texts.size()];
             this.scale = scale;
             final float lineHeight = FontAccess.lineHeight(font);
@@ -403,25 +473,25 @@ public class ItemNameOverlayRenderer {
         }
     }
 
-    private static class LabelLine {
+    public static class LabelLine {
 
-        private final String text;
-        private final float x;
-        private final float y;
+        public final String text;
+        public final float x;
+        public final float y;
 
-        private LabelLine(String text, float x, float y) {
+        public LabelLine(String text, float x, float y) {
             this.text = text;
             this.x = x;
             this.y = y;
         }
     }
 
-    private static class FontAccess {
+    public static class FontAccess {
 
-        private static final boolean GTNH_FONTS = hasFontAPI();
-        private static Method settingsMethod = findSettingsMethod();
+        public static final boolean GTNH_FONTS = hasFontAPI();
+        public static Method settingsMethod = findSettingsMethod();
 
-        private static boolean hasFontAPI() {
+        public static boolean hasFontAPI() {
             if (!Loader.isModLoaded("gtnhlib")) {
                 return false;
             }
@@ -438,7 +508,7 @@ public class ItemNameOverlayRenderer {
             }
         }
 
-        private static Method findSettingsMethod() {
+        public static Method findSettingsMethod() {
             if (!Loader.isModLoaded("angelica")) {
                 return null;
             }
@@ -452,7 +522,7 @@ public class ItemNameOverlayRenderer {
             }
         }
 
-        private static Object currentState() {
+        public static Object currentState() {
             if (settingsMethod != null) {
                 try {
                     return settingsMethod.invoke(null, (Object[]) null);
@@ -463,24 +533,24 @@ public class ItemNameOverlayRenderer {
             return null;
         }
 
-        private static String preprocess(String text) {
+        public static String preprocess(String text) {
             return GTNH_FONTS ? FontRendering.preprocessText(text) : text;
         }
 
-        private static int width(FontRenderer font, String text) {
+        public static int width(FontRenderer font, String text) {
             // Preserve custom FontRenderer subclasses' own measurement overrides.
             return GTNH_FONTS && font.getClass() == FontRenderer.class && font instanceof IFontParameters
                     ? FontRendering.getStringWidth(text, font)
                     : font.getStringWidth(text);
         }
 
-        private static String trimToWidth(FontRenderer font, String text, int width) {
+        public static String trimToWidth(FontRenderer font, String text, int width) {
             return GTNH_FONTS && font.getClass() == FontRenderer.class && font instanceof IFontParameters
                     ? FontRendering.trimStringToWidth(text, width, false, font)
                     : font.trimStringToWidth(text, width);
         }
 
-        private static float lineHeight(FontRenderer font) {
+        public static float lineHeight(FontRenderer font) {
             if (GTNH_FONTS && font instanceof IFontParameters parameters) {
                 final float scale = parameters.getGlyphScaleY();
                 if (Float.isFinite(scale) && scale > 0) {
@@ -490,7 +560,7 @@ public class ItemNameOverlayRenderer {
             return font.FONT_HEIGHT;
         }
 
-        private static void applyMetrics(LayoutKey key, FontRenderer font) {
+        public static void applyMetrics(LayoutKey key, FontRenderer font) {
             if (GTNH_FONTS && font instanceof IFontParameters parameters) {
                 key.glyphScaleX = parameters.getGlyphScaleX();
                 key.glyphScaleY = parameters.getGlyphScaleY();
@@ -505,15 +575,15 @@ public class ItemNameOverlayRenderer {
         }
     }
 
-    private static class GuiScaleCache {
+    public static class GuiScaleCache {
 
-        private int displayWidth = -1;
-        private int displayHeight = -1;
-        private int setting;
-        private boolean unicode;
-        private int scaleFactor;
+        public int displayWidth = -1;
+        public int displayHeight = -1;
+        public int setting;
+        public boolean unicode;
+        public int scaleFactor;
 
-        private int getScaleFactor(Minecraft minecraft) {
+        public int getScaleFactor(Minecraft minecraft) {
             final boolean currentUnicode = minecraft.func_152349_b();
             if (displayWidth != minecraft.displayWidth || displayHeight != minecraft.displayHeight
                     || setting != minecraft.gameSettings.guiScale
@@ -528,25 +598,25 @@ public class ItemNameOverlayRenderer {
         }
     }
 
-    private static class LayoutKey {
+    public static class LayoutKey {
 
-        private FontRenderer font;
-        private String text;
-        private int width;
-        private int height;
-        private int fontHeight;
-        private float glyphScaleX;
-        private float glyphScaleY;
-        private float glyphSpacing;
-        private float whitespaceScale;
-        private boolean unicode;
-        private int hash;
+        public FontRenderer font;
+        public String text;
+        public int width;
+        public int height;
+        public int fontHeight;
+        public float glyphScaleX;
+        public float glyphScaleY;
+        public float glyphSpacing;
+        public float whitespaceScale;
+        public boolean unicode;
+        public int hash;
 
-        private LayoutKey(FontRenderer font, String text, int width, int height, boolean unicode) {
+        public LayoutKey(FontRenderer font, String text, int width, int height, boolean unicode) {
             set(font, text, width, height, unicode);
         }
 
-        private LayoutKey(LayoutKey key) {
+        public LayoutKey(LayoutKey key) {
             this.font = key.font;
             this.text = key.text;
             this.width = key.width;
@@ -560,7 +630,7 @@ public class ItemNameOverlayRenderer {
             this.hash = key.hash;
         }
 
-        private void set(FontRenderer font, String text, int width, int height, boolean unicode) {
+        public void set(FontRenderer font, String text, int width, int height, boolean unicode) {
             this.font = font;
             this.text = text;
             this.width = width;
