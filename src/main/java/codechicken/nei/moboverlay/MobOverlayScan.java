@@ -61,9 +61,9 @@ public final class MobOverlayScan {
     private int nextRescanColumn;
     private int modesVersion;
     private int chunkSpan;
-    // indexed by `findChunk()`. The version of a chunk column changes when a cell in or beside the chunk column
-    // changes, and when an edge of the box moves into, out of, within or across the chunk column. A full scan and a
-    // vertical move change the version of every chunk column
+    // The version of a chunk column changes when a cell in or beside the chunk column changes, and when an edge of the
+    // box moves into, out of, within or across the chunk column. A full scan and a vertical move change the version of
+    // every chunk column
     private int[] chunkVersions = new int[0];
     private int chunkVersionCount;
     private boolean hasModes;
@@ -189,10 +189,6 @@ public final class MobOverlayScan {
         return (byte) (cell & SPAWN_MODE_MASK);
     }
 
-    /**
-     * Return the height of the overlay above the bottom of the block. The overlay is above the top of a flat block such
-     * as a carpet.
-     */
     public static double computeOverlayYOffset(byte cell) {
         final double OVERLAY_GAP = 0.02;
         return (double) (cell >> COVER_TOP_SHIFT) / COVER_TOP_STEPS + OVERLAY_GAP;
@@ -321,10 +317,6 @@ public final class MobOverlayScan {
         return isChanged;
     }
 
-    /**
-     * A move changes the connected outlines of the edge cells on the trailing and the leading side of the box.
-     * {@link MobOverlayFace#isJoined} doesn't outline a cell's side toward the outside of the box.
-     */
     private void markMovedEdgeChunks(int oldMin, int offset, Axis moveAxis) {
         final int lowFrom = Math.min(oldMin, oldMin + offset);
         final int lowTo = Math.max(oldMin, oldMin + offset);
@@ -332,10 +324,6 @@ public final class MobOverlayScan {
         markStripChunks(lowFrom + span - 1, lowTo + span - 1, moveAxis);
     }
 
-    /**
-     * Mark the chunk columns of blocks {@code from} to {@code to} along the move. The marked chunk columns span the box
-     * across the move.
-     */
     private void markStripChunks(int from, int to, Axis moveAxis) {
         final int acrossMin = switch (moveAxis) {
             case X -> minZ;
@@ -427,8 +415,8 @@ public final class MobOverlayScan {
                 return 0;
             }
 
-            // vanilla `SpawnerAnimals.canCreatureTypeSpawnAtLocation()` rejects a normal cube in the cell. Test the
-            // block before the light read
+            // vanilla `SpawnerAnimals.canCreatureTypeSpawnAtLocation()` rejects a normal cube in the cell (such as the
+            // inside of a stone block). Test the block before the light read
             if (chunk.getBlock(x & 15, y, z & 15).isNormalCube()) return 0;
 
             if (chunk.getSavedLightValue(EnumSkyBlock.Block, x & 15, y, z & 15) >= 8 || !SpawnerAnimals
@@ -454,10 +442,6 @@ public final class MobOverlayScan {
             return (byte) (chunk.getSavedLightValue(EnumSkyBlock.Sky, x & 15, y, z & 15) >= 8 ? 1 : 2);
         }
 
-        /**
-         * Return the top of the block at height {@code y} in units of 1 / {@link MobOverlayScan#COVER_TOP_STEPS} block.
-         * Return 0 for a tall block.
-         */
         private int readCoverTop(int y) {
             final double MAX_COVER_TOP = 0.25;
             final Block block = chunk.getBlock(x & 15, y, z & 15);

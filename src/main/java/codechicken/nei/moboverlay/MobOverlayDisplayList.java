@@ -28,11 +28,6 @@ public final class MobOverlayDisplayList {
     private long compiledTicks;
     private int compilingChunk;
 
-    /**
-     * Compiles after a {@link MobOverlayScan#getModesVersion} change are debounced to one per {@code MIN_COMPILE_TICKS}
-     * ticks, because the version changes several times per second while the player moves fast, and a compile runs for a
-     * millisecond or more.
-     */
     public boolean isCompileDue(int currentModesVersion, MobOverlayStyle currentStyle, long worldTicks) {
         final int MIN_COMPILE_TICKS = 5;
         if (firstListId == NO_LIST || style != currentStyle) return true;
@@ -53,12 +48,6 @@ public final class MobOverlayDisplayList {
         anchorZ = scan.getMinZ();
     }
 
-    /**
-     * Start the list of chunk column ({@code chunkX}, {@code chunkZ}). The quad positions in the list are relative to
-     * block ({@code chunkX * 16}, {@link MobOverlayScan#getMinY}, {@code chunkZ * 16}).
-     *
-     * @return false when the chunk column's list is current. {@code beginChunk} doesn't start a list then
-     */
     public boolean beginChunk(MobOverlayScan scan, int chunkX, int chunkZ) {
         final int chunk = scan.findChunk(chunkX, chunkZ);
         final int chunkVersion = scan.readChunkVersion(chunkX, chunkZ);
@@ -104,11 +93,13 @@ public final class MobOverlayDisplayList {
     }
 
     private void resize(int newChunkSpan) {
-        delete();
-        chunkSpan = newChunkSpan;
         final int chunkCount = newChunkSpan * newChunkSpan;
+        delete();
+
+        chunkSpan = newChunkSpan;
         firstListId = GLAllocation.generateDisplayLists(chunkCount + 1);
         parentListId = firstListId + chunkCount;
+
         isCompiled = new boolean[chunkCount];
         hasFaces = new boolean[chunkCount];
         compiledChunkVersion = new int[chunkCount];
