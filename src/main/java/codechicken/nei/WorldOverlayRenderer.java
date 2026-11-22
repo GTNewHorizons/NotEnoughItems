@@ -30,7 +30,6 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     private static final MobOverlayScan MOB_OVERLAY_SCAN = new MobOverlayScan();
     private static final MobOverlayFace MARKED_FACE = new MobOverlayFace();
     private static final MobOverlayDisplayList MOB_OVERLAY_LIST = new MobOverlayDisplayList();
-    // the cells of one column, reused by each compile
     private static final byte[] COLUMN_CELLS = new byte[2 * MobOverlayScan.MAX_VERTICAL_RADIUS + 1];
 
     public static void reset() {
@@ -113,8 +112,7 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
     }
 
     /**
-     * Add a marked face to {@link #MOB_OVERLAY_LIST} for each block of {@link #MOB_OVERLAY_SCAN} where mobs can spawn,
-     * in the chunk columns whose cells changed.
+     * Add a marked face to {@link #MOB_OVERLAY_LIST} for each block of {@link #MOB_OVERLAY_SCAN} where mobs can spawn.
      */
     private static void compileMobOverlayList(MobOverlayStyle style, long worldTicks) {
         MOB_OVERLAY_LIST.beginCompile(MOB_OVERLAY_SCAN, style, worldTicks);
@@ -133,7 +131,6 @@ public class WorldOverlayRenderer implements IKeyStateTracker {
         MOB_OVERLAY_LIST.endCompile();
     }
 
-    /** @return whether the chunk column has a marked face */
     private static boolean compileChunkFaces(MobOverlayStyle style, int chunkX, int chunkZ) {
         final int CHUNK_WIDTH = 1 << MobOverlayScan.CHUNK_SHIFT;
         final float alpha = style.computeAlpha();

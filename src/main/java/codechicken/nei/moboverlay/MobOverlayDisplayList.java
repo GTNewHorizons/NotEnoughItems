@@ -7,17 +7,13 @@ import net.minecraft.client.renderer.GLAllocation;
 import org.lwjgl.opengl.GL11;
 
 /**
- * The mob spawn overlay quads, compiled into one GL display list for each chunk column that overlaps the box of a
- * {@link MobOverlayScan}. A compile rebuilds only the lists of the chunk columns whose
- * {@link MobOverlayScan#readChunkVersion} changed. A parent list calls the chunk-column lists, so a draw is one
- * {@code glCallList()}.
+ * The mob spawn overlay quads, in one GL display list for each chunk column of the box of a {@link MobOverlayScan}. A
+ * compile rebuilds only the lists whose {@link MobOverlayScan#readChunkVersion} changed.
  */
 public final class MobOverlayDisplayList {
 
     private static final int NO_LIST = -1;
 
-    // the first of `chunkSpan * chunkSpan` lists, in the order of the ring of `MobOverlayScan.readChunkVersion()`, then
-    // the parent list
     private int firstListId = NO_LIST;
     private int parentListId = NO_LIST;
     private boolean hasParentList;
@@ -29,7 +25,6 @@ public final class MobOverlayDisplayList {
     private boolean[] hasFaces = new boolean[0];
     private int[] compiledChunkX = new int[0];
     private int[] compiledChunkZ = new int[0];
-    private int[] compiledMinY = new int[0];
     private int[] compiledChunkVersion = new int[0];
     private int modesVersion;
     private MobOverlayStyle style;
@@ -50,11 +45,6 @@ public final class MobOverlayDisplayList {
         return modesVersion != currentModesVersion && isWaitOver;
     }
 
-    /**
-     * Start a compile of {@code scan}. After this call, {@link #beginChunk} and {@link #endChunk} compile each chunk
-     * column of the box, and {@link #endCompile} compiles the parent list. The lists of the chunk columns outside the
-     * box are not drawn.
-     */
     public void beginCompile(MobOverlayScan scan, MobOverlayStyle newStyle, long worldTicks) {
         if (chunkSpan != scan.getChunkSpan()) resize(scan.getChunkSpan());
         if (style != newStyle) Arrays.fill(isCompiled, false);
@@ -78,9 +68,9 @@ public final class MobOverlayDisplayList {
 
     /**
      * Start the list of chunk column ({@code chunkX}, {@code chunkZ}), with quad positions relative to block ({@code
-     * chunkX * 16}, {@link MobOverlayScan#getMinY}, {@code chunkZ * 16}) of {@code scan}.
+     * chunkX * 16}, {@link MobOverlayScan#getMinY}, {@code chunkZ * 16}).
      *
-     * @return false, with no list started, when the list is compiled for the chunk column's version
+     * @return false, with no list started, when the chunk column's list is current
      */
     public boolean beginChunk(MobOverlayScan scan, int chunkX, int chunkZ) {
         final int chunk = Math.floorMod(chunkX, chunkSpan) * chunkSpan + Math.floorMod(chunkZ, chunkSpan);
@@ -93,7 +83,6 @@ public final class MobOverlayDisplayList {
         isCompiled[chunk] = true;
         compiledChunkX[chunk] = chunkX;
         compiledChunkZ[chunk] = chunkZ;
-        compiledMinY[chunk] = scan.getMinY();
         compiledChunkVersion[chunk] = chunkVersion;
         compilingChunk = chunk;
         GL11.glNewList(firstListId + chunk, GL11.GL_COMPILE);
@@ -105,7 +94,6 @@ public final class MobOverlayDisplayList {
         hasFaces[compilingChunk] = hasChunkFaces;
     }
 
-    /** Compile the parent list, with positions relative to the box's minimum corner at {@link #beginCompile}. */
     public void endCompile() {
         GL11.glNewList(parentListId, GL11.GL_COMPILE);
         for (int chunk = 0; chunk < isCompiled.length; chunk++) {
@@ -114,7 +102,7 @@ public final class MobOverlayDisplayList {
             GL11.glPushMatrix();
             GL11.glTranslated(
                     (compiledChunkX[chunk] << MobOverlayScan.CHUNK_SHIFT) - anchorX,
-                    compiledMinY[chunk] - anchorY,
+                    0,
                     (compiledChunkZ[chunk] << MobOverlayScan.CHUNK_SHIFT) - anchorZ);
             GL11.glCallList(firstListId + chunk);
             GL11.glPopMatrix();
@@ -154,7 +142,6 @@ public final class MobOverlayDisplayList {
         hasFaces = new boolean[chunkCount];
         compiledChunkX = new int[chunkCount];
         compiledChunkZ = new int[chunkCount];
-        compiledMinY = new int[chunkCount];
         compiledChunkVersion = new int[chunkCount];
     }
 }

@@ -59,9 +59,7 @@ public final class MobOverlayScan {
     // the slice rescan of `update()` continues from this column, numbered `(x - minX) * span + (z - minZ)`
     private int nextRescanColumn;
     private int modesVersion;
-    // chunk columns per side of the ring `chunkVersions`, enough for every chunk column that overlaps the box
     private int chunkSpan;
-    // indexed by `findChunk()`
     private int[] chunkVersions = new int[0];
     private int chunkVersionCount;
     private boolean hasModes;
@@ -127,7 +125,6 @@ public final class MobOverlayScan {
         return modesVersion;
     }
 
-    /** Chunk columns per side of the ring of {@link #readChunkVersion}. */
     public int getChunkSpan() {
         return chunkSpan;
     }
@@ -152,10 +149,7 @@ public final class MobOverlayScan {
         return minZ;
     }
 
-    /**
-     * The version changes when a cell of the chunk column or of a column beside the chunk column changes, and when the
-     * box moves.
-     */
+    /** The version changes when a cell in or beside the chunk column changes, and when the box moves. */
     public int readChunkVersion(int chunkX, int chunkZ) {
         return chunkVersions[findChunk(chunkX, chunkZ)];
     }
@@ -167,8 +161,6 @@ public final class MobOverlayScan {
 
     /**
      * Copy the cells of column ({@code i}, {@code j}) to {@code columnCells}, from the bottom of the box to the top.
-     * {@link #extractSpawnMode} and {@link #computeOverlayYOffset} read a cell. The indices are those of
-     * {@link #readSpawnMode}.
      */
     public void readColumn(int i, int j, byte[] columnCells) {
         final int columnStart = findColumn(minX + i, minZ + j) * height;
@@ -310,22 +302,27 @@ public final class MobOverlayScan {
     }
 
     /**
-     * Mark the chunk columns of the box's edge before and after a move of {@code offset} blocks along x, or along z
-     * when {@code isAlongX} is false, and of the columns that enter or leave the box. No outline is drawn between an
-     * edge cell of the box and a cell outside the box, so a move changes the outlines of the edge cells.
+     * No outline is drawn between an edge cell of the box and a cell outside the box, so a move changes the outlines of
+     * the edge cells.
      */
     private void markMovedEdgeChunks(int oldMin, int offset, boolean isAlongX) {
         final int lowFrom = Math.min(oldMin, oldMin + offset);
         final int lowTo = Math.max(oldMin, oldMin + offset);
         final int highFrom = lowFrom + span - 1;
         final int highTo = lowTo + span - 1;
-        final int acrossFrom = isAlongX ? minZ : minX;
-        for (int across = acrossFrom >> CHUNK_SHIFT; across <= (acrossFrom + span - 1) >> CHUNK_SHIFT; across++) {
-            for (int along = lowFrom >> CHUNK_SHIFT; along <= lowTo >> CHUNK_SHIFT; along++) {
-                markChunk(isAlongX ? along : across, isAlongX ? across : along);
-            }
-            for (int along = highFrom >> CHUNK_SHIFT; along <= highTo >> CHUNK_SHIFT; along++) {
-                markChunk(isAlongX ? along : across, isAlongX ? across : along);
+        if (isAlongX) {
+            markChunks(lowFrom, lowTo, minZ, minZ + span - 1);
+            markChunks(highFrom, highTo, minZ, minZ + span - 1);
+        } else {
+            markChunks(minX, minX + span - 1, lowFrom, lowTo);
+            markChunks(minX, minX + span - 1, highFrom, highTo);
+        }
+    }
+
+    private void markChunks(int fromX, int toX, int fromZ, int toZ) {
+        for (int chunkX = fromX >> CHUNK_SHIFT; chunkX <= toX >> CHUNK_SHIFT; chunkX++) {
+            for (int chunkZ = fromZ >> CHUNK_SHIFT; chunkZ <= toZ >> CHUNK_SHIFT; chunkZ++) {
+                markChunk(chunkX, chunkZ);
             }
         }
     }
@@ -400,9 +397,8 @@ public final class MobOverlayScan {
                 return 0;
             }
 
-            // `SpawnerAnimals.canCreatureTypeSpawnAtLocation()` rejects a normal cube in the cell for a monster. Most
-            // cells below the surface are a normal cube. Test the block here, with no light reads and no reads of the
-            // blocks above and below the cell
+            // vanilla `SpawnerAnimals.canCreatureTypeSpawnAtLocation()` rejects a normal cube in the cell. Test the
+            // block before the light read
             if (chunk.getBlock(x & 15, y, z & 15).isNormalCube()) return 0;
 
             if (chunk.getSavedLightValue(EnumSkyBlock.Block, x & 15, y, z & 15) >= 8 || !SpawnerAnimals
