@@ -111,6 +111,7 @@ public class RecipeChainDetails {
 
     public final Map<Integer, BookmarkChainItem> calculatedItems = new HashMap<>();
     public final Map<Integer, RecipeId> itemToRecipe = new HashMap<>();
+    public final Map<RecipeId, List<Integer>> recipeToItems = new HashMap<>();
     public final Set<RecipeId> outputRecipes = new HashSet<>();
     public final Set<RecipeId> recipeInMiddle = new HashSet<>();
 
@@ -124,6 +125,7 @@ public class RecipeChainDetails {
         }
 
         this.itemToRecipe.clear();
+        this.recipeToItems.clear();
         this.outputRecipes.clear();
         this.recipeInMiddle.clear();
         this.calculatedItems.clear();
@@ -178,6 +180,10 @@ public class RecipeChainDetails {
                 }
             }
 
+        }
+
+        for (Map.Entry<Integer, RecipeId> entry : this.itemToRecipe.entrySet()) {
+            this.recipeToItems.computeIfAbsent(entry.getValue(), recipeId -> new ArrayList<>()).add(entry.getKey());
         }
 
         for (Map.Entry<Integer, BookmarkItem> entry : chainItems.entrySet()) {

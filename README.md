@@ -75,7 +75,7 @@ All items that match `filter` will show your information page. See `config/NEI/c
 
 #### Item Information Config File
 
-If you're a modpack creator and want to make custom item information pages, they can easily be added in `config/NEI/informationpages.cfg`, which has a few more examples.
+If you're a modpack creator and want to make custom item information pages, they can easily be added in `config/NEI/informationpages.cfg`, which has a few more examples. The file is not created automatically: use the Export button in the NEI options under Tools > Default Config Files to copy the defaults to `config/NEI`.
 
 ## Other items of note:
 

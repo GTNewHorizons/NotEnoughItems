@@ -15,6 +15,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.storage.SaveFormatComparator;
 import net.minecraftforge.common.MinecraftForge;
@@ -43,7 +44,9 @@ import codechicken.nei.config.GuiHighlightTips;
 import codechicken.nei.config.GuiNEIOptionList;
 import codechicken.nei.config.GuiOptionList;
 import codechicken.nei.config.GuiPanelSettings;
+import codechicken.nei.config.OptionButton;
 import codechicken.nei.config.OptionCycled;
+import codechicken.nei.config.OptionExportConfig;
 import codechicken.nei.config.OptionGamemodes;
 import codechicken.nei.config.OptionIntegerField;
 import codechicken.nei.config.OptionList;
@@ -54,7 +57,8 @@ import codechicken.nei.config.OptionToggleButtonBoubs;
 import codechicken.nei.config.OptionUtilities;
 import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
-import codechicken.nei.recipe.GuiRecipeTab;
+import codechicken.nei.moboverlay.MobOverlayScan;
+import codechicken.nei.moboverlay.MobOverlayStyle;
 import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
@@ -67,6 +71,7 @@ public class NEIClientConfig {
     private static boolean pluginNEIConfigLoaded;
     private static boolean enabledOverride;
     private static String worldPath;
+    private static final String CHEAT_MODE_KEY = "cheatmode";
 
     public static Logger logger = LogManager.getLogger("NotEnoughItems");
     public static File configDir = new File(CommonUtils.getMinecraftDir(), "config/NEI/");
@@ -156,6 +161,16 @@ public class NEIClientConfig {
         API.addOption(new OptionCycled("inventory.cheatmode", 3) {
 
             @Override
+            public int value() {
+                return getCheatMode();
+            }
+
+            @Override
+            public void setValue(int value) {
+                setCheatMode(value);
+            }
+
+            @Override
             public boolean optionValid(int index) {
                 return getLockedMode() == -1 || getLockedMode() == index && NEIInfo.isValidMode(index);
             }
@@ -242,10 +257,6 @@ public class NEIClientConfig {
         tag.getTag("inventory.guirecipe.cycledIngredientsTooltip").setComment("Show cycled ingredients tooltip")
                 .getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.guirecipe.cycledIngredientsTooltip", true));
-
-        tag.getTag("inventory.guirecipe.creativeTabStyle").setComment("Creative or JEI style tabs")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.guirecipe.creativeTabStyle", true));
 
         tag.getTag("inventory.guirecipe.itemPresenceOverlay").setComment("Item presence overlay on ?-hover")
                 .getIntValue(1);
@@ -433,6 +444,46 @@ public class NEIClientConfig {
         tag.getTag("world.overlays.lock").getBooleanValue(true);
         API.addOption(new OptionToggleButton("world.overlays.lock", true));
 
+        tag.getTag("world.overlays.mobOverlayStyle")
+                .setComment("Mark on each block of the mob spawn overlay: " + MobOverlayStyle.formatAllNames())
+                .getValue(MobOverlayStyle.DEFAULT.formatName());
+        API.addOption(new OptionCycled("world.overlays.mobOverlayStyle", MobOverlayStyle.values().length, true) {
+
+            @Override
+            public int value() {
+                return MobOverlayStyle.parseStyle(getTag().getValue()).ordinal();
+            }
+
+            @Override
+            public void setValue(int value) {
+                getTag().setValue(MobOverlayStyle.values()[value].formatName());
+            }
+
+            @Override
+            public String getButtonText() {
+                return translateN(
+                        "world.overlays.mobOverlayStyle."
+                                + MobOverlayStyle.parseStyle(getTag().getValue()).formatName());
+            }
+        });
+
+        tag.getTag("world.overlays.mobOverlayRadius")
+                .setComment("Blocks scanned on each side of the player by the mob spawn overlay")
+                .getIntValue(MobOverlayScan.DEFAULT_RADIUS);
+        API.addOption(
+                new OptionIntegerField(
+                        "world.overlays.mobOverlayRadius",
+                        MobOverlayScan.MIN_RADIUS,
+                        MobOverlayScan.MAX_RADIUS));
+        tag.getTag("world.overlays.mobOverlayVerticalRadius")
+                .setComment("Blocks scanned above and below the player by the mob spawn overlay")
+                .getIntValue(MobOverlayScan.DEFAULT_VERTICAL_RADIUS);
+        API.addOption(
+                new OptionIntegerField(
+                        "world.overlays.mobOverlayVerticalRadius",
+                        MobOverlayScan.MIN_VERTICAL_RADIUS,
+                        MobOverlayScan.MAX_VERTICAL_RADIUS));
+
         tag.getTag("inventory.itempanelScale").getIntValue(100);
         ItemsPanelGrid.updateScale();
         API.addOption(new OptionIntegerField("inventory.itempanelScale", 1, 1000) {
@@ -489,10 +540,6 @@ public class NEIClientConfig {
         tag.getTag("inventory.showItemQuantityWidget").setComment("Show Item Quantity Widget").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.showItemQuantityWidget", true));
 
-        tag.getTag("inventory.optimize_gui_overlap_computation").setComment("Optimize computation for GUI overlap")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("inventory.optimize_gui_overlap_computation", true));
-
         tag.getTag("inventory.autocrafting").setComment("Autocrafting").getBooleanValue(true);
         API.addOption(new OptionToggleButton("inventory.autocrafting", true));
 
@@ -514,29 +561,32 @@ public class NEIClientConfig {
 
         });
 
-        tag.getTag("tools.handler_load_from_config").setComment("ADVANCED: Load handlers from config")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("tools.handler_load_from_config", true) {
+        API.addOption(
+                new OptionButton(
+                        "tools.export_configs.all",
+                        "tools.export_configs.all",
+                        null,
+                        "tools.export_configs.all.tip") {
 
-            @Override
-            public boolean onClick(int button) {
-                super.onClick(button);
-                GuiRecipeTab.loadHandlerInfo();
-                return true;
-            }
-        });
+                    @Override
+                    public String getButtonText() {
+                        return translateN("tools.export_configs.button");
+                    }
 
-        tag.getTag("tools.catalyst_load_from_config").setComment("ADVANCED: Load catalysts from config")
-                .getBooleanValue(false);
-        API.addOption(new OptionToggleButton("tools.catalyst_load_from_config", true) {
+                    @Override
+                    public boolean onClick(int button) {
+                        int exported = 0;
 
-            @Override
-            public boolean onClick(int button) {
-                super.onClick(button);
-                RecipeCatalysts.loadCatalystInfo();
-                return true;
-            }
-        });
+                        for (String resource : ClientHandler.DEFAULT_CONFIGS) {
+                            if (ClientHandler.exportDefaultConfig(resource)) exported++;
+                        }
+
+                        NEIClientUtils.printChatMessage(
+                                new ChatComponentTranslation("nei.options.tools.export_configs.all.done", exported));
+                        return true;
+                    }
+                });
+        ClientHandler.DEFAULT_CONFIGS.forEach(fileName -> API.addOption(new OptionExportConfig(fileName)));
 
         setDefaultKeyBindings();
     }
@@ -545,13 +595,8 @@ public class NEIClientConfig {
         OptionList.setOptionList(new OptionList("nei.options") {
 
             @Override
-            public ConfigSet globalConfigSet() {
+            public ConfigSet configSet() {
                 return global;
-            }
-
-            @Override
-            public ConfigSet worldConfigSet() {
-                return world;
             }
 
             @Override
@@ -560,8 +605,8 @@ public class NEIClientConfig {
             }
 
             @Override
-            public GuiOptionList getGui(GuiScreen parent, OptionList list, boolean world) {
-                return new GuiNEIOptionList(parent, list, world);
+            public GuiOptionList getGui(GuiScreen parent, OptionList list) {
+                return new GuiNEIOptionList(parent, list);
             }
         });
     }
@@ -928,15 +973,15 @@ public class NEIClientConfig {
                 specificDir.mkdirs();
             }
 
-            world = new ConfigSet(new File(specificDir, "NEI.dat"), new ConfigFile(new File(specificDir, "NEI.cfg")));
+            world = new ConfigSet(new File(specificDir, "NEI.dat"));
 
             if (newWorld && Minecraft.getMinecraft().isSingleplayer() && getLockedMode() == -1) {
-                final int globalMode = global.config.getTag("inventory.cheatmode").getIntValue();
+                final int globalMode = getCheatMode();
                 final int worldMode = Math
                         .min(globalMode, NEIClientUtils.mc().playerController.isInCreativeMode() ? 2 : 0);
 
                 if (worldMode != globalMode) {
-                    world.config.getTag("inventory.cheatmode").setIntValue(worldMode);
+                    setCheatMode(worldMode);
                 }
             }
 
@@ -950,9 +995,6 @@ public class NEIClientConfig {
     }
 
     private static void onWorldLoad() {
-        world.config.setComment(
-                "World based configuration of NEI.\nMost of these options can be changed ingame.\nDeleting any element will restore it to it's default value");
-
         setWorldDefaults();
         creativeInv = new ItemStack[54];
         LayoutManager.searchField.setText(getSearchExpression());
@@ -1058,14 +1100,8 @@ public class NEIClientConfig {
 
     }
 
-    public static boolean isWorldSpecific(String setting) {
-        if (world == null) return false;
-        ConfigTag tag = world.config.getTag(setting, false);
-        return tag != null && tag.value != null;
-    }
-
     public static ConfigTag getSetting(String s) {
-        return isWorldSpecific(s) ? world.config.getTag(s) : global.config.getTag(s);
+        return global.config.getTag(s);
     }
 
     public static boolean getBooleanSetting(String s) {
@@ -1154,20 +1190,12 @@ public class NEIClientConfig {
         return getIntSetting("inventory.guirecipe.jeiStyleRecipeCatalyst");
     }
 
-    public static boolean useCreativeTabStyle() {
-        return getBooleanSetting("inventory.guirecipe.creativeTabStyle");
-    }
-
     public static boolean ignorePotionOverlap() {
         return getBooleanSetting("inventory.bookmarks.ignorePotionOverlap");
     }
 
     public static boolean craftingTreeZoomWithoutModifier() {
         return getBooleanSetting("inventory.bookmarks.craftingTreeZoomWithoutModifier");
-    }
-
-    public static boolean optimizeGuiOverlapComputation() {
-        return getBooleanSetting("inventory.optimize_gui_overlap_computation");
     }
 
     public static boolean showCycledIngredientsTooltip() {
@@ -1190,14 +1218,6 @@ public class NEIClientConfig {
         return mainNEIConfigLoaded && pluginNEIConfigLoaded;
     }
 
-    public static boolean loadHandlersFromJar() {
-        return !getBooleanSetting("tools.handler_load_from_config");
-    }
-
-    public static boolean loadCatalystsFromJar() {
-        return !getBooleanSetting("tools.catalyst_load_from_config");
-    }
-
     public static boolean isProfileRecipeEnabled() {
         return NEIClientConfig.getBooleanSetting("inventory.guirecipe.profile");
     }
@@ -1211,12 +1231,18 @@ public class NEIClientConfig {
     }
 
     public static int getCheatMode() {
+        if (world != null && world.nbt.hasKey(CHEAT_MODE_KEY)) return world.nbt.getInteger(CHEAT_MODE_KEY);
         return getIntSetting("inventory.cheatmode");
+    }
+
+    public static void setCheatMode(int mode) {
+        if (world != null) world.nbt.setInteger(CHEAT_MODE_KEY, mode);
+        else setIntSetting("inventory.cheatmode", mode);
     }
 
     public static boolean canChangeCheatMode() {
         if (getLockedMode() != -1) {
-            setIntSetting("inventory.cheatmode", getLockedMode());
+            setCheatMode(getLockedMode());
             return false;
         }
 

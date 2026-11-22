@@ -9,9 +9,12 @@ import static codechicken.nei.NEIClientConfig.invCreativeMode;
 import static codechicken.nei.NEIClientConfig.world;
 
 import java.awt.Color;
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.math.RoundingMode;
+import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.MessageFormat;
@@ -26,6 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
@@ -63,6 +67,8 @@ import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.NEIKeyboardUtils;
 
 public class NEIClientUtils extends NEIServerUtils {
+
+    private static final Set<String> REPORTED = ConcurrentHashMap.newKeySet();
 
     public static class Alignment {
 
@@ -637,6 +643,31 @@ public class NEIClientUtils extends NEIServerUtils {
         if (isLighting) GL11.glEnable(GL11.GL_LIGHTING);
         if (isDepthTest) GL11.glEnable(GL11.GL_DEPTH_TEST);
         if (!isAlphaTest) GL11.glDisable(GL11.GL_ALPHA_TEST);
+    }
+
+    public static void errorOnce(String key, String message, Throwable error) {
+        if (REPORTED.add(key)) {
+            NEIClientConfig.logger.error(message, error);
+        }
+    }
+
+    public static void warnOnce(String key, String message) {
+        if (REPORTED.add(key)) {
+            NEIClientConfig.logger.warn(message);
+        }
+    }
+
+    public static boolean backupFile(File file) {
+        final File backup = new File(file.getAbsolutePath() + ".backup-" + System.currentTimeMillis());
+
+        try {
+            Files.copy(file.toPath(), backup.toPath());
+            NEIClientConfig.logger.info("Backed up file {} to {}", file, backup);
+            return true;
+        } catch (IOException e) {
+            NEIClientConfig.logger.error("Failed to backup file {} to {}", file, backup, e);
+            return false;
+        }
     }
 
 }

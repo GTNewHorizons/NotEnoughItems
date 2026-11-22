@@ -1,7 +1,6 @@
 package codechicken.nei.search;
 
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import net.minecraft.util.EnumChatFormatting;
@@ -16,9 +15,6 @@ import codechicken.nei.SearchTokenParser;
 import codechicken.nei.SearchTokenParser.ISearchParserProvider;
 
 public class SearchExpressionFormatVisitor extends AbstractSearchExpressionVisitor<String> {
-
-    private static final Pattern REGEX_ESCAPED_SPACE_PATTERN = Pattern.compile("([^\\\\](?:\\\\\\\\)+)?\\\\ ");
-    private static final Pattern ESCAPED_SPACE_PATTERN = Pattern.compile("\\\\ ");
 
     public SearchExpressionFormatVisitor(SearchTokenParser searchParser) {
         super(searchParser);
@@ -35,7 +31,7 @@ public class SearchExpressionFormatVisitor extends AbstractSearchExpressionVisit
 
     @Override
     public String visitPrefixedExpression(SearchExpressionParser.PrefixedExpressionContext ctx) {
-        final EnumChatFormatting format = getFormatting(ctx.prefix, null);
+        final EnumChatFormatting format = getFormatting(ctx, ctx.prefix, null);
         return format + String.valueOf(ctx.prefix) + visitToken(ctx.token());
     }
 
@@ -66,19 +62,19 @@ public class SearchExpressionFormatVisitor extends AbstractSearchExpressionVisit
             cleanText = ctx.plainText().getText();
             // Unescape spaces
             if (spaceModeEnabled == 1) {
-                cleanText = ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll(" ");
+                cleanText = SearchExpressionUtils.ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll(" ");
             }
-            final EnumChatFormatting format = getFormatting(prefix, EnumChatFormatting.RESET);
+            final EnumChatFormatting format = getFormatting(ctx, prefix, EnumChatFormatting.RESET);
             return format + cleanText;
         } else if (ctx.regex() != null) {
             cleanText = visitRegex(ctx.regex());
             if (spaceModeEnabled == 1) {
-                cleanText = REGEX_ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll("$1 ");
+                cleanText = SearchExpressionUtils.REGEX_ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll("$1 ");
             }
         } else if (ctx.quoted() != null) {
             cleanText = visitQuoted(ctx.quoted());
             if (spaceModeEnabled == 1) {
-                cleanText = ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll(" ");
+                cleanText = SearchExpressionUtils.ESCAPED_SPACE_PATTERN.matcher(cleanText).replaceAll(" ");
             }
         }
         return cleanText;
@@ -91,7 +87,7 @@ public class SearchExpressionFormatVisitor extends AbstractSearchExpressionVisit
                     // check if highlight is defined for the token
                     Optional.ofNullable(SearchExpressionUtils.getHighlight(type))
                             // check if highlight is defined for the prefix
-                            .orElse(getFormatting(prefix, null))
+                            .orElse(getFormatting(child, prefix, null))
             // use default highlight otherwise
             ).map(EnumChatFormatting::toString).orElse("");
 
@@ -108,9 +104,16 @@ public class SearchExpressionFormatVisitor extends AbstractSearchExpressionVisit
         return defaultResult();
     }
 
-    private EnumChatFormatting getFormatting(Character prefix, EnumChatFormatting defaultFormatting) {
+    private static boolean isRecipeText(ParseTree node) {
+        while (node != null && !(node instanceof SearchExpressionParser.SearchExpressionContext)) {
+            node = node.getParent();
+        }
+        return node != null && ((SearchExpressionParser.SearchExpressionContext) node).type == 4;
+    }
+
+    private EnumChatFormatting getFormatting(ParseTree node, Character prefix, EnumChatFormatting defaultFormatting) {
         if (prefix != null) {
-            if (prefix == '\0') {
+            if (prefix == '\0' || isRecipeText(node)) {
                 return EnumChatFormatting.RESET;
             }
             final ISearchParserProvider provider = searchParser.getProvider(prefix);

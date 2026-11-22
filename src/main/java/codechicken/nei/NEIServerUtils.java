@@ -4,12 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.zip.ZipException;
 
@@ -507,20 +504,6 @@ public class NEIServerUtils {
     public static StringBuilder fixTrailingCommaList(StringBuilder sb) {
         if (sb.charAt(sb.length() - 1) == ',') sb.deleteCharAt(sb.length() - 1);
         return sb;
-    }
-
-    public static void logOnce(Throwable t, Set<String> stackTraces, String message) {
-        logOnce(t, stackTraces, message, "");
-    }
-
-    public static void logOnce(Throwable t, Set<String> stackTraces, String message, String identifier) {
-        StringWriter sw = new StringWriter();
-        t.printStackTrace(new PrintWriter(sw));
-        String stackTrace = identifier + sw.toString();
-        if (!stackTraces.contains(stackTrace)) {
-            NEIServerConfig.logger.error(message, t);
-            stackTraces.add(stackTrace);
-        }
     }
 
     public static ItemStack getModdedItem(String itemId, String nbtString) {

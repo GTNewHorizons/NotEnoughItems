@@ -9,6 +9,7 @@ import codechicken.nei.api.IRecipeFilter;
 import codechicken.nei.api.ItemFilter;
 import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.IRecipeHandler;
+import codechicken.nei.recipe.RecipeRole;
 
 public class RecipeFilter implements IRecipeFilter {
 
@@ -16,7 +17,8 @@ public class RecipeFilter implements IRecipeFilter {
 
         ANY,
         INPUT,
-        OUTPUT;
+        OUTPUT,
+        AUXILIARY;
 
         public static FilterContext fromChar(char c) {
             switch (c) {
@@ -24,6 +26,8 @@ public class RecipeFilter implements IRecipeFilter {
                     return INPUT;
                 case '>':
                     return OUTPUT;
+                case '^':
+                    return AUXILIARY;
                 default:
                     return ANY;
             }
@@ -44,21 +48,18 @@ public class RecipeFilter implements IRecipeFilter {
     public boolean matches(IRecipeHandler handler, int recipeIndex) {
 
         if ((this.context == FilterContext.ANY || this.context == FilterContext.INPUT)
-                && matchPositionedStack(handler.getIngredientStacks(recipeIndex), this.anyMatch)) {
+                && matchPositionedStack(handler.getSearchStacks(recipeIndex, RecipeRole.INPUT), this.anyMatch)) {
             return this.anyMatch;
         }
 
-        if (this.context == FilterContext.ANY || this.context == FilterContext.OUTPUT) {
-            final PositionedStack result = handler.getResultStack(recipeIndex);
+        if ((this.context == FilterContext.ANY || this.context == FilterContext.OUTPUT)
+                && matchPositionedStack(handler.getSearchStacks(recipeIndex, RecipeRole.OUTPUT), this.anyMatch)) {
+            return this.anyMatch;
+        }
 
-            if (result != null && matchPositionedStack(result) == this.anyMatch) {
-                return this.anyMatch;
-            }
-
-            if (matchPositionedStack(handler.getOtherStacks(recipeIndex), this.anyMatch)) {
-                return this.anyMatch;
-            }
-
+        if ((this.context == FilterContext.ANY || this.context == FilterContext.AUXILIARY)
+                && matchPositionedStack(handler.getSearchStacks(recipeIndex, RecipeRole.AUXILIARY), this.anyMatch)) {
+            return this.anyMatch;
         }
 
         return !this.anyMatch;

@@ -5,8 +5,8 @@ import net.minecraft.client.gui.GuiYesNoCallback;
 
 public class GuiNEIOptionList extends GuiOptionList implements GuiYesNoCallback {
 
-    public GuiNEIOptionList(GuiScreen parent, OptionList optionList, boolean world) {
-        super(parent, optionList, world);
+    public GuiNEIOptionList(GuiScreen parent, OptionList optionList) {
+        super(parent, optionList);
     }
 
     @Override

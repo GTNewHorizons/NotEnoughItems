@@ -127,7 +127,7 @@ public abstract class OptionStringSet extends Option {
     }
 
     public List<String> values() {
-        return Arrays.asList(renderTag().getValue().replace(" ", "").split(","));
+        return Arrays.asList(getTag().getValue().replace(" ", "").split(","));
     }
 
     public int buttonX() {

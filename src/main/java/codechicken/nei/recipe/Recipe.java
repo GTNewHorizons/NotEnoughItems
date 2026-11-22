@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import net.minecraft.item.Item;
@@ -65,19 +66,11 @@ public class Recipe {
 
         public static RecipeId of(IRecipeHandler handler, int recipeIndex, List<PositionedStack> ingredients) {
             final String handlerName = GuiRecipeTab.getHandlerInfo(handler).getHandlerName();
-            PositionedStack pStackResult = handler.getResultStack(recipeIndex);
+            final PositionedStack result = getMainResult(
+                    handler.getResultStacks(recipeIndex),
+                    pStack -> pStack.items[0]);
 
-            if (pStackResult == null) {
-                for (PositionedStack otherStack : handler.getOtherStacks(recipeIndex)) {
-                    if (!FluidContainerRegistry.isContainer(otherStack.items[0])
-                            || StackInfo.getFluid(otherStack.items[0]) != null) {
-                        pStackResult = otherStack;
-                        break;
-                    }
-                }
-            }
-
-            return new RecipeId(extractItem(pStackResult), handlerName, extractIngredients(ingredients));
+            return new RecipeId(extractItem(result), handlerName, extractIngredients(ingredients));
         }
 
         public static RecipeId of(JsonObject json) {
@@ -404,12 +397,8 @@ public class Recipe {
             ingredients.add(RecipeIngredient.of(positionedStack));
         }
 
-        if (handler.getResultStack(recipeIndex) != null) {
-            results.add(RecipeIngredient.of(handler.getResultStack(recipeIndex)));
-        } else {
-            for (PositionedStack positionedStack : handler.getOtherStacks(recipeIndex)) {
-                results.add(RecipeIngredient.of(positionedStack));
-            }
+        for (PositionedStack positionedStack : handler.getResultStacks(recipeIndex)) {
+            results.add(RecipeIngredient.of(positionedStack));
         }
 
         return new Recipe(handlerName, ingredients, results);
@@ -494,18 +483,8 @@ public class Recipe {
             return null;
         }
 
-        if (stack == null && this.results.length > 1) {
-            for (RecipeIngredient ingr : this.results) {
-                if (!FluidContainerRegistry.isContainer(ingr.getItemStack())
-                        || StackInfo.getFluid(ingr.getItemStack()) != null) {
-                    stack = ingr.getItemStack();
-                    break;
-                }
-            }
-        }
-
         if (stack == null) {
-            stack = this.results[0].getItemStack();
+            stack = getMainResult(getResults(), RecipeIngredient::getItemStack).getItemStack();
         }
 
         int stackSize = 0;
@@ -517,6 +496,19 @@ public class Recipe {
         }
 
         return StackInfo.withAmount(stack, stackSize);
+    }
+
+    public static <T> T getMainResult(List<T> results, Function<T, ItemStack> stackOf) {
+
+        for (T result : results) {
+            final ItemStack stack = stackOf.apply(result);
+
+            if (!FluidContainerRegistry.isContainer(stack) || StackInfo.getFluid(stack) != null) {
+                return result;
+            }
+        }
+
+        return results.isEmpty() ? null : results.get(0);
     }
 
     public RecipeId getRecipeId() {
