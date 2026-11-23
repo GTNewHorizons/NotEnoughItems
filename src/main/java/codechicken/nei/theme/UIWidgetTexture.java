@@ -2,7 +2,6 @@ package codechicken.nei.theme;
 
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.scroll.ScrollBar;
-import codechicken.nei.scroll.ScrollBar.OverflowType;
 import codechicken.nei.scroll.ScrollBar.ScrollType;
 
 public final class UIWidgetTexture {
@@ -34,14 +33,13 @@ public final class UIWidgetTexture {
     private UIWidgetTexture() {}
 
     public static ScrollBar verticalScrollBar() {
-        return new ScrollBar().setTrackWidth(SCROLL_TRACK_WIDTH).setOverflowType(OverflowType.SCROLL)
-                .setTrackTexture(SCROLL_V_TRACK).setThumbTexture(SCROLL_V_THUMB).setThumbPadding(1, 1, 1, 1);
+        return new ScrollBar().setTrackWidth(SCROLL_TRACK_WIDTH).setTrackTexture(SCROLL_V_TRACK)
+                .setThumbTexture(SCROLL_V_THUMB).setThumbPadding(1, 1, 1, 1);
     }
 
     public static ScrollBar horizontalScrollBar() {
         return new ScrollBar().setScrollType(ScrollType.HORIZONTAL).setTrackWidth(SCROLL_TRACK_WIDTH)
-                .setOverflowType(OverflowType.SCROLL).setTrackTexture(SCROLL_H_TRACK).setThumbTexture(SCROLL_H_THUMB)
-                .setThumbPadding(1, 1, 1, 1);
+                .setTrackTexture(SCROLL_H_TRACK).setThumbTexture(SCROLL_H_THUMB).setThumbPadding(1, 1, 1, 1);
     }
 
 }
