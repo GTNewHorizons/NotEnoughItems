@@ -18,6 +18,7 @@ import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.scroll.ScrollBar;
 import codechicken.nei.scroll.ScrollContainer;
+import codechicken.nei.theme.UIWidgetTexture;
 
 public class GuiRecipeCatalyst extends ScrollContainer {
 
@@ -68,7 +69,7 @@ public class GuiRecipeCatalyst extends ScrollContainer {
     private static final DrawableResource FG_TEXTURE = new DrawableBuilder("nei:textures/slot.png", 0, 0, 18, 18)
             .setTextureSize(18, 18).setSlices(1, 1, 1, 1).build();
 
-    private static final ScrollBar VERTICAL_SCROLLBAR = ScrollBar.defaultVerticalBar()
+    private static final ScrollBar VERTICAL_SCROLLBAR = UIWidgetTexture.verticalScrollBar()
             .setOverflowType(ScrollBar.OverflowType.AUTO).setTrackPadding(0, BORDER_PADDING, -13, BORDER_PADDING)
             .setScrollPlace(ScrollBar.ScrollPlace.START);
 
