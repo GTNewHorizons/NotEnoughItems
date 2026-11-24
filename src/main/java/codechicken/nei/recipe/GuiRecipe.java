@@ -59,6 +59,7 @@ import codechicken.nei.scroll.ScrollBar.OverflowType;
 import codechicken.nei.scroll.ScrollBar.ScrollPlace;
 import codechicken.nei.scroll.ScrollContainer;
 import codechicken.nei.search.SearchExpressionUtils;
+import codechicken.nei.theme.UIWidgetTexture;
 import codechicken.nei.util.EmptyContainer;
 import codechicken.nei.util.SlotInaccessible;
 
@@ -533,7 +534,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
             if (!this.handlerInfo.isAllowOverflowX() && this.handlerInfo.getWidth() > this.xSize - 6) {
                 this.container.setPaddingInline(0, 2);
-                this.container.setHorizontalScroll(ScrollBar.defaultHorizontalBar().setTrackPadding(1, 0, 1, 0));
+                this.container.setHorizontalScroll(UIWidgetTexture.horizontalScrollBar().setTrackPadding(1, 0, 1, 0));
             } else {
                 this.container.setPaddingInline(0, 0);
                 this.container.setHorizontalScroll(null);
@@ -545,7 +546,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 this.container.setVerticalScroll(VERTICAL_SCROLLBAR);
             } else {
                 this.container.setVerticalScroll(
-                        ScrollBar.defaultVerticalBar().setOverflowType(OverflowType.OVERLAY)
+                        UIWidgetTexture.verticalScrollBar().setOverflowType(OverflowType.OVERLAY)
                                 .setTrackPadding(-8, 0, 0, 0));
             }
         }
