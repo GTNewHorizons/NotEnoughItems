@@ -59,6 +59,7 @@ import codechicken.nei.scroll.ScrollBar.OverflowType;
 import codechicken.nei.scroll.ScrollBar.ScrollPlace;
 import codechicken.nei.scroll.ScrollContainer;
 import codechicken.nei.search.SearchExpressionUtils;
+import codechicken.nei.theme.UIWidgetTexture;
 import codechicken.nei.util.EmptyContainer;
 import codechicken.nei.util.SlotInaccessible;
 
@@ -111,6 +112,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private Rectangle pageArea = new Rectangle();
 
     private int lastPage = -1;
+    private int catalystsVersion = -1;
     private final GuiRecipeTabs recipeTabs;
     private final GuiRecipeCatalyst recipeCatalyst;
     private SearchRecipeHandler<H> handler;
@@ -549,7 +551,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
 
             if (!this.handlerInfo.isAllowOverflowX() && this.handlerInfo.getWidth() > this.xSize - 6) {
                 this.container.setPaddingInline(0, 2);
-                this.container.setHorizontalScroll(ScrollBar.defaultHorizontalBar().setTrackPadding(1, 0, 1, 0));
+                this.container.setHorizontalScroll(UIWidgetTexture.horizontalScrollBar().setTrackPadding(1, 0, 1, 0));
             } else {
                 this.container.setPaddingInline(0, 0);
                 this.container.setHorizontalScroll(null);
@@ -561,12 +563,16 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
                 this.container.setVerticalScroll(VERTICAL_SCROLLBAR);
             } else {
                 this.container.setVerticalScroll(
-                        ScrollBar.defaultVerticalBar().setOverflowType(OverflowType.OVERLAY)
+                        UIWidgetTexture.verticalScrollBar().setOverflowType(OverflowType.OVERLAY)
                                 .setTrackPadding(-8, 0, 0, 0));
             }
         }
 
-        this.recipeCatalyst.setCatalysts(RecipeCatalysts.getRecipeCatalysts(this.handler.original));
+        if (this.catalystsVersion != RecipeCatalysts.getVersion()) {
+            this.catalystsVersion = RecipeCatalysts.getVersion();
+            this.recipeCatalyst.setCatalysts(RecipeCatalysts.getRecipeCatalysts(this.handler.original));
+        }
+
         this.container.update();
     }
 
@@ -597,6 +603,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         this.recipetype = (this.currenthandlers.size() + idx) % this.currenthandlers.size();
         this.handler = new SearchRecipeHandler<>(this.currenthandlers.get(this.recipetype));
         this.handlerInfo = GuiRecipeTab.getHandlerInfo(this.handler.original);
+        this.catalystsVersion = RecipeCatalysts.getVersion();
+        this.recipeCatalyst.setCatalysts(RecipeCatalysts.getRecipeCatalysts(this.handler.original));
         updateContainerSize();
         this.handlerPages = new RecipePageManager(this.handler, this.handlerInfo, this.container);
         this.prevpage.enabled = this.nextpage.enabled = this.handlerPages.getNumPages() > 1;

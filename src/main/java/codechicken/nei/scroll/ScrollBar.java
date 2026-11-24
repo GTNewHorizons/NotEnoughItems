@@ -6,8 +6,8 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.NEIClientUtils;
-import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.theme.UIWidgetTexture;
 
 public class ScrollBar {
 
@@ -59,21 +59,14 @@ public class ScrollBar {
         return new ScrollBar();
     }
 
+    @Deprecated
     public static ScrollBar defaultVerticalBar() {
-        return new ScrollBar().setTrackWidth(8).setTrackTexture(
-                new DrawableBuilder("nei:textures/nei_sprites.png", 29, 95, 8, 11).setSlices(0, 0, 3, 4).build())
-                .setThumbTexture(
-                        new DrawableBuilder("nei:textures/nei_sprites.png", 22, 96, 6, 9).setSlices(0, 0, 3, 2).build())
-                .setThumbPadding(1, 1, 1, 1);
+        return UIWidgetTexture.verticalScrollBar();
     }
 
+    @Deprecated
     public static ScrollBar defaultHorizontalBar() {
-        return new ScrollBar().setTrackWidth(8).setOverflowType(OverflowType.SCROLL)
-                .setTrackTexture(
-                        new DrawableBuilder("nei:textures/nei_sprites.png", 0, 97, 11, 8).setSlices(3, 4, 0, 0).build())
-                .setThumbTexture(
-                        new DrawableBuilder("nei:textures/nei_sprites.png", 12, 98, 9, 6).setSlices(3, 2, 0, 0).build())
-                .setThumbPadding(1, 1, 1, 1);
+        return UIWidgetTexture.horizontalScrollBar();
     }
 
     /**
