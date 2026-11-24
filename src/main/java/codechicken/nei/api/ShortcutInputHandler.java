@@ -21,6 +21,7 @@ import codechicken.nei.BookmarkContainerInfo;
 import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemQuantityField;
+import codechicken.nei.ItemStackAmount;
 import codechicken.nei.KeyManager;
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
@@ -717,7 +718,7 @@ public abstract class ShortcutInputHandler {
 
     private static void autocraftingIgnoreInventory(RecipeChainMath math) {
         final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
-        final List<ItemStack> playerInventory = AutoCraftingManager.getInventoryItems(guiContainer).values();
+        final List<ItemStack> playerInventory = ItemStackAmount.of(guiContainer).values();
         final RecipeId rootRecipeId = math.createMasterRoot();
 
         for (int i = 0; i < math.recipeIngredients.size(); i++) {

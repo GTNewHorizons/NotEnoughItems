@@ -538,6 +538,40 @@ public class NEIClientUtils extends NEIServerUtils {
         return null;
     }
 
+    public static int countMissingIngredients(List<PositionedStack> ingredients, Map<Item, List<ItemStack>> index,
+            int limit) {
+        Map<ItemStack, Integer> usedItems = new HashMap<>();
+        int missing = 0;
+
+        for (PositionedStack pStack : ingredients) {
+            ItemStack used = null;
+
+            for (ItemStack permutation : pStack.items) {
+                final List<ItemStack> candidates = index.get(permutation.getItem());
+
+                if (candidates == null) continue;
+
+                for (ItemStack is : candidates) {
+                    if (usedItems.getOrDefault(is, is.stackSize) >= pStack.item.stackSize
+                            && NEIServerUtils.areStacksSameTypeCrafting(permutation, is)) {
+                        used = is;
+                        break;
+                    }
+                }
+
+                if (used != null) break;
+            }
+
+            if (used != null) {
+                usedItems.put(used, usedItems.getOrDefault(used, used.stackSize) - pStack.item.stackSize);
+            } else if (++missing >= limit) {
+                return missing;
+            }
+        }
+
+        return missing;
+    }
+
     public static boolean altKey() {
         return Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU);
     }
