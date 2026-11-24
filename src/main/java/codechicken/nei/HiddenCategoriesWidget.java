@@ -4,6 +4,8 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.StatCollector;
 
 import org.lwjgl.opengl.GL11;
@@ -110,9 +112,13 @@ public class HiddenCategoriesWidget extends Button {
     private static class Dropdown extends GuiScrollSlot {
 
         private boolean visible = false;
-        private final int panelWidth;
         private final Widget parent;
         private List<ItemCategories.Category> categories = Collections.emptyList();
+
+        private static final int ROW_PADDING = 4;
+        private static final int MIN_WIDTH = 100;
+        private static final int MAX_WIDTH = 200;
+        private static final int MAX_HEIGHT = 100;
 
         private static final DrawableResource EYE_OPEN = new DrawableBuilder(
                 "nei:textures/nei_sprites.png",
@@ -129,14 +135,9 @@ public class HiddenCategoriesWidget extends Button {
 
         public Dropdown(Widget parent) {
             super(0, 0, 0, 0);
-            this.panelWidth = calculateDropdownWidth();
             this.parent = parent;
 
             this.zLevel = GuiContainerManager.drawItems.zLevel + 100;
-        }
-
-        private int calculateDropdownWidth() {
-            return 100;
         }
 
         public void toggle() {
@@ -149,14 +150,30 @@ public class HiddenCategoriesWidget extends Button {
         }
 
         private void recalculateLayout() {
-            int width = panelWidth;
-            int height = Math.min(contentHeight(), 100);
+            FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
+
+            int textWidth = 0;
+            for (ItemCategories.Category category : categories) {
+                textWidth = Math.max(textWidth, fr.getStringWidth(StatCollector.translateToLocal(category.nameKey)));
+            }
+
+            int height = Math.min(contentHeight(), MAX_HEIGHT);
+
             int scrollbarWidth = scrollbarDim().width;
+            boolean needsScrollbar = contentHeight() > height;
+
+            int width = textOffset() + textWidth + ROW_PADDING + (needsScrollbar ? scrollbarWidth : 0);
 
             Rectangle4i p = parent.bounds();
-            setSize(p.x2() - width, p.y2() + 2, width, height);
+            int maxWidth = Math.min(MAX_WIDTH, p.x2() - 2);
+            width = Math.max(MIN_WIDTH, Math.min(width, maxWidth));
 
-            setMargins(0, 0, hasScrollbar() ? scrollbarWidth : 0, 0);
+            setSize(p.x2() - width, p.y2() + 2, width, height);
+            setMargins(0, 0, needsScrollbar ? scrollbarWidth : 0, 0);
+        }
+
+        private static int textOffset() {
+            return 2 + EYE_OPEN.width + 4;
         }
 
         public boolean isVisible() {
