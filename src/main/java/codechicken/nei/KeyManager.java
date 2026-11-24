@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -30,7 +31,9 @@ public class KeyManager {
     private static final Map<String, KeyBinding> keyBindings = new HashMap<>();
     private static final Map<String, String> keyAliases = new HashMap<>();
     private static volatile boolean pendingOptionsReload = false;
-    private static int clickedButton = -1;
+
+    private static final int NO_INPUT_EVENT = Integer.MIN_VALUE;
+    private static int currentEvent = NO_INPUT_EVENT;
 
     static {
         // Aliases for legacy keybinds
@@ -70,16 +73,22 @@ public class KeyManager {
 
     public static boolean isKeyDown(String ident) {
         final KeyBinding binding = getKeyBinding(ident);
+        if (binding == null) {
+            return false;
+        }
 
-        if (binding != null) {
-            final int keyCode = binding.getKeyCode();
+        final int keyCode = binding.getKeyCode();
+        if (currentEvent != NO_INPUT_EVENT) {
+            return keyCode == currentEvent;
+        }
 
-            if (keyCode < 0) {
-                final int button = keyCode + 100;
-                return Mouse.isButtonDown(button) || button == clickedButton;
-            } else if (keyCode > Keyboard.KEY_NONE && keyCode < Keyboard.KEYBOARD_SIZE) {
-                return Keyboard.isKeyDown(keyCode);
-            }
+        if (keyCode < 0) {
+            final int button = keyCode + 100;
+            return Mouse.isButtonDown(button);
+        }
+
+        if (keyCode > Keyboard.KEY_NONE && keyCode < Keyboard.KEYBOARD_SIZE) {
+            return Keyboard.isKeyDown(keyCode);
         }
 
         return false;
@@ -97,6 +106,23 @@ public class KeyManager {
         return false;
     }
 
+    private static <T> T withEvent(int code, Supplier<T> handler) {
+        final int previous = currentEvent;
+        currentEvent = code;
+        try {
+            return handler.get();
+        } finally {
+            currentEvent = previous;
+        }
+    }
+
+    public static void handleKeyEvent(int keyCode, Runnable handler) {
+        withEvent(keyCode, () -> {
+            handler.run();
+            return null;
+        });
+    }
+
     /**
      * Runs a hotkey handler for a click of the given mouse button if the button is bound to any NEI key binding. The
      * button is reported as down by {@link #isKeyDown} for the duration of the call, because the LWJGL button state can
@@ -109,14 +135,7 @@ public class KeyManager {
             return false;
         }
 
-        final int previous = clickedButton;
-        clickedButton = button;
-
-        try {
-            return handler.getAsBoolean();
-        } finally {
-            clickedButton = previous;
-        }
+        return withEvent(button - 100, handler::getAsBoolean);
     }
 
     public static boolean isHashDown(String ident) {
