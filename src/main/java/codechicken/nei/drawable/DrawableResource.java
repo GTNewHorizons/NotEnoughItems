@@ -220,8 +220,9 @@ public class DrawableResource extends Image {
 
         final float scaleU = 1.0F / this.textureWidth;
         final float scaleV = 1.0F / this.textureHeight;
-        final int x = xOffset + this.paddingLeft;
-        final int y = yOffset + this.paddingTop;
+        // 1/64 shift keeps pixel centers off texel edges, where NEAREST picks a texel at random when downscaled
+        final double x = xOffset + this.paddingLeft + 1 / 64d;
+        final double y = yOffset + this.paddingTop + 1 / 64d;
         final float u0 = (this.x + u) * scaleU;
         final float u1 = (this.x + u + width) * scaleU;
         final float v0 = (this.y + v) * scaleV;
