@@ -937,9 +937,11 @@ public class GuiContainerManager {
     }
 
     public void keyTyped(char c, int k) {
-        if (firstKeyTyped(c, k)) return;
+        KeyManager.handleKeyEvent(k, () -> {
+            if (firstKeyTyped(c, k)) return;
 
-        callKeyTyped(window, c, k);
+            callKeyTyped(window, c, k);
+        });
     }
 
     private static void callKeyTyped(GuiContainer window, char c, int k) {
