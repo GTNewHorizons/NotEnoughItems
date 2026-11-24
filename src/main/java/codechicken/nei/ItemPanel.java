@@ -156,6 +156,13 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
         hiddenCategoriesButton.h = pageNext.h;
         hiddenCategoriesButton.y = pageNext.y;
         hiddenCategoriesButton.x = anchor.x - hiddenCategoriesButton.w - 2;
+
+        // Re-center the page label
+        Widget rightmostFree = !ItemCategories.isEmpty() ? hiddenCategoriesButton : anchor;
+        int left = pagePrev.x + pagePrev.w;
+        int right = rightmostFree.x;
+        pageLabel.x = left + (right - left) / 2;
+
         return marginTop;
     }
 
