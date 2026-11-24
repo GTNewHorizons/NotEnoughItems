@@ -112,6 +112,7 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
     private Rectangle pageArea = new Rectangle();
 
     private int lastPage = -1;
+    private int catalystsVersion = -1;
     private final GuiRecipeTabs recipeTabs;
     private final GuiRecipeCatalyst recipeCatalyst;
     private SearchRecipeHandler<H> handler;
@@ -550,7 +551,11 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
             }
         }
 
-        this.recipeCatalyst.setCatalysts(RecipeCatalysts.getRecipeCatalysts(this.handler.original));
+        if (this.catalystsVersion != RecipeCatalysts.getVersion()) {
+            this.catalystsVersion = RecipeCatalysts.getVersion();
+            this.recipeCatalyst.setCatalysts(RecipeCatalysts.getRecipeCatalysts(this.handler.original));
+        }
+
         this.container.update();
     }
 
@@ -581,6 +586,8 @@ public abstract class GuiRecipe<H extends IRecipeHandler> extends GuiContainer i
         this.recipetype = (this.currenthandlers.size() + idx) % this.currenthandlers.size();
         this.handler = new SearchRecipeHandler<>(this.currenthandlers.get(this.recipetype));
         this.handlerInfo = GuiRecipeTab.getHandlerInfo(this.handler.original);
+        this.catalystsVersion = RecipeCatalysts.getVersion();
+        this.recipeCatalyst.setCatalysts(RecipeCatalysts.getRecipeCatalysts(this.handler.original));
         updateContainerSize();
         this.handlerPages = new RecipePageManager(this.handler, this.handlerInfo, this.container);
         this.prevpage.enabled = this.nextpage.enabled = this.handlerPages.getNumPages() > 1;

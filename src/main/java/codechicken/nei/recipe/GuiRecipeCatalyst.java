@@ -1,6 +1,7 @@
 package codechicken.nei.recipe;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.lwjgl.opengl.GL11;
@@ -72,21 +73,22 @@ public class GuiRecipeCatalyst extends ScrollContainer {
             .setOverflowType(ScrollBar.OverflowType.AUTO).setTrackPadding(0, BORDER_PADDING, -13, BORDER_PADDING)
             .setScrollPlace(ScrollBar.ScrollPlace.START);
 
-    private PositionedStack[] items = new PositionedStack[0];
+    private List<PositionedStack> items = Collections.emptyList();
     private boolean showWidget = false;
     private int availableHeight = 0;
+    private int style = -1;
 
     public GuiRecipeCatalyst() {
         setPaddingBlock(BORDER_PADDING + 1, BORDER_PADDING + 1);
     }
 
     public void setCatalysts(List<PositionedStack> items) {
-        this.items = items.toArray(new PositionedStack[0]);
+        this.items = items;
         createWidgets();
     }
 
     public void setAvailableHeight(int height) {
-        if (this.availableHeight != height) {
+        if (this.availableHeight != height || this.style != NEIClientConfig.getJEIStyleRecipeCatalysts()) {
             this.availableHeight = height;
             createWidgets();
         }
@@ -103,14 +105,14 @@ public class GuiRecipeCatalyst extends ScrollContainer {
     public int getColumnCount() {
         if (NEIClientConfig.getJEIStyleRecipeCatalysts() == 1) {
             final int maxItemsPerColumn = Math.max(0, this.availableHeight - 2 - BORDER_PADDING * 2) / SLOT_SIZE;
-            return maxItemsPerColumn > 0 ? NEIServerUtils.divideCeil(this.items.length, maxItemsPerColumn) : 0;
+            return maxItemsPerColumn > 0 ? NEIServerUtils.divideCeil(this.items.size(), maxItemsPerColumn) : 0;
         }
         return 1;
     }
 
     public int getRowCount() {
         final int columnCount = getColumnCount();
-        return columnCount > 0 ? NEIServerUtils.divideCeil(this.items.length, columnCount) : 0;
+        return columnCount > 0 ? NEIServerUtils.divideCeil(this.items.size(), columnCount) : 0;
     }
 
     protected void createWidgets() {
@@ -120,10 +122,11 @@ public class GuiRecipeCatalyst extends ScrollContainer {
         setVerticalScroll(null);
         setPaddingInline(BORDER_PADDING + 1, BORDER_PADDING - 3);
 
+        this.style = NEIClientConfig.getJEIStyleRecipeCatalysts();
         this.h = rows * SLOT_SIZE + this.paddingBlockStart + this.paddingBlockEnd;
         this.w = columns * SLOT_SIZE + this.paddingInlineStart + this.paddingInlineEnd;
 
-        if (NEIClientConfig.getJEIStyleRecipeCatalysts() == 2
+        if (this.style == 2
                 && rows * SLOT_SIZE + this.paddingBlockStart + this.paddingBlockEnd > this.availableHeight) {
             this.h = Math.min(this.h, this.availableHeight);
             this.w += VERTICAL_SCROLLBAR.getTrackWidth();
@@ -135,6 +138,7 @@ public class GuiRecipeCatalyst extends ScrollContainer {
         this.showWidget = rows * columns > 0;
 
         if (rows == 0 || columns == 0) {
+            clear();
             return;
         }
 
