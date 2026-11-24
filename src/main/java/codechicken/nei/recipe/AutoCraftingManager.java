@@ -123,6 +123,11 @@ public class AutoCraftingManager {
         AutoCraftingManager.math = math;
 
         if (AutoCraftingManager.math != null) {
+
+            if (NEIClientUtils.getGuiContainer() instanceof GuiRecipe<?>gui && gui.firstGui != null) {
+                gui.mc.displayGuiScreen(gui.firstGui);
+            }
+
             ItemPanels.bookmarkPanel.clearTooltips();
             math.createMasterRoot();
             task.restart();
