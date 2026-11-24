@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.GuiScreenEvent;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.GuiNEIButton;
+import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.theme.ButtonSkin;
+import codechicken.nei.theme.UIWidgetTexture;
 import cpw.mods.fml.common.eventhandler.Cancelable;
 
 public abstract class GuiRecipeButton extends GuiNEIButton {
@@ -56,6 +60,26 @@ public abstract class GuiRecipeButton extends GuiNEIButton {
     protected GuiRecipeButton(RecipeHandlerRef point, int x, int y, int buttonId, String label) {
         super(buttonId, x, y, BUTTON_WIDTH, BUTTON_HEIGHT, label);
         this.handlerRef = point;
+    }
+
+    protected DrawableResource getIcon() {
+        return null;
+    }
+
+    @Override
+    protected DrawableResource getBackground(int mouseX, int mouseY, boolean mouseOver) {
+        return UIWidgetTexture.BUTTON.background(this.enabled, false, mouseOver);
+    }
+
+    @Override
+    protected void drawContent(Minecraft minecraft, int mouseX, int mouseY, boolean mouseOver) {
+        final DrawableResource icon = getIcon();
+
+        if (icon != null) {
+            ButtonSkin.drawIcon(this.xPosition, this.yPosition, this.width, this.height, icon, this.enabled);
+        } else {
+            super.drawContent(minecraft, mouseX, mouseY, mouseOver);
+        }
     }
 
     public abstract List<String> handleTooltip(List<String> currenttip);
