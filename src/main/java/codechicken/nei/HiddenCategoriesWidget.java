@@ -1,6 +1,7 @@
 package codechicken.nei;
 
-import java.awt.*;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.Collections;
 import java.util.List;
 
