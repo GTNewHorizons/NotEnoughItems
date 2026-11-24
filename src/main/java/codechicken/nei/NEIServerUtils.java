@@ -246,15 +246,23 @@ public class NEIServerUtils {
 
         if (NEIServerUtils.areStacksSameTypeCrafting(stack2, stack1)) {
             if (NBTHelper.matchTag(stack1.getTagCompound(), stack2.getTagCompound())) return true;
-            if (isItemTool(stack1)
-                    && (stack1.stackTagCompound == null || stack1.stackTagCompound.hasKey("GT.ToolStats"))
-                    && (stack2.stackTagCompound == null || stack2.stackTagCompound.hasKey("GT.ToolStats")))
-                return true;
+            if (areStacksSameGTTool(stack1, stack2)) return true;
             return stack1.getMaxStackSize() == 1 && stack2.getMaxStackSize() == 1
                     && (stack1.stackTagCompound == null ^ stack2.stackTagCompound == null);
         }
 
         return false;
+    }
+
+    /**
+     * GT tools keep their wear and stats in the NBT, so two stacks of the same tool match whatever that NBT holds.
+     * Other GT items with NBT, like filled fluid cells, are not tools.
+     *
+     * @return whether both stacks are GT tools, with no NBT or with tool stats in it. The items are not compared.
+     */
+    public static boolean areStacksSameGTTool(ItemStack stack1, ItemStack stack2) {
+        return isItemTool(stack1) && (stack1.stackTagCompound == null || stack1.stackTagCompound.hasKey("GT.ToolStats"))
+                && (stack2.stackTagCompound == null || stack2.stackTagCompound.hasKey("GT.ToolStats"));
     }
 
     /**
