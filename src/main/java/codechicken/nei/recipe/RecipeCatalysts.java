@@ -36,6 +36,11 @@ public class RecipeCatalysts {
     public static final Map<String, List<ItemStack>> catalystsRemoverFromIMC = new HashMap<>();
     private static final Map<String, List<PositionedStack>> recipeCatalystMap = new HashMap<>();
     private static final List<String> forceClassNameList = new ArrayList<>();
+    private static int version = 0;
+
+    public static int getVersion() {
+        return version;
+    }
 
     public static void addRecipeCatalyst(String handlerID, CatalystInfo catalystInfo) {
         if (handlerID == null || handlerID.isEmpty() || catalystInfo.getStack() == null) return;
@@ -69,6 +74,7 @@ public class RecipeCatalysts {
         if (handlerID == null || handlerID.isEmpty()) return;
         catalystsAdderFromAPI.put(handlerID, catalystInfoList);
         recipeCatalystMap.put(handlerID, convertToPositionedStackList(catalystInfoList));
+        version++;
     }
 
     public static List<PositionedStack> getRecipeCatalysts(IRecipeHandler handler) {
@@ -176,6 +182,7 @@ public class RecipeCatalysts {
             recipeCatalystMap.put(entry.getKey(), convertToPositionedStackList(entry.getValue()));
         }
 
+        version++;
     }
 
     private static void resolveAdderQueue(Map<String, CatalystInfoList> recipeCatalystMap) {
