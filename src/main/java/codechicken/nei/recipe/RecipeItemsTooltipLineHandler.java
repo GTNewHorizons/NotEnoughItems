@@ -271,7 +271,7 @@ public class RecipeItemsTooltipLineHandler extends CompositeTooltipLineHandler {
         }
 
         if (screen instanceof GuiContainer container) {
-            return AutoCraftingManager.getInventoryItems(container);
+            return ItemStackAmount.of(container);
         }
 
         return new ItemStackAmount();

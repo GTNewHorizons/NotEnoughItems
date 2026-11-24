@@ -27,7 +27,6 @@ import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
-import codechicken.nei.recipe.AutoCraftingManager;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.HandlerInfo;
@@ -137,7 +136,7 @@ public class RecipeChainTooltipLineHandler extends CompositeTooltipLineHandler {
         final GuiContainer currentGui = NEIClientUtils.getGuiContainer();
 
         if (this.lastShiftKey && currentGui != null && !(currentGui instanceof GuiRecipe<?>)) {
-            inventory.putAll(AutoCraftingManager.getInventoryItems(currentGui));
+            inventory.putAll(ItemStackAmount.of(currentGui));
         }
 
         if (!this.outputRecipes.isEmpty()) {

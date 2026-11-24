@@ -32,7 +32,7 @@ public class AutoCraftingManager {
         public void execute() {
             final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
             final ItemStack[] layout = snapshotLayout(guiContainer);
-            final List<BookmarkItem> initialItems = prepareInitialItems(math, getInventoryItems(guiContainer));
+            final List<BookmarkItem> initialItems = prepareInitialItems(math, ItemStackAmount.of(guiContainer));
             boolean processed = false;
             boolean changed = false;
 
@@ -43,7 +43,7 @@ public class AutoCraftingManager {
                     changed = false;
 
                     RecipeChainIterator iterator = new RecipeChainIterator(math, initialItems);
-                    iterator.updateInventory(getInventoryItems(guiContainer));
+                    iterator.updateInventory(ItemStackAmount.of(guiContainer));
 
                     while (iterator.hasNext() && !interrupted(guiContainer)) {
                         final Map<RecipeId, Long> recipes = iterator.next();
@@ -69,7 +69,7 @@ public class AutoCraftingManager {
                         if (craft) {
                             changed = true;
                             processed = true;
-                            iterator.updateInventory(getInventoryItems(guiContainer));
+                            iterator.updateInventory(ItemStackAmount.of(guiContainer));
                         }
                     }
 
@@ -136,18 +136,6 @@ public class AutoCraftingManager {
 
     public static boolean processing() {
         return AutoCraftingManager.math != null && !task.interrupted();
-    }
-
-    public static ItemStackAmount getInventoryItems(GuiContainer guiContainer) {
-        final ItemStackAmount inventory = new ItemStackAmount();
-
-        for (Slot slot : guiContainer.inventorySlots.inventorySlots) {
-            if (slot.getHasStack() && !(slot instanceof SlotCrafting) && slot.canTakeStack(guiContainer.mc.thePlayer)) {
-                inventory.add(slot.getStack());
-            }
-        }
-
-        return inventory;
     }
 
     private static ItemStack[] snapshotLayout(GuiContainer guiContainer) {
