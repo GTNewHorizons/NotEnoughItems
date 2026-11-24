@@ -424,6 +424,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         dropDown = new SubsetWidget();
         searchField = new SearchField("search");
         API.addItemFilter(searchField);
+        API.addItemFilter(ItemCategories.INSTANCE);
 
         options = new ButtonCycled(3) {
 
@@ -715,6 +716,7 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
     public void load(GuiContainer gui) {
         if (isEnabled()) {
             setInputFocused(null);
+            itemPanel.closePopups();
 
             if (!itemsLoaded) {
                 ItemList.loadItems.restart();
