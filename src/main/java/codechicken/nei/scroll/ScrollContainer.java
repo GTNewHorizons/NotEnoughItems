@@ -3,6 +3,7 @@ package codechicken.nei.scroll;
 import java.awt.Point;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -78,6 +79,16 @@ public class ScrollContainer extends WidgetContainer {
                 y + this.paddingBlockStart,
                 getVisibleWidth(),
                 getVisibleHeight());
+    }
+
+    @Override
+    public void setWidgets(List<Widget> widgets) {
+
+        for (Widget widget : widgets) {
+            this.relativePosition.remove(widget);
+        }
+
+        super.setWidgets(widgets);
     }
 
     @Override

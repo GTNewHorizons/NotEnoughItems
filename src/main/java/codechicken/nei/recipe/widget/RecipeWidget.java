@@ -29,7 +29,6 @@ import codechicken.nei.PositionedStack;
 import codechicken.nei.Widget;
 import codechicken.nei.api.IGuiContainerOverlay;
 import codechicken.nei.api.ShortcutInputHandler;
-import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.AcceptsFollowingTooltipLineHandler;
@@ -44,18 +43,18 @@ import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.RecipeHandlerRef;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.recipe.debug.DebugHandlerWidget;
+import codechicken.nei.theme.UIRecipeTexture;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class RecipeWidget extends Widget {
 
     protected static final int TICKS_PER_CYCLE = 20;
-    protected static final DrawableResource PAUSE_MARKER = new DrawableBuilder(
-            "nei:textures/pinned_pause.png",
-            0,
-            0,
-            8,
-            8).setTextureSize(8, 8).build();
+    protected static final DrawableResource PAUSE_MARKER = UIRecipeTexture.ICON_PAUSE;
     protected static final int PAUSE_MARKER_OFFSET = 1;
+
+    protected static final int BUTTON_GAP = 2;
+    protected static final int BUTTON_SPACING = 2;
+    protected static final int BUTTON_BOTTOM_OFFSET = 6;
 
     protected final RecipeGroup group;
     protected final IRecipeHandler handler;
@@ -63,20 +62,22 @@ public class RecipeWidget extends Widget {
 
     protected final Map<PositionedStack, List<Badge>> badgeCache = new WeakHashMap<>();
     protected final Map<Integer, List<GuiRecipeButton>> buttonCache = new HashMap<>();
+    protected final Map<Integer, List<GuiRecipeButton>> layoutCache = new HashMap<>();
 
     protected AcceptsFollowingTooltipLineHandler acceptsTooltip;
 
+    protected int recipeHeight = 0;
+    protected int spaceRight = 0;
+
+    protected final ViewState state;
+
     protected int activeMember = 0;
-    // single state counter: member = allowed[cycle % size], permutation index = cycle / size
-    protected int cycle = 0;
-    protected int cycleticks = 0;
     protected int lastcycle = -1;
     protected int favoriteRevision = FavoriteRecipes.getRevision();
 
     protected boolean showAsWidget = false;
     protected boolean update = true;
     protected boolean paused = false;
-    protected List<ItemStack> pinnedIngredients = null;
     protected Map<Point, ItemStack> pinnedSlots = Collections.emptyMap();
 
     public RecipeWidget(RecipeHandlerRef handlerRef) {
@@ -84,14 +85,24 @@ public class RecipeWidget extends Widget {
     }
 
     public RecipeWidget(IRecipeHandler handler, List<Integer> recipeIndices) {
-        this(new RecipeGroup(handler, recipeIndices));
+        this(handler, recipeIndices, null);
+    }
+
+    public RecipeWidget(IRecipeHandler handler, List<Integer> recipeIndices, ViewState state) {
+        this(new RecipeGroup(handler, recipeIndices), state);
     }
 
     public RecipeWidget(RecipeGroup group) {
+        this(group, null);
+    }
+
+    public RecipeWidget(RecipeGroup group, ViewState state) {
         this.group = group;
         this.handler = group.getHandler();
         this.handlerInfo = group.getHandlerInfo();
+        this.state = state != null ? state : new ViewState();
         update();
+        restore();
     }
 
     public RecipeHandlerRef getRecipeHandlerRef() {
@@ -106,17 +117,64 @@ public class RecipeWidget extends Widget {
         return this.group.contains(recipeIndex);
     }
 
+    // the state may come from a group with other members, then its cycle no longer fits
+    private void restore() {
+        final int member = this.group.indexOf(this.state.recipeIndex);
+
+        if (member < 0 || this.state.groupSize != this.group.size()) {
+            this.state.cycle = 0;
+        }
+
+        this.state.groupSize = this.group.size();
+
+        // a pause on a recipe hidden by the search stays in the state until the recipe is shown again
+        if (this.state.pausedRecipeIndex >= 0
+                && pinRecipe(this.state.pausedRecipeIndex, this.state.pinnedIngredients)) {
+            return;
+        }
+
+        setActiveMember(Math.max(member, 0));
+        syncCycle();
+    }
+
     public HandlerInfo getHandlerInfo() {
         return this.handlerInfo;
     }
 
-    public void setLocation(int x, int y) {
+    public void setLocation(int x, int y, int spaceRight) {
         this.x = x;
         this.y = y;
+
+        if (this.spaceRight != spaceRight) {
+            this.spaceRight = spaceRight;
+            relayoutButtons();
+        }
+    }
+
+    public void setHeight(int h) {
+        if (this.h != h) {
+            this.h = h;
+            relayoutButtons();
+        }
     }
 
     public void showAsWidget(boolean show) {
         this.showAsWidget = show;
+    }
+
+    @Override
+    public boolean contains(int px, int py) {
+        return super.contains(px, py) || isOverButton(px, py);
+    }
+
+    private boolean isOverButton(int px, int py) {
+        for (GuiRecipeButton button : getRecipeButtonsIfInit()) {
+            if (button.contains(px - this.x, py - this.y)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public boolean isPaused() {
@@ -124,15 +182,16 @@ public class RecipeWidget extends Widget {
     }
 
     public List<ItemStack> getPinnedIngredients() {
-        return this.pinnedIngredients;
+        return this.state.pinnedIngredients;
     }
 
     public void setPaused(boolean paused) {
         final boolean wasPaused = this.paused;
         this.paused = paused && this.group.canCycle();
+        this.state.pausedRecipeIndex = this.paused ? this.state.recipeIndex : -1;
 
         if (!this.paused) {
-            this.pinnedIngredients = null;
+            this.state.pinnedIngredients = null;
             this.pinnedSlots = Collections.emptyMap();
 
             if (wasPaused) {
@@ -160,9 +219,10 @@ public class RecipeWidget extends Widget {
             return false;
         }
 
-        this.pinnedIngredients = ingredients;
+        this.state.pinnedIngredients = ingredients;
         this.pinnedSlots = slots;
         this.paused = true;
+        this.state.pausedRecipeIndex = recipeIndex;
         setActiveMember(member);
         updatePermutations();
 
@@ -219,23 +279,37 @@ public class RecipeWidget extends Widget {
 
     @Override
     public void update() {
+        final int prevW = this.w;
+        final int prevH = this.h;
+        int recipeWidth = 0;
+        this.recipeHeight = 0;
+
+        for (int member = 0; member < this.group.size(); member++) {
+            final int recipe = this.group.getRecipeIndex(member);
+            recipeWidth = Math.max(recipeWidth, this.handler.getRecipeWidth(recipe));
+            this.recipeHeight = Math.max(this.recipeHeight, this.handler.getRecipeHeight(recipe));
+        }
+
+        this.w = recipeWidth > 0 ? recipeWidth : this.handlerInfo.getWidth();
 
         if (this.showAsWidget || !this.handlerInfo.isAllowOverflowY()) {
-            int maxHeight = 0;
+            this.h = getContentHeight();
+        }
 
-            for (int member = 0; member < this.group.size(); member++) {
-                final int recipeHeight = this.handler.getRecipeHeight(this.group.getRecipeIndex(member));
-
-                if (recipeHeight > 0) {
-                    maxHeight = Math.max(maxHeight, recipeHeight);
-                }
-            }
-
-            this.w = Math.max(166, this.handlerInfo.getWidth());
-            this.h = (maxHeight > 0 ? maxHeight : this.handlerInfo.getHeight()) + this.handlerInfo.getYShift();
+        if (this.w != prevW || this.h != prevH) {
+            relayoutButtons();
         }
 
         this.update = true;
+    }
+
+    public int getContentHeight() {
+        return (this.recipeHeight > 0 ? this.recipeHeight : this.handlerInfo.getHeight())
+                + this.handlerInfo.getYShift();
+    }
+
+    private boolean showFavoritesButton() {
+        return NEIClientConfig.favoritesEnabled() && this.handlerInfo.getShowFavoritesButton();
     }
 
     public List<GuiRecipeButton> getRecipeButtons() {
@@ -252,8 +326,55 @@ public class RecipeWidget extends Widget {
             return Collections.emptyList();
         }
 
-        return Collections
-                .unmodifiableList(initButtons(RecipeHandlerRef.of(this.handler, this.group.getRecipeIndex(member))));
+        final List<GuiRecipeButton> buttons = initButtons(
+                RecipeHandlerRef.of(this.handler, this.group.getRecipeIndex(member)));
+        final List<GuiRecipeButton> unplaced = new ArrayList<>();
+
+        // NEI creates its buttons at (0, 0), so anything else was placed by a mod and keeps its position.
+        for (GuiRecipeButton button : buttons) {
+            if (button.xPosition == 0 && button.yPosition == 0) {
+                unplaced.add(button);
+            }
+        }
+
+        this.layoutCache.put(member, unplaced);
+        layoutButtons(unplaced);
+
+        return Collections.unmodifiableList(buttons);
+    }
+
+    private void relayoutButtons() {
+        for (List<GuiRecipeButton> buttons : this.layoutCache.values()) {
+            layoutButtons(buttons);
+        }
+    }
+
+    private void layoutButtons(List<GuiRecipeButton> buttons) {
+        final int top = this.handlerInfo.getYShift();
+        final int bottom = this.h - BUTTON_BOTTOM_OFFSET;
+        int columnX = 0;
+        int columnWidth = 0;
+        int y = bottom;
+
+        for (GuiRecipeButton button : buttons) {
+            if (y != bottom && y - button.height < top) {
+                columnX += columnWidth + BUTTON_SPACING;
+                columnWidth = 0;
+                y = bottom;
+            }
+
+            y -= button.height;
+            button.xPosition = columnX;
+            button.yPosition = y;
+            y -= BUTTON_SPACING;
+            columnWidth = Math.max(columnWidth, button.width);
+        }
+
+        final int left = this.w + Math.min(BUTTON_GAP, this.spaceRight - columnX - columnWidth);
+
+        for (GuiRecipeButton button : buttons) {
+            button.xPosition += left;
+        }
     }
 
     private List<GuiRecipeButton> initButtons(RecipeHandlerRef ref) {
@@ -289,22 +410,17 @@ public class RecipeWidget extends Widget {
     private List<GuiRecipeButton> getDefaultButtons(RecipeHandlerRef ref) {
         GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
         final List<GuiRecipeButton> buttons = new ArrayList<>();
-        final boolean showFavorites = NEIClientConfig.favoritesEnabled() && handlerInfo.getShowFavoritesButton();
-        final boolean showOverlay = handlerInfo.getShowOverlayButton();
-        final int x = Math.min(166, this.w) - GuiRecipeButton.BUTTON_WIDTH;
-        int y = this.h - GuiRecipeButton.BUTTON_HEIGHT - 6;
 
         if (guiContainer instanceof IGuiContainerOverlay overlay) {
             guiContainer = overlay.getFirstScreen();
         }
 
-        if (showOverlay) {
-            buttons.add(new GuiOverlayButton(guiContainer, ref, x, y));
-            y -= GuiRecipeButton.BUTTON_HEIGHT + 1;
+        if (this.handlerInfo.getShowOverlayButton()) {
+            buttons.add(new GuiOverlayButton(guiContainer, ref, 0, 0));
         }
 
-        if (showFavorites) {
-            buttons.add(new GuiFavoriteButton(ref, x, y));
+        if (showFavoritesButton()) {
+            buttons.add(new GuiFavoriteButton(ref, 0, 0));
         }
 
         return buttons;
@@ -318,10 +434,10 @@ public class RecipeWidget extends Widget {
             this.update = false;
 
             if (this.lastcycle == -1) {
-                this.lastcycle = 0;
+                this.lastcycle = this.state.cycleticks / TICKS_PER_CYCLE;
                 applyCycle();
             } else if (tickCycle() && !isCycleFrozen(mouseX, mouseY)) {
-                this.cycle++;
+                this.state.cycle++;
                 applyCycle();
             } else if (this.favoriteRevision != FavoriteRecipes.getRevision()) {
                 this.favoriteRevision = FavoriteRecipes.getRevision();
@@ -733,8 +849,8 @@ public class RecipeWidget extends Widget {
 
     private boolean tickCycle() {
 
-        if ((this.cycleticks++ / TICKS_PER_CYCLE) != this.lastcycle) {
-            this.lastcycle = this.cycleticks / TICKS_PER_CYCLE;
+        if ((this.state.cycleticks++ / TICKS_PER_CYCLE) != this.lastcycle) {
+            this.lastcycle = this.state.cycleticks / TICKS_PER_CYCLE;
             return true;
         }
 
@@ -749,15 +865,14 @@ public class RecipeWidget extends Widget {
 
         return NEIClientConfig.freezeCycleOnHover() && !this.showAsWidget
                 && contains(mouseX, mouseY)
-                && (getPositionedStackMouseOver(mouseX, mouseY) != null
-                        || forEachButtons(button -> button.contains(mouseX, mouseY) ? true : null, false));
+                && (getPositionedStackMouseOver(mouseX, mouseY) != null || isOverButton(mouseX, mouseY));
     }
 
     private void applyCycle() {
 
         if (!this.paused) {
             final List<Integer> allowed = this.group.getAllowedMembers();
-            setActiveMember(allowed.get(this.cycle % allowed.size()));
+            setActiveMember(allowed.get(this.state.cycle % allowed.size()));
         }
 
         this.group.refresh(this.activeMember);
@@ -765,7 +880,7 @@ public class RecipeWidget extends Widget {
     }
 
     private int getPermutationIndex() {
-        return this.cycle / this.group.getAllowedMembers().size();
+        return this.state.cycle / this.group.getAllowedMembers().size();
     }
 
     // keep the permutation index, move the member part of the counter to the active member
@@ -774,7 +889,7 @@ public class RecipeWidget extends Widget {
         final int allowedIndex = allowed.indexOf(this.activeMember);
 
         if (allowedIndex >= 0) {
-            this.cycle = this.cycle / allowed.size() * allowed.size() + allowedIndex;
+            this.state.cycle = this.state.cycle / allowed.size() * allowed.size() + allowedIndex;
         }
     }
 
@@ -823,6 +938,7 @@ public class RecipeWidget extends Widget {
             }
         }
 
+        this.state.recipeIndex = this.group.getRecipeIndex(member);
     }
 
     private boolean containsStack(PositionedStack pStack, ItemStack stack) {

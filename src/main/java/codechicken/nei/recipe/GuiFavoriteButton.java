@@ -11,8 +11,6 @@ import java.util.Set;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 
-import org.lwjgl.opengl.GL11;
-
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.FavoriteRecipes;
@@ -24,28 +22,18 @@ import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.tree.GuiCraftingTree;
-import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.Recipe.RecipeIngredient;
+import codechicken.nei.theme.UIRecipeTexture;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class GuiFavoriteButton extends GuiRecipeButton {
 
     private static final int BUTTON_ID_START = 14;
 
-    protected static final DrawableResource ICON_STATE_OFF = new DrawableBuilder(
-            "nei:textures/nei_sprites.png",
-            10,
-            76,
-            9,
-            10).build();
-    protected static final DrawableResource ICON_STATE_ON = new DrawableBuilder(
-            "nei:textures/nei_sprites.png",
-            19,
-            76,
-            9,
-            10).build();
+    protected static final DrawableResource ICON_STATE_OFF = UIRecipeTexture.ICON_FAVORITE_OFF;
+    protected static final DrawableResource ICON_STATE_ON = UIRecipeTexture.ICON_FAVORITE_ON;
 
     protected final Recipe recipe;
     protected boolean favorite = false;
@@ -94,17 +82,13 @@ public class GuiFavoriteButton extends GuiRecipeButton {
     }
 
     @Override
-    protected void drawContent(Minecraft minecraft, int y, int x, boolean mouseOver) {
-        final DrawableResource icon = isFavorite() ? ICON_STATE_ON : ICON_STATE_OFF;
-        final int iconX = this.xPosition + (this.width - icon.width - 1) / 2;
-        final int iconY = this.yPosition + (this.height - icon.height) / 2;
+    protected DrawableResource getIcon() {
+        return isFavorite() ? ICON_STATE_ON : ICON_STATE_OFF;
+    }
 
-        GL11.glColor4f(1, 1, 1, this.enabled ? 1 : 0.5f);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        icon.draw(iconX, iconY);
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glColor4f(1, 1, 1, 1);
+    @Override
+    protected void drawContent(Minecraft minecraft, int mouseX, int mouseY, boolean mouseOver) {
+        super.drawContent(minecraft, mouseX, mouseY, mouseOver);
 
         if (!mouseOver) {
             this.selectedResult = null;

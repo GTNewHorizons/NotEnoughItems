@@ -13,11 +13,10 @@ import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.Widget;
 import codechicken.nei.api.ShortcutInputHandler;
-import codechicken.nei.drawable.DrawableBuilder;
-import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.scroll.ScrollBar;
 import codechicken.nei.scroll.ScrollContainer;
+import codechicken.nei.theme.UIRecipeTexture;
 import codechicken.nei.theme.UIWidgetTexture;
 
 public class GuiRecipeCatalyst extends ScrollContainer {
@@ -51,26 +50,11 @@ public class GuiRecipeCatalyst extends ScrollContainer {
 
     private static final int SLOT_SIZE = 16;
     private static final int BORDER_PADDING = 6;
-    private static final int TRANSPARENCY_BORDER = 4;
-    private static final DrawableResource BG_TEXTURE = new DrawableBuilder(
-            "nei:textures/catalyst_tab.png",
-            0,
-            0,
-            28 + TRANSPARENCY_BORDER * 2,
-            28 + TRANSPARENCY_BORDER * 2)
-                    .setTextureSize(28 + TRANSPARENCY_BORDER * 2, 28 + TRANSPARENCY_BORDER * 2)
-                    .setSlices(
-                            BORDER_PADDING + TRANSPARENCY_BORDER,
-                            BORDER_PADDING + TRANSPARENCY_BORDER,
-                            BORDER_PADDING + TRANSPARENCY_BORDER,
-                            BORDER_PADDING + TRANSPARENCY_BORDER)
-                    .build();
-
-    private static final DrawableResource FG_TEXTURE = new DrawableBuilder("nei:textures/slot.png", 0, 0, 18, 18)
-            .setTextureSize(18, 18).setSlices(1, 1, 1, 1).build();
+    private static final int COLUMNS_BOTTOM_INSET = 5;
 
     private static final ScrollBar VERTICAL_SCROLLBAR = UIWidgetTexture.verticalScrollBar()
-            .setOverflowType(ScrollBar.OverflowType.AUTO).setTrackPadding(0, BORDER_PADDING, -13, BORDER_PADDING)
+            .setOverflowType(ScrollBar.OverflowType.AUTO)
+            .setTrackPadding(0, BORDER_PADDING - 1, -13, BORDER_PADDING - 1)
             .setScrollPlace(ScrollBar.ScrollPlace.START);
 
     private List<PositionedStack> items = Collections.emptyList();
@@ -79,7 +63,7 @@ public class GuiRecipeCatalyst extends ScrollContainer {
     private int style = -1;
 
     public GuiRecipeCatalyst() {
-        setPaddingBlock(BORDER_PADDING + 1, BORDER_PADDING + 1);
+        setPaddingBlock(BORDER_PADDING, BORDER_PADDING);
     }
 
     public void setCatalysts(List<PositionedStack> items) {
@@ -98,13 +82,15 @@ public class GuiRecipeCatalyst extends ScrollContainer {
         return this.availableHeight;
     }
 
-    public boolean isShowWidget() {
-        return this.showWidget;
+    @Override
+    public boolean isVisible() {
+        return this.showWidget && NEIClientConfig.getJEIStyleRecipeCatalysts() != 0;
     }
 
     public int getColumnCount() {
         if (NEIClientConfig.getJEIStyleRecipeCatalysts() == 1) {
-            final int maxItemsPerColumn = Math.max(0, this.availableHeight - 2 - BORDER_PADDING * 2) / SLOT_SIZE;
+            final int maxItemsPerColumn = Math
+                    .max(0, this.availableHeight - COLUMNS_BOTTOM_INSET - 2 - BORDER_PADDING * 2) / SLOT_SIZE;
             return maxItemsPerColumn > 0 ? NEIServerUtils.divideCeil(this.items.size(), maxItemsPerColumn) : 0;
         }
         return 1;
@@ -120,7 +106,7 @@ public class GuiRecipeCatalyst extends ScrollContainer {
         final int rows = getRowCount();
 
         setVerticalScroll(null);
-        setPaddingInline(BORDER_PADDING + 1, BORDER_PADDING - 3);
+        setPaddingInline(BORDER_PADDING, BORDER_PADDING - 3);
 
         this.style = NEIClientConfig.getJEIStyleRecipeCatalysts();
         this.h = rows * SLOT_SIZE + this.paddingBlockStart + this.paddingBlockEnd;
@@ -132,7 +118,7 @@ public class GuiRecipeCatalyst extends ScrollContainer {
             this.w += VERTICAL_SCROLLBAR.getTrackWidth();
 
             setVerticalScroll(VERTICAL_SCROLLBAR);
-            setPaddingInline(BORDER_PADDING + 1 + VERTICAL_SCROLLBAR.getTrackWidth(), this.paddingInlineEnd);
+            setPaddingInline(this.paddingInlineStart + VERTICAL_SCROLLBAR.getTrackWidth(), this.paddingInlineEnd);
         }
 
         this.showWidget = rows * columns > 0;
@@ -162,12 +148,14 @@ public class GuiRecipeCatalyst extends ScrollContainer {
         if (!this.showWidget) return;
 
         GL11.glColor4f(1, 1, 1, 1);
-        BG_TEXTURE.draw(
-                this.x - TRANSPARENCY_BORDER,
-                this.y - TRANSPARENCY_BORDER,
-                this.w + TRANSPARENCY_BORDER * 2,
-                this.h + TRANSPARENCY_BORDER * 2);
-        FG_TEXTURE.draw(
+
+        if (this.h < this.availableHeight) {
+            UIRecipeTexture.CATALYST_TAB_JOINED.draw(this.x, this.y, this.w, this.h);
+        } else {
+            UIRecipeTexture.CATALYST_TAB.draw(this.x, this.y, this.w, this.h);
+        }
+
+        UIRecipeTexture.CATALYST_SLOT.draw(
                 this.x + this.paddingInlineStart - 1,
                 this.y + this.paddingBlockStart - 1,
                 this.w - this.paddingInlineStart - this.paddingInlineEnd + 2,

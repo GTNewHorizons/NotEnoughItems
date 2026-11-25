@@ -36,6 +36,9 @@ public class HandlerInfo {
     private boolean allowOverflowX = true;
     private boolean allowOverflowY = false;
 
+    private int windowWidth = 0;
+    private boolean recipeSpacing = false;
+
     private ItemStack itemStack = null;
     private DrawableResource image = null;
 
@@ -189,6 +192,22 @@ public class HandlerInfo {
         this.allowOverflowY = allowOverflowY;
     }
 
+    public int getWindowWidth() {
+        return this.windowWidth;
+    }
+
+    public void setWindowWidth(int windowWidth) {
+        this.windowWidth = windowWidth;
+    }
+
+    public boolean isRecipeSpacing() {
+        return this.recipeSpacing;
+    }
+
+    public void setRecipeSpacing(boolean recipeSpacing) {
+        this.recipeSpacing = recipeSpacing;
+    }
+
     public static class Builder {
 
         private final HandlerInfo info;
@@ -293,6 +312,16 @@ public class HandlerInfo {
 
         public Builder setAllowOverflowY(boolean allowOverflowY) {
             this.info.allowOverflowY = allowOverflowY;
+            return this;
+        }
+
+        public Builder setWindowWidth(int windowWidth) {
+            this.info.windowWidth = windowWidth;
+            return this;
+        }
+
+        public Builder setRecipeSpacing(boolean recipeSpacing) {
+            this.info.recipeSpacing = recipeSpacing;
             return this;
         }
 

@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.MinecraftForge;
@@ -26,11 +25,11 @@ import codechicken.nei.ColorUtils;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.Widget;
-import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.event.NEIRegisterHandlerInfosEvent;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.debug.DebugHandlerWidget;
+import codechicken.nei.theme.UIRecipeTexture;
 import cpw.mods.fml.common.Loader;
 
 public abstract class GuiRecipeTab extends Widget {
@@ -44,29 +43,14 @@ public abstract class GuiRecipeTab extends Widget {
     protected final String handlerName;
     protected final String handlerID;
 
-    public static final int TAB_WIDTH = 24;
-    public static final int TAB_HEIGHT = 24;
-    private static final DrawableResource selectedTabImage = new DrawableBuilder(
-            "nei:textures/nei_tabbed_sprites.png",
-            0,
-            16,
-            24,
-            24).build();
-    private static final DrawableResource unselectedTabImage = new DrawableBuilder(
-            "nei:textures/nei_tabbed_sprites.png",
-            24,
-            16,
-            24,
-            24).build();
-
     private boolean selected;
 
     public GuiRecipeTab(IRecipeHandler handler, int x, int y) {
         super();
         this.x = x;
         this.y = y;
-        this.w = TAB_WIDTH;
-        this.h = TAB_HEIGHT;
+        this.w = UIRecipeTexture.TAB_UNSELECTED.getWidth();
+        this.h = UIRecipeTexture.TAB_UNSELECTED.getHeight();
         this.handler = handler;
         this.handlerName = handler.getHandlerId();
         this.selected = false;
@@ -84,21 +68,20 @@ public abstract class GuiRecipeTab extends Widget {
         drawForeground(mouseX, mouseY);
     }
 
-    public void drawBackground(int mouseX, int mouseY) {
+    private void drawBackground(int mouseX, int mouseY) {
+        final DrawableResource image = this.selected ? UIRecipeTexture.TAB_SELECTED : UIRecipeTexture.TAB_UNSELECTED;
+
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glColor4f(1, 1, 1, 1);
-        final DrawableResource image = this.selected ? selectedTabImage : unselectedTabImage;
-        image.draw(this.x, this.y);
+        image.draw(this.x, this.y, this.w, this.h);
     }
 
-    public void drawForeground(int mouseX, int mouseY) {
-        final int iconX = this.x + 4;
-        final int iconY = this.y + 4;
-
-        final FontRenderer fontRenderer = GuiDraw.fontRenderer;
+    private void drawForeground(int mouseX, int mouseY) {
         final HandlerInfo handlerInfo = getHandlerInfo(this.handlerName, this.handlerID);
         final DrawableResource icon = handlerInfo != null ? handlerInfo.getImage() : null;
         final ItemStack itemStack = handlerInfo != null ? handlerInfo.getItemStack() : null;
+        final int iconX = this.x + (this.w - 16) / 2;
+        final int iconY = this.y + this.h - 16 - 6;
 
         if (icon != null) {
             icon.draw(iconX + 1, iconY + 1);
@@ -111,24 +94,17 @@ public abstract class GuiRecipeTab extends Widget {
             if (!isEnabled) GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         } else {
             // Text fallback
+            final int color = this.selected ? ColorUtils.buttonLabelHover.getColor()
+                    : ColorUtils.buttonLabelNormal.getColor();
             String text = this.handler.getRecipeName();
-            if (text != null && text.length() > 0) {
-                if (text.length() > 2) {
-                    text = text.substring(0, 2);
-                }
-            } else {
+
+            if (text == null || text.length() == 0) {
                 text = "??";
+            } else if (text.length() > 2) {
+                text = text.substring(0, 2);
             }
 
-            int textCenterX = this.x + (int) (this.w / 2f);
-            int textCenterY = this.y + (int) (this.h / 2f) - 3;
-            int color = this.selected ? ColorUtils.buttonLabelHover.getColor()
-                    : ColorUtils.buttonLabelNormal.getColor();
-            fontRenderer.drawStringWithShadow(
-                    text,
-                    textCenterX - (int) (fontRenderer.getStringWidth(text) / 2f),
-                    textCenterY,
-                    color);
+            GuiDraw.drawStringC(text, iconX + 8, iconY + 4, color);
             GL11.glColor4f(1, 1, 1, 1);
         }
     }

@@ -125,7 +125,7 @@ public class RecipeJsonWriter {
     }
 
     private static List<Integer> filteredRecipes(IRecipeHandler handler) {
-        return new SearchRecipeHandler<>(handler).getFilteredRecipes();
+        return new SearchRecipeHandler<>(handler, GuiRecipe.getRecipeListFilter()).getFilteredRecipes();
     }
 
     private void writeFile(File file, List<? extends IRecipeHandler> handlers,
