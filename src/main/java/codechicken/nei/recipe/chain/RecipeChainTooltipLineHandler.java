@@ -155,7 +155,7 @@ public class RecipeChainTooltipLineHandler extends CompositeTooltipLineHandler {
                             for (ItemStack stack : items) {
                                 if (stack != null
                                         && NEIClientUtils.areStacksSameTypeCraftingWithNBT(stack, item.itemStack)) {
-                                    amount += StackInfo.getAmount(stack);
+                                    amount += StackInfo.getAmountLong(stack);
                                 }
                             }
 

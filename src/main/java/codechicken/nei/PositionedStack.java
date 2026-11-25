@@ -303,8 +303,9 @@ public class PositionedStack implements Cloneable {
 
             if (fluidStack != null && this.capacity > 0) {
                 tooltip.add(
-                        EnumChatFormatting.GRAY + NEIClientUtils
-                                .translate("recipe.fluid.tank.amount", NEIClientUtils.formatFluid(fluidStack.amount)));
+                        EnumChatFormatting.GRAY + NEIClientUtils.translate(
+                                "recipe.fluid.tank.amount",
+                                NEIClientUtils.formatFluid(StackInfo.getAmountLong(this.item))));
             }
 
             if (customTooltip != null) {

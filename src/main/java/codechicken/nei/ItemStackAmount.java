@@ -34,7 +34,7 @@ public class ItemStackAmount {
     }
 
     public void add(ItemStack item) {
-        add(item, (long) StackInfo.getAmount(item));
+        add(item, StackInfo.getAmountLong(item));
     }
 
     public void add(ItemStack stack, Long value) {

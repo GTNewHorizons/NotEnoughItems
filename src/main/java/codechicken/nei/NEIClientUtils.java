@@ -312,7 +312,8 @@ public class NEIClientUtils extends NEIServerUtils {
 
             if (StackInfo.isFluidDisplayItem(stack.item)) {
                 final FluidStack requiredFluid = StackInfo.getFluid(stack.item);
-                found = requiredFluid != null && consumeFluid(invStacks, remainingFluid, requiredFluid);
+                found = requiredFluid != null
+                        && consumeFluid(invStacks, remainingFluid, requiredFluid, StackInfo.getAmountLong(stack.item));
             } else {
                 found = false;
 
@@ -332,8 +333,8 @@ public class NEIClientUtils extends NEIServerUtils {
     }
 
     private static boolean consumeFluid(List<ItemStack> invStacks, Map<ItemStack, Long> remainingFluid,
-            FluidStack requiredFluid) {
-        long need = requiredFluid.amount;
+            FluidStack requiredFluid, long requiredAmount) {
+        long need = requiredAmount;
         final List<ItemStack> matched = new ArrayList<>();
 
         for (ItemStack is : invStacks) {
@@ -364,7 +365,7 @@ public class NEIClientUtils extends NEIServerUtils {
             return false;
         }
 
-        long remainingNeed = requiredFluid.amount;
+        long remainingNeed = requiredAmount;
         for (ItemStack is : matched) {
             final long available = remainingFluid.get(is);
             final long consumed = Math.min(available, remainingNeed);

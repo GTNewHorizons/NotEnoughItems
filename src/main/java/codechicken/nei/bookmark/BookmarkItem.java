@@ -42,7 +42,7 @@ public class BookmarkItem {
 
             this.groupId = groupId;
             this.stack = stack;
-            this.factor = StackInfo.isFluidDisplayItem(stack) ? Math.max(nbTag.getInteger("Count"), 1) : 1;
+            this.factor = StackInfo.isFluidDisplayItem(stack) ? Math.max(nbTag.getLong("Count"), 1) : 1;
         }
 
         public Builder factor(long factor) {
@@ -105,7 +105,7 @@ public class BookmarkItem {
             if (this.multiplier >= 0) {
                 multiplier = this.multiplier;
             } else if (this.factor > 0) {
-                multiplier = StackInfo.getAmount(this.stack) / this.factor;
+                multiplier = StackInfo.getAmountLong(this.stack) / this.factor;
             }
 
             return new BookmarkItem(
@@ -234,7 +234,7 @@ public class BookmarkItem {
         for (RecipeIngredient res : items) {
             for (ItemStack perm : res.getPermutations()) {
                 if (NEIClientUtils.areStacksSameTypeWithNBT(emptyStack, StackInfo.withAmount(perm, 0))) {
-                    amount += 1L * StackInfo.getAmount(perm) * res.getChance();
+                    amount += 1L * StackInfo.getAmountLong(perm) * res.getChance();
                     break;
                 }
             }
@@ -271,15 +271,15 @@ public class BookmarkItem {
             }
 
             if (jsonObject.has("multiplier")) {
-                builder.multiplier(jsonObject.get("multiplier").getAsInt());
+                builder.multiplier(jsonObject.get("multiplier").getAsLong());
             }
 
             if (jsonObject.has("factor")) {
-                builder.factor(jsonObject.get("factor").getAsInt());
+                builder.factor(jsonObject.get("factor").getAsLong());
             }
 
             if (jsonObject.has("chance")) {
-                builder.chance(jsonObject.get("chance").getAsInt());
+                builder.chance(jsonObject.get("chance").getAsLong());
             }
 
             if (jsonObject.get("recipeId") instanceof JsonObject recipeJson) {
@@ -320,8 +320,9 @@ public class BookmarkItem {
             final ItemStack newPerm = findPermutation(stack);
 
             if (oldPerm != null && newPerm != null) {
-                final long oldAmount = StackInfo.getAmount(oldPerm);
-                final long amount = oldAmount > 0 ? this.factor * this.chance * StackInfo.getAmount(newPerm) / oldAmount
+                final long oldAmount = StackInfo.getAmountLong(oldPerm);
+                final long amount = oldAmount > 0
+                        ? this.factor * this.chance * StackInfo.getAmountLong(newPerm) / oldAmount
                         : 0;
                 final long factor = (amount % PositionedStack.CHANCE_FULL) == 0 ? amount / PositionedStack.CHANCE_FULL
                         : 1;
@@ -369,8 +370,9 @@ public class BookmarkItem {
             final ItemStack newPerm = findPermutation(perm);
 
             if (oldPerm != null && newPerm != null) {
-                final long oldAmount = StackInfo.getAmount(oldPerm);
-                final long amount = oldAmount > 0 ? this.factor * this.chance * StackInfo.getAmount(newPerm) / oldAmount
+                final long oldAmount = StackInfo.getAmountLong(oldPerm);
+                final long amount = oldAmount > 0
+                        ? this.factor * this.chance * StackInfo.getAmountLong(newPerm) / oldAmount
                         : 0;
                 final long factor = (amount % PositionedStack.CHANCE_FULL) == 0 ? amount / PositionedStack.CHANCE_FULL
                         : 1;

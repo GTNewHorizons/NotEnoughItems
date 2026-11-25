@@ -387,7 +387,7 @@ public class RecipeGroup {
 
     protected boolean isSameStack(ItemStack stackA, ItemStack stackB) {
         return stackA == stackB || NEIServerUtils.areStacksSameType(stackA, stackB)
-                && StackInfo.getAmount(stackA) == StackInfo.getAmount(stackB);
+                && StackInfo.getAmountLong(stackA) == StackInfo.getAmountLong(stackB);
     }
 
     protected List<ItemStack> getFilteredPermutations(int member, Point slotKey) {
