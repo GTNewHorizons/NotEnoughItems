@@ -640,7 +640,7 @@ public class GuiContainerManager {
                 tooltip = handler.handleTooltip(window, mousex, mousey, tooltip);
         }
 
-        ItemStack stack = getStackMouseOver(window);
+        ItemStack stack = tooltip.isEmpty() ? getStackMouseOver(window) : null;
         boolean showTooltip = shouldShowTooltip(window);
         if (tooltip.isEmpty() && showTooltip) { // mouseover tip, not holding an item
             font = getFontRenderer(stack);
