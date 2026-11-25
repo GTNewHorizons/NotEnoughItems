@@ -21,8 +21,7 @@ import codechicken.nei.theme.UIRecipeTexture;
 
 class RecipeSearchBar extends NavigationBar {
 
-    private static final int COUNTER_WIDTH = 45;
-    private static final int PLATE_OVERHANG = 5;
+    private static final int FIELD_MARGIN = 40;
 
     private final RestartableTask updateFilter = new RestartableTask("NEI Recipe Filtering") {
 
@@ -147,7 +146,6 @@ class RecipeSearchBar extends NavigationBar {
     private boolean available = false;
     private String pageInfo = "";
     private String pageCounter = "";
-    private int pageCounterWidth;
     private boolean pageInfoCropped;
     private String pageLabel = "";
 
@@ -156,13 +154,15 @@ class RecipeSearchBar extends NavigationBar {
     }
 
     public void setPages(int current, int total) {
-        final FontRenderer font = NEIClientUtils.mc().fontRenderer;
         this.pageInfo = current + "/" + total;
-        this.pageCounter = NEIClientUtils.cropText(font, this.pageInfo, COUNTER_WIDTH);
-        this.pageCounterWidth = font.getStringWidth(this.pageCounter);
-        this.pageInfoCropped = font.getStringWidth(this.pageInfo) >= COUNTER_WIDTH;
         this.pageLabel = NEIClientUtils.translate("recipe.page", current, total);
+        updateCounter();
         updateLabel();
+    }
+
+    private void updateCounter() {
+        this.pageCounter = NEIClientUtils.cropText(GuiDraw.fontRenderer, this.pageInfo, FIELD_MARGIN - GAP);
+        this.pageInfoCropped = !this.pageCounter.equals(this.pageInfo);
     }
 
     private void updateLabel() {
@@ -197,8 +197,10 @@ class RecipeSearchBar extends NavigationBar {
 
         this.field.x = this.toggle.x + this.toggle.w + 1;
         this.field.y = y - 1;
-        this.field.w = plateWidth() + PLATE_OVERHANG - this.toggle.w - COUNTER_WIDTH;
+        this.field.w = plateWidth() - this.toggle.w - FIELD_MARGIN;
         this.field.h = 14;
+
+        updateCounter();
     }
 
     public ItemFilter getFilter() {
@@ -245,13 +247,9 @@ class RecipeSearchBar extends NavigationBar {
         if (this.field.isVisible()) {
             this.field.draw(mx, my);
 
-            final FontRenderer font = NEIClientUtils.mc().fontRenderer;
+            final FontRenderer font = GuiDraw.fontRenderer;
             final int textY = this.y + (this.h - font.FONT_HEIGHT) / 2 + 1;
-            font.drawStringWithShadow(
-                    this.pageCounter,
-                    this.field.x + this.field.w + 22 - this.pageCounterWidth / 2,
-                    textY,
-                    0xffffff);
+            GuiDraw.drawStringC(this.pageCounter, this.field.x + this.field.w + FIELD_MARGIN / 2, textY, 0xffffff);
         }
     }
 

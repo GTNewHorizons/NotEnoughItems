@@ -75,11 +75,11 @@ class NavigationBar extends Widget {
     }
 
     protected int plateX() {
-        return this.x + this.h + GAP;
+        return this.x + BUTTON_SIZE + GAP;
     }
 
     protected int plateWidth() {
-        return this.w - (this.h + GAP) * 2;
+        return this.w - (BUTTON_SIZE + GAP) * 2;
     }
 
     public void place(int x, int y, int w) {
