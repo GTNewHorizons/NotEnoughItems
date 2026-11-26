@@ -35,17 +35,25 @@ public class ItemCraftablesPanel
         protected final long realAmount;
         protected final boolean isFluidDisplay;
         protected final RecipeId recipeId;
+        protected final ItemStack drawnItemStack;
 
         public CraftablesGridSlot(int slotIndex, int itemIndex, ItemStack itemStack, RecipeId recipeId) {
             super(slotIndex, itemIndex, itemStack);
             this.realAmount = StackInfo.getAmount(itemStack);
             this.isFluidDisplay = StackInfo.isFluidDisplayItem(itemStack);
             this.recipeId = recipeId;
+            final ItemStack empty = this.isFluidDisplay ? StackInfo.withAmount(itemStack, 0) : null;
+            this.drawnItemStack = empty != null ? empty : itemStack;
         }
 
         @Override
         public RecipeId getRecipeId() {
             return this.recipeId;
+        }
+
+        @Override
+        public void drawItem(Rectangle4i rect) {
+            super.drawItem(this.drawnItemStack, rect);
         }
 
         @Override
