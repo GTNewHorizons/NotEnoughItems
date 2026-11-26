@@ -238,6 +238,7 @@ public class PositionedStack implements Cloneable {
         /** The tank size the fill level is measured against, in mB. 0 means "always render full". */
         protected int capacity = 0;
         protected boolean flowingTexture = false;
+        protected boolean amountTooltip = true;
         protected FillDirection fillDirection = FillDirection.AUTO;
 
         private ItemStack cachedFluidItem;
@@ -276,6 +277,15 @@ public class PositionedStack implements Cloneable {
             return this;
         }
 
+        public boolean hasAmountTooltip() {
+            return this.amountTooltip;
+        }
+
+        public Tank setAmountTooltip(boolean amountTooltip) {
+            this.amountTooltip = amountTooltip;
+            return this;
+        }
+
         public FillDirection getFillDirection() {
             return this.fillDirection;
         }
@@ -301,7 +311,7 @@ public class PositionedStack implements Cloneable {
             final List<String> customTooltip = super.getTooltip();
             final FluidStack fluidStack = getFluidStack();
 
-            if (fluidStack != null && this.capacity > 0) {
+            if (fluidStack != null && this.amountTooltip) {
                 tooltip.add(
                         EnumChatFormatting.GRAY + NEIClientUtils.translate(
                                 "recipe.fluid.tank.amount",
