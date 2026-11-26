@@ -194,7 +194,8 @@ public class BookmarkGridGenerator {
                     || group.crafting.calculatedItems.get(shadowIndex).calculatedType == CalculatedType.INGREDIENT;
 
             final BookmarkItem shadowBookmarkItem = BookmarkItem.builder(bookmarkItem.groupId, bookmarkItem.itemStack)
-                    .multiplier(1).factor(StackInfo.getAmount(bookmarkItem.itemStack)).recipeId(bookmarkItem.recipeId)
+                    .multiplier(1).factor(StackInfo.getAmountLong(bookmarkItem.itemStack))
+                    .recipeId(bookmarkItem.recipeId)
                     .type(isIngredient ? BookmarkItemType.INGREDIENT : BookmarkItemType.RESULT)
                     .permutations(Collections.emptyMap()).build();
 
