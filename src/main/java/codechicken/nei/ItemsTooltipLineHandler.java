@@ -68,10 +68,9 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
         protected void drawAmount(Rectangle4i rect, ItemStack stack, long amount) {
             final AmountText amountText = this.cache.computeIfAbsent(stack, key -> {
                 final boolean isFluidDisplay = StackInfo.isFluidDisplayItem(key);
-                final String text = formatAmount(key, amount);
 
                 return new AmountText(
-                        isFluidDisplay && !text.isEmpty() ? text + "L" : text,
+                        formatAmount(key, amount),
                         isFluidDisplay ? Alignment.BottomLeft : Alignment.BottomRight);
             });
 
@@ -81,7 +80,7 @@ public class ItemsTooltipLineHandler implements ITooltipLineHandler {
         }
 
         protected String formatAmount(ItemStack stack, long amount) {
-            return amount == 0 ? "" : ReadableNumberConverter.INSTANCE.toWideReadableForm(amount);
+            return amount == 0 ? "" : NEIClientUtils.formatSlotAmount(amount, StackInfo.isFluidDisplayItem(stack));
         }
     }
 

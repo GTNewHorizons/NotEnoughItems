@@ -53,6 +53,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Iterables;
 import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
+import com.gtnewhorizon.gtnhlib.util.numberformatting.options.CompactOptions;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.inventory.InventoryRange;
@@ -65,6 +66,7 @@ import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.GuiOverlayButton.ItemOverlayState;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.NEIKeyboardUtils;
+import codechicken.nei.util.ReadableNumberConverter;
 
 public class NEIClientUtils extends NEIServerUtils {
 
@@ -152,6 +154,23 @@ public class NEIClientUtils extends NEIServerUtils {
         }
 
         return getDecimalFormat().format(aNumber) + " L";
+    }
+
+    /** Only loaded when GTNHLib is, since CompactOptions comes from it. */
+    private static final class FluidSlotAmountFormat {
+
+        private static final CompactOptions OPTIONS = new CompactOptions().setCompactThreshold(10_000)
+                .setDecimalPlaces(1).setRoundingMode(RoundingMode.DOWN);
+    }
+
+    /** The amount drawn over a slot. Fluids use GTNHLib's compact formatting when it's loaded and have no unit. */
+    public static String formatSlotAmount(long amount, boolean isFluid) {
+
+        if (isFluid && NEIModContainer.isGTNHLibLoaded()) {
+            return NumberFormatUtil.formatNumberCompact(amount, FluidSlotAmountFormat.OPTIONS);
+        }
+
+        return amount < 10_000 ? String.valueOf(amount) : ReadableNumberConverter.INSTANCE.toWideReadableForm(amount);
     }
 
     public static String formatChance(float chance) {
