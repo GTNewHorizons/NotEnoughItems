@@ -18,18 +18,18 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
-import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ColorUtils;
 import codechicken.nei.NEIClientUtils;
-import codechicken.nei.NEIClientUtils.Alignment;
 import codechicken.nei.PositionedStack;
+import codechicken.nei.bookmark.BookmarkGroup.ProgressKey;
 import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.drawable.DrawableBuilder;
 import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
+import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.scroll.GuiHelper;
-import codechicken.nei.util.ReadableNumberConverter;
 
 class CraftingTreeCanvas {
 
@@ -72,6 +72,20 @@ class CraftingTreeCanvas {
             "nei:textures/gui/craftingtree.png",
             11,
             95,
+            5,
+            5).build();
+
+    private static final DrawableResource ICON_PICK = new DrawableBuilder(
+            "nei:textures/gui/craftingtree.png",
+            4,
+            102,
+            5,
+            5).build();
+
+    private static final DrawableResource ICON_PICK_HOVER = new DrawableBuilder(
+            "nei:textures/gui/craftingtree.png",
+            11,
+            102,
             5,
             5).build();
 
@@ -126,12 +140,15 @@ class CraftingTreeCanvas {
 
     private static final Color LINE_COLOR = new Color(ColorUtils.craftingTreeLine.getColor(), true);
     private static final int HOVER_COLOR = 0x66888888;
+    private static final Color PROGRESS_FILL = new Color(0xFF55FF55, true);
+    private static final Color DONE_TINT = new Color(0x4400AA00, true);
     private static final float BADGE_SCALE = 0.6f;
 
     public static final int SLOT_SIZE = 18;
     public static final int X_SPACING = 24;
     public static final int Y_SPACING = 14;
     public static final int ROOT_SPACING = 36;
+    private static final int SLOT_PERIMETER = SLOT_SIZE * 4;
     private static final float FIT_MARGIN = 8f;
 
     public final CraftingTreeGraph graph = new CraftingTreeGraph();
@@ -143,6 +160,8 @@ class CraftingTreeCanvas {
     public int treeHeight = 0;
 
     private final Camera camera;
+    private final Map<String, Boolean> hasRecipesCache = new HashMap<>();
+    private Map<ProgressKey, Long> progress = Collections.emptyMap();
 
     public CraftingTreeCanvas(Camera camera) {
         this.camera = camera;
@@ -211,6 +230,11 @@ class CraftingTreeCanvas {
         });
     }
 
+    /** @param progress the number of items already done for each node, shared with the bookmark group */
+    public void setProgress(Map<ProgressKey, Long> progress) {
+        this.progress = progress;
+    }
+
     public ItemTreeSlot getHandlerBadgeMouseOver(Point2D mouse) {
         return findVisibleNode(mouse, (node, local) -> {
             if (node.prefItem == null || !this.graph.childrenOf.containsKey(node)) {
@@ -243,6 +267,34 @@ class CraftingTreeCanvas {
         });
     }
 
+    /** The "choose recipe" icon is shown just below a node, to the right of the collapse icon. */
+    public ItemTreeSlot getPickIconMouseOver(Point2D mouse) {
+        return findVisibleNode(mouse, (node, local) -> {
+            final Point point = this.pointByNode.get(node);
+            final float iconX = point.x + SLOT_SIZE / 2 + 1;
+            final float iconY = point.y + SLOT_SIZE + 1;
+
+            // the recipe lookup is only done once the mouse is actually over the icon
+            return local.x >= iconX && local.x < iconX + ICON_PICK.width
+                    && local.y >= iconY
+                    && local.y < iconY + ICON_PICK.height
+                    && hasRecipes(node);
+        });
+    }
+
+    /** Whether the item of the node can be crafted by any recipe. The result is cached per item. */
+    public boolean hasRecipes(ItemTreeSlot node) {
+        return this.hasRecipesCache.computeIfAbsent(StackInfo.getItemStackGUID(node.emptyStack), guid -> {
+            try {
+                return !GuiCraftingRecipe
+                        .getCraftingHandlers("item", StackInfo.normalizeRecipeQueryStack(node.emptyStack.copy()))
+                        .isEmpty();
+            } catch (Exception e) {
+                return false;
+            }
+        });
+    }
+
     private ItemTreeSlot findVisibleNode(Point2D mouse, BiPredicate<ItemTreeSlot, Point2D.Double> hitTest) {
         final Point2D.Double local = this.camera.toWorldPoint(mouse);
 
@@ -267,6 +319,7 @@ class CraftingTreeCanvas {
         final int cropXMax = (int) ((zScrollX + 32) / this.camera.zoomLevel)
                 + (int) (this.camera.widgetW / this.camera.zoomLevel);
         final ItemTreeSlot collapseHoverNode = this.camera.isDragging() ? null : getCollapseArrowMouseOver(mouse);
+        final ItemTreeSlot pickHoverNode = this.camera.isDragging() ? null : getPickIconMouseOver(mouse);
 
         GuiHelper.useScissor(this.camera.widgetX, this.camera.widgetY, this.camera.widgetW, this.camera.widgetH, () -> {
             GL11.glPushMatrix();
@@ -289,6 +342,10 @@ class CraftingTreeCanvas {
                     if (point.x >= cropXMin && point.x <= cropXMax) {
                         drawSlot(node, useInventorySnapshot, searchResult, collapsedItems, node == hoveredNode);
                         drawCollapseIcon(node, collapsedItems, node == collapseHoverNode);
+
+                        if ((node == hoveredNode || node == pickHoverNode) && hasRecipes(node)) {
+                            drawPickIcon(point, node == pickHoverNode);
+                        }
 
                         if (node == hoveredNode) {
                             NEIClientUtils.gl2DRenderContext(
@@ -406,39 +463,51 @@ class CraftingTreeCanvas {
             drawStackSize(node, node.ingrItem.getStackSize(amount), point.x, point.y, false);
         }
 
+        drawProgress(node, point);
+    }
+
+    private void drawProgress(ItemTreeSlot node, Point point) {
+        final long needed = node.neededCount();
+        final long done = needed > 0 ? this.progress.getOrDefault(this.graph.getProgressKey(node), 0L) : 0;
+
+        if (done <= 0) {
+            return;
+        }
+
+        if (done >= needed) {
+            NEIClientUtils.drawRect(point.x + 1, point.y + 1, SLOT_SIZE - 2, SLOT_SIZE - 2, DONE_TINT);
+        }
+
+        double remaining = Math.min(1.0, (double) done / needed) * SLOT_PERIMETER;
+        final double top = Math.min(remaining, SLOT_SIZE);
+        remaining -= top;
+        final double right = Math.min(remaining, SLOT_SIZE);
+        remaining -= right;
+        final double bottom = Math.min(remaining, SLOT_SIZE);
+        remaining -= bottom;
+        final double left = Math.min(remaining, SLOT_SIZE);
+
+        NEIClientUtils.drawRect(point.x, point.y, top, 1, PROGRESS_FILL);
+        NEIClientUtils.drawRect(point.x + SLOT_SIZE - 1, point.y, 1, right, PROGRESS_FILL);
+        NEIClientUtils.drawRect(point.x + SLOT_SIZE - bottom, point.y + SLOT_SIZE - 1, bottom, 1, PROGRESS_FILL);
+        NEIClientUtils.drawRect(point.x, point.y + SLOT_SIZE - left, 1, left, PROGRESS_FILL);
+    }
+
+    private void drawPickIcon(Point point, boolean hover) {
+        final DrawableResource icon = hover ? ICON_PICK_HOVER : ICON_PICK;
+
+        GL11.glColor4f(1, 1, 1, 1);
+        icon.draw(point.x + SLOT_SIZE / 2 + 1, point.y + SLOT_SIZE + 1);
     }
 
     protected void drawStackSize(ItemTreeSlot node, long stackSize, int x, int y, boolean resolved) {
-        String amountString = stackSize < 10_000 ? String.valueOf(stackSize)
-                : ReadableNumberConverter.INSTANCE.toWideReadableForm(stackSize);
-
-        if (node.isFluidDisplay) {
-            amountString += "L";
-        }
-
         final boolean hasOutputChance = node.prefItem != null && node.prefItem.chance != PositionedStack.CHANCE_FULL;
-        int color = 0xFFFFFF;
+        final boolean isApproximate = node.ingrItem.chance != PositionedStack.CHANCE_FULL || hasOutputChance
+                || node.isContainerItem;
+        final String prefix = isApproximate ? "~" : "";
+        final int color = resolved ? 0x55FF55 : isApproximate ? 0xFFAA00 : 0xFFFFFF;
 
-        if (node.ingrItem.chance != PositionedStack.CHANCE_FULL || hasOutputChance || node.isContainerItem) {
-            amountString = "~" + amountString;
-            color = 0xFFAA00;
-        }
-
-        if (resolved) {
-            color = 0x55FF55;
-        }
-
-        NEIClientUtils.drawNEIOverlayText(
-                amountString,
-                new Rectangle4i(
-                        x + (SLOT_SIZE - 16) / 2,
-                        y + (SLOT_SIZE - 16) / 2,
-                        SLOT_SIZE - (SLOT_SIZE - 16),
-                        SLOT_SIZE - (SLOT_SIZE - 16)),
-                1,
-                color,
-                true,
-                node.isFluidDisplay ? Alignment.BottomLeft : Alignment.BottomRight);
+        SlotAmountLabel.draw(node.emptyStack, node.isFluidDisplay, stackSize, prefix, color, x, y);
     }
 
     protected void drawSlotBadge(ItemTreeSlot node, int x, int y) {
