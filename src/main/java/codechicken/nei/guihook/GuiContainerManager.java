@@ -51,6 +51,7 @@ import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIModContainer;
 import codechicken.nei.recipe.StackInfo;
+import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 import codechicken.nei.util.ItemUntranslator;
 import codechicken.nei.util.ReadableNumberConverter;
 import codechicken.nei.util.RenderTooltipEventHelper;
@@ -229,7 +230,9 @@ public class GuiContainerManager {
     public static String itemCountDetails(ItemStack stack) {
         final FluidStack fluid = StackInfo.getFluid(stack);
         if (fluid != null) {
-            return fluidAmountDetails(fluid.amount * Math.max(1, stack.stackSize));
+            // The fluid of a display item is limited to an int, its stored amount is not
+            final long amount = StackInfo.isFluidDisplayItem(stack) ? StackInfo.getAmountLong(stack) : fluid.amount;
+            return fluidAmountDetails(amount * Math.max(1, stack.stackSize));
         } else {
             return countDetails(
                     stack.stackSize,
@@ -243,17 +246,35 @@ public class GuiContainerManager {
     @SuppressWarnings("unused")
     @Nullable
     public static String fluidAmountDetails(FluidStack fluid) {
-        return fluidAmountDetails(fluid.amount);
+        return fluidAmountDetails(GTFluidStackStringifyHandler.getFluidAmount(fluid));
     }
 
     @Nullable
     public static String fluidAmountDetails(int amount) {
-        return countDetails(
-                amount,
-                144,
-                translate("inventory.tooltip.count.fluid", "%s = %s * %s + %s"),
+        return fluidAmountDetails((long) amount);
+    }
+
+    @Nullable
+    public static String fluidAmountDetails(long amount) {
+        if (amount <= 144) return null;
+
+        final long remainder = amount % 144;
+        final String units = NEIClientUtils.formatNumber(amount / 144);
+
+        if (remainder > 0) {
+            return String.format(
+                    translate("inventory.tooltip.count.fluid", "%s = %s * %s + %s"),
+                    NEIClientUtils.formatFluid(amount),
+                    units,
+                    NEIClientUtils.formatFluid(144),
+                    NEIClientUtils.formatFluid(remainder));
+        }
+
+        return String.format(
                 translate("inventory.tooltip.count.fluid", "%s = %s * %s"),
-                NEIClientUtils::formatFluid);
+                NEIClientUtils.formatFluid(amount),
+                units,
+                NEIClientUtils.formatFluid(144));
     }
 
     /**

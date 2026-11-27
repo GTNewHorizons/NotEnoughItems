@@ -729,7 +729,7 @@ public abstract class ShortcutInputHandler {
 
                 for (ItemStack stack : playerInventory) {
                     if (NEIClientUtils.areStacksSameTypeCraftingWithNBT(stack, item.itemStack)) {
-                        amount += StackInfo.getAmount(stack);
+                        amount += StackInfo.getAmountLong(stack);
                     }
                 }
 

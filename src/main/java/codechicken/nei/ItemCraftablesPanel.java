@@ -39,7 +39,7 @@ public class ItemCraftablesPanel
 
         public CraftablesGridSlot(int slotIndex, int itemIndex, ItemStack itemStack, RecipeId recipeId) {
             super(slotIndex, itemIndex, itemStack);
-            this.realAmount = StackInfo.getAmount(itemStack);
+            this.realAmount = StackInfo.getAmountLong(itemStack);
             this.isFluidDisplay = StackInfo.isFluidDisplayItem(itemStack);
             this.recipeId = recipeId;
             final ItemStack empty = this.isFluidDisplay ? StackInfo.withAmount(itemStack, 0) : null;
@@ -212,7 +212,7 @@ public class ItemCraftablesPanel
 
     @Override
     protected ItemStack getDraggedStackWithQuantity(ItemStack itemStack) {
-        return ItemQuantityField.prepareStackWithQuantity(itemStack, StackInfo.getAmount(itemStack));
+        return ItemQuantityField.prepareStackWithQuantity(itemStack, StackInfo.getAmountLong(itemStack));
     }
 
     @Override
@@ -386,11 +386,11 @@ public class ItemCraftablesPanel
         }
 
         final ItemStack stack = Recipe.getMainResult(results, pStack -> pStack.items[0]).item;
-        int stackSize = 0;
+        long stackSize = 0;
 
         for (PositionedStack result : results) {
             if (containsSameType(result, stack)) {
-                stackSize += StackInfo.getAmount(result.item);
+                stackSize += StackInfo.getAmountLong(result.item);
             }
         }
 
