@@ -64,6 +64,8 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
         public boolean showFavorites;
         public boolean showOverlay;
         public boolean showBadge;
+        public int windowWidth;
+        public boolean recipeSpacing;
 
         private String csvLine;
 
@@ -80,6 +82,8 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
             this.showFavorites = info.getShowFavoritesButton();
             this.showOverlay = info.getShowOverlayButton();
             this.showBadge = info.getShowBadge();
+            this.windowWidth = info.getWindowWidth();
+            this.recipeSpacing = info.isRecipeSpacing();
             this.csvLine = toCsvLine();
         }
 
@@ -92,6 +96,8 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
             this.info.setShowFavoritesButton(this.showFavorites);
             this.info.setShowOverlayButton(this.showOverlay);
             this.info.setShowBadge(this.showBadge);
+            this.info.setWindowWidth(this.windowWidth);
+            this.info.setRecipeSpacing(this.recipeSpacing);
             NEIClientConfig.handlerOrdering.put(this.handlerKey, this.order);
         }
 
@@ -108,6 +114,8 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
             this.showFavorites = intOrDefault(parts[8], this.showFavorites ? 1 : 0) == 1;
             this.showOverlay = intOrDefault(parts[9], this.showOverlay ? 1 : 0) == 1;
             this.showBadge = intOrDefault(parts[10], this.showBadge ? 1 : 0) == 1;
+            this.windowWidth = intOrDefault(parts[11], this.windowWidth);
+            this.recipeSpacing = intOrDefault(parts[12], this.recipeSpacing ? 1 : 0) == 1;
 
             apply();
         }
@@ -125,7 +133,9 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
                     String.valueOf(this.allowOverflowY ? 1 : 0),
                     String.valueOf(this.showFavorites ? 1 : 0),
                     String.valueOf(this.showOverlay ? 1 : 0),
-                    String.valueOf(this.showBadge ? 1 : 0));
+                    String.valueOf(this.showBadge ? 1 : 0),
+                    String.valueOf(this.windowWidth),
+                    String.valueOf(this.recipeSpacing ? 1 : 0));
         }
 
         public boolean isUnmodified() {
@@ -148,7 +158,7 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
     private static final int LABEL_WIDTH = 50;
 
     private static final String TOOLTIP_PREFIX = "debug.RecipeHandler.";
-    private static final String HEADER = "HandlerId,YShift,Height,Width,MultiWidgets,Order,AllowOverflowX,AllowOverflowY,ShowFavorites,ShowOverlay,ShowBadge";
+    private static final String HEADER = "HandlerId,YShift,Height,Width,MultiWidgets,Order,AllowOverflowX,AllowOverflowY,ShowFavorites,ShowOverlay,ShowBadge,WindowWidth,RecipeSpacing";
     private final int[] COLORS = new int[] { 0x2200FF00, 0x22FF0000, 0x220000FF, 0x2200FFFF, 0x22FF00FF, 0x22FFFF00 };
 
     public static DebugHandlerWidget instance = new DebugHandlerWidget();
@@ -217,6 +227,11 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
             saveHandlerInfoPatch();
         }, y);
 
+        y = addCheckboxWidget("RecipeSpacing", button -> {
+            record.recipeSpacing = button.value;
+            saveHandlerInfoPatch();
+        }, y);
+
         final LabelWidget readonly = new LabelWidget(0xffffff, true);
 
         readonly.y = y;
@@ -232,7 +247,12 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
         y = addTextFieldWidget("Width", HandlerInfo.DEFAULT_WIDTH, (field, oldText) -> {
             record.width = field.getInteger();
             saveHandlerInfoPatch();
-        }, newValue -> newValue >= HandlerInfo.DEFAULT_WIDTH, y);
+        }, newValue -> newValue > 0, y);
+
+        y = addTextFieldWidget("WindowWidth", 0, (field, oldText) -> {
+            record.windowWidth = field.getInteger();
+            saveHandlerInfoPatch();
+        }, newValue -> newValue >= 0, y);
 
         y = addCheckboxWidget("AllowOverflowX", button -> {
             record.allowOverflowX = button.value;
@@ -474,6 +494,8 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
                 this.values.get("height").updateValue(String.valueOf(this.record.height));
                 this.values.get("height_readonly").updateValue(String.valueOf(this.record.height));
                 this.values.get("width").updateValue(String.valueOf(this.record.width));
+                this.values.get("windowwidth").updateValue(String.valueOf(this.record.windowWidth));
+                this.values.get("recipespacing").updateValue(String.valueOf(this.record.recipeSpacing));
 
                 this.values.get("multiwidgets").updateValue(String.valueOf(this.record.multiWidgets));
                 this.values.get("allowoverflowx").updateValue(String.valueOf(this.record.allowOverflowX));
@@ -745,7 +767,8 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
         ClientHandler.loadSettingsFile("handlers.patch", lines -> {
             final List<String> linesList = lines.collect(Collectors.toCollection(ArrayList::new));
 
-            if (linesList.isEmpty() || !HEADER.equals(linesList.get(0))) {
+            // files saved before new columns were appended have a prefix of the current header
+            if (linesList.isEmpty() || linesList.get(0).isEmpty() || !HEADER.startsWith(linesList.get(0))) {
                 return;
             }
 
@@ -759,7 +782,7 @@ public class DebugHandlerWidget extends Widget implements IContainerTooltipHandl
                         key -> new HandlerInfoRecord(
                                 key,
                                 GuiRecipeTab.handlerMap.getOrDefault(key, GuiRecipeTab.DEFAULT_HANDLER_INFO)));
-                record.apply((line + ",null,null,null,null,null,null,null,null,null,null"));
+                record.apply((line + ",null,null,null,null,null,null,null,null,null,null,null,null"));
             }
 
         });

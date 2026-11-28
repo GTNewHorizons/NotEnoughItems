@@ -891,8 +891,13 @@ public class LayoutManager implements IContainerInputHandler, IContainerTooltipH
         GL11.glColor4f(1, 1, 1, 1);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        if (!isDrawableResource) drawTexturedModalRect(x, y, image.x, image.y, image.width, image.height);
-        else((DrawableResource) image).draw(x, y);
+
+        if (!isDrawableResource) {
+            drawTexturedModalRect(x, y, image.x, image.y, image.width, image.height);
+        } else {
+            ((DrawableResource) image).draw(x, y);
+        }
+
         GL11.glDisable(GL11.GL_BLEND);
     }
 

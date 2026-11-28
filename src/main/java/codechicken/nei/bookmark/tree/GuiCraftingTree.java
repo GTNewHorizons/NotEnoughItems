@@ -36,6 +36,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.ItemStackAmount;
 import codechicken.nei.KeyManager;
 import codechicken.nei.LRUCache;
 import codechicken.nei.NEICPH;
@@ -60,7 +61,6 @@ import codechicken.nei.guihook.IGuiClientSide;
 import codechicken.nei.guihook.IGuiHandleMouseWheel;
 import codechicken.nei.guihook.IGuiHotkeyListener;
 import codechicken.nei.recipe.AcceptsFollowingTooltipLineHandler;
-import codechicken.nei.recipe.AutoCraftingManager;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiOverlayButton;
 import codechicken.nei.recipe.GuiRecipe;
@@ -284,10 +284,8 @@ public class GuiCraftingTree extends GuiContainer implements INEIGuiHandler, IGu
             final GuiContainer firstGui = getFirstScreen();
 
             if (firstGui != null) {
-                for (ItemStack stack : AutoCraftingManager.getInventoryItems(firstGui).values()) {
-                    if (stack != null) {
-                        this.math.initialItems.add(BookmarkItem.of(-1, stack));
-                    }
+                for (ItemStack stack : ItemStackAmount.of(firstGui).values()) {
+                    this.math.initialItems.add(BookmarkItem.of(-1, stack));
                 }
             }
         }

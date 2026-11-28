@@ -45,6 +45,10 @@ public interface IRecipeHandler {
         return getRecipeName();
     }
 
+    default int getRecipeWidth(int recipe) {
+        return 0;
+    }
+
     default int getRecipeHeight(int recipe) {
         return 0;
     }

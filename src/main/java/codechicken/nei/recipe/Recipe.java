@@ -487,11 +487,11 @@ public class Recipe {
             stack = getMainResult(getResults(), RecipeIngredient::getItemStack).getItemStack();
         }
 
-        int stackSize = 0;
+        long stackSize = 0;
 
         for (RecipeIngredient result : this.results) {
             if (result.contains(stack)) {
-                stackSize += result.getAmount();
+                stackSize += StackInfo.getAmountLong(result.getItemStack());
             }
         }
 

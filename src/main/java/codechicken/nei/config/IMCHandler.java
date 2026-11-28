@@ -109,6 +109,8 @@ public class IMCHandler {
         info.setShowFavoritesButton(!tag.hasKey("showFavoritesButton") || tag.getBoolean("showFavoritesButton"));
         info.setShowOverlayButton(!tag.hasKey("showOverlayButton") || tag.getBoolean("showOverlayButton"));
         info.setShowBadge(tag.hasKey("showBadge") && tag.getBoolean("showBadge"));
+        info.setWindowWidth(tag.getInteger("windowWidth"));
+        info.setRecipeSpacing(tag.getBoolean("recipeSpacing"));
 
         GuiRecipeTab.handlerAdderFromIMC.remove(handler);
         GuiRecipeTab.handlerAdderFromIMC.put(handler, info);

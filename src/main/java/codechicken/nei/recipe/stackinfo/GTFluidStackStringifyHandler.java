@@ -22,6 +22,7 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
 
     protected static Class<?> itemFluidDisplay = null;
     protected static Method getFluidFromDisplayStack = null;
+    private static Method getGTFluidAmount = null;
     protected static Class<?> gtMetaGeneratedTool = null;
     protected static Field playSound = null;
 
@@ -42,6 +43,12 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
                     "gregtech.common.items.GT_FluidDisplayItem");
             getFluidFromDisplayStack = gtUtility.getMethod("getFluidFromDisplayStack", ItemStack.class);
 
+            try {
+                getGTFluidAmount = gtUtility.getMethod("getFluidAmount", FluidStack.class);
+            } catch (NoSuchMethodException ignored) {
+                /* GregTech without long fluid stacks */
+            }
+
             gtMetaGeneratedTool = ReflectionHelper.getClass(
                     loader,
                     "gregtech.api.items.MetaGeneratedTool",
@@ -50,6 +57,18 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
         } catch (Exception ignored) {
             /* Do nothing */
         }
+    }
+
+    /** GregTech fluid stacks can hold more than {@link FluidStack#amount} does */
+    public static long getFluidAmount(FluidStack fluidStack) {
+
+        if (getGTFluidAmount != null) {
+            try {
+                return (long) getGTFluidAmount.invoke(null, fluidStack);
+            } catch (Exception ignored) {}
+        }
+
+        return fluidStack.amount;
     }
 
     @Override
@@ -61,7 +80,7 @@ public class GTFluidStackStringifyHandler implements IStackStringifyHandler {
             if (fluidStack != null) {
                 final NBTTagCompound nbTag = new NBTTagCompound();
                 nbTag.setString(FluidDisplayStackStringifyHandler.NBT_FLUID_NAME, fluidStack.getFluid().getName());
-                nbTag.setInteger("Count", saveStackSize ? fluidStack.amount : 144);
+                nbTag.setLong("Count", saveStackSize ? getFluidAmount(fluidStack) : 144);
                 return nbTag;
             }
         }

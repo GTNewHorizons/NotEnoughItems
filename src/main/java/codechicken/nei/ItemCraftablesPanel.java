@@ -18,7 +18,6 @@ import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.ItemsGrid.ItemsGridSlot;
 import codechicken.nei.ItemsGrid.MouseContext;
 import codechicken.nei.NEIClientUtils.Alignment;
-import codechicken.nei.recipe.AutoCraftingManager;
 import codechicken.nei.recipe.GuiCraftingRecipe;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.ICraftingHandler;
@@ -27,7 +26,6 @@ import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.RecipeInfo;
 import codechicken.nei.recipe.StackInfo;
-import codechicken.nei.util.ReadableNumberConverter;
 
 public class ItemCraftablesPanel
         extends AbstractSubpanel<ItemsGrid<ItemCraftablesPanel.CraftablesGridSlot, MouseContext>> {
@@ -37,17 +35,25 @@ public class ItemCraftablesPanel
         protected final long realAmount;
         protected final boolean isFluidDisplay;
         protected final RecipeId recipeId;
+        protected final ItemStack drawnItemStack;
 
         public CraftablesGridSlot(int slotIndex, int itemIndex, ItemStack itemStack, RecipeId recipeId) {
             super(slotIndex, itemIndex, itemStack);
-            this.realAmount = StackInfo.getAmount(itemStack);
+            this.realAmount = StackInfo.getAmountLong(itemStack);
             this.isFluidDisplay = StackInfo.isFluidDisplayItem(itemStack);
             this.recipeId = recipeId;
+            final ItemStack empty = this.isFluidDisplay ? StackInfo.withAmount(itemStack, 0) : null;
+            this.drawnItemStack = empty != null ? empty : itemStack;
         }
 
         @Override
         public RecipeId getRecipeId() {
             return this.recipeId;
+        }
+
+        @Override
+        public void drawItem(Rectangle4i rect) {
+            super.drawItem(this.drawnItemStack, rect);
         }
 
         @Override
@@ -60,17 +66,7 @@ public class ItemCraftablesPanel
 
             if (stackSize > 1) {
                 final float panelFactor = (rect.w - 2) / (DEFAULT_SLOT_SIZE - 2);
-                String amountString = "";
-
-                if (stackSize < 10_000) {
-                    amountString = String.valueOf(stackSize);
-                } else {
-                    amountString = ReadableNumberConverter.INSTANCE.toWideReadableForm(stackSize);
-                }
-
-                if (this.isFluidDisplay) {
-                    amountString += "L";
-                }
+                final String amountString = NEIClientUtils.formatSlotAmount(stackSize, this.isFluidDisplay);
 
                 NEIClientUtils.drawNEIOverlayText(
                         amountString,
@@ -216,7 +212,7 @@ public class ItemCraftablesPanel
 
     @Override
     protected ItemStack getDraggedStackWithQuantity(ItemStack itemStack) {
-        return ItemQuantityField.prepareStackWithQuantity(itemStack, StackInfo.getAmount(itemStack));
+        return ItemQuantityField.prepareStackWithQuantity(itemStack, StackInfo.getAmountLong(itemStack));
     }
 
     @Override
@@ -268,7 +264,7 @@ public class ItemCraftablesPanel
                     if (firstGui != null && !ItemCraftablesPanel.guiBlacklist.contains(firstGui.getClass().getName())) {
                         final boolean showOnlyFavorites = NEIClientConfig
                                 .getBooleanSetting("inventory.craftables.favoritesOnly");
-                        final ItemStackAmount inv = AutoCraftingManager.getInventoryItems(firstGui);
+                        final ItemStackAmount inv = ItemStackAmount.of(firstGui);
 
                         if (this.lastGuiContainer != firstGui
                                 || showOnlyFavorites && this.lastFavoritesCount != FavoriteRecipes.size()
@@ -317,7 +313,7 @@ public class ItemCraftablesPanel
         final Map<ItemStack, RecipeId> availableRecipes = new HashMap<>();
 
         if (!availableHandlers.isEmpty()) {
-            final Map<Item, List<ItemStack>> invByItem = indexInventoryByItem(snapshot.inventory.values());
+            final Map<Item, List<ItemStack>> invByItem = snapshot.inventory.groupByItem();
 
             if (snapshot.showOnlyFavorites) {
                 for (IRecipeHandler handler : availableHandlers) {
@@ -347,16 +343,6 @@ public class ItemCraftablesPanel
         }
 
         return availableHandlers;
-    }
-
-    private static Map<Item, List<ItemStack>> indexInventoryByItem(List<ItemStack> invStacks) {
-        final Map<Item, List<ItemStack>> index = new HashMap<>();
-
-        for (ItemStack stack : invStacks) {
-            index.computeIfAbsent(stack.getItem(), i -> new ArrayList<>()).add(stack);
-        }
-
-        return index;
     }
 
     private void collectHandlerCandidates(IRecipeHandler handler, Map<Item, List<ItemStack>> invByItem,
@@ -400,11 +386,11 @@ public class ItemCraftablesPanel
         }
 
         final ItemStack stack = Recipe.getMainResult(results, pStack -> pStack.items[0]).item;
-        int stackSize = 0;
+        long stackSize = 0;
 
         for (PositionedStack result : results) {
             if (containsSameType(result, stack)) {
-                stackSize += StackInfo.getAmount(result.item);
+                stackSize += StackInfo.getAmountLong(result.item);
             }
         }
 
@@ -448,36 +434,8 @@ public class ItemCraftablesPanel
         return availableRecipes;
     }
 
-    private boolean existsIngredients(List<PositionedStack> ingredients, Map<Item, List<ItemStack>> invByItem) {
-        final Map<ItemStack, Integer> usedItems = new HashMap<>();
-
-        for (PositionedStack pStack : ingredients) {
-            ItemStack used = null;
-
-            for (ItemStack permutation : pStack.items) {
-                final List<ItemStack> candidates = invByItem.get(permutation.getItem());
-
-                if (candidates == null) continue;
-
-                for (ItemStack is : candidates) {
-                    if (usedItems.getOrDefault(is, is.stackSize) >= pStack.item.stackSize
-                            && NEIServerUtils.areStacksSameTypeCrafting(permutation, is)) {
-                        used = is;
-                        break;
-                    }
-                }
-
-                if (used != null) break;
-            }
-
-            if (used != null) {
-                usedItems.put(used, usedItems.getOrDefault(used, used.stackSize) - pStack.item.stackSize);
-            } else {
-                return false;
-            }
-        }
-
-        return !usedItems.isEmpty();
+    private static boolean existsIngredients(List<PositionedStack> ingredients, Map<Item, List<ItemStack>> invByItem) {
+        return !ingredients.isEmpty() && NEIClientUtils.countMissingIngredients(ingredients, invByItem, 1) == 0;
     }
 
 }

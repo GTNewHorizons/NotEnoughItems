@@ -121,9 +121,13 @@ public class StackInfo {
     }
 
     public static int getAmount(ItemStack stack) {
+        return (int) Math.min(getAmountLong(stack), Integer.MAX_VALUE);
+    }
+
+    public static long getAmountLong(ItemStack stack) {
         if (stack == null) return 0;
         final NBTTagCompound nbTag = StackInfo.itemStackToNBT(stack);
-        return nbTag != null ? nbTag.getInteger("Count") : 0;
+        return nbTag != null ? nbTag.getLong("Count") : 0;
     }
 
     public static boolean equalItemAndNBT(ItemStack stackA, ItemStack stackB, boolean useNBT) {

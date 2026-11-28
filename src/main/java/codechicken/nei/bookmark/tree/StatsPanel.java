@@ -143,12 +143,7 @@ class StatsPanel extends ScrollContainer {
         }
 
         private void drawStackSize() {
-            String amountString = stackSize < 10_000 ? String.valueOf(stackSize)
-                    : ReadableNumberConverter.INSTANCE.toWideReadableForm(stackSize);
-
-            if (this.isFluidDisplay) {
-                amountString += "L";
-            }
+            final String amountString = NEIClientUtils.formatSlotAmount(stackSize, this.isFluidDisplay);
 
             NEIClientUtils.drawNEIOverlayText(
                     amountString,
@@ -524,7 +519,7 @@ class StatsPanel extends ScrollContainer {
 
     public ItemStack getStackMouseOver(int mouseX, int mouseY) {
         final Widget widget = getWidgetUnderMouse(mouseX, mouseY);
-        return widget instanceof ItemStatsSlot slot && slot.recipeId == null ? slot.getStack() : null;
+        return widget instanceof ItemStatsSlot slot ? slot.getStack() : null;
     }
 
     public void setHighlight(SearchResult searchResult) {

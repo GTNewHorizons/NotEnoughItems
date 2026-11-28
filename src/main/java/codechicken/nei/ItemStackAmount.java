@@ -1,12 +1,17 @@
 package codechicken.nei;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.SlotCrafting;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -29,7 +34,7 @@ public class ItemStackAmount {
     }
 
     public void add(ItemStack item) {
-        add(item, (long) StackInfo.getAmount(item));
+        add(item, StackInfo.getAmountLong(item));
     }
 
     public void add(ItemStack stack, Long value) {
@@ -96,6 +101,16 @@ public class ItemStackAmount {
         return list;
     }
 
+    public Map<Item, List<ItemStack>> groupByItem() {
+        final Map<Item, List<ItemStack>> groups = new HashMap<>();
+
+        for (ItemStack stack : values()) {
+            groups.computeIfAbsent(stack.getItem(), i -> new ArrayList<>()).add(stack);
+        }
+
+        return groups;
+    }
+
     public int size() {
         return this.itemMap.size();
     }
@@ -135,6 +150,18 @@ public class ItemStackAmount {
 
         for (ItemStack stack : items) {
             result.add(stack);
+        }
+
+        return result;
+    }
+
+    public static ItemStackAmount of(GuiContainer gui) {
+        final ItemStackAmount result = new ItemStackAmount();
+
+        for (Slot slot : gui.inventorySlots.inventorySlots) {
+            if (slot.getHasStack() && !(slot instanceof SlotCrafting) && slot.canTakeStack(gui.mc.thePlayer)) {
+                result.add(slot.getStack());
+            }
         }
 
         return result;

@@ -59,6 +59,7 @@ import codechicken.nei.config.preset.GuiPresetList;
 import codechicken.nei.event.NEIConfigsLoadedEvent;
 import codechicken.nei.moboverlay.MobOverlayScan;
 import codechicken.nei.moboverlay.MobOverlayStyle;
+import codechicken.nei.recipe.HandlerInfo;
 import codechicken.nei.recipe.IRecipeHandler;
 import codechicken.nei.recipe.InformationHandler;
 import codechicken.nei.recipe.RecipeCatalysts;
@@ -270,8 +271,19 @@ public class NEIClientConfig {
                 .getBooleanValue(false);
         API.addOption(new OptionToggleButton("inventory.guirecipe.infiniteScroll", true));
 
+        tag.getTag("inventory.guirecipe.evenRecipeSpacing").setComment("Spread recipes evenly across the page height")
+                .getBooleanValue(true);
+        API.addOption(new OptionToggleButton("inventory.guirecipe.evenRecipeSpacing", true));
+
+        tag.getTag("inventory.guirecipe.topMargin").setComment("Recipe GUI Top Margin").getIntValue(0);
+        API.addOption(new OptionIntegerField("inventory.guirecipe.topMargin", 0, 200));
+
         tag.getTag("inventory.guirecipe.maxHeight").setComment("Recipe GUI Max Height").getIntValue(370);
         API.addOption(new OptionIntegerField("inventory.guirecipe.maxHeight", 166, 4000));
+
+        tag.getTag("inventory.guirecipe.minWidth").setComment("Recipe GUI Min Width")
+                .getIntValue(HandlerInfo.DEFAULT_WIDTH);
+        API.addOption(new OptionIntegerField("inventory.guirecipe.minWidth", HandlerInfo.DEFAULT_WIDTH, 4000));
 
         tag.getTag("inventory.guirecipe.shiftOverlayRecipe")
                 .setComment("Require holding shift to move items when overlaying recipe").getBooleanValue(true);

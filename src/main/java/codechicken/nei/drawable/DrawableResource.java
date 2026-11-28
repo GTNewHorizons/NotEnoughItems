@@ -8,7 +8,7 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.nei.Image;
 
-public class DrawableResource extends Image {
+public class DrawableResource extends Image implements Drawable {
 
     private final ResourceLocation resourceLocation;
     private final int textureWidth;

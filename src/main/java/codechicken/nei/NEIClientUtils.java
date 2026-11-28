@@ -53,6 +53,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Iterables;
 import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
+import com.gtnewhorizon.gtnhlib.util.numberformatting.options.CompactOptions;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.inventory.InventoryRange;
@@ -65,6 +66,7 @@ import codechicken.nei.api.ItemInfo;
 import codechicken.nei.recipe.GuiOverlayButton.ItemOverlayState;
 import codechicken.nei.recipe.StackInfo;
 import codechicken.nei.util.NEIKeyboardUtils;
+import codechicken.nei.util.ReadableNumberConverter;
 
 public class NEIClientUtils extends NEIServerUtils {
 
@@ -152,6 +154,23 @@ public class NEIClientUtils extends NEIServerUtils {
         }
 
         return getDecimalFormat().format(aNumber) + " L";
+    }
+
+    /** Only loaded when GTNHLib is, since CompactOptions comes from it. */
+    private static final class FluidSlotAmountFormat {
+
+        private static final CompactOptions OPTIONS = new CompactOptions().setCompactThreshold(10_000)
+                .setDecimalPlaces(1).setRoundingMode(RoundingMode.DOWN);
+    }
+
+    /** The amount drawn over a slot. Fluids use GTNHLib's compact formatting when it's loaded and have no unit. */
+    public static String formatSlotAmount(long amount, boolean isFluid) {
+
+        if (isFluid && NEIModContainer.isGTNHLibLoaded()) {
+            return NumberFormatUtil.formatNumberCompact(amount, FluidSlotAmountFormat.OPTIONS);
+        }
+
+        return amount < 10_000 ? String.valueOf(amount) : ReadableNumberConverter.INSTANCE.toWideReadableForm(amount);
     }
 
     public static String formatChance(float chance) {
@@ -312,7 +331,8 @@ public class NEIClientUtils extends NEIServerUtils {
 
             if (StackInfo.isFluidDisplayItem(stack.item)) {
                 final FluidStack requiredFluid = StackInfo.getFluid(stack.item);
-                found = requiredFluid != null && consumeFluid(invStacks, remainingFluid, requiredFluid);
+                found = requiredFluid != null
+                        && consumeFluid(invStacks, remainingFluid, requiredFluid, StackInfo.getAmountLong(stack.item));
             } else {
                 found = false;
 
@@ -332,8 +352,8 @@ public class NEIClientUtils extends NEIServerUtils {
     }
 
     private static boolean consumeFluid(List<ItemStack> invStacks, Map<ItemStack, Long> remainingFluid,
-            FluidStack requiredFluid) {
-        long need = requiredFluid.amount;
+            FluidStack requiredFluid, long requiredAmount) {
+        long need = requiredAmount;
         final List<ItemStack> matched = new ArrayList<>();
 
         for (ItemStack is : invStacks) {
@@ -364,7 +384,7 @@ public class NEIClientUtils extends NEIServerUtils {
             return false;
         }
 
-        long remainingNeed = requiredFluid.amount;
+        long remainingNeed = requiredAmount;
         for (ItemStack is : matched) {
             final long available = remainingFluid.get(is);
             final long consumed = Math.min(available, remainingNeed);
@@ -536,6 +556,40 @@ public class NEIClientUtils extends NEIServerUtils {
         if (mc().currentScreen instanceof GuiContainer) return (GuiContainer) mc().currentScreen;
 
         return null;
+    }
+
+    public static int countMissingIngredients(List<PositionedStack> ingredients, Map<Item, List<ItemStack>> index,
+            int limit) {
+        Map<ItemStack, Integer> usedItems = new HashMap<>();
+        int missing = 0;
+
+        for (PositionedStack pStack : ingredients) {
+            ItemStack used = null;
+
+            for (ItemStack permutation : pStack.items) {
+                final List<ItemStack> candidates = index.get(permutation.getItem());
+
+                if (candidates == null) continue;
+
+                for (ItemStack is : candidates) {
+                    if (usedItems.getOrDefault(is, is.stackSize) >= pStack.item.stackSize
+                            && NEIServerUtils.areStacksSameTypeCrafting(permutation, is)) {
+                        used = is;
+                        break;
+                    }
+                }
+
+                if (used != null) break;
+            }
+
+            if (used != null) {
+                usedItems.put(used, usedItems.getOrDefault(used, used.stackSize) - pStack.item.stackSize);
+            } else if (++missing >= limit) {
+                return missing;
+            }
+        }
+
+        return missing;
     }
 
     public static boolean altKey() {

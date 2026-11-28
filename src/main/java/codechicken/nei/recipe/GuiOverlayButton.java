@@ -5,38 +5,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
-
-import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.KeyManager;
-import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.IOverlayHandler;
 import codechicken.nei.bookmark.BookmarkGrid;
 import codechicken.nei.bookmark.BookmarkPayload;
-import codechicken.nei.drawable.DrawableBuilder;
-import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.drawable.Drawable;
+import codechicken.nei.theme.ButtonSkin;
+import codechicken.nei.theme.UIRecipeTexture;
+import codechicken.nei.theme.UIWidgetTexture;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class GuiOverlayButton extends GuiRecipeButton {
 
-    protected static DrawableResource notPresent = new DrawableBuilder(
-            "nei:textures/nei_tabbed_sprites.png",
-            0,
-            40,
-            8,
-            8).build();
-    protected static DrawableResource present = new DrawableBuilder("nei:textures/nei_tabbed_sprites.png", 8, 40, 8, 8)
-            .build();
+    protected static Drawable notPresent = UIRecipeTexture.ITEM_MISSING;
+    protected static Drawable present = UIRecipeTexture.ITEM_PRESENT;
 
     public enum ItemOverlayFormat {
 
@@ -77,34 +69,17 @@ public class GuiOverlayButton extends GuiRecipeButton {
                                 this.slot.height,
                                 isPresent ? 0x8000AA00 : 0x80AA0000));
             } else {
-                final DrawableResource icon = isPresent ? present : notPresent;
-                LayoutManager.drawIcon(
-                        this.slot.relx + this.slot.width - icon.width,
-                        this.slot.rely + this.slot.height - icon.height,
-                        icon);
+                final Drawable icon = isPresent ? present : notPresent;
+                icon.draw(
+                        this.slot.relx + this.slot.width - icon.getWidth(),
+                        this.slot.rely + this.slot.height - icon.getHeight());
             }
 
         }
     }
 
-    protected static final DrawableResource ICON_FILL = new DrawableBuilder(
-            "nei:textures/nei_sprites.png",
-            28,
-            76,
-            9,
-            10).build();
-    protected static final DrawableResource ICON_FILL_ERROR = new DrawableBuilder(
-            "nei:textures/nei_sprites.png",
-            37,
-            76,
-            9,
-            10).build();
-    protected static final DrawableResource ICON_OVERLAY = new DrawableBuilder(
-            "nei:textures/nei_sprites.png",
-            46,
-            76,
-            9,
-            10).build();
+    protected static final Drawable ICON_FILL = UIRecipeTexture.ICON_OVERLAY_FILL;
+    protected static final Drawable ICON_OVERLAY = UIRecipeTexture.ICON_OVERLAY;
     protected static final int BUTTON_ID_SHIFT = 4;
 
     public final GuiContainer firstGui;
@@ -217,22 +192,21 @@ public class GuiOverlayButton extends GuiRecipeButton {
     }
 
     @Override
-    protected void drawContent(Minecraft minecraft, int y, int x, boolean mouseOver) {
-        DrawableResource icon = ICON_OVERLAY;
+    protected Drawable getIcon(boolean mouseOver) {
+        return isFillMode() ? ICON_FILL : ICON_OVERLAY;
+    }
 
-        if (this.canFillCraftingGrid && (!requireShiftForOverlayRecipe() || NEIClientUtils.shiftKey())) {
-            icon = this.missedMaterialsTooltipLineHandler == null ? ICON_FILL : ICON_FILL_ERROR;
+    @Override
+    protected ButtonSkin getSkin() {
+        if (isFillMode() && this.missedMaterialsTooltipLineHandler != null) {
+            return UIWidgetTexture.BUTTON_OVERLAY_ERROR;
         }
 
-        final int iconX = this.xPosition + (this.width - icon.width - 1) / 2;
-        final int iconY = this.yPosition + (this.height - icon.height) / 2;
+        return super.getSkin();
+    }
 
-        GL11.glColor4f(1, 1, 1, this.enabled ? 1 : 0.5f);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        icon.draw(iconX, iconY);
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glColor4f(1, 1, 1, 1);
+    private boolean isFillMode() {
+        return this.canFillCraftingGrid && (!requireShiftForOverlayRecipe() || NEIClientUtils.shiftKey());
     }
 
     @Override
