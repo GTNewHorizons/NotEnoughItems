@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.fluids.FluidStack;
 
 import org.apache.commons.io.IOUtils;
 
@@ -1134,6 +1136,12 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
         return pullBookmarkItems(this.grid.createRecipeChainMath(groupId), shift);
     }
 
+    /** Fluid in one container of the stack, 0 if it is not a fluid container. */
+    private static long fluidPerContainer(ItemStack stack) {
+        final FluidStack fluid = StackInfo.isFluidContainer(stack) ? StackInfo.getFluid(stack) : null;
+        return fluid != null ? fluid.amount : 0;
+    }
+
     public boolean pullBookmarkItems(RecipeChainMath math, boolean shift) {
         final GuiContainer guiContainer = NEIClientUtils.getGuiContainer();
         final IBookmarkContainerHandler containerHandler = BookmarkContainerInfo
@@ -1181,7 +1189,11 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                 math.initialItems.add(BookmarkItem.of(-1, stack));
             }
 
-            for (ItemStack stack : containerStorage.values()) {
+            // The chain takes storage items in this order, so partly filled fluid containers are used up first
+            final List<ItemStack> storageStacks = containerStorage.values();
+            storageStacks.sort(Comparator.comparingLong(BookmarkPanel::fluidPerContainer));
+
+            for (ItemStack stack : storageStacks) {
                 math.initialItems.add(BookmarkItem.of(-2, stack));
             }
 
