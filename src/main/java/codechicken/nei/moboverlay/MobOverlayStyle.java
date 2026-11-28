@@ -27,9 +27,7 @@ public enum MobOverlayStyle {
         }
     },
 
-    /**
-     * A light tint, with a stronger outline around each area of one spawn mode, like a connected texture.
-     */
+    /** A light tint and a stronger connected-texture outline around each area of one spawn mode. */
     CONNECTED(GL11.GL_QUADS) {
 
         @Override
@@ -39,7 +37,8 @@ public enum MobOverlayStyle {
             face.applyColor(Colouring.OVERLAY, MARK_ALPHA);
             for (int offsetX = -1; offsetX <= 1; offsetX++) {
                 for (int offsetZ = -1; offsetZ <= 1; offsetZ++) {
-                    // a corner cell is drawn when either edge next to the corner is outlined, and on an inside corner
+                    // a corner cell is drawn when either edge next to the corner is outlined or when the corner is an
+                    // inside corner
                     final boolean isOutline = !(face.isJoined(offsetX, offsetZ) && face.isJoined(offsetX, 0)
                             && face.isJoined(0, offsetZ));
                     if (isOutline) face.addCell(offsetX, offsetZ, OUTLINE_WIDTH);
@@ -48,7 +47,7 @@ public enum MobOverlayStyle {
         }
     },
 
-    /** A small square in the middle of the block, with no tint. */
+    /** A small square in the middle of an untinted block. */
     SQUARE(GL11.GL_QUADS) {
 
         @Override
@@ -62,7 +61,7 @@ public enum MobOverlayStyle {
         }
     },
 
-    /** The pufferfish sticker. */
+    /** A pufferfish sticker on the block. */
     PUFFERFISH("pufferfish", Colouring.STICKER) {
 
         @Override
@@ -102,7 +101,6 @@ public enum MobOverlayStyle {
         return DEFAULT;
     }
 
-    /** @return the {@link #formatName} of every style, separated by commas */
     public static String formatAllNames() {
         final StringJoiner names = new StringJoiner(", ");
         for (MobOverlayStyle style : values()) {
@@ -119,7 +117,7 @@ public enum MobOverlayStyle {
         return switch (this) {
             case CONNECTED -> TINT_ALPHA;
             case SQUARE -> MARK_ALPHA;
-            // opaque lines for X, and the alpha of the PNG for PUFFERFISH
+            // the lines of X are opaque, and the alpha of PUFFERFISH comes from the PNG
             case X, PUFFERFISH -> 1.0F;
         };
     }
@@ -127,9 +125,9 @@ public enum MobOverlayStyle {
     public abstract void addVertices(MobOverlayFace face);
 
     public enum Colouring {
-        /** Yellow where mobs spawn only at night, red where mobs spawn at any time. */
+        /** Yellow marks where mobs spawn only at night and red marks where mobs spawn at any time. */
         OVERLAY,
-        /** The texture's colours, tinted red where mobs spawn at any time. */
+        /** Texture colours with a red tint where mobs spawn at any time. */
         STICKER
     }
 }

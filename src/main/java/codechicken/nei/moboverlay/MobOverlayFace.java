@@ -2,7 +2,7 @@ package codechicken.nei.moboverlay;
 
 import net.minecraft.client.renderer.Tessellator;
 
-/** Vertex builder for one block's top face in the mob spawn overlay. */
+/** {@code MobOverlayFace} adds the vertices of the mark on one block's top face to {@link Tessellator#instance}. */
 public final class MobOverlayFace {
 
     public static final byte OUTSIDE_SCAN = -2;
@@ -36,7 +36,7 @@ public final class MobOverlayFace {
 
     public boolean isJoined(int offsetX, int offsetZ) {
         final byte neighbourMode = neighbourModes[indexNeighbour(offsetX, offsetZ)];
-        // no outline along the edge of the scan
+        // `MobOverlayStyle.CONNECTED` doesn't outline the edge of the scan
         return neighbourMode == neighbourModes[indexNeighbour(0, 0)] || neighbourMode == OUTSIDE_SCAN;
     }
 
@@ -67,7 +67,6 @@ public final class MobOverlayFace {
         addTexturedVertex(1, 0);
     }
 
-    /** @param offsetX 0 at the west edge, 1 at the east edge */
     public void addVertex(double offsetX, double offsetZ) {
         Tessellator.instance.addVertex(x + offsetX, y, z + offsetZ);
     }
