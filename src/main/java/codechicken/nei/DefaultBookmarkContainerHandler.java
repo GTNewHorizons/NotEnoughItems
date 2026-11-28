@@ -30,11 +30,13 @@ public class DefaultBookmarkContainerHandler implements IBookmarkContainerHandle
     }
 
     /**
-     * The same item with the same NBT, so a filled fluid cell is not taken for an empty one. GT tools match whatever
-     * their wear, which is in their NBT.
+     * If either stack holds a fluid, both need the same NBT, so a filled fluid cell is not taken for an empty one.
+     * Other items match as in crafting, so an item that got its NBT later is still pulled.
      */
     private static boolean matches(ItemStack bookmarkItem, ItemStack stack) {
-        return bookmarkItem.isItemEqual(stack) && (StackInfo.equalItemAndNBT(bookmarkItem, stack, true)
-                || NEIServerUtils.areStacksSameGTTool(bookmarkItem, stack));
+        if (StackInfo.getFluid(bookmarkItem) != null || StackInfo.getFluid(stack) != null) {
+            return bookmarkItem.isItemEqual(stack) && StackInfo.equalItemAndNBT(bookmarkItem, stack, true);
+        }
+        return NEIServerUtils.areStacksSameTypeCraftingWithNBT(bookmarkItem, stack);
     }
 }
