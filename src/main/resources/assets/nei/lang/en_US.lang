@@ -111,6 +111,9 @@ nei.itempanel.copy_id=Copy Item ID
 
 nei.itempanel.chat_link_item=Send item link to chat
 
+nei.itempanel.categories.button=C
+nei.itempanel.categories.tip=Show/hide item categories
+
 nei.enchant=Enchant
 nei.enchant.level=Level
 nei.enchant.locked=Locked

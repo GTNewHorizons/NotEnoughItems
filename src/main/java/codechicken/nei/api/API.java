@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 
 import codechicken.nei.BookmarkContainerInfo;
 import codechicken.nei.CollapsibleItems;
+import codechicken.nei.ItemCategories;
 import codechicken.nei.ItemList;
 import codechicken.nei.ItemSorter;
 import codechicken.nei.ItemStackSet;
@@ -488,4 +489,18 @@ public class API {
 
     @Deprecated
     public static void addRecipeCatalyst(List<ItemStack> stacks, Class<? extends IRecipeHandler> handler) {}
+
+    /**
+     * Registers an item category that can be hidden or shown by the player in the NEI item list
+     * 
+     * @param id              Stable and unique id for the category, used to save the player's choice
+     * @param nameKey         Translation key for the label shown to the player
+     * @param filter          Matches the items belonging to this category
+     * @param hiddenByDefault Whether the category should be hidden by default
+     * @return The created category
+     */
+    public static ItemCategories.Category addItemCategory(String id, String nameKey, ItemFilter filter,
+            boolean hiddenByDefault) {
+        return ItemCategories.register(id, nameKey, filter, hiddenByDefault);
+    }
 }

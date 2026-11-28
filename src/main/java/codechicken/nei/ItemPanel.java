@@ -35,6 +35,7 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
     public ItemHistoryPanel historyPanel = new ItemHistoryPanel();
     public ItemCraftablesPanel craftablesPanel = new ItemCraftablesPanel();
     protected Button toggleGroups;
+    protected HiddenCategoriesWidget hiddenCategoriesButton;
 
     @Deprecated
     public static class ItemPanelSlot extends ItemsPanelGridSlot {
@@ -103,6 +104,7 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
             }
         };
 
+        hiddenCategoriesButton = new HiddenCategoriesWidget();
     }
 
     @Override
@@ -148,6 +150,18 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
         toggleGroups.h = pageNext.h;
         toggleGroups.y = pageNext.y;
         toggleGroups.x = pageNext.x - toggleGroups.w - 2;
+
+        Widget anchor = !CollapsibleItems.isEmpty() && !grid.isEmpty() ? toggleGroups : pageNext;
+        hiddenCategoriesButton.w = pageNext.w;
+        hiddenCategoriesButton.h = pageNext.h;
+        hiddenCategoriesButton.y = pageNext.y;
+        hiddenCategoriesButton.x = anchor.x - hiddenCategoriesButton.w - 2;
+
+        // Re-center the page label
+        Widget rightmostFree = !ItemCategories.isEmpty() ? hiddenCategoriesButton : anchor;
+        int left = pagePrev.x + pagePrev.w;
+        int right = rightmostFree.x;
+        pageLabel.x = left + (right - left) / 2;
 
         return marginTop;
     }
@@ -195,6 +209,10 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
 
             if (!CollapsibleItems.isEmpty() && !grid.isEmpty()) {
                 LayoutManager.addWidget(toggleGroups);
+            }
+
+            if (!ItemCategories.isEmpty()) {
+                LayoutManager.addWidget(hiddenCategoriesButton);
             }
 
             if (NEIClientConfig.showCraftablesPanelWidget()) {
@@ -274,4 +292,7 @@ public class ItemPanel extends PanelWidget<ItemsPanelGrid> {
                 || NEIClientConfig.showCraftablesPanelWidget() && this.craftablesPanel.contains(px, py);
     }
 
+    public void closePopups() {
+        hiddenCategoriesButton.closeDropdown();
+    }
 }
