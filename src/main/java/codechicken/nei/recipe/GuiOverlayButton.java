@@ -10,7 +10,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.lib.gui.GuiDraw;
-import codechicken.nei.ColorUtils;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.KeyManager;
@@ -21,7 +20,9 @@ import codechicken.nei.api.IOverlayHandler;
 import codechicken.nei.bookmark.BookmarkGrid;
 import codechicken.nei.bookmark.BookmarkPayload;
 import codechicken.nei.drawable.Drawable;
+import codechicken.nei.theme.ButtonSkin;
 import codechicken.nei.theme.UIRecipeTexture;
+import codechicken.nei.theme.UIWidgetTexture;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class GuiOverlayButton extends GuiRecipeButton {
@@ -196,16 +197,12 @@ public class GuiOverlayButton extends GuiRecipeButton {
     }
 
     @Override
-    protected int getIconColor(boolean mouseOver) {
+    protected ButtonSkin getSkin() {
         if (isFillMode() && this.missedMaterialsTooltipLineHandler != null) {
-            return iconColor(
-                    ColorUtils.buttonIconOverlayErrorNormal,
-                    ColorUtils.buttonIconOverlayErrorHover,
-                    ColorUtils.buttonIconOverlayErrorDisabled,
-                    mouseOver);
+            return UIWidgetTexture.BUTTON_OVERLAY_ERROR;
         }
 
-        return super.getIconColor(mouseOver);
+        return super.getSkin();
     }
 
     private boolean isFillMode() {

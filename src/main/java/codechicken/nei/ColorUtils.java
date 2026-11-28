@@ -21,17 +21,20 @@ public class ColorUtils {
         buttonLabelDisabled = color.rgb("buttonLabelDisabled",  "0x601010"),
         buttonLabelInactive = color.rgb("buttonLabelInactive",  "0xA0A0A0"),
 
-        buttonIconNormal                 = color.rgb("buttonIconNormal",                 "0xDEDEDE"),
-        buttonIconHover                  = color.rgb("buttonIconHover",                  "0xFFFFA0"),
-        buttonIconDisabled               = color.rgb("buttonIconDisabled",               "0x808080"),
+        buttonIconNormal                 = color.argb("buttonIconNormal",                "0xFFFFFFFF"),
+        buttonIconHover                  = color.argb("buttonIconHover",                 "0xFFFFFFA0"),
+        buttonIconActive                 = color.argb("buttonIconActive",                "0xFFFFFFA0"),
+        buttonIconDisabled               = color.argb("buttonIconDisabled",              "0xFF808080"),
 
-        buttonIconFavoriteNormal         = color.rgb("buttonIconFavoriteNormal",         "0x75C775"),
-        buttonIconFavoriteHover          = color.rgb("buttonIconFavoriteHover",          "0x9ED89E"),
-        buttonIconFavoriteDisabled       = color.rgb("buttonIconFavoriteDisabled",       "0x3A633A"),
+        buttonIconFavoriteNormal         = color.argb("buttonIconFavoriteNormal",        "0xFF75C775"),
+        buttonIconFavoriteHover          = color.argb("buttonIconFavoriteHover",         "0xFF9ED89E"),
+        buttonIconFavoriteActive         = color.argb("buttonIconFavoriteActive",        "0xFF9ED89E"),
+        buttonIconFavoriteDisabled       = color.argb("buttonIconFavoriteDisabled",      "0xFF3A633A"),
 
-        buttonIconOverlayErrorNormal     = color.rgb("buttonIconOverlayErrorNormal",     "0xD14545"),
-        buttonIconOverlayErrorHover      = color.rgb("buttonIconOverlayErrorHover",      "0xDF7D7D"),
-        buttonIconOverlayErrorDisabled   = color.rgb("buttonIconOverlayErrorDisabled",   "0x682222"),
+        buttonIconOverlayErrorNormal     = color.argb("buttonIconOverlayErrorNormal",    "0xFFD14545"),
+        buttonIconOverlayErrorHover      = color.argb("buttonIconOverlayErrorHover",     "0xFFDF7D7D"),
+        buttonIconOverlayErrorActive     = color.argb("buttonIconOverlayErrorActive",    "0xFFDF7D7D"),
+        buttonIconOverlayErrorDisabled   = color.argb("buttonIconOverlayErrorDisabled",  "0xFF682222"),
 
         craftingTreeLine    = color.argb("craftingTreeLine",    "0xFF888888");
     // spotless:on

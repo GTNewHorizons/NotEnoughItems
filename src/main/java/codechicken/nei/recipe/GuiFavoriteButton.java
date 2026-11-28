@@ -13,7 +13,6 @@ import net.minecraft.item.ItemStack;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
-import codechicken.nei.ColorUtils;
 import codechicken.nei.FavoriteRecipes;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemStackSet;
@@ -26,6 +25,7 @@ import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.Recipe.RecipeIngredient;
 import codechicken.nei.theme.ButtonSkin;
 import codechicken.nei.theme.UIRecipeTexture;
+import codechicken.nei.theme.UIWidgetTexture;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class GuiFavoriteButton extends GuiRecipeButton {
@@ -85,16 +85,8 @@ public class GuiFavoriteButton extends GuiRecipeButton {
     }
 
     @Override
-    protected int getIconColor(boolean mouseOver) {
-        if (isFavorite()) {
-            return iconColor(
-                    ColorUtils.buttonIconFavoriteNormal,
-                    ColorUtils.buttonIconFavoriteHover,
-                    ColorUtils.buttonIconFavoriteDisabled,
-                    mouseOver);
-        }
-
-        return super.getIconColor(mouseOver);
+    protected ButtonSkin getSkin() {
+        return isFavorite() ? UIWidgetTexture.BUTTON_FAVORITE : super.getSkin();
     }
 
     @Override
@@ -175,13 +167,15 @@ public class GuiFavoriteButton extends GuiRecipeButton {
                         this.selectedResult.height,
                         0x66333333));
 
-        ButtonSkin.drawIcon(
+        getSkin().drawIcon(
                 this.selectedResult.relx,
                 this.selectedResult.rely,
                 this.selectedResult.width,
                 this.selectedResult.height + 2,
                 ICON_FAVORITE,
-                getIconColor(false));
+                this.enabled,
+                false,
+                false);
     }
 
     @Override

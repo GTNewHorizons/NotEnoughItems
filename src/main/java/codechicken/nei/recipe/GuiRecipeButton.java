@@ -7,10 +7,7 @@ import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.GuiScreenEvent;
 
-import com.gtnewhorizon.gtnhlib.color.ColorResource;
-
 import codechicken.lib.vec.Rectangle4i;
-import codechicken.nei.ColorUtils;
 import codechicken.nei.GuiNEIButton;
 import codechicken.nei.drawable.Drawable;
 import codechicken.nei.theme.ButtonSkin;
@@ -69,22 +66,13 @@ public abstract class GuiRecipeButton extends GuiNEIButton {
         return null;
     }
 
-    protected int getIconColor(boolean mouseOver) {
-        return iconColor(
-                ColorUtils.buttonIconNormal,
-                ColorUtils.buttonIconHover,
-                ColorUtils.buttonIconDisabled,
-                mouseOver);
-    }
-
-    protected int iconColor(ColorResource normal, ColorResource hover, ColorResource disabled, boolean mouseOver) {
-        if (!this.enabled) return disabled.getColor();
-        return mouseOver ? hover.getColor() : normal.getColor();
+    protected ButtonSkin getSkin() {
+        return UIWidgetTexture.BUTTON;
     }
 
     @Override
     protected Drawable getBackground(int mouseX, int mouseY, boolean mouseOver) {
-        return UIWidgetTexture.BUTTON.background(this.enabled, false, mouseOver);
+        return getSkin().background(this.enabled, false, mouseOver);
     }
 
     @Override
@@ -92,7 +80,15 @@ public abstract class GuiRecipeButton extends GuiNEIButton {
         final Drawable icon = getIcon(mouseOver);
 
         if (icon != null) {
-            ButtonSkin.drawIcon(this.xPosition, this.yPosition, this.width, this.height, icon, getIconColor(mouseOver));
+            getSkin().drawIcon(
+                    this.xPosition,
+                    this.yPosition,
+                    this.width,
+                    this.height,
+                    icon,
+                    this.enabled,
+                    false,
+                    mouseOver);
         } else {
             super.drawContent(minecraft, mouseX, mouseY, mouseOver);
         }

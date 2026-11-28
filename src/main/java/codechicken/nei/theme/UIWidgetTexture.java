@@ -1,5 +1,6 @@
 package codechicken.nei.theme;
 
+import codechicken.nei.ColorUtils;
 import codechicken.nei.drawable.Drawable;
 import codechicken.nei.scroll.ScrollBar;
 import codechicken.nei.scroll.ScrollBar.ScrollType;
@@ -13,7 +14,25 @@ public final class UIWidgetTexture {
     public static final Drawable BTN_HOVER = BTN[1];
     public static final Drawable BTN_ACTIVE = BTN[2];
     public static final Drawable BTN_DISABLED = BTN[3];
-    public static final ButtonSkin BUTTON = new ButtonSkin(BTN_NORMAL, BTN_HOVER, BTN_ACTIVE, BTN_DISABLED);
+    public static final ButtonSkin BUTTON = new ButtonSkin(
+            BTN_NORMAL,
+            BTN_HOVER,
+            BTN_ACTIVE,
+            BTN_DISABLED,
+            ColorUtils.buttonIconNormal,
+            ColorUtils.buttonIconHover,
+            ColorUtils.buttonIconActive,
+            ColorUtils.buttonIconDisabled);
+    public static final ButtonSkin BUTTON_FAVORITE = BUTTON.withForeground(
+            ColorUtils.buttonIconFavoriteNormal,
+            ColorUtils.buttonIconFavoriteHover,
+            ColorUtils.buttonIconFavoriteActive,
+            ColorUtils.buttonIconFavoriteDisabled);
+    public static final ButtonSkin BUTTON_OVERLAY_ERROR = BUTTON.withForeground(
+            ColorUtils.buttonIconOverlayErrorNormal,
+            ColorUtils.buttonIconOverlayErrorHover,
+            ColorUtils.buttonIconOverlayErrorActive,
+            ColorUtils.buttonIconOverlayErrorDisabled);
 
     private static final int[] THUMB_INSET = new int[] { 1, 1, 1, 1 };
 
