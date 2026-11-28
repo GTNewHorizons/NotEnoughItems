@@ -363,17 +363,7 @@ public class BookmarksGridSlot extends ItemsGridSlot {
             final float panelFactor = (rect.w - 2) / (DEFAULT_SLOT_SIZE - 2);
             final long stackSize = this.bookmarkItem.getStackSize(amount);
             int color = 0xFFFFFF;
-            String amountString = "";
-
-            if (stackSize < 10_000) {
-                amountString = String.valueOf(stackSize);
-            } else {
-                amountString = ReadableNumberConverter.INSTANCE.toWideReadableForm(stackSize);
-            }
-
-            if (this.isFluidDisplay) {
-                amountString += "L";
-            }
+            String amountString = NEIClientUtils.formatSlotAmount(stackSize, this.isFluidDisplay);
 
             if (this.bookmarkItem.chance != PositionedStack.CHANCE_FULL) {
                 amountString = "~" + amountString;

@@ -17,6 +17,7 @@ import net.minecraftforge.fluids.IFluidContainerItem;
 
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
+import codechicken.nei.recipe.stackinfo.GTFluidStackStringifyHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -46,7 +47,8 @@ public class ItemFluidDisplay extends Item implements IFluidContainerItem {
     }
 
     public static ItemStack createStack(FluidStack fluidStack) {
-        return fluidStack == null ? null : createStack(fluidStack.getFluid(), fluidStack.amount);
+        return fluidStack == null ? null
+                : createStack(fluidStack.getFluid(), GTFluidStackStringifyHandler.getFluidAmount(fluidStack));
     }
 
     public static ItemStack createStack(Fluid fluid, long amount) {

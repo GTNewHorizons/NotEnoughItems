@@ -26,7 +26,6 @@ import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.RecipeInfo;
 import codechicken.nei.recipe.StackInfo;
-import codechicken.nei.util.ReadableNumberConverter;
 
 public class ItemCraftablesPanel
         extends AbstractSubpanel<ItemsGrid<ItemCraftablesPanel.CraftablesGridSlot, MouseContext>> {
@@ -36,17 +35,25 @@ public class ItemCraftablesPanel
         protected final long realAmount;
         protected final boolean isFluidDisplay;
         protected final RecipeId recipeId;
+        protected final ItemStack drawnItemStack;
 
         public CraftablesGridSlot(int slotIndex, int itemIndex, ItemStack itemStack, RecipeId recipeId) {
             super(slotIndex, itemIndex, itemStack);
-            this.realAmount = StackInfo.getAmount(itemStack);
+            this.realAmount = StackInfo.getAmountLong(itemStack);
             this.isFluidDisplay = StackInfo.isFluidDisplayItem(itemStack);
             this.recipeId = recipeId;
+            final ItemStack empty = this.isFluidDisplay ? StackInfo.withAmount(itemStack, 0) : null;
+            this.drawnItemStack = empty != null ? empty : itemStack;
         }
 
         @Override
         public RecipeId getRecipeId() {
             return this.recipeId;
+        }
+
+        @Override
+        public void drawItem(Rectangle4i rect) {
+            super.drawItem(this.drawnItemStack, rect);
         }
 
         @Override
@@ -59,17 +66,7 @@ public class ItemCraftablesPanel
 
             if (stackSize > 1) {
                 final float panelFactor = (rect.w - 2) / (DEFAULT_SLOT_SIZE - 2);
-                String amountString = "";
-
-                if (stackSize < 10_000) {
-                    amountString = String.valueOf(stackSize);
-                } else {
-                    amountString = ReadableNumberConverter.INSTANCE.toWideReadableForm(stackSize);
-                }
-
-                if (this.isFluidDisplay) {
-                    amountString += "L";
-                }
+                final String amountString = NEIClientUtils.formatSlotAmount(stackSize, this.isFluidDisplay);
 
                 NEIClientUtils.drawNEIOverlayText(
                         amountString,
@@ -215,7 +212,7 @@ public class ItemCraftablesPanel
 
     @Override
     protected ItemStack getDraggedStackWithQuantity(ItemStack itemStack) {
-        return ItemQuantityField.prepareStackWithQuantity(itemStack, StackInfo.getAmount(itemStack));
+        return ItemQuantityField.prepareStackWithQuantity(itemStack, StackInfo.getAmountLong(itemStack));
     }
 
     @Override
@@ -389,11 +386,11 @@ public class ItemCraftablesPanel
         }
 
         final ItemStack stack = Recipe.getMainResult(results, pStack -> pStack.items[0]).item;
-        int stackSize = 0;
+        long stackSize = 0;
 
         for (PositionedStack result : results) {
             if (containsSameType(result, stack)) {
-                stackSize += StackInfo.getAmount(result.item);
+                stackSize += StackInfo.getAmountLong(result.item);
             }
         }
 

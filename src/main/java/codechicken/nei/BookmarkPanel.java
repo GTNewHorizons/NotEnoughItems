@@ -192,9 +192,10 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                 builder = BookmarkItem.builder(groupId, itemStack, recipe, BookmarkItemType.RESULT).multiplier(1);
             } else if (recipeId != null) {
                 builder = BookmarkItem.builder(groupId, itemStack).recipeId(recipeId)
-                        .factor(StackInfo.getAmount(itemStack)).multiplier(1);
+                        .factor(StackInfo.getAmountLong(itemStack)).multiplier(1);
             } else {
-                builder = BookmarkItem.builder(groupId, itemStack).factor(1).multiplier(StackInfo.getAmount(itemStack));
+                builder = BookmarkItem.builder(groupId, itemStack).factor(1)
+                        .multiplier(StackInfo.getAmountLong(itemStack));
             }
 
             if (existsRecipe) {
@@ -261,7 +262,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
                         builder = BookmarkItem.builder(groupId, stack, recipe, BookmarkItemType.RESULT);
                     } else {
                         builder = BookmarkItem.builder(groupId, stack).recipeId(recipeId)
-                                .factor(StackInfo.getAmount(stack));
+                                .factor(StackInfo.getAmountLong(stack));
                     }
 
                     this.grid.addItem(builder.multiplier(1).type(BookmarkItemType.ITEM).build(), true);
@@ -553,7 +554,7 @@ public class BookmarkPanel extends PanelWidget<BookmarkGrid> {
     }
 
     protected ItemStack getDraggedStackWithQuantity(ItemStack itemStack) {
-        return ItemQuantityField.prepareStackWithQuantity(itemStack, StackInfo.getAmount(itemStack));
+        return ItemQuantityField.prepareStackWithQuantity(itemStack, StackInfo.getAmountLong(itemStack));
     }
 
     @Override

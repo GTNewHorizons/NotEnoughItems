@@ -9,8 +9,8 @@ import net.minecraftforge.fluids.FluidRegistry;
 
 import org.lwjgl.opengl.GL11;
 
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.item.FluidDrawer.FillDirection;
-import codechicken.nei.util.ReadableNumberConverter;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -48,14 +48,7 @@ public class FluidDisplayRenderer implements IItemRenderer {
             return;
         }
 
-        String amountString = "";
-
-        if (amount < 10_000) {
-            amountString = String.valueOf(amount) + "L";
-        } else {
-            amountString = ReadableNumberConverter.INSTANCE.toWideReadableForm(amount) + "L";
-        }
-
+        final String amountString = NEIClientUtils.formatSlotAmount(amount, true);
         final FontRenderer fontRender = Minecraft.getMinecraft().fontRenderer;
         float smallTextScale = fontRender.getUnicodeFlag() ? 3F / 4F : 1F / 2F;
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT);

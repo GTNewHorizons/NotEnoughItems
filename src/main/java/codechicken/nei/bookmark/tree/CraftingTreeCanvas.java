@@ -29,7 +29,6 @@ import codechicken.nei.drawable.DrawableResource;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.scroll.GuiHelper;
-import codechicken.nei.util.ReadableNumberConverter;
 
 class CraftingTreeCanvas {
 
@@ -409,12 +408,7 @@ class CraftingTreeCanvas {
     }
 
     protected void drawStackSize(ItemTreeSlot node, long stackSize, int x, int y, boolean resolved) {
-        String amountString = stackSize < 10_000 ? String.valueOf(stackSize)
-                : ReadableNumberConverter.INSTANCE.toWideReadableForm(stackSize);
-
-        if (node.isFluidDisplay) {
-            amountString += "L";
-        }
+        String amountString = NEIClientUtils.formatSlotAmount(stackSize, node.isFluidDisplay);
 
         final boolean hasOutputChance = node.prefItem != null && node.prefItem.chance != PositionedStack.CHANCE_FULL;
         int color = 0xFFFFFF;
