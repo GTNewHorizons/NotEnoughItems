@@ -9,7 +9,7 @@ import net.minecraftforge.client.event.GuiScreenEvent;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.GuiNEIButton;
-import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.drawable.Drawable;
 import codechicken.nei.theme.ButtonSkin;
 import codechicken.nei.theme.UIWidgetTexture;
 import cpw.mods.fml.common.eventhandler.Cancelable;
@@ -62,21 +62,33 @@ public abstract class GuiRecipeButton extends GuiNEIButton {
         this.handlerRef = point;
     }
 
-    protected DrawableResource getIcon() {
+    protected Drawable getIcon(boolean mouseOver) {
         return null;
     }
 
+    protected ButtonSkin getSkin() {
+        return UIWidgetTexture.BUTTON;
+    }
+
     @Override
-    protected DrawableResource getBackground(int mouseX, int mouseY, boolean mouseOver) {
-        return UIWidgetTexture.BUTTON.background(this.enabled, false, mouseOver);
+    protected Drawable getBackground(int mouseX, int mouseY, boolean mouseOver) {
+        return getSkin().background(this.enabled, false, mouseOver);
     }
 
     @Override
     protected void drawContent(Minecraft minecraft, int mouseX, int mouseY, boolean mouseOver) {
-        final DrawableResource icon = getIcon();
+        final Drawable icon = getIcon(mouseOver);
 
         if (icon != null) {
-            ButtonSkin.drawIcon(this.xPosition, this.yPosition, this.width, this.height, icon, this.enabled);
+            getSkin().drawIcon(
+                    this.xPosition,
+                    this.yPosition,
+                    this.width,
+                    this.height,
+                    icon,
+                    this.enabled,
+                    false,
+                    mouseOver);
         } else {
             super.drawContent(minecraft, mouseX, mouseY, mouseOver);
         }

@@ -8,30 +8,17 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.lib.gui.GuiDraw.ITooltipLineHandler;
-import codechicken.nei.drawable.DrawableBuilder;
-import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.ColorUtils;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.widget.RecipeWidget;
 import codechicken.nei.scroll.GuiHelper;
+import codechicken.nei.theme.UIRecipeTexture;
 import codechicken.nei.util.ReadableNumberConverter;
 
 public class RecipeTooltipLineHandler implements ITooltipLineHandler {
 
     private static final int BG_PADDING = 5;
-    private static final int TRANSPARENCY_BORDER = 4;
-    private final DrawableResource BG_TEXTURE = new DrawableBuilder(
-            "nei:textures/gui/recipebg.png",
-            0,
-            0,
-            176 + TRANSPARENCY_BORDER * 2,
-            166 + TRANSPARENCY_BORDER * 2)
-                    .setSlices(
-                            BG_PADDING + TRANSPARENCY_BORDER,
-                            BG_PADDING + TRANSPARENCY_BORDER,
-                            BG_PADDING + TRANSPARENCY_BORDER,
-                            BG_PADDING + TRANSPARENCY_BORDER)
-                    .build();
 
     protected long lastUpdate = System.currentTimeMillis();
     protected String recipeName = "";
@@ -80,10 +67,14 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
         }
 
         if (this.widget != null) {
-            return new Dimension(this.widget.w + BG_PADDING * 2, this.widget.h + BG_PADDING * 2 + 12);
+            return new Dimension(getContentWidth() + BG_PADDING * 2, this.widget.h + BG_PADDING * 2 + 12);
         }
 
         return new Dimension(0, 0);
+    }
+
+    private int getContentWidth() {
+        return Math.max(this.widget.w, GuiDraw.getStringWidth(this.recipeName));
     }
 
     @Override
@@ -106,24 +97,23 @@ public class RecipeTooltipLineHandler implements ITooltipLineHandler {
         GuiContainerManager.enable2DRender();
         GL11.glColor4f(1, 1, 1, 1);
 
-        BG_TEXTURE.draw(
-                -TRANSPARENCY_BORDER,
-                -TRANSPARENCY_BORDER,
-                size.width + TRANSPARENCY_BORDER * 2,
-                size.height + TRANSPARENCY_BORDER * 2);
+        UIRecipeTexture.WIDGET.draw(0, 0, size.width, size.height);
 
         GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-        GuiDraw.drawRect(BG_PADDING, BG_PADDING, size.width - BG_PADDING * 2, 12, 0x30000000);
-        GuiDraw.drawStringC(this.recipeName, this.widget.w / 2, BG_PADDING + 2, 0xffffff);
+        final int titleColor = ColorUtils.recipeTitle.getColor();
+        GuiDraw.drawRect(BG_PADDING, BG_PADDING, size.width - BG_PADDING * 2, 12, ColorUtils.recipeTitleBG.getColor());
+        GuiDraw.drawStringC(this.recipeName, size.width / 2, BG_PADDING + 2, titleColor);
 
         if (this.multiplier > 0) {
             GuiDraw.drawString(
                     "x" + ReadableNumberConverter.INSTANCE.toWideReadableForm(this.multiplier),
                     BG_PADDING + 2,
                     BG_PADDING + 2,
-                    0xffffff);
+                    titleColor);
         }
+
+        this.widget.x = BG_PADDING + (getContentWidth() - this.widget.w) / 2;
 
         GuiHelper.useScissor(
                 this.widget.x,

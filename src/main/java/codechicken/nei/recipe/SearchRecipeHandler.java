@@ -3,6 +3,7 @@ package codechicken.nei.recipe;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
@@ -18,18 +19,19 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
 
     private List<Integer> filteredRecipes;
 
-    private List<Integer> searchRecipes;
+    private volatile List<Integer> searchRecipes;
 
-    public SearchRecipeHandler(H handler) {
+    private volatile int searchVersion;
+
+    public SearchRecipeHandler(H handler, IRecipeFilter filter) {
         this.original = handler;
 
         if (this.original.numRecipes() == 0) {
             this.filteredRecipes = Collections.emptyList();
         } else {
             final Stream<Integer> items = IntStream.range(0, this.original.numRecipes()).boxed();
-            final IRecipeFilter filter = this.searchingAvailable() ? GuiRecipe.getRecipeListFilter() : null;
 
-            if (filter == null) {
+            if (filter == null || !this.searchingAvailable()) {
                 this.filteredRecipes = items.collect(Collectors.toList());
             } else {
                 this.filteredRecipes = items.filter(recipe -> mathRecipe(this.original, recipe, filter))
@@ -64,39 +66,43 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
 
     public List<Integer> getSearchResult(IRecipeFilter filter) {
 
-        if (filteredRecipes.isEmpty() || !this.searchingAvailable()) {
+        if (this.filteredRecipes.isEmpty() || !this.searchingAvailable()) {
             return null;
         }
 
-        List<Integer> filtered = null;
-        final List<Integer> recipes = IntStream.range(0, filteredRecipes.size()).boxed().collect(Collectors.toList());
+        final List<Integer> positions = IntStream.range(0, this.filteredRecipes.size()).boxed()
+                .collect(Collectors.toList());
 
         try {
-            filtered = ItemList.forkJoinPool.submit(
-                    () -> recipes.parallelStream()
-                            .filter(recipe -> mathRecipe(this.original, filteredRecipes.get(recipe), filter))
+            return ItemList.forkJoinPool.submit(
+                    () -> positions.parallelStream()
+                            .filter(position -> mathRecipe(this.original, this.filteredRecipes.get(position), filter))
                             .collect(Collectors.toList()))
                     .get();
-
-            filtered.sort((a, b) -> a - b);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
 
-        return filtered;
+        return null;
     }
 
     public void setSearchIndices(List<Integer> searchRecipes) {
+        if (Objects.equals(this.searchRecipes, searchRecipes)) return;
         this.searchRecipes = searchRecipes;
+        this.searchVersion++;
+    }
+
+    public int getSearchVersion() {
+        return this.searchVersion;
     }
 
     public List<Integer> getFilteredRecipes() {
+        final List<Integer> search = this.searchRecipes;
 
-        if (this.searchRecipes == null) {
+        if (search == null) {
             return this.filteredRecipes;
         }
 
-        final List<Integer> search = this.searchRecipes;
         final List<Integer> resolved = new ArrayList<>(search.size());
 
         for (int idx : search) {
@@ -107,21 +113,18 @@ class SearchRecipeHandler<H extends IRecipeHandler> {
     }
 
     public int ref(int index) {
+        final List<Integer> search = this.searchRecipes;
 
-        if (searchRecipes != null) {
-            index = searchRecipes.get(index);
+        if (search != null) {
+            index = search.get(index);
         }
 
-        return filteredRecipes.get(index);
+        return this.filteredRecipes.get(index);
     }
 
     public int numRecipes() {
-
-        if (searchRecipes != null) {
-            return searchRecipes.size();
-        }
-
-        return filteredRecipes.size();
+        final List<Integer> search = this.searchRecipes;
+        return search != null ? search.size() : this.filteredRecipes.size();
     }
 
 }

@@ -11,8 +11,9 @@ import codechicken.nei.api.LayoutStyle;
 
 public class LayoutStyleMinecraft extends LayoutStyle {
 
-    protected static final int BUTTON_SIZE = 20;
-    protected static final int MARGIN = 2;
+    public static final int BUTTON_SIZE = 20;
+    public static final int MARGIN = 2;
+    public static final int SUBSET_BAR_HEIGHT = 16;
 
     public int buttonCount;
     public int leftSize;
@@ -147,7 +148,7 @@ public class LayoutStyleMinecraft extends LayoutStyle {
             LayoutManager.searchField.x += BUTTON_SIZE;
             LayoutManager.searchField.w -= BUTTON_SIZE;
         } else {
-            LayoutManager.dropDown.h = 16;
+            LayoutManager.dropDown.h = SUBSET_BAR_HEIGHT;
             LayoutManager.dropDown.w = 150;
             LayoutManager.dropDown.y = MARGIN;
             LayoutManager.dropDown.x = (gui.width - LayoutManager.dropDown.w) / 2;
