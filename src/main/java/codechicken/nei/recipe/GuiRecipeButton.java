@@ -7,9 +7,12 @@ import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.GuiScreenEvent;
 
+import com.gtnewhorizon.gtnhlib.color.ColorResource;
+
 import codechicken.lib.vec.Rectangle4i;
+import codechicken.nei.ColorUtils;
 import codechicken.nei.GuiNEIButton;
-import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.drawable.Drawable;
 import codechicken.nei.theme.ButtonSkin;
 import codechicken.nei.theme.UIWidgetTexture;
 import cpw.mods.fml.common.eventhandler.Cancelable;
@@ -62,21 +65,34 @@ public abstract class GuiRecipeButton extends GuiNEIButton {
         this.handlerRef = point;
     }
 
-    protected DrawableResource getIcon() {
+    protected Drawable getIcon(boolean mouseOver) {
         return null;
     }
 
+    protected int getIconColor(boolean mouseOver) {
+        return iconColor(
+                ColorUtils.buttonIconNormal,
+                ColorUtils.buttonIconHover,
+                ColorUtils.buttonIconDisabled,
+                mouseOver);
+    }
+
+    protected int iconColor(ColorResource normal, ColorResource hover, ColorResource disabled, boolean mouseOver) {
+        if (!this.enabled) return disabled.getColor();
+        return mouseOver ? hover.getColor() : normal.getColor();
+    }
+
     @Override
-    protected DrawableResource getBackground(int mouseX, int mouseY, boolean mouseOver) {
+    protected Drawable getBackground(int mouseX, int mouseY, boolean mouseOver) {
         return UIWidgetTexture.BUTTON.background(this.enabled, false, mouseOver);
     }
 
     @Override
     protected void drawContent(Minecraft minecraft, int mouseX, int mouseY, boolean mouseOver) {
-        final DrawableResource icon = getIcon();
+        final Drawable icon = getIcon(mouseOver);
 
         if (icon != null) {
-            ButtonSkin.drawIcon(this.xPosition, this.yPosition, this.width, this.height, icon, this.enabled);
+            ButtonSkin.drawIcon(this.xPosition, this.yPosition, this.width, this.height, icon, getIconColor(mouseOver));
         } else {
             super.drawContent(minecraft, mouseX, mouseY, mouseOver);
         }

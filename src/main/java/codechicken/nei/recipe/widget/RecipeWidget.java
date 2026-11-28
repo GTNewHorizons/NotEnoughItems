@@ -29,7 +29,7 @@ import codechicken.nei.PositionedStack;
 import codechicken.nei.Widget;
 import codechicken.nei.api.IGuiContainerOverlay;
 import codechicken.nei.api.ShortcutInputHandler;
-import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.drawable.Drawable;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.AcceptsFollowingTooltipLineHandler;
 import codechicken.nei.recipe.Badge;
@@ -49,7 +49,7 @@ import codechicken.nei.util.NEIMouseUtils;
 public class RecipeWidget extends Widget {
 
     protected static final int TICKS_PER_CYCLE = 20;
-    protected static final DrawableResource PAUSE_MARKER = UIRecipeTexture.ICON_PAUSE;
+    protected static final Drawable PAUSE_MARKER = UIRecipeTexture.ICON_PAUSE;
     protected static final int PAUSE_MARKER_OFFSET = 1;
 
     protected static final int BUTTON_GAP = 2;

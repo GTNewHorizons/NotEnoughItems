@@ -10,24 +10,24 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.ColorUtils;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemsTooltipLineHandler;
 import codechicken.nei.KeyManager;
-import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.IOverlayHandler;
 import codechicken.nei.bookmark.BookmarkGrid;
 import codechicken.nei.bookmark.BookmarkPayload;
-import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.drawable.Drawable;
 import codechicken.nei.theme.UIRecipeTexture;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class GuiOverlayButton extends GuiRecipeButton {
 
-    protected static DrawableResource notPresent = UIRecipeTexture.ITEM_MISSING;
-    protected static DrawableResource present = UIRecipeTexture.ITEM_PRESENT;
+    protected static Drawable notPresent = UIRecipeTexture.ITEM_MISSING;
+    protected static Drawable present = UIRecipeTexture.ITEM_PRESENT;
 
     public enum ItemOverlayFormat {
 
@@ -68,19 +68,17 @@ public class GuiOverlayButton extends GuiRecipeButton {
                                 this.slot.height,
                                 isPresent ? 0x8000AA00 : 0x80AA0000));
             } else {
-                final DrawableResource icon = isPresent ? present : notPresent;
-                LayoutManager.drawIcon(
-                        this.slot.relx + this.slot.width - icon.width,
-                        this.slot.rely + this.slot.height - icon.height,
-                        icon);
+                final Drawable icon = isPresent ? present : notPresent;
+                icon.draw(
+                        this.slot.relx + this.slot.width - icon.getWidth(),
+                        this.slot.rely + this.slot.height - icon.getHeight());
             }
 
         }
     }
 
-    protected static final DrawableResource ICON_FILL = UIRecipeTexture.ICON_OVERLAY_FILL;
-    protected static final DrawableResource ICON_FILL_ERROR = UIRecipeTexture.ICON_OVERLAY_FILL_ERROR;
-    protected static final DrawableResource ICON_OVERLAY = UIRecipeTexture.ICON_OVERLAY;
+    protected static final Drawable ICON_FILL = UIRecipeTexture.ICON_OVERLAY_FILL;
+    protected static final Drawable ICON_OVERLAY = UIRecipeTexture.ICON_OVERLAY;
     protected static final int BUTTON_ID_SHIFT = 4;
 
     public final GuiContainer firstGui;
@@ -193,12 +191,25 @@ public class GuiOverlayButton extends GuiRecipeButton {
     }
 
     @Override
-    protected DrawableResource getIcon() {
-        if (this.canFillCraftingGrid && (!requireShiftForOverlayRecipe() || NEIClientUtils.shiftKey())) {
-            return this.missedMaterialsTooltipLineHandler == null ? ICON_FILL : ICON_FILL_ERROR;
+    protected Drawable getIcon(boolean mouseOver) {
+        return isFillMode() ? ICON_FILL : ICON_OVERLAY;
+    }
+
+    @Override
+    protected int getIconColor(boolean mouseOver) {
+        if (isFillMode() && this.missedMaterialsTooltipLineHandler != null) {
+            return iconColor(
+                    ColorUtils.buttonIconOverlayErrorNormal,
+                    ColorUtils.buttonIconOverlayErrorHover,
+                    ColorUtils.buttonIconOverlayErrorDisabled,
+                    mouseOver);
         }
 
-        return ICON_OVERLAY;
+        return super.getIconColor(mouseOver);
+    }
+
+    private boolean isFillMode() {
+        return this.canFillCraftingGrid && (!requireShiftForOverlayRecipe() || NEIClientUtils.shiftKey());
     }
 
     @Override

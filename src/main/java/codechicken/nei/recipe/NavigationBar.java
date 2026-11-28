@@ -10,7 +10,7 @@ import codechicken.nei.Button;
 import codechicken.nei.ColorUtils;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.Widget;
-import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.drawable.Drawable;
 import codechicken.nei.theme.UIRecipeTexture;
 import codechicken.nei.theme.UIWidgetTexture;
 
@@ -18,11 +18,11 @@ class NavigationBar extends Widget {
 
     protected class NavButton extends Button {
 
-        private final DrawableResource icon;
+        private final Drawable icon;
         private final Runnable action;
         private final BooleanSupplier isEnabled;
 
-        protected NavButton(DrawableResource icon, BooleanSupplier isEnabled, Runnable action) {
+        protected NavButton(Drawable icon, BooleanSupplier isEnabled, Runnable action) {
             this.icon = icon;
             this.action = action;
             this.isEnabled = isEnabled;

@@ -9,7 +9,7 @@ import java.util.function.BooleanSupplier;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.Button;
 import codechicken.nei.NEIClientConfig;
-import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.drawable.Drawable;
 import codechicken.nei.theme.UIRecipeTexture;
 import codechicken.nei.theme.UIWidgetTexture;
 
@@ -28,10 +28,10 @@ public class GuiRecipeTabs {
 
     private static class TabArrowButton extends Button {
 
-        private final DrawableResource icon;
+        private final Drawable icon;
         private final BooleanSupplier action;
 
-        private TabArrowButton(DrawableResource icon, BooleanSupplier action) {
+        private TabArrowButton(Drawable icon, BooleanSupplier action) {
             this.icon = icon;
             this.action = action;
             this.w = 8;

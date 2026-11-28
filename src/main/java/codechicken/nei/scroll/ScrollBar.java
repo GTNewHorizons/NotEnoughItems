@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.vec.Rectangle4i;
 import codechicken.nei.NEIClientUtils;
-import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.drawable.Drawable;
 import codechicken.nei.theme.UIWidgetTexture;
 
 public class ScrollBar {
@@ -52,8 +52,8 @@ public class ScrollBar {
     private int trackPaddingTop = 0;
     private int trackPaddingBottom = 0;
 
-    private DrawableResource thumbTexture;
-    private DrawableResource trackTexture;
+    private Drawable thumbTexture;
+    private Drawable trackTexture;
 
     public static ScrollBar defaultScrollBar() {
         return new ScrollBar();
@@ -72,7 +72,7 @@ public class ScrollBar {
     /**
      * Sets the size of the scrollbar without texture in the non-scrolling axis (width for vertical, height for
      * horizontal).
-     * 
+     *
      * @param trackWidth
      * @return
      */
@@ -117,12 +117,12 @@ public class ScrollBar {
         return getTrackWidth();
     }
 
-    public ScrollBar setThumbTexture(DrawableResource texture) {
+    public ScrollBar setThumbTexture(Drawable texture) {
         this.thumbTexture = texture;
         return this;
     }
 
-    public ScrollBar setTrackTexture(DrawableResource texture) {
+    public ScrollBar setTrackTexture(Drawable texture) {
         this.trackTexture = texture;
         return this;
     }
@@ -404,7 +404,7 @@ public class ScrollBar {
         NEIClientUtils.drawRect(bounds.x, bounds.y, bounds.w, bounds.h, thumbColor);
     }
 
-    private void drawTexture(DrawableResource texture, Rectangle4i bounds, boolean disabled, float opacity) {
+    private void drawTexture(Drawable texture, Rectangle4i bounds, boolean disabled, float opacity) {
         final float c = disabled ? 0.65f : 1f;
 
         GL11.glColor4f(c, c, c, opacity);

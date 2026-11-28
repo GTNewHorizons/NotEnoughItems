@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import codechicken.nei.NEIClientUtils;
-import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.drawable.Drawable;
 import codechicken.nei.recipe.GuiRecipeButton;
 import codechicken.nei.recipe.Recipe;
 import codechicken.nei.recipe.RecipeHandlerRef;
@@ -40,7 +40,7 @@ public class TreeOverlayButton extends GuiRecipeButton {
     }
 
     @Override
-    protected DrawableResource getIcon() {
+    protected Drawable getIcon(boolean mouseOver) {
         return UIRecipeTexture.ICON_OVERLAY_FILL;
     }
 

@@ -2,6 +2,7 @@ package codechicken.nei.theme;
 
 import net.minecraft.util.ResourceLocation;
 
+import codechicken.nei.drawable.Drawable;
 import codechicken.nei.drawable.DrawableResource;
 
 public final class UISprite {
@@ -10,24 +11,24 @@ public final class UISprite {
 
     private UISprite() {}
 
-    public static DrawableResource of(String name, int w, int h, int[] margin, int[] slice) {
+    public static Drawable of(String name, int w, int h, int[] margin, int[] slice) {
         return frames(name, w, h, 1, margin, slice)[0];
     }
 
-    public static DrawableResource of(String name, int w, int h) {
+    public static Drawable of(String name, int w, int h) {
         return of(name, w, h, DEFAULT_SPACE, DEFAULT_SPACE);
     }
 
-    public static DrawableResource[] frames(String name, int w, int h, int count) {
+    public static Drawable[] frames(String name, int w, int h, int count) {
         return frames(name, w, h, count, DEFAULT_SPACE, DEFAULT_SPACE);
     }
 
     // frames are stacked top to bottom and each includes the margin; {left, top, right, bottom}
-    public static DrawableResource[] frames(String name, int w, int h, int count, int[] margin, int[] slice) {
+    public static Drawable[] frames(String name, int w, int h, int count, int[] margin, int[] slice) {
         final ResourceLocation texture = new ResourceLocation("nei", "textures/gui/" + name + ".png");
         final int frameWidth = w + margin[0] + margin[2];
         final int frameHeight = h + margin[1] + margin[3];
-        final DrawableResource[] frames = new DrawableResource[count];
+        final Drawable[] frames = new Drawable[count];
 
         for (int i = 0; i < count; i++) {
             frames[i] = new DrawableResource(

@@ -7,13 +7,13 @@ import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.GL11;
 
+import codechicken.nei.drawable.Drawable;
 import codechicken.nei.drawable.DrawableBuilder;
-import codechicken.nei.drawable.DrawableResource;
 
 public class GuiNEIButton extends GuiButton {
 
     protected static final ResourceLocation guiTex = new ResourceLocation("textures/gui/widgets.png");
-    private static final DrawableResource[] BACKGROUNDS = new DrawableResource[3];
+    private static final Drawable[] BACKGROUNDS = new Drawable[3];
 
     static {
         for (int state = 0; state < BACKGROUNDS.length; state++) {
@@ -25,7 +25,7 @@ public class GuiNEIButton extends GuiButton {
         super(i, j, k, l, i1, s);
     }
 
-    protected DrawableResource getBackground(int mouseX, int mouseY, boolean mouseOver) {
+    protected Drawable getBackground(int mouseX, int mouseY, boolean mouseOver) {
         return BACKGROUNDS[getHoverState(mouseOver)];
     }
 
@@ -52,8 +52,8 @@ public class GuiNEIButton extends GuiButton {
     }
 
     protected void drawContent(Minecraft minecraft, int x, int y, boolean mouseOver) {
-        FontRenderer fontrenderer = minecraft.fontRenderer;
-        int color = getTextColour(mouseOver);
+        final FontRenderer fontrenderer = minecraft.fontRenderer;
+        final int color = getTextColour(mouseOver);
 
         drawCenteredString(fontrenderer, displayString, xPosition + width / 2, yPosition + (height - 8) / 2, color);
     }

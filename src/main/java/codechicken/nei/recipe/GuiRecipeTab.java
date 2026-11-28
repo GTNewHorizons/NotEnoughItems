@@ -25,7 +25,7 @@ import codechicken.nei.ColorUtils;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.Widget;
-import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.drawable.Drawable;
 import codechicken.nei.event.NEIRegisterHandlerInfosEvent;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.recipe.debug.DebugHandlerWidget;
@@ -69,7 +69,7 @@ public abstract class GuiRecipeTab extends Widget {
     }
 
     private void drawBackground(int mouseX, int mouseY) {
-        final DrawableResource image = this.selected ? UIRecipeTexture.TAB_SELECTED : UIRecipeTexture.TAB_UNSELECTED;
+        final Drawable image = this.selected ? UIRecipeTexture.TAB_SELECTED : UIRecipeTexture.TAB_UNSELECTED;
 
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glColor4f(1, 1, 1, 1);
@@ -78,7 +78,7 @@ public abstract class GuiRecipeTab extends Widget {
 
     private void drawForeground(int mouseX, int mouseY) {
         final HandlerInfo handlerInfo = getHandlerInfo(this.handlerName, this.handlerID);
-        final DrawableResource icon = handlerInfo != null ? handlerInfo.getImage() : null;
+        final Drawable icon = handlerInfo != null ? handlerInfo.getImage() : null;
         final ItemStack itemStack = handlerInfo != null ? handlerInfo.getItemStack() : null;
         final int iconX = this.x + (this.w - 16) / 2;
         final int iconY = this.y + this.h - 16 - 6;

@@ -13,27 +13,25 @@ import net.minecraft.item.ItemStack;
 
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.BookmarkPanel.BookmarkViewMode;
+import codechicken.nei.ColorUtils;
 import codechicken.nei.FavoriteRecipes;
-import codechicken.nei.Image;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemStackSet;
 import codechicken.nei.KeyManager;
-import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.bookmark.tree.GuiCraftingTree;
-import codechicken.nei.drawable.DrawableResource;
+import codechicken.nei.drawable.Drawable;
 import codechicken.nei.recipe.Recipe.RecipeId;
 import codechicken.nei.recipe.Recipe.RecipeIngredient;
+import codechicken.nei.theme.ButtonSkin;
 import codechicken.nei.theme.UIRecipeTexture;
 import codechicken.nei.util.NEIMouseUtils;
 
 public class GuiFavoriteButton extends GuiRecipeButton {
 
     private static final int BUTTON_ID_START = 14;
-
-    protected static final DrawableResource ICON_STATE_OFF = UIRecipeTexture.ICON_FAVORITE_OFF;
-    protected static final DrawableResource ICON_STATE_ON = UIRecipeTexture.ICON_FAVORITE_ON;
+    protected static final Drawable ICON_FAVORITE = UIRecipeTexture.ICON_FAVORITE;
 
     protected final Recipe recipe;
     protected boolean favorite = false;
@@ -82,8 +80,21 @@ public class GuiFavoriteButton extends GuiRecipeButton {
     }
 
     @Override
-    protected DrawableResource getIcon() {
-        return isFavorite() ? ICON_STATE_ON : ICON_STATE_OFF;
+    protected Drawable getIcon(boolean mouseOver) {
+        return ICON_FAVORITE;
+    }
+
+    @Override
+    protected int getIconColor(boolean mouseOver) {
+        if (isFavorite()) {
+            return iconColor(
+                    ColorUtils.buttonIconFavoriteNormal,
+                    ColorUtils.buttonIconFavoriteHover,
+                    ColorUtils.buttonIconFavoriteDisabled,
+                    mouseOver);
+        }
+
+        return super.getIconColor(mouseOver);
     }
 
     @Override
@@ -164,11 +175,13 @@ public class GuiFavoriteButton extends GuiRecipeButton {
                         this.selectedResult.height,
                         0x66333333));
 
-        final Image icon = isFavorite() ? ICON_STATE_ON : ICON_STATE_OFF;
-        final int iconX = this.selectedResult.relx + (this.selectedResult.width - icon.width) / 2;
-        final int iconY = this.selectedResult.rely + (this.selectedResult.height + 2 - icon.height) / 2;
-
-        LayoutManager.drawIcon(iconX, iconY, icon);
+        ButtonSkin.drawIcon(
+                this.selectedResult.relx,
+                this.selectedResult.rely,
+                this.selectedResult.width,
+                this.selectedResult.height + 2,
+                ICON_FAVORITE,
+                getIconColor(false));
     }
 
     @Override
